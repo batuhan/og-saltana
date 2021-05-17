@@ -41,9 +41,7 @@ export function getSaltanaCoreEnv() {
 }
 
 export function initSaltanaCoreSdk({apiBaseURL, apiKey}) {
-
-    console.warn(apiBaseURL)
-    const saltanaCore = createInstance({apiKey, apiVersion})
+    let apiHost, apiPort, apiProtocol;
 
     if (apiBaseURL) {
         const parsedUrl = new URL(apiBaseURL)
@@ -52,9 +50,13 @@ export function initSaltanaCoreSdk({apiBaseURL, apiKey}) {
         const {port} = parsedUrl
         const protocol = parsedUrl.protocol.slice(0, -1)
 
-        saltanaCore.setHost(host, port, protocol)
-        console.log(host, port, protocol)
+        apiHost = host
+        apiPort = port
+        apiProtocol = protocol
+        // saltanaCore.setHost(host, port, protocol)
     }
+
+    const saltanaCore = createInstance({apiKey, apiVersion, apiHost, apiPort, apiProtocol})
 
     return saltanaCore
 }

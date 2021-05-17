@@ -81,14 +81,17 @@ export class Stelace {
       apiKey,
       apiVersion,
       tokenStore,
-      beforeRefreshToken
+      beforeRefreshToken,
+      apiHost = Stelace.DEFAULT_HOST,
+      apiProtocol =  Stelace.DEFAULT_PROTOCOL,
+      apiPort = Stelace.DEFAULT_PORT,
     } = params
 
     this._api = {
       key: null,
-      host: Stelace.DEFAULT_HOST,
-      protocol: Stelace.DEFAULT_PROTOCOL,
-      port: Stelace.DEFAULT_PORT,
+      host: apiHost,
+      protocol: apiProtocol,
+      port: apiPort,
       version: Stelace.DEFAULT_API_VERSION,
       timeout: Stelace.DEFAULT_TIMEOUT,
       tokenStore: null,
@@ -220,13 +223,13 @@ export class Stelace {
   }
 }
 
-Stelace.DEFAULT_HOST = 'api.stelace.com'
+Stelace.DEFAULT_HOST = 'api.saltana.com'
 Stelace.DEFAULT_PROTOCOL = 'https'
 Stelace.DEFAULT_PORT = 443
 Stelace.DEFAULT_API_VERSION = null
 Stelace.DEFAULT_TIMEOUT = 30 * 1000 // 30s
 Stelace.PACKAGE_VERSION = __VERSION__
-Stelace.USER_AGENT_STRING = `Stelace/${Stelace.PACKAGE_VERSION}`
+Stelace.USER_AGENT_STRING = `Saltana/${Stelace.PACKAGE_VERSION}`
 
 export const createInstance = (...args) => {
   return new Stelace(...args)
