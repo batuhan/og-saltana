@@ -17,6 +17,18 @@ Auth.prototype.login = method({
   }
 })
 
+Auth.prototype.loginMagic = method({
+  path: '/auth/login/magic',
+  method: 'POST',
+  afterRequest: (res, self) => {
+    const tokenStore = self._stelace.getApiField('tokenStore')
+
+    tokenStore.setTokens(res)
+
+    return res
+  }
+})
+
 Auth.prototype.logout = method({
   path: '/auth/logout',
   method: 'POST',

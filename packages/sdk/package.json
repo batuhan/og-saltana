@@ -1,5 +1,5 @@
 {
-  "name": "stelace",
+  "name": "@saltana/sdk",
   "version": "0.14.0",
   "description": "Server and front-end client for Stelace API",
   "main": "dist/stelace.node.js",
@@ -19,6 +19,7 @@
     "test:prepush": "npm run build && npm run test",
     "release": "standard-version"
   },
+  "workspace": true,
   "author": "Stelace Team",
   "license": "MIT",
   "homepage": "https://stelace.com",

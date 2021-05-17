@@ -1,4 +1,4 @@
-import { createInstance } from 'stelace'
+import {createInstance} from '@saltana/sdk'
 
 const apiBaseURL = process.env.SALTANA_CORE_API_BASE
 const apiKey = process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY
@@ -9,7 +9,7 @@ const MAX_RESULTS_PER_PAGE = 100 // cf. Saltana API reference for pagination det
 
 if (!apiKey) throw new Error('Missing Saltana publishable API key')
 
-const api = initSaltanaCoreSdk({ apiBaseURL, apiKey })
+const api = initSaltanaCoreSdk({apiBaseURL, apiKey})
 
 export default api
 
@@ -19,14 +19,14 @@ export default api
  * @param {Object} [params]
  * @return {Object[]} allResults
  */
-export async function fetchAllResults (fetchFn, params = {}) {
+export async function fetchAllResults(fetchFn, params = {}) {
     const nbResultsPerPage = MAX_RESULTS_PER_PAGE
     let page = 1
     let allResults = []
     let results
 
     do {
-        const passedParameters = { ...params, page, nbResultsPerPage}
+        const passedParameters = {...params, page, nbResultsPerPage}
         results = await fetchFn(passedParameters)
         page += 1
 
@@ -36,14 +36,14 @@ export async function fetchAllResults (fetchFn, params = {}) {
     return allResults
 }
 
-export function getSaltanaCoreEnv () {
+export function getSaltanaCoreEnv() {
     return apiKey.includes('_live_') ? 'live' : 'test'
 }
 
-export function initSaltanaCoreSdk ({ apiBaseURL, apiKey }) {
+export function initSaltanaCoreSdk({apiBaseURL, apiKey}) {
 
     console.warn(apiBaseURL)
-    const saltanaCore = createInstance({ apiKey, apiVersion })
+    const saltanaCore = createInstance({apiKey, apiVersion})
 
     if (apiBaseURL) {
         const parsedUrl = new URL(apiBaseURL)
