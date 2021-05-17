@@ -2990,7 +2990,7 @@ __metadata:
     "@emotion/styled": ^11.3.0
     "@hapi/iron": 6.0.0
     "@magic-sdk/admin": ^1.3.0
-    "@saltana/sdk": "workspace:*"
+    "@saltana/sdk": "workspace:packages/sdk"
     "@semantic-release/changelog": ^5.0.1
     "@semantic-release/git": ^9.0.0
     "@stripe/react-stripe-js": ^1.4.0
@@ -3027,7 +3027,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@saltana/sdk@workspace:*, @saltana/sdk@workspace:packages/sdk":
+"@saltana/sdk@workspace:packages/sdk":
   version: 0.0.0-use.local
   resolution: "@saltana/sdk@workspace:packages/sdk"
   dependencies:
