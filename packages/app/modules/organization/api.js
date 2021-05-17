@@ -1,5 +1,5 @@
-import api from "../api/instance"
 import {useQuery} from 'react-query'
+import api from "../api/instance"
 
 export function useOrganization({userId}) {
     const {isLoading, isError, data, error} = useQuery(`organization/${userId}`, () => api.users.read(userId))

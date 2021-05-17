@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "commit": "git-cz",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix ."
+    "commit": "git-cz"
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.0.5",

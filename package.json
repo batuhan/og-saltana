@@ -4,6 +4,10 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
+  },
   "devDependencies": {
     "eslint": "^7.18.0",
     "eslint-config-airbnb": "^18.2.1",
@@ -18,7 +22,7 @@
     "prettier": "^2.2.1"
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": [
+    "packages/**/*.{js,jsx,ts,tsx}": [
       "eslint",
       "prettier --write"
     ]

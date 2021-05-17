@@ -6,12 +6,8 @@ import '@uppy/core/dist/style.css'
 import '@uppy/dashboard/dist/style.css'
 
 export default function Uploader (props) {
-    const uppy = React.useMemo(() => {
-        return Uppy()
-    }, [])
-    React.useEffect(() => {
-        return () => uppy.close()
-    }, [])
+    const uppy = React.useMemo(() => Uppy(), [])
+    React.useEffect(() => () => uppy.close(), [])
 
     return (
         <Dashboard

@@ -29,9 +29,9 @@ export default NextAuth({
                 if (user) {
                     // Any user object returned here will be saved in the JSON Web Token
                     return user
-                } else {
+                } 
                     return null
-                }
+                
             }
         })
     ],

@@ -1,13 +1,13 @@
 import {Box, Button, chakra, FormControl, FormLabel, Heading, Input, Stack, useColorModeValue,} from '@chakra-ui/react'
-import {Card} from '../components/Card'
 
 import {useForm} from 'react-hook-form';
 import Router from 'next/router'
-import {magic} from "../modules/auth/magic";
 
 import {signIn, useSession} from 'next-auth/client'
 import {useMutation} from "react-query";
 import axios from "axios";
+import {magic} from "../modules/auth/magic";
+import {Card} from '../components/Card'
 
 async function login(email) {
     try {
@@ -39,7 +39,7 @@ function LoginForm() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: 'Bearer ' + didToken,
+                    Authorization: `Bearer ${  didToken}`,
                 },
                 body: JSON.stringify({email}),
             })

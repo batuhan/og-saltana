@@ -26,7 +26,7 @@ export async function fetchAllResults (fetchFn, params = {}) {
     let results
 
     do {
-        const passedParameters = Object.assign({}, params, { page, nbResultsPerPage })
+        const passedParameters = { ...params, page, nbResultsPerPage}
         results = await fetchFn(passedParameters)
         page += 1
 
@@ -49,7 +49,7 @@ export function initSaltanaCoreSdk ({ apiBaseURL, apiKey }) {
         const parsedUrl = new URL(apiBaseURL)
 
         const host = parsedUrl.hostname
-        const port = parsedUrl.port
+        const {port} = parsedUrl
         const protocol = parsedUrl.protocol.slice(0, -1)
 
         saltanaCore.setHost(host, port, protocol)
