@@ -60,7 +60,7 @@ const resources = {
   Transactions,
   Users,
   Webhooks,
-  Workflows
+  Workflows,
 }
 
 // export Stelace for tests
@@ -72,9 +72,11 @@ export class Stelace {
    * @param {Object} [params.tokenStore]
    * @param {Function} [params.beforeRefreshToken]
    */
-  constructor (params) {
+  constructor(params) {
     if (!params || typeof params !== 'object') {
-      throw new Error('A configuration object is expected to initialize Stelace')
+      throw new Error(
+        'A configuration object is expected to initialize Stelace'
+      )
     }
 
     const {
@@ -83,7 +85,7 @@ export class Stelace {
       tokenStore,
       beforeRefreshToken,
       apiHost = Stelace.DEFAULT_HOST,
-      apiProtocol =  Stelace.DEFAULT_PROTOCOL,
+      apiProtocol = Stelace.DEFAULT_PROTOCOL,
       apiPort = Stelace.DEFAULT_PORT,
     } = params
 
@@ -97,7 +99,7 @@ export class Stelace {
       tokenStore: null,
       beforeRefreshToken: null,
       organizationId: null,
-      errorListeners: {}
+      errorListeners: {},
     }
 
     this._initResources()
@@ -109,7 +111,7 @@ export class Stelace {
     this.setBeforeRefreshToken(beforeRefreshToken)
   }
 
-  setHost (host, port, protocol) {
+  setHost(host, port, protocol) {
     this._setApiField('host', host)
     if (port) {
       this.setPort(port)
@@ -119,35 +121,38 @@ export class Stelace {
     }
   }
 
-  setProtocol (protocol) {
+  setProtocol(protocol) {
     this._setApiField('protocol', protocol.toLowerCase())
   }
 
-  setPort (port) {
+  setPort(port) {
     this._setApiField('port', port)
   }
 
-  setApiVersion (key) {
+  setApiVersion(key) {
     if (key) {
       this._setApiField('version', key)
     }
   }
 
-  setApiKey (key) {
+  setApiKey(key) {
     if (key) {
       this._setApiField('key', key)
     }
   }
 
-  setTimeout (timeout) {
-    this._setApiField('timeout', typeof timeout === 'number' ? timeout : Stelace.DEFAULT_TIMEOUT)
+  setTimeout(timeout) {
+    this._setApiField(
+      'timeout',
+      typeof timeout === 'number' ? timeout : Stelace.DEFAULT_TIMEOUT
+    )
   }
 
-  getTokenStore () {
+  getTokenStore() {
     return this.getApiField('tokenStore') || null
   }
 
-  setTokenStore (tokenStore) {
+  setTokenStore(tokenStore) {
     const validTokenStore = this.isValidTokenStore(tokenStore)
 
     if (validTokenStore) {
@@ -155,65 +160,71 @@ export class Stelace {
     }
   }
 
-  isValidTokenStore (tokenStore) {
-    return tokenStore &&
+  isValidTokenStore(tokenStore) {
+    return (
+      tokenStore &&
       typeof tokenStore === 'object' &&
       typeof tokenStore.getTokens === 'function' &&
       typeof tokenStore.setTokens === 'function' &&
       typeof tokenStore.removeTokens === 'function'
+    )
   }
 
-  setBeforeRefreshToken (beforeRefreshToken) {
+  setBeforeRefreshToken(beforeRefreshToken) {
     if (typeof beforeRefreshToken !== 'function') return
 
     this._setApiField('beforeRefreshToken', beforeRefreshToken)
   }
 
-  setOrganizationId (organizationId) {
+  setOrganizationId(organizationId) {
     this._setApiField('organizationId', organizationId)
   }
 
-  getApiField (key) {
+  getApiField(key) {
     return this._api[key]
   }
 
-  _setApiField (key, value) {
+  _setApiField(key, value) {
     this._api[key] = value
   }
 
-  getConstant (c) {
+  getConstant(c) {
     return Stelace[c]
   }
 
-  getUserAgent () {
+  getUserAgent() {
     let browserUserAgent
     if (typeof window !== 'undefined') {
       browserUserAgent = window.navigator && window.navigator.userAgent
     }
 
-    return Stelace.USER_AGENT_STRING + (browserUserAgent ? ' ' + browserUserAgent : '')
+    return (
+      Stelace.USER_AGENT_STRING +
+      (browserUserAgent ? ' ' + browserUserAgent : '')
+    )
   }
 
-  _initResources () {
+  _initResources() {
     for (const name in resources) {
       const key = name[0].toLowerCase() + name.substring(1)
       this[key] = new resources[name](this)
     }
   }
 
-  onError (type, callback) {
-    if (!errorTypes.includes(type)) throw new Error(`Invalid error type: ${type}`)
+  onError(type, callback) {
+    if (!errorTypes.includes(type))
+      throw new Error(`Invalid error type: ${type}`)
 
     const allListeners = this.getApiField('errorListeners')
     allListeners[type] = allListeners[type] || []
     allListeners[type].push(callback)
 
-    return function unsubscribe () {
+    return function unsubscribe() {
       allListeners[type] = allListeners[type].filter(cb => cb !== callback)
     }
   }
 
-  _emitError (type, error) {
+  _emitError(type, error) {
     const allListeners = this.getApiField('errorListeners')
 
     const typeListeners = allListeners[type] || []
@@ -223,12 +234,12 @@ export class Stelace {
   }
 }
 
-Stelace.DEFAULT_HOST = 'api.saltana.com'
-Stelace.DEFAULT_PROTOCOL = 'https'
-Stelace.DEFAULT_PORT = 443
+Stelace.DEFAULT_HOST = 'localhost'
+Stelace.DEFAULT_PROTOCOL = 'http'
+Stelace.DEFAULT_PORT = 4100
 Stelace.DEFAULT_API_VERSION = null
 Stelace.DEFAULT_TIMEOUT = 30 * 1000 // 30s
-Stelace.PACKAGE_VERSION = __VERSION__
+Stelace.PACKAGE_VERSION = '1.0'
 Stelace.USER_AGENT_STRING = `Saltana/${Stelace.PACKAGE_VERSION}`
 
 export const createInstance = (...args) => {
