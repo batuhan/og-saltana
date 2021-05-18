@@ -1,39 +1,51 @@
 import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
-import axios from "axios"
+import sortBy from 'lodash.sortby'
+import api from '../../../modules/api/instance-admin'
+
+async function getUserById(userId) {
+  const naturalUser = await api.users.read(userId, {
+    stelaceOrganizationId: null,
+  })
+
+  const organizationsIds = Object.keys(naturalUser.organizations)
+
+  const promises = organizationsIds.map(organizationId => {
+    return api.users.read(organizationId, {
+      stelaceOrganizationId: organizationId,
+    })
+  })
+
+  const organizations = await Promise.all(promises)
+
+  const userData = {
+    ...naturalUser,
+    organizations: sortBy(organizations, org => org.createdDate),
+  }
+
+  return userData
+}
 
 export default NextAuth({
-    // Configure one or more authentication providers
-    providers: [
-        Providers.Credentials({
-            // The name to display on the sign in form (e.g. 'Sign in with...')
-            name: 'magic',
-            // The credentials is used to generate a suitable form on the sign in page.
-            // You can specify whatever fields you are expecting to be submitted.
-            // e.g. domain, username, password, 2FA token, etc.
-            credentials: {
-                token: { label: "token", type: "text" },
-            },
-            async authorize(credentials, req) {
-                const user = (credentials, req) => {
-
-                    axios.post(`${process.env.SALTANA_CORE_API_BASE}`)
-                    // You need to provide your own logic here that takes the credentials
-                    // submitted and returns either a object representing a user or value
-                    // that is false/null if the credentials are invalid.
-                    // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
-                    // You can also use the request object to obtain additional parameters
-                    // (i.e., the request IP address)
-                    return null
-                }
-                if (user) {
-                    // Any user object returned here will be saved in the JSON Web Token
-                    return user
-                } 
-                    return null
-                
-            }
-        })
-    ],
-
+  // Configure one or more authentication providers
+  providers: [
+    Providers.Credentials({
+      // The name to display on the sign in form (e.g. 'Sign in with...')
+      name: 'credentials',
+      // The credentials is used to generate a suitable form on the sign in page.
+      // You can specify whatever fields you are expecting to be submitted.
+      // e.g. domain, username, password, 2FA token, etc.
+      credentials: {
+        token: { label: 'token', type: 'text' },
+      },
+      async authorize({ token }, req) {
+        try {
+          const user = await api.auth.loginMagic({
+            token,
+          })
+          return getUserById(user.userId)
+        } catch (err) {}
+      },
+    }),
+  ],
 })

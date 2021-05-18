@@ -6,21 +6,21 @@ import {
   clone,
   isBrowser,
   pickBy,
-  encodeBase64
+  encodeBase64,
 } from './utils'
 
 export default class Resource {
-  constructor (stelace) {
+  constructor(stelace) {
     this._stelace = stelace
   }
 
-  _request ({ path, method, data, queryParams, options = {} }) {
+  _request({ path, method, data, queryParams, options = {} }) {
     const requestParams = {
       url: path,
       method,
       baseURL: this.getBaseURL(),
       headers: this._prepareHeaders(options),
-      timeout: this._stelace.getApiField('timeout')
+      timeout: this._stelace.getApiField('timeout'),
     }
 
     if (queryParams && Object.keys(queryParams).length) {
@@ -35,13 +35,13 @@ export default class Resource {
       .catch(this._errorHandler)
   }
 
-  _responseHandler (res) {
+  _responseHandler(res) {
     const response = clone(res.data)
     const headers = res.headers || {}
 
     const lastResponse = {
       requestId: headers['x-request-id'],
-      statusCode: res.status
+      statusCode: res.status,
     }
 
     addReadOnlyProperty(response, 'lastResponse', lastResponse)
@@ -49,7 +49,7 @@ export default class Resource {
     return response
   }
 
-  _errorHandler (err) {
+  _errorHandler(err) {
     if (!err.response) throw err
 
     const rawResponse = Object.assign({}, err.response)
@@ -58,7 +58,7 @@ export default class Resource {
 
     const lastResponse = {
       requestId: headers['x-request-id'],
-      statusCode: rawResponse.status
+      statusCode: rawResponse.status,
     }
 
     addReadOnlyProperty(error, 'lastResponse', lastResponse)
@@ -66,11 +66,11 @@ export default class Resource {
     throw error
   }
 
-  _prepareHeaders (options) {
+  _prepareHeaders(options) {
     const apiKey = this._stelace.getApiField('key')
     const headers = {}
 
-    // Migrating to 'Authorization: Basic|Bearer|Stelace-V1' header
+    // Migrating to 'Authorization: Basic|Bearer|SaltanaCore-V1' header
     const authorization = options.headers && options.headers.authorization // can only be Bearer token
     let token = authorization && /Bearer\s+([^\s]*)/i.exec(authorization)
     token = token && token[1]
@@ -78,8 +78,10 @@ export default class Resource {
     // https://tools.ietf.org/html/draft-ietf-httpbis-p7-auth-19#appendix-B
     // Note that Stelace API header content parsing is case-insensitive
     // But we use casing for clarity here, as in 'apiKey'
-    if (token) headers.authorization = `Stelace-V1 apiKey=${apiKey}, token=${token}`
-    else if (apiKey) headers.authorization = `Basic ${encodeBase64(apiKey + ':')}`
+    if (token)
+      headers.authorization = `SaltanaCore-V1 apiKey=${apiKey}, token=${token}`
+    else if (apiKey)
+      headers.authorization = `Basic ${encodeBase64(apiKey + ':')}`
 
     // cannot set the user agent in browser environment for security reasons
     // https://github.com/axios/axios/issues/1231
@@ -92,24 +94,26 @@ export default class Resource {
     if (organizationId) headers['x-stelace-organization-id'] = organizationId
 
     if (options.headers) {
-      Object.assign(headers, pickBy(options.headers, (v, k) => k.toLowerCase() !== 'authorization'))
+      Object.assign(
+        headers,
+        pickBy(options.headers, (v, k) => k.toLowerCase() !== 'authorization')
+      )
     }
 
     return pickBy(headers)
   }
 
-  getBaseURL () {
+  getBaseURL() {
     const protocol = this._stelace.getApiField('protocol')
     const host = this._stelace.getApiField('host')
     const port = this._stelace.getApiField('port')
 
-    return protocol +
-      '://' +
-      host +
-      ([80, 443].includes(port) ? '' : `:${port}`)
+    return (
+      protocol + '://' + host + ([80, 443].includes(port) ? '' : `:${port}`)
+    )
   }
 
-  static addBasicMethods (resource, { path, includeBasic = [] }) {
+  static addBasicMethods(resource, { path, includeBasic = [] }) {
     const basicMethods = getBasicMethods(path, method)
 
     includeBasic.forEach(name => {

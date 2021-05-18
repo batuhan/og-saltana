@@ -2,45 +2,45 @@ import test from 'blue-tape'
 
 import { getStelaceStub, encodeJwtToken } from '../../testUtils'
 
-function initStubbedRequests (stelace) {
+function initStubbedRequests(stelace) {
   const baseURL = stelace.auth.getBaseURL()
   stelace.stubRequest(`${baseURL}/relative/url`, {
     status: 200,
     method: 'any',
     response: {
-      success: true
-    }
+      success: true,
+    },
   })
 
   stelace.stubRequest('https://absolute-url.com/with/path', {
     status: 200,
     method: 'any',
     response: {
-      test: true
-    }
+      test: true,
+    },
   })
 
   const response = {
     tokenType: 'Bearer',
     userId: 'user_1',
     accessToken: encodeJwtToken({ userId: 'user_1' }, { expiresIn: '1h' }),
-    refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
+    refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4',
   }
 
   stelace.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
-      'x-request-id': 'f1f25173-32a5-48da-aa2f-0079568abea0'
+      'x-request-id': 'f1f25173-32a5-48da-aa2f-0079568abea0',
     },
-    response
+    response,
   })
 }
 
-function checkForwardResponse ({ t, stelace, method, data }) {
+function checkForwardResponse({ t, stelace, method, data }) {
   const promiseFn = (url, data) => {
     const mapMethods = {
-      delete: 'del'
+      delete: 'del',
     }
 
     const m = mapMethods[method] || method
@@ -86,14 +86,14 @@ function checkForwardResponse ({ t, stelace, method, data }) {
 
       t.is(request.config.method, method)
       t.is(request.config.url, 'https://absolute-url.com/with/path')
-      t.true(headers.authorization.startsWith('Stelace-V1'))
+      t.true(headers.authorization.startsWith('SaltanaCore-V1'))
 
       if (data) t.is(request.config.data, JSON.stringify(data))
       else t.is(request.config.data, data)
     })
 }
 
-test('get: sends the correct request', (t) => {
+test('get: sends the correct request', t => {
   const stelace = getStelaceStub({ keyType: 'pubk' })
   stelace.startStub()
 
@@ -101,31 +101,46 @@ test('get: sends the correct request', (t) => {
   return checkForwardResponse({ t, stelace, method: 'get' })
 })
 
-test('post: sends the correct request', (t) => {
+test('post: sends the correct request', t => {
   const stelace = getStelaceStub({ keyType: 'pubk' })
   stelace.startStub()
 
   initStubbedRequests(stelace)
-  return checkForwardResponse({ t, stelace, method: 'post', data: { boolean: true, string: 'test' } })
+  return checkForwardResponse({
+    t,
+    stelace,
+    method: 'post',
+    data: { boolean: true, string: 'test' },
+  })
 })
 
-test('put: sends the correct request', (t) => {
+test('put: sends the correct request', t => {
   const stelace = getStelaceStub({ keyType: 'pubk' })
   stelace.startStub()
 
   initStubbedRequests(stelace)
-  return checkForwardResponse({ t, stelace, method: 'put', data: { boolean: true, string: 'test' } })
+  return checkForwardResponse({
+    t,
+    stelace,
+    method: 'put',
+    data: { boolean: true, string: 'test' },
+  })
 })
 
-test('patch: sends the correct request', (t) => {
+test('patch: sends the correct request', t => {
   const stelace = getStelaceStub({ keyType: 'pubk' })
   stelace.startStub()
 
   initStubbedRequests(stelace)
-  return checkForwardResponse({ t, stelace, method: 'patch', data: { boolean: true, string: 'test' } })
+  return checkForwardResponse({
+    t,
+    stelace,
+    method: 'patch',
+    data: { boolean: true, string: 'test' },
+  })
 })
 
-test('del: sends the correct request', (t) => {
+test('del: sends the correct request', t => {
   const stelace = getStelaceStub({ keyType: 'pubk' })
   stelace.startStub()
 
@@ -133,7 +148,7 @@ test('del: sends the correct request', (t) => {
   return checkForwardResponse({ t, stelace, method: 'delete' })
 })
 
-test('options: sends the correct request', (t) => {
+test('options: sends the correct request', t => {
   const stelace = getStelaceStub({ keyType: 'pubk' })
   stelace.startStub()
 
