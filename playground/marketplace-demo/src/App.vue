@@ -1,7 +1,9 @@
 <template>
   <div
     id="q-app"
-    :key="content.locale + content.currency + '-' + content.lastContentUpdatedDate"
+    :key="
+      content.locale + content.currency + '-' + content.lastContentUpdatedDate
+    "
   >
     <!-- Hack to re-render the app when locale or currency change -->
     <router-view />
@@ -16,39 +18,35 @@ import { get, debounce } from 'lodash'
 
 import { getAuthToken } from 'src/utils/auth'
 import EventBus from 'src/utils/event-bus'
-import { initSentry } from 'src/utils/logger'
 import stelace from 'src/utils/stelace'
 
 import contentEditingMixin from 'src/mixins/contentEditing'
 
 export default {
-  mixins: [
-    contentEditingMixin,
-  ],
-  data () {
+  mixins: [contentEditingMixin],
+  data() {
     return {
       // socket: null // don’t declare since we don’t want vue reactivity
     }
   },
   computed: {
-    ...mapGetters([
-      'isNaturalUser',
-      'currentUser'
-    ])
+    ...mapGetters(['isNaturalUser', 'currentUser']),
   },
   watch: {
     // if the socket connection has been ended due to too long inactivity
     // recreate the socket
-    '$q.appVisible' (visible) {
+    '$q.appVisible'(visible) {
       if (!this.socket) return
       if (visible && !this.socket.connected) this.refreshSocket()
-    }
+    },
   },
-  created () {
+  created() {
     EventBus.$on('error', ({ data, level, notification } = {}) => {
-      const defaultMessage = notification === true ? 'error.unknown_happened_header' : ''
+      const defaultMessage =
+        notification === true ? 'error.unknown_happened_header' : ''
       // notification can be an object containing notify options + message
-      const message = defaultMessage || get(notification, 'message') || notification
+      const message =
+        defaultMessage || get(notification, 'message') || notification
 
       if (!message) return // show nothing by default
 
@@ -58,48 +56,50 @@ export default {
 
     this.$router.afterEach(this.handleRouteQuery)
   },
-  mounted () {
+  mounted() {
     this.$store.dispatch('initApp')
 
     this.handleUserSessionExpiration()
-
-    setTimeout(() => {
-      if ('requestIdleCallback' in window) requestIdleCallback(initSentry)
-      else setTimeout(initSentry, 0)
-    }, 5000)
 
     // give some time to slower devices before loading socket.io
     // which is non-essential JS, and even useless during short sessions
     const socketIoTimeout = 10000 // delay up to twice this value
     setTimeout(() => {
-      if ('requestIdleCallback' in window) requestIdleCallback(this.loadSocketIo)
+      if ('requestIdleCallback' in window)
+        requestIdleCallback(this.loadSocketIo)
       else setTimeout(this.loadSocketIo, socketIoTimeout)
     }, socketIoTimeout)
   },
   methods: {
-    async loadSocketIo () {
-      this.socket = (await import(/* webpackChunkName: 'socket.io' */ 'src/signal')).default
+    async loadSocketIo() {
+      this.socket = (
+        await import(/* webpackChunkName: 'socket.io' */ 'src/signal')
+      ).default
       // split microtask
-      if ('requestIdleCallback' in window) requestIdleCallback(this.initSocketIo)
+      if ('requestIdleCallback' in window)
+        requestIdleCallback(this.initSocketIo)
       else setTimeout(this.initSocketIo, 0)
     },
-    initSocketIo () {
+    initSocketIo() {
       this.socket.open()
       this.setSocketSignals()
       EventBus.$on('refreshSocket', this.refreshSocket)
     },
-    setSocketSignals () {
+    setSocketSignals() {
       // https://stelace.com/docs/signal.html
       // https://socket.io/docs/client-api/#socket-on-eventName-callback
       this.socket.on('authentication', (signalId, authCallback) => {
         const publishableKey = process.env.STELACE_PUBLISHABLE_API_KEY
         const authToken = getAuthToken()
         let channels = []
-        const organizationId = !this.isNaturalUser ? this.currentUser.id : undefined
+        const organizationId = !this.isNaturalUser
+          ? this.currentUser.id
+          : undefined
 
         if (organizationId) channels = [...channels, organizationId]
 
-        if (typeof authCallback === 'function' && publishableKey) authCallback({ publishableKey, authToken, channels })
+        if (typeof authCallback === 'function' && publishableKey)
+          authCallback({ publishableKey, authToken, channels })
 
         this.socket.signalId = signalId
       })
@@ -119,12 +119,12 @@ export default {
         // default Signal event name
       }) */
     },
-    refreshSocket () {
+    refreshSocket() {
       if (!this.socket) return
       this.socket.close()
       this.socket.open()
     },
-    handleRouteQuery () {
+    handleRouteQuery() {
       const hash = this.$route.hash
       // Assuming 2-second delay is enough to prevent infinite reload loop
       // with webpack chunk loading error
@@ -134,7 +134,7 @@ export default {
         }, 2000)
       }
     },
-    handleUserSessionExpiration () {
+    handleUserSessionExpiration() {
       // use debounce function to prevent notification spamming
       // due to multiple requests failing after session expiration
       const debouncedEmitUserSessionExpiredError = debounce(() => {

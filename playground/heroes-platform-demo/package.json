@@ -6,6 +6,7 @@
   "author": "Stelace (https://stelace.com)",
   "license": "MIT",
   "private": false,
+  "workspace": false,
   "scripts": {
     "lint": "eslint --ext .js,.vue src",
     "test": "echo \"No test specified\" && exit 0",

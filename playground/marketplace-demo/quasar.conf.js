@@ -28,7 +28,7 @@ const log = console.log
 
 module.exports = function (ctx) {
   dotenv.config({
-    path: ctx.dev ? '.env.development' : '.env.production'
+    path: ctx.dev ? '.env.development' : '.env.production',
   })
 
   // Ensuring we have local translations up-to-date. Runs once.
@@ -37,7 +37,9 @@ module.exports = function (ctx) {
   // Upload latest translations in default locale to enable Stelace Dashboard editing
   // This must be done manually in production
   if (ctx.dev && process.env.STELACE_SECRET_API_KEY) {
-    execSync(`npm run deploy:translations${ctx.dev ? '' : ':prod'}`, { stdio: 'inherit' })
+    execSync(`npm run deploy:translations${ctx.dev ? '' : ':prod'}`, {
+      stdio: 'inherit',
+    })
   }
 
   // Include API resources in build to save hundreds of milliseconds when loading app.
@@ -54,14 +56,17 @@ module.exports = function (ctx) {
   const netlifyPreviewBranches = ['dev']
   const netlifyUrl = process.env.DEPLOY_PRIME_URL
   let websiteUrl = process.env.STELACE_INSTANT_WEBSITE_URL
-  if (netlifyUrl && netlifyPreviewBranches.some(b => netlifyUrl.includes(`${b}--`))) {
+  if (
+    netlifyUrl &&
+    netlifyPreviewBranches.some(b => netlifyUrl.includes(`${b}--`))
+  ) {
     websiteUrl = netlifyUrl
   }
 
   const uploadSourceMapsToSentry = [
     'SENTRY_AUTH_TOKEN',
     'SENTRY_ORG',
-    'SENTRY_PROJECT'
+    'SENTRY_PROJECT',
   ].every(v => Boolean(process.env[v]))
 
   let commitSHA = ''
@@ -78,11 +83,18 @@ module.exports = function (ctx) {
   const prerender = ctx.prod && ctx.mode.spa
 
   const defaultStyles = JSON.parse(fs.readFileSync('src/styles.json', 'utf-8'))
-  const localTranslations = JSON.parse(fs.readFileSync(`src/i18n/build/${
-    process.env.VUE_APP_DEFAULT_LANGUAGE || 'en'
-  }.json`, 'utf-8'))
-  const injectServiceName = (str) => {
-    if (str) return str.replace(/({SERVICE_NAME})/, process.env.VUE_APP_SERVICE_NAME || '$1')
+  const localTranslations = JSON.parse(
+    fs.readFileSync(
+      `src/i18n/build/${process.env.VUE_APP_DEFAULT_LANGUAGE || 'en'}.json`,
+      'utf-8'
+    )
+  )
+  const injectServiceName = str => {
+    if (str)
+      return str.replace(
+        /({SERVICE_NAME})/,
+        process.env.VUE_APP_SERVICE_NAME || '$1'
+      )
     return ''
   }
 
@@ -94,7 +106,8 @@ module.exports = function (ctx) {
     const fontUrl = defaultStyles[f]
     if (!fontUrl) return
 
-    const isWoff2 = fontUrl.indexOf(woff2Ext, fontUrl.length - woff2Ext.length) !== -1
+    const isWoff2 =
+      fontUrl.indexOf(woff2Ext, fontUrl.length - woff2Ext.length) !== -1
     if (isWoff2) googleFonts.push(fontUrl)
   })
 
@@ -102,23 +115,29 @@ module.exports = function (ctx) {
   const loadingScreen = {
     title: injectServiceName(_.get(localTranslations.pages, 'home.header', '')),
     notice: injectServiceName(_.get(localTranslations.status, 'loading', '')),
-    javascriptRequired: injectServiceName(_.get(localTranslations.error, 'javascript_required', '')),
+    javascriptRequired: injectServiceName(
+      _.get(localTranslations.error, 'javascript_required', '')
+    ),
   }
   const seo = {
-    ogDesc: injectServiceName(_.get(localTranslations.pages, 'home.meta_description', '')),
+    ogDesc: injectServiceName(
+      _.get(localTranslations.pages, 'home.meta_description', '')
+    ),
     ogImage: defaultStyles.homeHeroUrl,
-    websiteUrl: process.env.STELACE_INSTANT_WEBSITE_URL
+    websiteUrl: process.env.STELACE_INSTANT_WEBSITE_URL,
   }
 
   const apiBaseUrl = process.env.STELACE_API_URL || 'https://api.stelace.com'
-  const cdnUrl = process.env.VUE_APP_CDN_WITH_IMAGE_HANDLER_URL ||
-    'https://cdn.stelace.com/'
-  const cdnUploadUrl = process.env.VUE_APP_CDN_POLICY_ENDPOINT ||
+  const cdnUrl =
+    process.env.VUE_APP_CDN_WITH_IMAGE_HANDLER_URL || 'https://cdn.stelace.com/'
+  const cdnUploadUrl =
+    process.env.VUE_APP_CDN_POLICY_ENDPOINT ||
     'https://upload.instant.stelace.com/upload/policy'
-  const cdnS3Bucket = process.env.VUE_APP_CDN_S3_BUCKET || 'stelace-instant-files'
+  const cdnS3Bucket =
+    process.env.VUE_APP_CDN_S3_BUCKET || 'stelace-instant-files'
 
-  const postMessageAllowedOrigins = process.env.VUE_APP_POST_MESSAGE_ALLOWED_ORIGINS ||
-    'https://stelace.com'
+  const postMessageAllowedOrigins =
+    process.env.VUE_APP_POST_MESSAGE_ALLOWED_ORIGINS || 'https://stelace.com'
 
   // ///////////// //
   // Quasar config //
@@ -129,7 +148,7 @@ module.exports = function (ctx) {
     'photoswipe',
     'vue-slicksort',
     // logging chunk
-    'sentry',
+    //'sentry',
     // socket.io chunk
     'socket.io',
     'engine.io',
@@ -151,9 +170,7 @@ module.exports = function (ctx) {
       { path: 'analytics', server: false },
     ].concat(prerender ? ['prerendered'] : []),
 
-    css: [
-      'app.styl'
-    ],
+    css: ['app.styl'],
 
     extras: [
       // Only include used ones with tree-shaking: https://quasar.dev/vue-components/icon#Svg-icons
@@ -164,10 +181,11 @@ module.exports = function (ctx) {
       // 'eva-icons'
     ],
 
-    vendor: { // Exclude or add these to vendor chunk
+    vendor: {
+      // Exclude or add these to vendor chunk
       // disable: false,
       add: [],
-      remove: splittedVendorDeps
+      remove: splittedVendorDeps,
     },
 
     // framework: 'all', // --- includes everything; for dev only!
@@ -257,11 +275,7 @@ module.exports = function (ctx) {
         'QUploaderAddTrigger',
       ],
 
-      directives: [
-        'ClosePopup',
-        'ScrollFire',
-        'Ripple'
-      ],
+      directives: ['ClosePopup', 'ScrollFire', 'Ripple'],
 
       // Quasar plugins
       plugins: [
@@ -269,7 +283,7 @@ module.exports = function (ctx) {
         'Dialog',
         // 'Meta', // using vue-meta for compatibility with prerender-spa-plugin
         'Notify',
-        'Loading'
+        'Loading',
       ],
 
       // Only include used SVG icons with tree-shaking
@@ -291,7 +305,8 @@ module.exports = function (ctx) {
       websiteUrl: seo.websiteUrl,
       primaryColor,
 
-      javascriptRequired: loadingScreen.javascriptRequired || 'Please activate JavaScript',
+      javascriptRequired:
+        loadingScreen.javascriptRequired || 'Please activate JavaScript',
     },
 
     build: {
@@ -299,40 +314,54 @@ module.exports = function (ctx) {
       vueRouterMode: 'history',
       // htmlFilename: 'index.html',
       sourceMap: ctx.dev || uploadSourceMapsToSentry,
-      devtool: ctx.dev ? '#cheap-module-eval-source-map'
-        // remove source map references from bundle when uploading .map files to sentry
+      devtool: ctx.dev
+        ? '#cheap-module-eval-source-map'
+        : // remove source map references from bundle when uploading .map files to sentry
         // instead of using default quasar setting '#source-map' when sourceMap option is enabled
-        : (uploadSourceMapsToSentry ? '#hidden-source-map' : '#source-map'),
+        uploadSourceMapsToSentry
+        ? '#hidden-source-map'
+        : '#source-map',
       // vueCompiler: true,
       // gzip: true,
       // analyze: true,
       // extractCSS: false,
 
-      async afterBuild () {
+      async afterBuild() {
         // Delete source map files once uploaded to sentry
         // Remove these lines if you need to serve source map in production.
         // Then you may need to adjust webpack devtool build option
         if (!ctx.dev && uploadSourceMapsToSentry) {
           const mapFiles = glob.sync('dist/**/*.map')
-          await pMap(mapFiles, async (f) => {
+          await pMap(mapFiles, async f => {
             await deleteFile(path.join(__dirname, f))
           })
           // It seems we need to manually remove source map references in CSS files
           // eslint-disable-next-line
-          execSync(`find . -name "*.css" -type f | xargs sed -i -e '/\\/\\*.*sourceMappingURL.*\\*\\//d'`)
+          execSync(
+            `find . -name "*.css" -type f | xargs sed -i -e '/\\/\\*.*sourceMappingURL.*\\*\\//d'`
+          )
         }
 
         if (prerender) {
           const spa = path.join(__dirname, 'dist/spa')
           // preserve non-prerendered version of index.html before prerendering
           // cf. app.html served in netlify.toml for more info
-          await renameFile(path.join(spa, 'index.html'), path.join(spa, 'app.html'))
-          await renameFile(path.join(spa, 'home.html'), path.join(spa, 'index.html'))
+          await renameFile(
+            path.join(spa, 'index.html'),
+            path.join(spa, 'app.html')
+          )
+          await renameFile(
+            path.join(spa, 'home.html'),
+            path.join(spa, 'index.html')
+          )
 
-          const removeTmpTags = html => html
-            .replace(/\s*<([a-z]+) [^>]*data-removed-during-build.*>([^<]|\s)*<\/\1>/gm, '')
+          const removeTmpTags = html =>
+            html.replace(
+              /\s*<([a-z]+) [^>]*data-removed-during-build.*>([^<]|\s)*<\/\1>/gm,
+              ''
+            )
           const prerendered = glob.sync('dist/spa/**/*.html')
-          await pMap(prerendered, async (f) => {
+          await pMap(prerendered, async f => {
             const p = path.join(__dirname, f)
             const html = await readFile(p, 'utf8')
             await writeFile(p, removeTmpTags(html), 'utf8')
@@ -340,11 +369,9 @@ module.exports = function (ctx) {
         }
       },
 
-      transpileDependencies: [
-        /sharp-aws-image-handler-client/
-      ],
+      transpileDependencies: [/sharp-aws-image-handler-client/],
 
-      extendWebpack (cfg, { isClient }) {
+      extendWebpack(cfg, { isClient }) {
         if (ctx.prod) {
           // spare debug dependency
           cfg.resolve.alias['socket.io-client'] = path.resolve(
@@ -357,7 +384,7 @@ module.exports = function (ctx) {
           enforce: 'pre',
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
-          exclude: /node_modules/
+          exclude: /node_modules/,
         })
 
         if (prerender) {
@@ -373,10 +400,17 @@ module.exports = function (ctx) {
                 // Defer scripts and tell Vue it's been server rendered to trigger hydration
                 context.html = context.html
                   .replace(/<script (.*?)>/g, '<script $1 defer>')
-                  .replace('id="q-app"', 'id="q-app" data-server-rendered="true"')
+                  .replace(
+                    'id="q-app"',
+                    'id="q-app" data-server-rendered="true"'
+                  )
 
                 if (context.route === '/') {
-                  context.outputPath = path.join(__dirname, 'dist/spa', 'home.html')
+                  context.outputPath = path.join(
+                    __dirname,
+                    'dist/spa',
+                    'home.html'
+                  )
                 }
                 return context
               },
@@ -388,8 +422,8 @@ module.exports = function (ctx) {
               renderer: new Renderer({
                 inject: { isPrerendering: true },
                 injectProperty: '__PRERENDER_INJECTED', // default
-                renderAfterDocumentEvent: 'prerender-ready'
-              })
+                renderAfterDocumentEvent: 'prerender-ready',
+              }),
             })
           )
 
@@ -398,14 +432,16 @@ module.exports = function (ctx) {
             inline: true,
             minify: true,
             extract: false,
-            dimensions: [{
-              height: 565,
-              width: 360
-            },
-            {
-              height: 1080,
-              width: 1360
-            }],
+            dimensions: [
+              {
+                height: 565,
+                width: 360,
+              },
+              {
+                height: 1080,
+                width: 1360,
+              },
+            ],
             penthouse: {
               blockJSRequests: false,
               keepLargerMediaQueries: true,
@@ -417,87 +453,91 @@ module.exports = function (ctx) {
                 /q-skeleton/,
                 '.fit',
                 // typography
-                /text-[a-z0-9]+/ // excluding precise color classes such as '.text-orange-4'
+                /text-[a-z0-9]+/, // excluding precise color classes such as '.text-orange-4'
               ],
               /* screenshots: {
                 basePath: 'criticalcss',
               } */
-            }
+            },
           }
-          cfg.plugins.push(new HtmlCriticalWebpackPlugin({
-            base: path.resolve(__dirname, 'dist/spa'),
-            src: 'home.html',
-            dest: 'home.html',
-            ...criticalCSSConfig
-          }))
-          cfg.plugins.push(new HtmlCriticalWebpackPlugin({
-            base: path.resolve(__dirname, 'dist/spa/s'),
-            src: 'index.html',
-            dest: 'index.html',
-            ...criticalCSSConfig
-          }))
+          cfg.plugins.push(
+            new HtmlCriticalWebpackPlugin({
+              base: path.resolve(__dirname, 'dist/spa'),
+              src: 'home.html',
+              dest: 'home.html',
+              ...criticalCSSConfig,
+            })
+          )
+          cfg.plugins.push(
+            new HtmlCriticalWebpackPlugin({
+              base: path.resolve(__dirname, 'dist/spa/s'),
+              src: 'index.html',
+              dest: 'index.html',
+              ...criticalCSSConfig,
+            })
+          )
         }
       },
 
       // Performance: customizing resource hints to preload/prefetch Stelace Instant translations
       // and other files if needed
-      chainWebpack (chain) {
+      chainWebpack(chain) {
         if (ctx.prod) {
           // remove default quasar resource hints
           chain.plugins.delete('preload')
           chain.plugins.delete('prefetch')
 
-          const stelaceI18nRegex = new RegExp(`i18n-stl-${
-            process.env.VUE_APP_DEFAULT_LANGUAGE || 'en'
-          }`)
+          const stelaceI18nRegex = new RegExp(
+            `i18n-stl-${process.env.VUE_APP_DEFAULT_LANGUAGE || 'en'}`
+          )
           const prefetchChunksRegex = /search/
           const preloadChunksRegex = /(landing|common)/
 
-          chain.plugin('prefetch')
-            .use(PreloadPlugin, [{
+          chain.plugin('prefetch').use(PreloadPlugin, [
+            {
               rel: 'prefetch',
               include: 'asyncChunks',
-              fileWhitelist: [
-                prefetchChunksRegex
-              ],
+              fileWhitelist: [prefetchChunksRegex],
               fileBlacklist: [
                 /\.map$/, // Don’t forget to add .map files included in default blacklist
                 /\.css$/, // using critical+loadCSS
-              ]
-            }])
+              ],
+            },
+          ])
 
           // Very important to chain preloads from least to most important
           // (e.g. vendor after translations)
-          chain.plugin('preloadI18n')
-            .use(PreloadPlugin, [{
+          chain.plugin('preloadI18n').use(PreloadPlugin, [
+            {
               rel: 'preload',
-              fileWhitelist: [
-                stelaceI18nRegex
-              ],
-            }])
-          chain.plugin('preloadLanding')
-            .use(PreloadPlugin, [{
+              fileWhitelist: [stelaceI18nRegex],
+            },
+          ])
+          chain.plugin('preloadLanding').use(PreloadPlugin, [
+            {
               rel: 'preload',
               fileWhitelist: [
                 // Ensures landing pages are loaded as fast as possible
-                preloadChunksRegex
+                preloadChunksRegex,
               ],
               fileBlacklist: [
                 /\.map$/, // Don’t forget to add .map files included in default blacklist
                 /\.css$/, // using critical+loadCSS
-              ]
-            }])
+              ],
+            },
+          ])
           // Most important files last
-          chain.plugin('preload')
-            .use(PreloadPlugin, [{
+          chain.plugin('preload').use(PreloadPlugin, [
+            {
               rel: 'preload',
               include: 'initial',
               fileBlacklist: [
                 /\.map$/,
                 /hot-update\.js$/,
                 /\.css$/, // using critical+loadCSS
-              ]
-            }])
+              ],
+            },
+          ])
         }
       },
 
@@ -514,8 +554,10 @@ module.exports = function (ctx) {
         VUE_APP_SERVICE_NAME: process.env.VUE_APP_SERVICE_NAME,
         VUE_APP_MAPBOX_STYLE: process.env.VUE_APP_MAPBOX_STYLE,
         VUE_APP_MAPBOX_TOKEN: process.env.VUE_APP_MAPBOX_TOKEN,
-        VUE_APP_MAP_CENTER_COORDINATES: process.env.VUE_APP_MAP_CENTER_COORDINATES,
-        VUE_APP_DISABLE_AUTO_SEARCH_ON_MAP_MOVE: process.env.VUE_APP_DISABLE_AUTO_SEARCH_ON_MAP_MOVE,
+        VUE_APP_MAP_CENTER_COORDINATES:
+          process.env.VUE_APP_MAP_CENTER_COORDINATES,
+        VUE_APP_DISABLE_AUTO_SEARCH_ON_MAP_MOVE:
+          process.env.VUE_APP_DISABLE_AUTO_SEARCH_ON_MAP_MOVE,
         VUE_APP_DEFAULT_LANGUAGE: process.env.VUE_APP_DEFAULT_LANGUAGE,
         VUE_APP_LOCALE_SWITCH: process.env.VUE_APP_LOCALE_SWITCH,
         VUE_APP_DEFAULT_CURRENCY: process.env.VUE_APP_DEFAULT_CURRENCY,
@@ -526,7 +568,8 @@ module.exports = function (ctx) {
         VUE_APP_SENTRY_LOGGING_DSN: process.env.VUE_APP_SENTRY_LOGGING_DSN,
         VUE_APP_GIT_COMMIT_SHA: commitSHA,
         VUE_APP_GOOGLE_ANALYTICS_ID: process.env.VUE_APP_GOOGLE_ANALYTICS_ID,
-        VUE_APP_GOOGLE_ANALYTICS_DEBUG: process.env.VUE_APP_GOOGLE_ANALYTICS_DEBUG,
+        VUE_APP_GOOGLE_ANALYTICS_DEBUG:
+          process.env.VUE_APP_GOOGLE_ANALYTICS_DEBUG,
         VUE_APP_CDN_POLICY_ENDPOINT: cdnUploadUrl,
         VUE_APP_CDN_WITH_IMAGE_HANDLER_URL: cdnUrl,
         VUE_APP_CDN_S3_BUCKET: cdnS3Bucket,
@@ -537,15 +580,22 @@ module.exports = function (ctx) {
         VUE_APP_INSTANT_PAGE_PREFIX: '/l',
         VUE_APP_POST_MESSAGE_ALLOWED_ORIGINS: postMessageAllowedOrigins,
         VUE_APP_GITHUB_FORK_BUTTON: process.env.VUE_APP_GITHUB_FORK_BUTTON,
-        VUE_APP_DISPLAY_ASSET_DISTANCE: process.env.VUE_APP_DISPLAY_ASSET_DISTANCE,
-        VUE_APP_HOME_FEATURES_COLUMNS: process.env.VUE_APP_HOME_FEATURES_COLUMNS,
-        VUE_APP_STRIPE_PUBLISHABLE_KEY: process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY,
-        VUE_APP_STRIPE_OAUTH_CLIENT_ID: process.env.VUE_APP_STRIPE_OAUTH_CLIENT_ID,
+        VUE_APP_DISPLAY_ASSET_DISTANCE:
+          process.env.VUE_APP_DISPLAY_ASSET_DISTANCE,
+        VUE_APP_HOME_FEATURES_COLUMNS:
+          process.env.VUE_APP_HOME_FEATURES_COLUMNS,
+        VUE_APP_STRIPE_PUBLISHABLE_KEY:
+          process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY,
+        VUE_APP_STRIPE_OAUTH_CLIENT_ID:
+          process.env.VUE_APP_STRIPE_OAUTH_CLIENT_ID,
 
-        NETLIFY_FUNCTION_GET_STRIPE_CUSTOMER_URL: process.env.NETLIFY_FUNCTION_GET_STRIPE_CUSTOMER_URL,
-        NETLIFY_FUNCTION_CREATE_STRIPE_CHECKOUT_SESSION_URL: process.env.NETLIFY_FUNCTION_CREATE_STRIPE_CHECKOUT_SESSION_URL,
-        NETLIFY_FUNCTION_LINK_STRIPE_ACCOUNT: process.env.NETLIFY_FUNCTION_LINK_STRIPE_ACCOUNT,
-      }
+        NETLIFY_FUNCTION_GET_STRIPE_CUSTOMER_URL:
+          process.env.NETLIFY_FUNCTION_GET_STRIPE_CUSTOMER_URL,
+        NETLIFY_FUNCTION_CREATE_STRIPE_CHECKOUT_SESSION_URL:
+          process.env.NETLIFY_FUNCTION_CREATE_STRIPE_CHECKOUT_SESSION_URL,
+        NETLIFY_FUNCTION_LINK_STRIPE_ACCOUNT:
+          process.env.NETLIFY_FUNCTION_LINK_STRIPE_ACCOUNT,
+      },
     },
 
     devServer: {
@@ -554,21 +604,28 @@ module.exports = function (ctx) {
       open: false, // opens browser window automatically
 
       // For development, proxy routes to Netlify functions to the server started by `netlify-lambda`
-      proxy: ctx.dev && !serveNetlifyLambda ? {
-        // Netlify endpoints are available on port 9000
-        // so we proxy URLs beginning with '/.netlify' to this port
-        // https://github.com/netlify/netlify-lambda#netlify-lambda-serve-legacy-command-proxying-for-local-development
-        '/.netlify': {
-          target: 'http://localhost:9000',
-          pathRewrite: { '^/.netlify/functions': '' }
-        }
-      } : undefined,
+      proxy:
+        ctx.dev && !serveNetlifyLambda
+          ? {
+              // Netlify endpoints are available on port 9000
+              // so we proxy URLs beginning with '/.netlify' to this port
+              // https://github.com/netlify/netlify-lambda#netlify-lambda-serve-legacy-command-proxying-for-local-development
+              '/.netlify': {
+                target: 'http://localhost:9000',
+                pathRewrite: { '^/.netlify/functions': '' },
+              },
+            }
+          : undefined,
 
       // For CI, we don't proxy the routes to `netlify-lambda` because CircleCI machine may not
       // have enough memory to handle both
       // so serve Netlify built functions with Quasar process
       // https://webpack.js.org/configuration/dev-server/#devserverbefore
-      before: serveNetlifyLambda ? (app) => { netlifyServe.run(app) } : undefined,
+      before: serveNetlifyLambda
+        ? app => {
+            netlifyServe.run(app)
+          }
+        : undefined,
     },
 
     // animations: 'all' --- includes all animations
@@ -577,7 +634,7 @@ module.exports = function (ctx) {
     preFetch: true,
 
     ssr: {
-      pwa: false
+      pwa: false,
     },
 
     pwa: {
@@ -596,15 +653,15 @@ module.exports = function (ctx) {
           {
             src: '/android-chrome-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/android-chrome-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
+            type: 'image/png',
+          },
+        ],
+      },
     },
 
     cordova: {
@@ -613,26 +670,23 @@ module.exports = function (ctx) {
 
     electron: {
       // bundler: 'builder', // or 'packager'
-      extendWebpack (cfg) {
+      extendWebpack(cfg) {
         // do something with Electron process Webpack cfg
       },
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
-
         // OS X / Mac App Store
         // appBundleId: '',
         // appCategoryType: '',
         // osxSign: '',
         // protocol: 'myapp://path',
-
         // Window only
         // win32metadata: { ... }
       },
       builder: {
         // https://www.electron.build/configuration/configuration
-
         // appId: 'quasar-app'
-      }
-    }
+      },
+    },
   }
 }

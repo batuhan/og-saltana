@@ -15,6 +15,7 @@
 /src-cordova/platforms
 /src-cordova/plugins
 /src-cordova/www
+.yarn/cache
 
 # Editor directories and files
 .idea
