@@ -1,23 +1,40 @@
-# Next.js + Tailwind CSS Example
+# Dark
 
-This example shows how to use [Tailwind CSS](https://tailwindcss.com/) (v2.1) with Next.js. It follows the steps outlined in the official [Tailwind docs](https://tailwindcss.com/docs/guides/nextjs).
+> An opinionated, dark-themed Next.js & Chakra UI GitHub repository template.
 
-It uses the new [`Just-in-Time Mode`](https://tailwindcss.com/docs/just-in-time-mode) for Tailwind CSS.
+Hit the ground running with one `yarn install`.
 
-## Deploy your own
+## Getting Started
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
+1. Generate a repository with this template by clicking on the "Use this template" button on the top right or on [github.com/kahlil/dark/generate](https://github.com/kahlil/dark/generate)
+2. Clone your new repository
+3. Run yarn install
+4. Hit the ground running with Next.js, TypeScript & Chakra UI with the dark theme as the default
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-tailwindcss&project-name=with-tailwindcss&repository-name=with-tailwindcss)
+## Documentation
 
-## How to use
+The tech stack of this template includes
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
+- [Next.js](https://nextjs.org)
+- [Chakra UI](https://chakra-ui.com)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Prettier](https://prettier.io/)
+- [ESLint](https://eslint.org/)
+- [pretty-quick](https://github.com/azz/pretty-quick)
+- [Husky](https://typicode.github.io/husky)
+- [Jest](https://jestjs.io/)
+- [Testing Library](https://testing-library.com/)
 
-```bash
-npx create-next-app --example with-tailwindcss with-tailwindcss-app
-# or
-yarn create next-app --example with-tailwindcss with-tailwindcss-app
-```
+Minimally configured, mostly using defaults provided by the community or the creators.
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+Please refer to the respective docs (linked above) in order to learn about these technologies.
+
+## Notes
+
+I recommend you use [Volta](https://volta.sh) to manage your Node and Yarn versions.
+
+If you use VS Code as an editor I recommend you you allow format on save through Prettier and turn off the built-in formatter.
+
+## License
+
+MIT
