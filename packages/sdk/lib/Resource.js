@@ -10,11 +10,11 @@ import {
 } from './utils'
 
 export default class Resource {
-  constructor(stelace) {
+  constructor (stelace) {
     this._stelace = stelace
   }
 
-  _request({ path, method, data, queryParams, options = {} }) {
+  _request ({ path, method, data, queryParams, options = {} }) {
     const requestParams = {
       url: path,
       method,
@@ -35,7 +35,7 @@ export default class Resource {
       .catch(this._errorHandler)
   }
 
-  _responseHandler(res) {
+  _responseHandler (res) {
     const response = clone(res.data)
     const headers = res.headers || {}
 
@@ -49,7 +49,7 @@ export default class Resource {
     return response
   }
 
-  _errorHandler(err) {
+  _errorHandler (err) {
     if (!err.response) throw err
 
     const rawResponse = Object.assign({}, err.response)
@@ -66,7 +66,7 @@ export default class Resource {
     throw error
   }
 
-  _prepareHeaders(options) {
+  _prepareHeaders (options) {
     const apiKey = this._stelace.getApiField('key')
     const headers = {}
 
@@ -78,10 +78,7 @@ export default class Resource {
     // https://tools.ietf.org/html/draft-ietf-httpbis-p7-auth-19#appendix-B
     // Note that Stelace API header content parsing is case-insensitive
     // But we use casing for clarity here, as in 'apiKey'
-    if (token)
-      headers.authorization = `SaltanaCore-V1 apiKey=${apiKey}, token=${token}`
-    else if (apiKey)
-      headers.authorization = `Basic ${encodeBase64(apiKey + ':')}`
+    if (token) { headers.authorization = `SaltanaCore-V1 apiKey=${apiKey}, token=${token}` } else if (apiKey) { headers.authorization = `Basic ${encodeBase64(apiKey + ':')}` }
 
     // cannot set the user agent in browser environment for security reasons
     // https://github.com/axios/axios/issues/1231
@@ -103,7 +100,7 @@ export default class Resource {
     return pickBy(headers)
   }
 
-  getBaseURL() {
+  getBaseURL () {
     const protocol = this._stelace.getApiField('protocol')
     const host = this._stelace.getApiField('host')
     const port = this._stelace.getApiField('port')
@@ -113,7 +110,7 @@ export default class Resource {
     )
   }
 
-  static addBasicMethods(resource, { path, includeBasic = [] }) {
+  static addBasicMethods (resource, { path, includeBasic = [] }) {
     const basicMethods = getBasicMethods(path, method)
 
     includeBasic.forEach(name => {

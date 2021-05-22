@@ -1,7 +1,7 @@
-import { chakra, HTMLChakraProps } from '@chakra-ui/react'
-import * as React from 'react'
+import { chakra, HTMLChakraProps } from "@chakra-ui/react";
+import * as React from "react";
 
-export const Logo = (props: HTMLChakraProps<'svg'>) => {
+export const Logo = (props: HTMLChakraProps<"svg">) => {
   return (
     <chakra.svg
       aria-hidden
@@ -22,5 +22,5 @@ export const Logo = (props: HTMLChakraProps<'svg'>) => {
         fill="#01BDE2"
       />
     </chakra.svg>
-  )
-}
+  );
+};

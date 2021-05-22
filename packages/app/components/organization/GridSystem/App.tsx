@@ -1,19 +1,18 @@
-import { Box, Flex, GridItem, Stack, useColorModeValue } from '@chakra-ui/react'
-import * as React from 'react'
-import { AspectRatioGrid } from './AspectRatioGrid'
-import { GridItemAspectRatioSelect } from './GridItemAspectRatioSelect'
-import { GridItemNumberInput } from './GridItemNumberInput'
-import { GridItemWidthSelect } from './GridItemWidthSelect'
+import { Box, Flex, Stack } from "@chakra-ui/react";
+import * as React from "react";
+import { AspectRatioGrid } from "./AspectRatioGrid";
+import { GridItemAspectRatioSelect } from "./GridItemAspectRatioSelect";
+import { GridItemNumberInput } from "./GridItemNumberInput";
+import { GridItemWidthSelect } from "./GridItemWidthSelect";
 
 export const GridSystemDemo = ({ ItemComponent }) => {
-  const [items, setItems] = React.useState(2)
-  const [minWidth, setMinWidth] = React.useState(320)
-  const [aspectRatio, setAspectRatio] = React.useState(16 / 9)
+  const [items, setItems] = React.useState(2);
+  const [minWidth, setMinWidth] = React.useState(320);
+  const [aspectRatio, setAspectRatio] = React.useState(16 / 9);
 
-  const bgColor = useColorModeValue('blue.500', 'blue.300')
   return (
     <Flex h="100vh" flexDirection="column">
-      <Box minH="24" mx="auto" maxW={{ base: 'full', md: 'md' }}>
+      <Box minH="24" mx="auto" maxW={{ base: "full", md: "md" }}>
         <Stack
           direction="row"
           h="full"
@@ -38,13 +37,17 @@ export const GridSystemDemo = ({ ItemComponent }) => {
           />
         </Stack>
       </Box>
-      <Flex flex="1" overflowY="auto" >
-        <AspectRatioGrid aspectRatio={aspectRatio} minChildWidth={minWidth} gap={3}>
+      <Flex flex="1" overflowY="auto">
+        <AspectRatioGrid
+          aspectRatio={aspectRatio}
+          minChildWidth={minWidth}
+          gap={3}
+        >
           {Array.from(Array(items).keys()).map((_, i) => (
             <ItemComponent key={i} />
           ))}
         </AspectRatioGrid>
       </Flex>
     </Flex>
-  )
-}
+  );
+};

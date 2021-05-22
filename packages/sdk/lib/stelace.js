@@ -72,7 +72,7 @@ export class Stelace {
    * @param {Object} [params.tokenStore]
    * @param {Function} [params.beforeRefreshToken]
    */
-  constructor(params) {
+  constructor (params) {
     if (!params || typeof params !== 'object') {
       throw new Error(
         'A configuration object is expected to initialize Stelace'
@@ -111,7 +111,7 @@ export class Stelace {
     this.setBeforeRefreshToken(beforeRefreshToken)
   }
 
-  setHost(host, port, protocol) {
+  setHost (host, port, protocol) {
     this._setApiField('host', host)
     if (port) {
       this.setPort(port)
@@ -121,38 +121,38 @@ export class Stelace {
     }
   }
 
-  setProtocol(protocol) {
+  setProtocol (protocol) {
     this._setApiField('protocol', protocol.toLowerCase())
   }
 
-  setPort(port) {
+  setPort (port) {
     this._setApiField('port', port)
   }
 
-  setApiVersion(key) {
+  setApiVersion (key) {
     if (key) {
       this._setApiField('version', key)
     }
   }
 
-  setApiKey(key) {
+  setApiKey (key) {
     if (key) {
       this._setApiField('key', key)
     }
   }
 
-  setTimeout(timeout) {
+  setTimeout (timeout) {
     this._setApiField(
       'timeout',
       typeof timeout === 'number' ? timeout : Stelace.DEFAULT_TIMEOUT
     )
   }
 
-  getTokenStore() {
+  getTokenStore () {
     return this.getApiField('tokenStore') || null
   }
 
-  setTokenStore(tokenStore) {
+  setTokenStore (tokenStore) {
     const validTokenStore = this.isValidTokenStore(tokenStore)
 
     if (validTokenStore) {
@@ -160,7 +160,7 @@ export class Stelace {
     }
   }
 
-  isValidTokenStore(tokenStore) {
+  isValidTokenStore (tokenStore) {
     return (
       tokenStore &&
       typeof tokenStore === 'object' &&
@@ -170,29 +170,29 @@ export class Stelace {
     )
   }
 
-  setBeforeRefreshToken(beforeRefreshToken) {
+  setBeforeRefreshToken (beforeRefreshToken) {
     if (typeof beforeRefreshToken !== 'function') return
 
     this._setApiField('beforeRefreshToken', beforeRefreshToken)
   }
 
-  setOrganizationId(organizationId) {
+  setOrganizationId (organizationId) {
     this._setApiField('organizationId', organizationId)
   }
 
-  getApiField(key) {
+  getApiField (key) {
     return this._api[key]
   }
 
-  _setApiField(key, value) {
+  _setApiField (key, value) {
     this._api[key] = value
   }
 
-  getConstant(c) {
+  getConstant (c) {
     return Stelace[c]
   }
 
-  getUserAgent() {
+  getUserAgent () {
     let browserUserAgent
     if (typeof window !== 'undefined') {
       browserUserAgent = window.navigator && window.navigator.userAgent
@@ -204,27 +204,26 @@ export class Stelace {
     )
   }
 
-  _initResources() {
+  _initResources () {
     for (const name in resources) {
       const key = name[0].toLowerCase() + name.substring(1)
       this[key] = new resources[name](this)
     }
   }
 
-  onError(type, callback) {
-    if (!errorTypes.includes(type))
-      throw new Error(`Invalid error type: ${type}`)
+  onError (type, callback) {
+    if (!errorTypes.includes(type)) { throw new Error(`Invalid error type: ${type}`) }
 
     const allListeners = this.getApiField('errorListeners')
     allListeners[type] = allListeners[type] || []
     allListeners[type].push(callback)
 
-    return function unsubscribe() {
+    return function unsubscribe () {
       allListeners[type] = allListeners[type].filter(cb => cb !== callback)
     }
   }
 
-  _emitError(type, error) {
+  _emitError (type, error) {
     const allListeners = this.getApiField('errorListeners')
 
     const typeListeners = allListeners[type] || []

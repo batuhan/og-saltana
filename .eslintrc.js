@@ -1,49 +1,91 @@
+/**
+ * ESLint configuration
+ *
+ * @see https://eslint.org/docs/user-guide/configuring
+ * @copyright 2016-present Kriasoft (https://git.io/Jt7GM)
+ *
+ * @type {import("eslint").Linter.Config}
+ */
+
 module.exports = {
-    env: {
+  root: true,
+
+  env: {
+    es6: true,
+    node: true,
+  },
+
+  extends: ["eslint:recommended", "prettier"],
+
+  parserOptions: {
+    ecmaVersion: 2020,
+  },
+
+  overrides: [{
+      files: ["*.ts", "*.tsx"],
+      parser: "@typescript-eslint/parser",
+      extends: ["plugin:@typescript-eslint/recommended"],
+      plugins: ["@typescript-eslint"],
+      parserOptions: {
+        sourceType: "module",
+        warnOnUnsupportedTypeScriptVersion: true,
+      },
+      rules: {
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "react/prop-types": "off"
+      },
+    },
+    {
+      files: ["*.tsx"],
+      extends: ["plugin:react/recommended"],
+      plugins: ["jsx-a11y", "react-hooks", "@emotion"],
+      env: {
         browser: true,
-        es2021: true,
-    },
-    extends: [
-        'airbnb',
-        'airbnb/hooks',
-        'plugin:jsx-a11y/recommended',
-        'plugin:react/recommended',
-        'prettier',
-        'prettier/react',
-    ],
-    parserOptions: {
+      },
+      parserOptions: {
         ecmaFeatures: {
-            jsx: true,
+          jsx: true,
         },
-        ecmaVersion: 12,
-        sourceType: 'module',
+      },
+      settings: {
+        react: {
+          version: "17.0.2",
+        },
+      },
+      rules: {
+        "react/no-children-prop": "off",
+        "react/react-in-jsx-scope": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "react/prop-types": "off"
+      },
     },
-    plugins: ['jsx-a11y', 'prettier', 'react'],
-    rules: {
-        'react/react-in-jsx-scope': 'off',
-        'jsx-a11y/anchor-is-valid': [
-            'error',
-            {
-                components: ['Link'],
-                specialLink: ['hrefLeft', 'hrefRight'],
-                aspects: ['invalidHref', 'preferButton'],
-            },
-        ],
-        'react/jsx-filename-extension': [
-            1,
-            {
-                extensions: ['.js', '.jsx'],
-            },
-        ],
-        'no-underscore-dangle': 0,
-        'import/imports-first': ['error', 'absolute-first'],
-        'import/newline-after-import': 'error',
-        'react/prefer-stateless-function': 0,
-        'react/require-default-props': 0,
-        'import/prefer-default-export': 0,
-        'react/forbid-prop-types': 0,
-        'react/prop-types': 0,
-        'react/jsx-props-no-spreading': 0,
-        'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+    {
+      files: ["*.test.js", "*.test.ts", "*.test.tsx"],
+      env: {
+        jest: true,
+      },
     },
-}
+    {
+      files: ["proxy/**/*.ts"],
+      env: {
+        worker: true,
+        node: false,
+      },
+    },
+  ],
+
+  ignorePatterns: [
+    "/.cache",
+    "/.git",
+    "/.husky",
+    "/.yarn",
+    "/**/__snapshots__",
+    "/**/node_modules",
+    "/coverage",
+    "/dist/",
+    "/playground",
+    "/docs",
+    "/.idea",
+    "/packages/app/pages/api/stripe"
+  ],
+};

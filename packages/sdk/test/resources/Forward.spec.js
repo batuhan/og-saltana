@@ -2,7 +2,7 @@ import test from 'blue-tape'
 
 import { getStelaceStub, encodeJwtToken } from '../../testUtils'
 
-function initStubbedRequests(stelace) {
+function initStubbedRequests (stelace) {
   const baseURL = stelace.auth.getBaseURL()
   stelace.stubRequest(`${baseURL}/relative/url`, {
     status: 200,
@@ -37,7 +37,7 @@ function initStubbedRequests(stelace) {
   })
 }
 
-function checkForwardResponse({ t, stelace, method, data }) {
+function checkForwardResponse ({ t, stelace, method, data }) {
   const promiseFn = (url, data) => {
     const mapMethods = {
       delete: 'del',

@@ -5,31 +5,26 @@ import {
   StackProps,
   Text,
   useColorModeValue,
-} from '@chakra-ui/react'
-import * as React from 'react'
-import {
-  HiCalendar,
-  HiLink,
-  HiLocationMarker,
-  HiBadgeCheck,
-} from 'react-icons/hi'
+} from "@chakra-ui/react";
+import * as React from "react";
+import { HiCalendar, HiLink, HiLocationMarker } from "react-icons/hi";
 
 interface UserInfoProps extends StackProps {
-  location: string
-  website: string
-  memberSince: string
+  location: string;
+  website: string;
+  memberSince: string;
 }
 
 export const UserInfo = (props: UserInfoProps) => {
-  const { location, website, memberSince, ...stackProps } = props
+  const { location, website, memberSince, ...stackProps } = props;
   return (
     <Stack
-      direction={{ base: 'column', sm: 'row' }}
-      spacing={{ base: '1', sm: '6' }}
+      direction={{ base: "column", sm: "row" }}
+      spacing={{ base: "1", sm: "6" }}
       mt="4"
       fontSize="sm"
       fontWeight="medium"
-      color={useColorModeValue('blue.600', 'blue.300')}
+      color={useColorModeValue("blue.600", "blue.300")}
       {...stackProps}
     >
       <HStack>
@@ -45,5 +40,5 @@ export const UserInfo = (props: UserInfoProps) => {
         <Text>{memberSince}</Text>
       </HStack>
     </Stack>
-  )
-}
+  );
+};
