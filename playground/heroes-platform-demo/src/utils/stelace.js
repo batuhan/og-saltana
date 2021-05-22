@@ -1,6 +1,6 @@
 import { createInstance } from 'stelace'
 
-const apiBaseURL = process.env.STELACE_API_URL
+const apiBaseURL = process.env.SALTANA_CORE_API_URL
 const apiKey = process.env.STELACE_PUBLISHABLE_API_KEY
 
 const apiVersion = '2019-05-20'

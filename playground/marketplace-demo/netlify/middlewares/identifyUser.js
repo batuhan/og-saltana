@@ -6,7 +6,7 @@ if (!process.env.STELACE_SECRET_API_KEY) {
 
 const stelace = initStelaceSdk({
   apiKey: process.env.STELACE_SECRET_API_KEY,
-  apiBaseURL: process.env.STELACE_API_URL
+  apiBaseURL: process.env.SALTANA_CORE_API_URL
 })
 
 export default function identifyUser () {

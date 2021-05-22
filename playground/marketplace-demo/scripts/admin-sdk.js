@@ -6,7 +6,7 @@ require('dotenv').config({
 
 const { initStelaceSdk } = require('./sdk')
 
-const apiBaseURL = process.env.STELACE_API_URL
+const apiBaseURL = process.env.SALTANA_CORE_API_URL
 
 // This secret key should be used to initialize/update data and content in API.
 // Please use it only in secure environments.

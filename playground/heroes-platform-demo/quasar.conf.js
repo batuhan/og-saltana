@@ -97,7 +97,7 @@ module.exports = function (ctx) {
     websiteUrl: process.env.STELACE_INSTANT_WEBSITE_URL
   }
 
-  const apiBaseUrl = process.env.STELACE_API_URL || 'https://api.stelace.com'
+  const apiBaseUrl = process.env.SALTANA_CORE_API_URL || 'https://api.stelace.com'
   const cdnUrl = process.env.VUE_APP_CDN_WITH_IMAGE_HANDLER_URL ||
     'https://cdn.stelace.com/'
   const cdnUploadUrl = process.env.VUE_APP_CDN_POLICY_ENDPOINT ||
@@ -428,7 +428,7 @@ module.exports = function (ctx) {
 
       // Explicit environment variable is required (unlike VueCLI when using VUE_APP prefix)
       env: {
-        STELACE_API_URL: JSON.stringify(apiBaseUrl),
+        SALTANA_CORE_API_URL: JSON.stringify(apiBaseUrl),
         STELACE_PUBLISHABLE_API_KEY: JSON.stringify(process.env.STELACE_PUBLISHABLE_API_KEY),
         STELACE_INSTANT_WEBSITE_URL: JSON.stringify(websiteUrl),
         STELACE_PUBLIC_PLATFORM_ID: JSON.stringify(process.env.STELACE_PUBLIC_PLATFORM_ID),

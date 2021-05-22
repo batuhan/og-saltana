@@ -1,10 +1,17 @@
-import Head from 'next/head'
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react'
 import type { AppProps } from 'next/app'
-
+import Head from 'next/head'
+import * as React from 'react'
+import { QueryClient, QueryClientProvider } from 'react-query'
+import { Hydrate } from 'react-query/hydration'
 import customTheme from '../chakra-ui/customTheme'
 
 function App({ Component, pageProps }: AppProps) {
+  const queryClientRef = React.useRef()
+  if (!queryClientRef.current) {
+    queryClientRef.current = new QueryClient()
+  }
+
   return (
     <>
       <Head>
@@ -12,9 +19,13 @@ function App({ Component, pageProps }: AppProps) {
         <meta content="width=device-width, initial-scale=1" name="viewport" />
       </Head>
       <ColorModeScript initialColorMode={customTheme.config.initialColorMode} />
-      <ChakraProvider theme={customTheme}>
-        <Component {...pageProps} />
-      </ChakraProvider>
+      <QueryClientProvider client={queryClientRef.current}>
+        <Hydrate state={pageProps.dehydratedState}>
+          <ChakraProvider theme={customTheme}>
+            <Component {...pageProps} />
+          </ChakraProvider>
+        </Hydrate>
+      </QueryClientProvider>
     </>
   )
 }

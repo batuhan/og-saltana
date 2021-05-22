@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react'
 import * as React from 'react'
 import { HiOutlineMenu } from 'react-icons/hi'
-import { Logo } from './Logo'
+import { Logo } from '../Logo'
 import { Sidebar } from './Sidebar'
 import { useMobileMenuState } from './useMobileMenuState'
 
@@ -25,7 +25,7 @@ export const MobileTopBar = () => {
       display={{ base: 'flex', md: 'none' }}
       borderBottomWidth="1px"
     >
-      <Logo h="6" iconColor="blue.600" />
+      <Logo h="6" />
       <IconButton
         onClick={onOpen}
         variant="unstyled"
@@ -42,7 +42,12 @@ export const MobileTopBar = () => {
         onClose={onClose}
       >
         <DrawerOverlay />
-        <DrawerContent bg={mode('white', 'gray.800')} shadow="none" position="relative" maxW="64">
+        <DrawerContent
+          bg={mode('white', 'gray.800')}
+          shadow="none"
+          position="relative"
+          maxW="64"
+        >
           <Sidebar width="full" height="full" bg="inherit" border="0" />
           <DrawerCloseButton
             bg="blue.500"

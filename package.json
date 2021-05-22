@@ -23,7 +23,9 @@
     "format": "prettier-eslint \"packages/**\""
   },
   "devDependencies": {
+    "@babel/core": "^7.14.3",
     "@jest/types": "^26.6.2",
+    "@types/babel__core": "^7",
     "@types/node": "^14.14.37",
     "@types/prettier": "^2.2.3",
     "@typescript-eslint/eslint-plugin": "^4.21.0",

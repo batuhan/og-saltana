@@ -135,7 +135,7 @@ You need to fill the following environment variables:
 - `STELACE_INSTANT_WEBSITE_URL`
 - `STELACE_PUBLISHABLE_API_KEY` (*pubk_*...) used in Vue app
 - `STELACE_SECRET_API_KEY` (*seck_*...) used in data seeding scripts
-- `STELACE_API_URL` can be left blank unless you use your own server rather than default `api.stelace.com`
+- `SALTANA_CORE_API_URL` can be left blank unless you use your own server rather than default `api.stelace.com`
 
 Please refer to [`.env.example`](./.env.example) for more details about environment variables, including map, payment gateway, logging and analytics.
 
@@ -175,7 +175,7 @@ yarn setup:instant
 ```
 
 Secret and publishable api keys will be displayed so you can use it as environment variables for this project.
-You’ll also need to set some environment variables such as `STELACE_API_URL` (http://127.0.0.1:API_PORT).
+You’ll also need to set some environment variables such as `SALTANA_CORE_API_URL` (http://127.0.0.1:API_PORT).
 
 Let’s start the server.
 

@@ -25,7 +25,7 @@ dotenv.config({
   path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
 })
 
-const apiBaseURL = process.env.STELACE_API_URL
+const apiBaseURL = process.env.SALTANA_CORE_API_URL
 const apiKey = process.env.STELACE_PUBLISHABLE_API_KEY
 
 const stelace = initStelaceSdk({ apiBaseURL, apiKey })
