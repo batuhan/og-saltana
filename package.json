@@ -4,11 +4,12 @@
   "workspaces": [
     "packages/app",
     "packages/sdk",
-    "packages/api",
+    "packages/core",
     "packages/edge",
     "packages/common",
     "packages/common-internal",
-    "packages/env"
+    "packages/env",
+    "vendor/objection"
   ],
   "scripts": {
     "start": "yarn workspaces foreach -ip run start",

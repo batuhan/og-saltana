@@ -8,22 +8,22 @@ import {
   Input,
   Stack,
   useColorModeValue,
-} from "@chakra-ui/react";
-import { signIn } from "next-auth/client";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { useMutation } from "react-query";
-import { Card } from "../components/Card";
-import { magic } from "../modules/auth/magic";
+} from '@chakra-ui/react'
+import { signIn } from 'next-auth/client'
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { useMutation } from 'react-query'
+import { Card } from '../components/Card'
+import { magic } from '../modules/auth/magic'
 
 async function login(email) {
   const token = await magic.auth.loginWithMagicLink({
     email,
-  });
-  const res = await signIn("credentials", { redirect: false, token });
-  console.log(res);
+  })
+  const res = await signIn('credentials', { redirect: false, token })
+  console.log(res)
 
-  return res;
+  return res
 }
 
 function LoginForm() {
@@ -31,11 +31,11 @@ function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
-  const loginMutation = useMutation(({ email }) => login(email));
+  } = useForm()
+  const loginMutation = useMutation(({ email }) => login(email))
 
   function onSubmit({ email }) {
-    loginMutation.mutate({ email });
+    loginMutation.mutate({ email })
   }
 
   return (
@@ -50,7 +50,7 @@ function LoginForm() {
           <Input
             type="email"
             autoComplete="email"
-            {...register("email", {
+            {...register('email', {
               required: true,
               pattern: /^\S+@\S+$/i,
             })}
@@ -68,15 +68,15 @@ function LoginForm() {
         </Button>
       </Stack>
     </chakra.form>
-  );
+  )
 }
 
 const LoginPage = () => (
   <Box
-    bg={useColorModeValue("gray.50", "inherit")}
+    bg={useColorModeValue('gray.50', 'inherit')}
     minH="100vh"
     py="12"
-    px={{ base: "4", lg: "8" }}
+    px={{ base: '4', lg: '8' }}
   >
     <Box maxW="md" mx="auto">
       <Heading textAlign="center" size="xl" fontWeight="extrabold">
@@ -87,6 +87,6 @@ const LoginPage = () => (
       </Card>
     </Box>
   </Box>
-);
+)
 
-export default LoginPage;
+export default LoginPage
