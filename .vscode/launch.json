@@ -1,39 +1,33 @@
 {
-  // Use IntelliSense to learn about possible Node.js debug attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
   "configurations": [
     {
-      "type": "browser-preview",
+      "type": "browse-lite",
       "request": "attach",
-      "name": "Browser Preview: Attach"
+      "name": "Browse Lite: Attach"
     },
-    {
-      "name": "Build Web",
-      "request": "launch",
-      "runtimeArgs": [
-        "run",
-        "webpack",
-        "build",
-        "--mode",
-        "development",
-        "--profile",
-        "--json",
-        "${workspaceFolder}/dist/web.json"
-      ],
-      "runtimeExecutable": "yarn",
-      "skipFiles": ["<node_internals>/**"],
-      "type": "pwa-node",
-      "cwd": "${workspaceFolder}/web"
-    },
+
+  {
+    "type": "browse-lite",
+    "request": "launch",
+    "name": "Browse Lite: Launch",
+    "url": "http://localhost:3000"
+  },
+
     {
       "type": "node",
-      "request": "attach",
-      "name": "Attach to Node.js",
-      "processId": "${command:PickProcess}",
-      "restart": true,
-      "protocol": "inspector"
+      "name": "vscode-jest-tests",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "yarn",
+      "args": [
+        "dlx",
+        "jest",
+        "--runInBand",
+        "--watchAll=false"
+      ]
     }
   ]
 }

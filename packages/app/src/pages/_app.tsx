@@ -5,6 +5,7 @@ import * as React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { Hydrate } from 'react-query/hydration'
 import customTheme from '../chakra-ui/customTheme'
+import { CartProvider } from "react-use-cart";
 
 function App({ Component, pageProps }: AppProps) {
   const queryClientRef = React.useRef()
@@ -22,7 +23,9 @@ function App({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={queryClientRef.current}>
         <Hydrate state={pageProps.dehydratedState}>
           <ChakraProvider theme={customTheme}>
+          <CartProvider>
             <Component {...pageProps} />
+            </CartProvider>
           </ChakraProvider>
         </Hydrate>
       </QueryClientProvider>

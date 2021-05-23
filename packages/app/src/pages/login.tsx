@@ -7,6 +7,7 @@ import {
   Input,
   Stack,
 } from '@chakra-ui/react'
+import { signIn } from 'next-auth/client'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation } from 'react-query'
