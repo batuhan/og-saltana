@@ -34,7 +34,7 @@ import {
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { HiBadgeCheck, HiPencilAlt } from 'react-icons/hi'
-import { useUser } from '../../modules/api'
+import { useAsset, useUser } from '../../modules/api'
 import { CardContent } from '../organization/CardContent'
 import { CardWithAvatar } from '../organization/CardWithAvatar'
 import { UserInfo } from '../organization/UserInfo'
@@ -42,22 +42,24 @@ import { EmailIcon, StarIcon, CopyIcon } from '@chakra-ui/icons'
 
 const CreatorSpaceShell: React.FC = ({ children }) => {
   const router = useRouter()
-  const { organization: organizationSlug } = router.query
+  const { organization: organizationSlug, product: assetId } = router.query
   const { data = {} } = useUser(organizationSlug)
+  const { data: assetData } = useAsset(
+    { assetId },
+    {
+      enabled: !!assetId,
+    }
+  )
 
   const { description, metadata = {}, displayName } = data
   return (
-    <Grid templateColumns="60% 40%">
-      <Box pr={5} border={0}>
-        {children}
-      </Box>
+    <Grid templateColumns="70% 30%">
+      <Box border={0}>{children}</Box>
       <Box
         display="flex"
         flexDirection="column"
-        justifyContent="center"
         alignItems="stretch"
         border={0}
-        overflow="hidden"
       >
         <Box
           bg="#ffffff"
@@ -134,24 +136,27 @@ const CreatorSpaceShell: React.FC = ({ children }) => {
             </Stack>
           </Box>
         </Box>
-        <Box
-          bg="#ffffff"
-          borderRadius="lg"
-          border="1px solid lightgrey"
-          overflow="hidden"
-        >
-          <Box p={5} pb={8} display="flex" justifyContent="center">
-            some information on the product that is not editable by the creator
+        {assetData && (
+          <Box
+            bg="#ffffff"
+            borderRadius="lg"
+            border="1px solid lightgrey"
+            overflow="hidden"
+          >
+            <Box p={5} pb={8} display="flex" justifyContent="center">
+              some information on the product that is not editable by the
+              creator
+            </Box>
+
+            <Flex alignItems="center" px={6} py={3} bg="gray.900">
+              <Icon as={HiBadgeCheck} h={6} w={6} color="white" />
+
+              <chakra.h1 mx={3} color="white" fontWeight="bold" fontSize="lg">
+                GET NOW FOR {assetData.price}
+              </chakra.h1>
+            </Flex>
           </Box>
-
-          <Flex alignItems="center" px={6} py={3} bg="gray.900">
-            <Icon as={HiBadgeCheck} h={6} w={6} color="white" />
-
-            <chakra.h1 mx={3} color="white" fontWeight="bold" fontSize="lg">
-              GET NOW FOR $10
-            </chakra.h1>
-          </Flex>
-        </Box>
+        )}
       </Box>
     </Grid>
   )

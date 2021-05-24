@@ -53,6 +53,10 @@ export function useAssets({ ownerId, nbResultsPerPage = 100 }) {
   })
 }
 
+export function useAsset({ assetId }, opts) {
+  return useApi('assets', 'read', assetId, opts)
+}
+
 export function useCurrentUserAssets() {
   const [session] = useSession()
   const _api = useAssets({ ownerId: session.user.id })
