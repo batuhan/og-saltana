@@ -17,20 +17,14 @@ export const CardWithAvatar = (props: CardWithAvatarProps) => {
   const { action, avatarProps, children, ...rest } = props
   return (
     <Flex
-      position="relative"
       direction="column"
       align={{ sm: 'center' }}
-      maxW="2xl"
-      mx="auto"
       bg={useColorModeValue('white', 'gray.700')}
       shadow={{ sm: 'base' }}
       rounded={{ sm: 'lg' }}
-      px={{ base: '6', md: '8' }}
-      pb={{ base: '6', md: '8' }}
       {...rest}
     >
       <Avatar
-        mt="-10"
         borderWidth="6px"
         borderColor={useColorModeValue('white', 'gray.700')}
         size="xl"

@@ -1,0 +1,50 @@
+{
+	"name": "@saltana/edge",
+	"version": "0.0.1",
+	"description": "Saltana's edge functions that runs on CloudFlare",
+	"main": "index.js",
+	"scripts": {
+		"lint": "eslint ./src/ --ext .ts",
+		"test:clean": "rimraf ./transpiled/src ./transpiled/test",
+		"test": "npm run test:clean && npm run transpile && mocha --require source-map-support/register --recursive transpiled/test",
+		"transpile": "tsc --project ./test",
+		"dev": "wrangler dev",
+		"build": "webpack"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/saltanahq/saltana.git"
+	},
+	"keywords": [
+		"workers",
+		"cloudflare-workers",
+		"typescript",
+		"nodejs"
+	],
+	"author": "Batuhan Icoz <bauthan@saltana.com>",
+	"private": true,
+	"bugs": {
+		"url": "https://github.com/saltanahq/saltana/issues"
+	},
+	"homepage": "https://github.com/saltanahq/saltana#readme",
+	"devDependencies": {
+		"@cloudflare/workers-types": "^2.2.2",
+		"@cloudflare/wrangler": "^1.16.1",
+		"@types/chai": "^4.2.18",
+		"@types/mocha": "^8.2.2",
+		"chai": "^4.3.4",
+		"mocha": "^8.4.0",
+		"rimraf": "^3.0.2",
+		"service-worker-mock": "^2.0.5",
+		"ts-loader": "^8.3.0",
+		"typescript": "^4.2.4",
+		"webpack": "^5.37.1",
+		"webpack-cli": "^4.7.0"
+	},
+	"dependencies": {
+		"@betahuhn/config": "^1.1.0",
+		"@typescript-eslint/eslint-plugin": "^4.24.0",
+		"@typescript-eslint/parser": "^4.24.0",
+		"eslint": "^7.26.0"
+	}
+}

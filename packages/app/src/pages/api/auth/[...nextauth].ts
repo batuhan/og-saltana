@@ -32,13 +32,18 @@ export default NextAuth({
       return true
     },
     async session(session, token) {
-      console.log('session', { session, token })
-      session.profile = token.profile
-      return session
+      const newSession = { ...session }
+
+      newSession.accessToken = token.accessToken
+      newSession.refreshToken = token.refreshToken
+      newSession.user.id = token.sub
+
+      return newSession
     },
     async jwt(token, user, account, profile) {
-      console.log({ token, user, account, profile })
-      token.profile = profile || token.profile
+      token.accessToken = token.accessToken || profile.accessToken
+      token.refreshToken = token.refreshToken || profile.refreshToken
+      token.sub = token.sub || profile.userId
       return token
     },
   },
@@ -54,10 +59,9 @@ export default NextAuth({
       },
       async authorize({ token }) {
         try {
-          const { userId } = await api.auth.loginMagic({
+          return await api.auth.loginMagic({
             token,
           })
-          return await getUserById(userId)
         } catch (err) {
           console.warn('Unable to get or create user via Magic.link', err)
           throw Error('Unknown failure')

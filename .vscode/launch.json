@@ -1,17 +1,36 @@
 {
   "configurations": [
     {
+      "name": "Launch App",
+      "request": "launch",
+      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "yarn",
+      "cwd": "${workspaceFolder}/packages/app",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node"
+    },
+
+    {
+      "name": "Launch Core",
+      "request": "launch",
+      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "yarn",
+      "cwd": "${workspaceFolder}/packages/core",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
+    },
+
+    {
       "type": "browse-lite",
       "request": "attach",
       "name": "Browse Lite: Attach"
     },
-
-  {
-    "type": "browse-lite",
-    "request": "launch",
-    "name": "Browse Lite: Launch",
-    "url": "http://localhost:3000"
-  },
+    {
+      "type": "browse-lite",
+      "request": "launch",
+      "name": "Browse Lite: Launch",
+      "url": "http://localhost:3000"
+    },
 
     {
       "type": "node",
@@ -22,12 +41,7 @@
       "disableOptimisticBPs": true,
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "yarn",
-      "args": [
-        "dlx",
-        "jest",
-        "--runInBand",
-        "--watchAll=false"
-      ]
+      "args": ["dlx", "jest", "--runInBand", "--watchAll=false"]
     }
   ]
 }

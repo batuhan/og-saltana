@@ -15,6 +15,7 @@
     "@chakra-ui/react": "1.6.1",
     "@emotion/react": "11.4.0",
     "@emotion/styled": "11.3.0",
+    "@optum/json-schema-editor": "^1.1.0",
     "@saltana/sdk": "workspace:packages/sdk",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.15.0",
@@ -54,5 +55,8 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.2.5"
+  },
+  "volta": {
+    "node": "16.2.0"
   }
 }

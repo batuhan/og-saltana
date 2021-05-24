@@ -14,7 +14,7 @@ Auth.prototype.login = method({
     tokenStore.setTokens(res)
 
     return res
-  }
+  },
 })
 
 Auth.prototype.loginMagic = method({
@@ -26,8 +26,14 @@ Auth.prototype.loginMagic = method({
     tokenStore.setTokens(res)
 
     return res
-  }
+  },
 })
+
+Auth.prototype.setTokens = function (tokens) {
+  const tokenStore = this._stelace.getApiField('tokenStore')
+  tokenStore.setTokens(tokens)
+  return this.info()
+}
 
 Auth.prototype.logout = method({
   path: '/auth/logout',
@@ -44,7 +50,7 @@ Auth.prototype.logout = method({
     tokenStore.removeTokens()
 
     return res
-  }
+  },
 })
 
 Auth.prototype.info = function () {
@@ -52,7 +58,7 @@ Auth.prototype.info = function () {
 
   const infoResult = {
     isAuthenticated: false,
-    userId: null
+    userId: null,
   }
 
   if (!tokenStore) return infoResult
@@ -80,10 +86,10 @@ Auth.prototype.getTokens = method({
     tokenStore.setTokens(res)
 
     return res
-  }
+  },
 })
 
 Auth.prototype.check = method({
   path: '/auth/check',
-  method: 'POST'
+  method: 'POST',
 })

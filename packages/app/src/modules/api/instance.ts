@@ -1,9 +1,9 @@
-import { initSaltanaCoreSdk } from "./utils";
+import { initSaltanaCoreSdk } from './utils'
 
-const apiKey = process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY;
+const apiKey = process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY
 
-if (!apiKey) throw new Error("Missing Saltana publishable API key");
+if (!apiKey) throw new Error('Missing Saltana publishable API key')
 
-const api = initSaltanaCoreSdk({ apiKey });
+const api = initSaltanaCoreSdk({ apiKey })
 
-export default api;
+export default api
