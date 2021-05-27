@@ -6,6 +6,7 @@
     "packages/sdk",
     "packages/core",
     "packages/edge",
+    "packages/edge-checkout",
     "packages/common",
     "packages/common-internal",
     "packages/env",

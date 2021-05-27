@@ -1,0 +1,18 @@
+type = "javascript"
+zone_id = "08ceab39c469aa51c59d57f884dac169"
+account_id = "610b07790bf632c89fb6fa735d2fbfe3"
+route = "*staging.saltana.com/*"
+workers_dev = false
+webpack_config = "webpack.config.js"
+name = "saltana-edge-dev"
+
+[build]
+command = "yarn install && yarn run build"
+[build.upload]
+format = "service-worker"
+
+[env.production]
+name = "saltana-edge"
+
+[env.staging]
+name = "saltana-edge-staging"
