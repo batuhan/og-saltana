@@ -1,44 +1,141 @@
+import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons'
 import {
   Box,
   chakra,
   Container,
   Grid,
-  GridItem,
-  VStack,
   Flex,
   Text,
   Image,
   Icon,
-  Button,
-  Heading,
   Stack,
   Tag,
-  Avatar,
-  AvatarBadge,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  FormLabel,
-  Input,
-  FormHelperText,
-  FormErrorMessage,
-  Switch,
-  InputGroup,
-  InputRightElement,
-  Badge,
-  Divider,
   useColorModeValue,
   Link,
+  ButtonGroup,
+  Editable,
+  EditableInput,
+  EditablePreview,
+  IconButton,
+
+  useEditableControls,
 } from '@chakra-ui/react'
+import { useSession } from 'next-auth/client'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { HiBadgeCheck, HiPencilAlt } from 'react-icons/hi'
 import { useAsset, useUser } from '../../modules/api'
-import { CardContent } from '../organization/CardContent'
-import { CardWithAvatar } from '../organization/CardWithAvatar'
-import { UserInfo } from '../organization/UserInfo'
-import { EmailIcon, StarIcon, CopyIcon } from '@chakra-ui/icons'
+
+function CustomControlsExample() {
+  /* Here's a custom control */
+  function EditableControls() {
+    const {
+      isEditing,
+      getSubmitButtonProps,
+      getCancelButtonProps,
+      getEditButtonProps,
+    } = useEditableControls()
+
+    return isEditing ? (
+      <ButtonGroup justifyContent="center" size="sm">
+        <IconButton icon={<HiPencilAlt />} {...getSubmitButtonProps()} />
+        <IconButton icon={<HiPencilAlt />} {...getCancelButtonProps()} />
+      </ButtonGroup>
+    ) : (
+      <Flex justifyContent="center">
+        <IconButton size="sm" icon={<EditIcon />} {...getEditButtonProps()} />
+      </Flex>
+    )
+  }
+
+  return (
+    <Editable
+      textAlign="center"
+      defaultValue="Rasengan ⚡️"
+      fontSize="2xl"
+      isPreviewFocusable={false}
+    >
+      <EditablePreview />
+      <EditableInput />
+      <EditableControls />
+    </Editable>
+  )
+}
+
+
+
+function DisplayNameInput2() {
+  /* Here's a custom control */
+  function EditableControls() {
+    const {
+      isEditing,
+      getSubmitButtonProps,
+      getCancelButtonProps,
+      getEditButtonProps,
+    } = useEditableControls()
+
+    return isEditing ? (
+      <ButtonGroup justifyContent="center" size="sm">
+        <IconButton icon={<HiPencilAlt />} {...getSubmitButtonProps()} />
+        <IconButton icon={<HiPencilAlt />} {...getCancelButtonProps()} />
+      </ButtonGroup>
+    ) : (
+      <Flex justifyContent="center">
+        <IconButton size="sm" icon={<EditIcon />} {...getEditButtonProps()} />
+      </Flex>
+    )
+  }
+
+  return (
+    <Editable
+      textAlign="center"
+      defaultValue="Rasengan ⚡️"
+      fontSize="2xl"
+      isPreviewFocusable={false}
+    >
+      <EditablePreview />
+      <EditableInput />
+      <EditableControls />
+    </Editable>
+  )
+}
+
+
+function DisplayNameInput() {
+  /* Here's a custom control */
+  function EditableControls() {
+    const {
+      isEditing,
+      getSubmitButtonProps,
+      getCancelButtonProps,
+      getEditButtonProps,
+    } = useEditableControls()
+
+    return isEditing ? (
+      <ButtonGroup justifyContent="center" size="sm">
+        <IconButton icon={<HiPencilAlt />} {...getSubmitButtonProps()} />
+        <IconButton icon={<HiPencilAlt />} {...getCancelButtonProps()} />
+      </ButtonGroup>
+    ) : (
+      <Flex justifyContent="center">
+        <IconButton size="sm" icon={<EditIcon />} {...getEditButtonProps()} />
+      </Flex>
+    )
+  }
+
+  return (
+    <Editable
+      textAlign="center"
+      defaultValue="Rasengan ⚡️"
+      fontSize="2xl"
+      isPreviewFocusable={false}
+    >
+      <EditablePreview />
+      <EditableInput />
+      <EditableControls />
+    </Editable>
+  )
+}
 
 const CreatorSpaceShell: React.FC = ({ children }) => {
   const router = useRouter()
@@ -50,6 +147,12 @@ const CreatorSpaceShell: React.FC = ({ children }) => {
       enabled: !!assetId,
     }
   )
+  const [session] = useSession()
+  const [canEdit, setCanEdit] = React.useState(session ? true: false)
+
+  React.useEffect(() => {
+    setCanEdit(session && session.user && session.user.id && organizationSlug === session.user.id)
+  }, [session])
 
   const { description, metadata = {}, displayName } = data
   return (
@@ -68,6 +171,7 @@ const CreatorSpaceShell: React.FC = ({ children }) => {
           overflow="hidden"
           mb={5}
         >
+          <CustomControlsExample />
           <Image
             w="full"
             h={56}
@@ -75,22 +179,6 @@ const CreatorSpaceShell: React.FC = ({ children }) => {
             src="https://images.unsplash.com/photo-1542156822-6924d1a71ace?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
             alt="avatar"
           />
-          <Box py={5} textAlign="center">
-            <Link
-              display="block"
-              fontSize="2xl"
-              color={useColorModeValue('gray.800', 'white')}
-              fontWeight="bold"
-            >
-              John Doe
-            </Link>
-            <chakra.span
-              fontSize="sm"
-              color={useColorModeValue('gray.700', 'gray.200')}
-            >
-              Software Engineer
-            </chakra.span>
-          </Box>
           <Box p={5} pb={8}>
             <Flex
               display="flex"
@@ -98,6 +186,8 @@ const CreatorSpaceShell: React.FC = ({ children }) => {
               alignItems="stretch"
               flexDirection="row"
             >
+
+
               <Text fontWeight="bold" fontSize="xl">
                 {displayName}
               </Text>

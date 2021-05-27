@@ -107,7 +107,7 @@ export function CheckoutToDelivery() {
           </Stack>
 
           <Stack>
-            {items.map(item => (
+            {items.map((item) => (
               <ProductLine key={item.id} {...item} />
             ))}
           </Stack>

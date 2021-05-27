@@ -21,7 +21,7 @@
 		"typescript",
 		"nodejs"
 	],
-	"author": "Batuhan Icoz <bauthan@saltana.com>",
+	"author": "Batuhan Icoz <batuhan@saltana.com>",
 	"private": true,
 	"bugs": {
 		"url": "https://github.com/saltanahq/saltana/issues"
@@ -42,9 +42,9 @@
 		"webpack-cli": "^4.7.0"
 	},
 	"dependencies": {
-		"@betahuhn/config": "^1.1.0",
 		"@typescript-eslint/eslint-plugin": "^4.24.0",
 		"@typescript-eslint/parser": "^4.24.0",
-		"eslint": "^7.26.0"
+		"eslint": "^7.26.0",
+		"stripe": "^8.149.0"
 	}
 }

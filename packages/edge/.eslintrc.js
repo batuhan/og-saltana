@@ -1,5 +1,4 @@
 module.exports = {
-	...require('@betahuhn/config').eslint,
 	parser: '@typescript-eslint/parser',
 	plugins: [
 		'@typescript-eslint'

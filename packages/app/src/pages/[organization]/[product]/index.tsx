@@ -15,13 +15,21 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { HiBadgeCheck, HiPencilAlt } from 'react-icons/hi'
+import { dehydrate } from 'react-query/hydration'
 import CreatorSpaceShell from '../../../components/CreatorSpaceShell'
 import { CardContent } from '../../../components/organization/CardContent'
 import { CardWithAvatar } from '../../../components/organization/CardWithAvatar'
 import { GridSystemDemo } from '../../../components/organization/GridSystem/App'
 import ProductPreviewCard from '../../../components/organization/ProductPreviewCard'
 import { UserInfo } from '../../../components/organization/UserInfo'
-import { useAsset, useAssets } from '../../../modules/api'
+import {
+  getSharedQueryClient,
+  prefetchAsset,
+  prefetchAssets,
+  prefetchUser,
+  useAsset,
+  useAssets,
+} from '../../../modules/api'
 
 const Ma = (props) => {
   return (
@@ -79,6 +87,16 @@ const OrganizationAssetPage = () => {
       </Container>
     </CreatorSpaceShell>
   )
+}
+
+export async function getServerSideProps({
+  params: { organization, product },
+}) {
+  await prefetchUser(organization)
+  await prefetchAsset({ assetId: product })
+  return {
+    props: { dehydratedState: dehydrate(getSharedQueryClient()) },
+  }
 }
 
 export default OrganizationAssetPage

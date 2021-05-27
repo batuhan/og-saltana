@@ -7,5 +7,18 @@
   "eslint.nodePath": ".yarn/sdks",
   "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "10.0.0.123",
+      "port": 6543,
+      "driver": "PostgreSQL",
+      "name": "Saltana Dev",
+      "group": "saltana",
+      "database": "stelace-core",
+      "username": "user",
+      "password": "password"
+    }
+  ]
 }

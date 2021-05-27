@@ -1,6 +1,14 @@
 {
   "configurations": [
     {
+      "type": "vscode-edge-devtools.debug",
+      "request": "launch",
+      "name": "Launch Microsoft Edge and open the Edge DevTools",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "headless": true
+    },
+    {
       "name": "Launch App",
       "request": "launch",
       "runtimeArgs": ["run", "dev"],
