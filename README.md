@@ -8,24 +8,39 @@ Repository is managed with `yarn workspaces`. Make sure you use [Volta](https://
 
 ## Environments
 
-| env           | base                          | 
+| env           | base                          |
 | ------------- | ----------------------------- |
-| `production`  | `https://www.saltana.com`     | 
+| `production`  | `https://www.saltana.com`     |
 | `staging`     | `https://staging.saltana.com` |
-| `development` | `https://dev.saltana.com`     | 
-| `local`       | `http://localhost`            | 
+| `development` | `https://dev.saltana.com`     |
+| `local`       | `http://localhost`            |
+
+## Cloud services
+
+- DigitalOcean Apps (Docker)
+- Vercel
+- CloudFlare
+- TimescaleDB Cloud
+- DigitalOcean Spaces (via AWS S3 library)
+- TransloadIt
+- n8n
 
 ## Projects
 
-| name           | description     |  routes |
-| ------------- | ----------------------------- |----- |
-| [`core`](./services/core)  | main api | `/api/v1/*` (proxied by *edge*) |
-| [`web`](./services/core)     | server rendered web app | `/*` (proxied by *edge*) |
-| [`edge`](./services/core) | cloudflare worker for fast cache, proxy, auth and more | `/*`, `/api/v0/*`  |
+At a glance because the CTO lieks to write long:
 
-All services are deployed under a single domain as defined in *Environments* above.
+| name                      | description                                            | routes/pkg name                 |
+| ------------------------- | ------------------------------------------------------ | ------------------------------- |
+| [`core`](./services/core) | main api                                               | `/api/v1/*` (proxied by _edge_) |
+| [`web`](./services/web)   | server rendered web app                                | `/*` (proxied by _edge_)        |
+| [`edge`](./services/edge) | cloudflare worker for fast cache, proxy, auth and more | `/*`, `/api/v0/*`               |
+| [`sdk`](./packages/sdk)   | SDK for interacting with `core`                        | `@saltana/sdk`                  |
+| [`fil`](./packages/fil)   | cli & library files                                    | `@saltana/fil`                  |
+| [`env`](./packages/env)   | shared config service                                  | `@saltana/env`                  |
 
-### [core](./services/core) | *service*
+All services are deployed under a single domain as defined in _Environments_ above.
+
+### [core](./services/core) | _service_
 
 Where the magic mostly happens. This is our main API. Internal Workflows, Webhooks, Transactions, Content and most everything is managed from there.
 
@@ -49,37 +64,35 @@ Deployed on DigitalOcean Apps. With the database at TimescaleDB Cloud for now be
 
 Served behind `edge`.
 
-### [web](./services/web) | *service*
+### [web](./services/web) | _service_
 
 Next.js, mixed TypeScript and JavaScript, react-query, SSR, next-seo, next-auth
 
 Deployed on Vercel. Served behind `edge`.
 
-### [edge](./services/edge) | *service*
+### [edge](./services/edge) | _service_
 
 CloudFlare Worker that authorizes, proxied and caches our services.
-It runs on *every* CloudFlare location so provides instant responses to our visitors. Payment Intents for Stripe for example are created at the edge so the payments are instant.
+It runs on _every_ CloudFlare location so provides instant responses to our visitors. Payment Intents for Stripe for example are created at the edge so the payments are instant.
 
-Both server side produced HTML from the `web`application and the subsequent API requests to `core` are cached *if they are not authorized (so most requests never hit on our serves)*.
+Both server side produced HTML from the `web`application and the subsequent API requests to `core` are cached _if they are not authorized (so most requests never hit on our serves)_.
 
-Uses CloudFlare KV to store the cache. 
+Uses CloudFlare KV to store the cache.
 
 It'll also allow us to build custom domains on top of it in the future.
 
-SDK for embeds are served from here. The external checkout UI *will* also be rendered here directly for a faster experience.
+SDK for embeds are served from here. The external checkout UI _will_ also be rendered here directly for a faster experience.
 
-### [sdk](./packages/sdk) | *package*
+### [sdk](./packages/sdk) | _package_
 
-A browser and NodeJS library for interacting with `core`. 
+A browser and NodeJS library for interacting with `core`.
 
-### [fil](./packages/fil) | *package*
+### [fil](./packages/fil) | _package_
 
 Internal command line application for a better development experience. It also includes a wrapper for the SDK for internal modules.
 
-### [env](./packages/env) | *package*
+### [env](./packages/env) | _package_
 
 Shared configs to be used in every service.
 
-
 ## How to run
-
