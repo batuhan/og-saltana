@@ -1,4 +1,4 @@
-const { builtInTypes, customTypeRegex } = require('stelace-util-keys')
+const { builtInTypes, customTypeRegex } = require('@saltana/util-keys')
 
 const {
   Joi,

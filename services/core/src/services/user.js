@@ -6,7 +6,7 @@ const { UniqueViolationError } = require('objection-db-errors')
 
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { checkPermissions } = require('../auth')
 

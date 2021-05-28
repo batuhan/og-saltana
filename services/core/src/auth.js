@@ -4,7 +4,7 @@ const _ = require('lodash')
 const apm = require('elastic-apm-node')
 const crypto = require('crypto')
 
-const { parseKey } = require('stelace-util-keys')
+const { parseKey } = require('@saltana/util-keys')
 
 const { logError } = require('../server/logger')
 

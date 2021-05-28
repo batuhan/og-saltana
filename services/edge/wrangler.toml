@@ -1,18 +1,19 @@
-type = "javascript"
-zone_id = "08ceab39c469aa51c59d57f884dac169"
-account_id = "610b07790bf632c89fb6fa735d2fbfe3"
-route = "*staging.saltana.com/*"
-workers_dev = false
-webpack_config = "webpack.config.js"
 name = "saltana-edge-dev"
+type = "webpack"
+account_id = "610b07790bf632c89fb6fa735d2fbfe3"
+workers_dev = false
+route = "*dev.saltana.com/*"
+zone_id = "08ceab39c469aa51c59d57f884dac169"
+webpack_config = "webpack-config"
 
-[build]
-command = "yarn install && yarn run build"
-[build.upload]
-format = "service-worker"
+[site]
+bucket = "out"
+entry-point = "./"
 
 [env.production]
-name = "saltana-edge"
+name = "saltana-edge-production"
+route = "*www.saltana.com/*"
 
 [env.staging]
 name = "saltana-edge-staging"
+route = "*staging.saltana.com/*"

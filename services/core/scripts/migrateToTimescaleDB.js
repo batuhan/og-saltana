@@ -2,7 +2,7 @@
 
 // Objective: migrate platforms from PostgreSQL to TimescaleDB
 
-require('@saltana/env').load()
+require('@saltana/common').load()
 require('./src/secure-env').config() // load credentials from AWS SSM
 
 const _ = require('lodash')

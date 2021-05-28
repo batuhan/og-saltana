@@ -3,7 +3,7 @@ const Base = require('./Base')
 const {
   parseKey,
   getBaseKey
-} = require('stelace-util-keys')
+} = require('@saltana/util-keys')
 
 class ApiKey extends Base {
   static get tableName () {

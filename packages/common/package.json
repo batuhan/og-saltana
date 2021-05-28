@@ -1,0 +1,9 @@
+{
+  "name": "@saltana/common",
+  "description": "Shared functions across packages and services",
+  "version": "0.0.1",
+  "private": true,
+  "author": "Batuhan Icoz <batuhan@saltana.com>",
+  "main": "index.cjs",
+  "type": "commonjs"
+}

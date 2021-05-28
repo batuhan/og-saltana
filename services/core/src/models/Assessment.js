@@ -1,6 +1,6 @@
 const Base = require('./Base')
 
-const { getRandomString } = require('stelace-util-keys')
+const { getRandomString } = require('@saltana/util-keys')
 
 class Assessment extends Base {
   static get tableName () {

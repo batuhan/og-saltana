@@ -4,7 +4,7 @@ const _ = require('lodash')
 const debug = require('debug')('stelace:api')
 const apm = require('elastic-apm-node')
 
-const { parseKey } = require('stelace-util-keys')
+const { parseKey } = require('@saltana/util-keys')
 
 const User = require('../models/User')
 

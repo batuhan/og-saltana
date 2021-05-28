@@ -9,7 +9,7 @@ const { isValidCurrency } = require('../util/currency')
 
 const { replaceBy } = require('../util/list')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const {
   getLinesFromTransactions,

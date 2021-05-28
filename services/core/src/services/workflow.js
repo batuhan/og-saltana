@@ -12,7 +12,7 @@ const { getModels, getModelInfo } = require('../models')
 
 const { isValidObjectId } = require('../util/validation')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { apiVersions, applyObjectChanges } = require('../versions')
 

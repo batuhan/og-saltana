@@ -4,7 +4,7 @@ const bluebird = require('bluebird')
 
 bluebird.promisifyAll(redis)
 
-const { isValidPlatformId } = require('stelace-util-keys')
+const { isValidPlatformId } = require('@saltana/util-keys')
 const { isValidEnvironment } = require('./util/environment')
 
 const isTestEnv = process.env.NODE_ENV === 'test'

@@ -1,4 +1,4 @@
-require('@saltana/env').load()
+require('@saltana/common').load()
 require('../src/secure-env').config()
 
 const restify = require('restify')
@@ -39,7 +39,7 @@ polyfills.initErrors()
 
 const Base = require('../src/models/Base')
 
-const { parseKey: parseApiKey } = require('stelace-util-keys')
+const { parseKey: parseApiKey } = require('@saltana/util-keys')
 
 const database = require('../src/database')
 const elasticsearch = require('../src/elasticsearch')

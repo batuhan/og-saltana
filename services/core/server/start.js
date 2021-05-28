@@ -1,4 +1,4 @@
-require('@saltana/env').load()
+require('@saltana/common').load()
 require('../src/secure-env').config()
 console.log(1)
 const { start: startApm } = require('./apm')

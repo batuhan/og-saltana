@@ -1,0 +1,36 @@
+{
+  "name": "@saltana/util-keys",
+  "description": "Checking and generating Stelace keys or identifiers using random characters",
+  "license": "MIT",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "repository": "git@github.com:stelace/stelace-util-keys.git",
+  "author": "Stelace (https://stelace.com)",
+  "scripts": {
+    "test": "ava",
+    "test:ci": "ava --tap | tap-xunit",
+    "lint": "standard",
+    "lint-fix": "standard --fix"
+  },
+  "lint-staged": {
+    "*": [
+      "npm run lint-fix",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "base62": "^2.0.1",
+    "escape-string-regexp": "^4.0.0"
+  },
+  "devDependencies": {
+    "ava": "^3.15.0",
+    "debug": "^4.3.1",
+    "lint-staged": "^10.5.4",
+    "standard": "^14.3.4",
+    "tap-xunit": "^2.4.1"
+  },
+  "engines": {
+    "node": ">=12.14"
+  }
+}

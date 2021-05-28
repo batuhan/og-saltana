@@ -2,15 +2,15 @@
   "name": "saltana",
   "private": true,
   "workspaces": [
-    "packages/app",
-    "packages/sdk",
-    "packages/core",
-    "packages/edge",
-    "packages/edge-checkout",
+    "services/web",
+    "services/edge",
+    "services/core",
     "packages/common",
-    "packages/common-internal",
-    "packages/env",
-    "vendor/objection"
+    "packages/fil",
+    "packages/react",
+    "packages/sdk",
+    "packages/util-keys",
+    "packages/vendor-objection"
   ],
   "scripts": {
     "start": "yarn workspaces foreach -ip run start",
@@ -49,7 +49,7 @@
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
     "prettier-eslint-cli": "^5.0.1",
-    "typescript": "4.2.4"
+    "typescript": "3.7.2"
   },
   "lint-staged": {
     "packages/app/**/*.{js,jsx,ts,tsx}": [
@@ -63,7 +63,10 @@
     }
   },
   "volta": {
-    "node": "16.2.0",
+    "node": "12.22.1",
     "yarn": "1.22.10"
+  },
+  "dependencies": {
+    "node-gyp": "^8.0.0"
   }
 }

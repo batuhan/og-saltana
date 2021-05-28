@@ -7,7 +7,7 @@ const { getModels } = require('../models')
 const {
   generateKey,
   getObjectId
-} = require('stelace-util-keys')
+} = require('@saltana/util-keys')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 

@@ -5,7 +5,7 @@ const { getModels } = require('../models')
 
 const { isValidHierarchy } = require('../util/hierarchy')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 

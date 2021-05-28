@@ -1,4 +1,4 @@
-require('@saltana/env').load()
+require('@saltana/common').load()
 
 const request = require('supertest')
 

@@ -36,7 +36,7 @@ At a glance because the CTO lieks to write long:
 | [`edge`](./services/edge) | cloudflare worker for fast cache, proxy, auth and more | `/*`, `/api/v0/*`               |
 | [`sdk`](./packages/sdk)   | SDK for interacting with `core`                        | `@saltana/sdk`                  |
 | [`fil`](./packages/fil)   | cli & library files                                    | `@saltana/fil`                  |
-| [`env`](./packages/env)   | shared config service                                  | `@saltana/env`                  |
+| [`env`](./packages/env)   | shared config service                                  | `@saltana/common`                  |
 
 All services are deployed under a single domain as defined in _Environments_ above.
 

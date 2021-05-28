@@ -3,7 +3,7 @@ const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 const bluebird = require('bluebird')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')

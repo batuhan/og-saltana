@@ -2,7 +2,7 @@ const createError = require('http-errors')
 const _ = require('lodash')
 const { getModels } = require('../models')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { apiVersions } = require('../versions')
 const { setPlatformEnvData } = require('../redis')

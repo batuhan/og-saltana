@@ -3,7 +3,7 @@ const { apiVersions } = require('../versions')
 
 const _ = require('lodash')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { getPublisher, COMMUNICATION_ID } = require('../communication')
 

@@ -3,7 +3,7 @@
  * and development as well.
  */
 
-require('@saltana/env').load()
+require('@saltana/common').load()
 const shell = require('shelljs')
 const path = require('path')
 const script = require('commander')

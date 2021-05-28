@@ -34,7 +34,7 @@ const {
   extractDataFromObjectId,
   parsePublicPlatformId,
   parseKey,
-} = require('stelace-util-keys')
+} = require('@saltana/util-keys')
 
 const tokenPrefix = 'tok_'
 

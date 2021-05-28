@@ -4,7 +4,7 @@ const _ = require('lodash')
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')
 
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 

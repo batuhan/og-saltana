@@ -1,7 +1,7 @@
 const Stripe = require('stripe')
 const debug = require('debug')('stelace:integrations:stripe')
 const _ = require('lodash')
-const { parsePublicPlatformId } = require('stelace-util-keys')
+const { parsePublicPlatformId } = require('@saltana/util-keys')
 
 module.exports = function createService (deps) {
   const {

@@ -3,7 +3,7 @@ const bluebird = require('bluebird')
 
 const {
   getObjectId
-} = require('stelace-util-keys')
+} = require('@saltana/util-keys')
 
 let deps
 let enabled = false

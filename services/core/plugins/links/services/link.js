@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { getObjectId } = require('stelace-util-keys')
+const { getObjectId } = require('@saltana/util-keys')
 
 module.exports = function createService (deps) {
   const {

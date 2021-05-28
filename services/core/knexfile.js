@@ -1,4 +1,4 @@
-require('@saltana/env').load()
+require('@saltana/common').load()
 
 module.exports = {
 

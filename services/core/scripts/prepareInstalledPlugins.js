@@ -5,7 +5,7 @@
  * so that we can use secrets in Dockerfile.prod
  */
 
-require('@saltana/env').load()
+require('@saltana/common').load()
 const path = require('path')
 const shell = require('shelljs')
 

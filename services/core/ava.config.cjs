@@ -1,4 +1,4 @@
-require('@saltana/env').load()
+require('@saltana/common').load()
 
 const { IGNORED_LOCAL_PLUGINS, TESTS, STELACE_PLUGINS_PATHS, INSTANT_DATA } = process.env
 

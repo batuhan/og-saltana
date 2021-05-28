@@ -1,0 +1,6 @@
+{
+  "name": "@saltana/react",
+  "description": "React code to be shared between edge and web",
+  "version": "0.0.1",
+  "private": true
+}

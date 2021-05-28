@@ -1,4 +1,4 @@
-require('@saltana/env').load()
+require('@saltana/common').load()
 require('../src/secure-env').config()
 
 process.env.ELASTIC_APM_DISABLED = true
