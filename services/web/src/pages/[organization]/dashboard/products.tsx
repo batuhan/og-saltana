@@ -14,6 +14,10 @@ import {
   Tabs,
   Text,
   useColorModeValue as mode,
+  Popover,
+  PopoverTrigger,
+  Portal,
+  PopoverContent,
 } from '@chakra-ui/react'
 import * as React from 'react'
 import { HiChartBar, HiDownload, HiPlus } from 'react-icons/hi'
@@ -48,6 +52,17 @@ export const CreatorProducts = () => {
                   >
                     Import
                   </Button>
+                  <Popover initialFocusRef={initialFocusRef} isOpen>
+      <PopoverTrigger>
+        <Button variant="outline">Feedback</Button>
+      </PopoverTrigger>
+      <Portal>
+        <PopoverContent boxShadow="xl" p="3" _focus={{ outline: 'none' }}>
+          <FeedbackForm forwardedRef={initialFocusRef} />
+        </PopoverContent>
+      </Portal>
+    </Popover>
+
                   <Button
                     colorScheme="blue"
                     leftIcon={<HiPlus />}

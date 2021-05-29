@@ -1,5 +1,6 @@
 import Head from 'next/head'
-import DashboardShell from "../../../components/Header";
+import DashboardShell from '../../../components/DashboardShell'
+
 export default function DashboardIndex() {
-    return <DashboardShell>organization stats</DashboardShell>
+  return <DashboardShell>organization stats</DashboardShell>
 }

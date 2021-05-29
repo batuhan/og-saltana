@@ -8,7 +8,13 @@ import customTheme from '../chakra-ui/customTheme'
 import { CartProvider } from 'react-use-cart'
 import { Provider } from 'next-auth/client'
 import Authenticated from '../modules/auth/Authenticated'
+import ApiProvider from '../modules/api/useApi'
 import { ReactQueryDevtools } from 'react-query/devtools'
+import GlobalHeader from "../components/GlobalHeader"
+import { DefaultSeo } from 'next-seo';
+
+// import your default seo configuration
+import SEO from '../../next-seo.config';
 
 function App({ Component, pageProps }: AppProps) {
   const queryClientRef = React.useRef()
@@ -24,22 +30,26 @@ function App({ Component, pageProps }: AppProps) {
       </Head>
       <ColorModeScript initialColorMode={customTheme.config.initialColorMode} />
       <Provider session={pageProps.session}>
-        <QueryClientProvider client={queryClientRef.current}>
-          <Hydrate state={pageProps.dehydratedState}>
-            <ChakraProvider theme={customTheme}>
-              <CartProvider>
-                {Component.auth ? (
-                  <Authenticated>
+        <ApiProvider>
+          <QueryClientProvider client={queryClientRef.current}>
+            <Hydrate state={pageProps.dehydratedState}>
+              <ChakraProvider theme={customTheme}>
+                <CartProvider>
+                  <DefaultSeo {...SEO} />
+                  {Component.useGlobalHeader && <GlobalHeader />}
+                  {Component.auth ? (
+                    <Authenticated>
+                      <Component {...pageProps} />
+                    </Authenticated>
+                  ) : (
                     <Component {...pageProps} />
-                  </Authenticated>
-                ) : (
-                  <Component {...pageProps} />
-                )}
-              </CartProvider>
-            </ChakraProvider>
-            <ReactQueryDevtools initialIsOpen={false} />
-          </Hydrate>
-        </QueryClientProvider>
+                  )}
+                </CartProvider>
+              </ChakraProvider>
+              <ReactQueryDevtools initialIsOpen={false} />
+            </Hydrate>
+          </QueryClientProvider>
+        </ApiProvider>
       </Provider>
     </>
   )

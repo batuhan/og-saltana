@@ -79,7 +79,7 @@ function start ({ communication, serverPort, isSystem }) {
     namespace: COMMUNICATION_ID,
   })
 
-  responder.on('login-with-magic', async (req) => {
+  responder.on('loginMagic', async (req) => {
     const platformId = req.platformId
     const env = req.env
     const { AuthMean, User } = await getModels({ platformId, env })

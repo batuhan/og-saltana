@@ -1,26 +1,7 @@
-import {
-  Box,
-  Button,
-  Heading,
-  Icon,
-  chakra,
-  Image,
-  Flex,
-  Text,
-  useColorModeValue,
-  SimpleGrid,
-  Container,
-} from '@chakra-ui/react'
-import Link from 'next/link'
+import { SimpleGrid, Container } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { HiBadgeCheck, HiPencilAlt } from 'react-icons/hi'
 import CreatorSpaceShell from '../../components/CreatorSpaceShell'
-import { CardContent } from '../../components/organization/CardContent'
-import { CardWithAvatar } from '../../components/organization/CardWithAvatar'
-import { GridSystemDemo } from '../../components/organization/GridSystem/App'
-import ProductPreviewCard from '../../components/organization/ProductPreviewCard'
-import { UserInfo } from '../../components/organization/UserInfo'
 import {
   getSharedQueryClient,
   prefetchAssets,
@@ -28,6 +9,7 @@ import {
   prefetchUser,
   useAssets,
 } from '../../modules/api'
+import { sharedInstance } from '../../modules/api/useApi'
 import { dehydrate } from 'react-query/hydration'
 import AssetBox from '../../modules/assets/AssetBox'
 
@@ -51,11 +33,25 @@ const OrganizationProfile = () => {
 }
 
 export async function getServerSideProps({ params: { organization } }) {
-  await prefetchUser(organization)
-  await prefetchAssets({ ownerId: organization })
-  return {
-    props: { dehydratedState: dehydrate(getSharedQueryClient()) },
+  try {
+    const user = await sharedInstance.users.read(organization)
+    if (!user) {
+      throw new Error('NO_USER')
+    }
+
+    const queryClient = getSharedQueryClient()
+    queryClient.setQueryData(['users', 'read', user.id], user)
+    await prefetchAssets({ ownerId: user.id })
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    }
+  } catch (err) {
+    return {
+      notFound: true,
+    }
   }
 }
+
+OrganizationProfile.useGlobalHeader = true
 
 export default OrganizationProfile

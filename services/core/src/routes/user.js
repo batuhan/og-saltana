@@ -12,28 +12,6 @@ function init (server, { middlewares, helpers } = {}) {
   } = helpers
 
   server.get({
-    name: 'user.findUserId',
-    path: '/users/find-user-id'
-  }, checkPermissions([
-    'user:list:all'
-  ]), wrapAction(async (req, res) => {
-    const fields = [
-      'username'
-    ]
-
-    const payload = _.pick(req.query, fields)
-
-    let params = populateRequesterParams(req)({
-      type: 'findUserId'
-    })
-
-    params = Object.assign({}, params, payload)
-
-    const result = await requester.send(params)
-    return result
-  }))
-
-  server.get({
     name: 'user.checkAvailability',
     path: '/users/check-availability'
   }, checkPermissions([

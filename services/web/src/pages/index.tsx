@@ -38,4 +38,6 @@ function Home() {
   )
 }
 
+Home.useGlobalHeader = true;
+
 export default Home

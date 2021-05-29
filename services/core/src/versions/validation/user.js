@@ -59,11 +59,6 @@ schemas['2020-08-10'].list = () => ({
 // 2019-05-20 //
 // ////////// //
 schemas['2019-05-20'] = {}
-schemas['2019-05-20'].findUserId = {
-  query: Joi.object().keys({
-    username: Joi.string().required()
-  })
-}
 schemas['2019-05-20'].checkAvailability = {
   query: Joi.object().keys({
     username: Joi.string().required()

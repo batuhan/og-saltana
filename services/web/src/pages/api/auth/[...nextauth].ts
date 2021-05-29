@@ -1,8 +1,13 @@
 import sortBy from 'lodash.sortby'
 import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
-import api from '../../../modules/api/instance-admin'
+import { createInstance } from '@saltana/sdk'
 
+const api = () => createInstance({
+  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+})
+
+/*
 async function getUserById(userId) {
   const naturalUser = await api.users.read(userId, {
     stelaceOrganizationId: null,
@@ -25,6 +30,7 @@ async function getUserById(userId) {
 
   return userData
 }
+*/
 
 export default NextAuth({
   callbacks: {
@@ -59,7 +65,7 @@ export default NextAuth({
       },
       async authorize({ token }) {
         try {
-          return await api.auth.loginMagic({
+          return await api().auth.loginMagic({
             token,
           })
         } catch (err) {

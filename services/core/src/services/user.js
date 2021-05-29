@@ -12,10 +12,7 @@ const { checkPermissions } = require('../auth')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
-const {
-  getCurrentUserId,
-  getRealCurrentUserId
-} = require('../util/user')
+const { getCurrentUserId, getRealCurrentUserId } = require('../util/user')
 
 let responder
 let subscriber
@@ -26,18 +23,18 @@ let namespaceRequester
 
 const organizationRole = 'organization'
 
-function start ({ communication }) {
+function start({ communication }) {
   const {
     getResponder,
     getSubscriber,
     getRequester,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'User Responder',
-    key: 'user'
+    key: 'user',
   })
 
   subscriber = getSubscriber({
@@ -50,45 +47,29 @@ function start ({ communication }) {
       'userDeleted',
       'userOrganizationJoined',
       'userOrganizationLeft',
-      'userOrganizationRightsChanged'
-    ]
+      'userOrganizationRightsChanged',
+    ],
   })
 
   publisher = getPublisher({
     name: 'User publisher',
     key: 'user',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   configRequester = getRequester({
     name: 'User service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   roleRequester = getRequester({
     name: 'User service > Role Requester',
-    key: 'role'
+    key: 'role',
   })
 
   namespaceRequester = getRequester({
     name: 'User service > Namespace Requester',
-    key: 'namespace'
-  })
-
-  responder.on('findUserId', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { User } = await getModels({ platformId, env })
-
-    const {
-      username
-    } = req
-
-    const user = await User.query().findOne({ username })
-
-    return {
-      userId: user.id
-    }
+    key: 'namespace',
   })
 
   responder.on('checkAvailability', async (req) => {
@@ -96,14 +77,12 @@ function start ({ communication }) {
     const env = req.env
     const { User } = await getModels({ platformId, env })
 
-    const {
-      username
-    } = req
+    const { username } = req
 
     const user = await User.query().findOne({ username })
 
     return {
-      available: !user
+      available: !user,
     }
   })
 
@@ -142,22 +121,22 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         query: {
           value: query,
           query: (queryBuilder, query) => {
-            queryBuilder.where(builder => {
+            queryBuilder.where((builder) => {
               const lowerQuery = query.toLowerCase()
 
               return builder
@@ -167,7 +146,7 @@ function start ({ communication }) {
                 .orWhereRaw('LOWER("username") LIKE ?', `%${lowerQuery}%`)
                 .orWhereRaw('LOWER("email") LIKE ?', `%${lowerQuery}%`)
             })
-          }
+          },
         },
         type: {
           value: type || null, // defaults to `null` because if `undefined`, the filter is inactive
@@ -184,15 +163,15 @@ function start ({ communication }) {
             } else if (type === 'user') {
               queryBuilder.whereJsonNotSupersetOf('roles', [organizationRole])
             }
-          }
+          },
         },
         userOrganizationId: {
           value: userOrganizationId,
           transformValue: 'array',
           query: (queryBuilder, id) => {
             if (id) queryBuilder.whereJsonHasAll('organizations', id)
-          }
-        }
+          },
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -207,7 +186,7 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
@@ -221,12 +200,15 @@ function start ({ communication }) {
       readNamespaces: req._readNamespaces,
       listObjects: paginationMeta.results,
       currentUserId,
-      editActive: false
+      editActive: false,
     })
 
-    paginationMeta.results = paginationMeta.results.map(user => {
+    paginationMeta.results = paginationMeta.results.map((user) => {
       const dynamicResult = indexedDynamicNamespaces[user.id]
-      return User.expose(user, { req, namespaces: dynamicResult.dynamicReadNamespaces })
+      return User.expose(user, {
+        req,
+        namespaces: dynamicResult.dynamicReadNamespaces,
+      })
     })
 
     return paginationMeta
@@ -239,7 +221,11 @@ function start ({ communication }) {
 
     const userId = req.userId
 
-    const user = await User.query().findById(userId)
+    const user = await User.query()
+      .where('id', userId)
+      .orWhere('username', userId)
+      .first()
+
     if (!user) {
       throw createError(404)
     }
@@ -258,7 +244,7 @@ function start ({ communication }) {
       readNamespaces: req._readNamespaces,
       object: user,
       currentUserId,
-      editActive: false
+      editActive: false,
     })
 
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
@@ -269,11 +255,7 @@ function start ({ communication }) {
     const env = req.env
     const { AuthMean, User } = await getModels({ platformId, env })
 
-    const {
-      password,
-      orgOwnerId,
-      userType: type
-    } = req
+    const { password, orgOwnerId, userType: type } = req
 
     const fields = [
       'username',
@@ -285,22 +267,24 @@ function start ({ communication }) {
       'roles',
       'organizations',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      roles,
-      organizations
-    } = payload
+    const { roles, organizations } = payload
 
     const targetingOrganization = type === 'organization'
-    const idPrefix = targetingOrganization ? User.organizationIdPrefix : User.idPrefix
+    const idPrefix = targetingOrganization
+      ? User.organizationIdPrefix
+      : User.idPrefix
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: idPrefix, platformId, env })
-    }, payload)
+    const createAttrs = Object.assign(
+      {
+        id: await getObjectId({ prefix: idPrefix, platformId, env }),
+      },
+      payload
+    )
 
     const currentUserId = getCurrentUserId(req)
     const canCreateAnyOrg = req._matchedPermissions['organization:create:all']
@@ -320,18 +304,16 @@ function start ({ communication }) {
       }
     }
 
-    const {
-      dynamicReadNamespaces,
-      isValidEditNamespaces
-    } = await namespaceRequester.send({
-      type: 'getDynamicNamespaces',
-      platformId,
-      env,
-      readNamespaces: req._readNamespaces,
-      editNamespaces: req._editNamespaces,
-      object: createAttrs,
-      currentUserId: createAttrs.id
-    })
+    const { dynamicReadNamespaces, isValidEditNamespaces } =
+      await namespaceRequester.send({
+        type: 'getDynamicNamespaces',
+        platformId,
+        env,
+        readNamespaces: req._readNamespaces,
+        editNamespaces: req._editNamespaces,
+        object: createAttrs,
+        currentUserId: createAttrs.id,
+      })
 
     if (!isValidEditNamespaces) throw createError(403, 'Invalid namespaces')
 
@@ -339,7 +321,7 @@ function start ({ communication }) {
       type: '_getConfig',
       platformId,
       env,
-      access: 'default'
+      access: 'default',
     })
 
     const checkedRoles = await checkRolesBeforeCreate({
@@ -349,7 +331,7 @@ function start ({ communication }) {
       roles,
       targetingOrganization,
       config,
-      defaultRoles: User.defaultRoles
+      defaultRoles: User.defaultRoles,
     })
     createAttrs.roles = checkedRoles
 
@@ -359,7 +341,7 @@ function start ({ communication }) {
       req,
       organizations,
       targetingOrganization,
-      orgOwnerId
+      orgOwnerId,
     })
 
     let user
@@ -371,7 +353,8 @@ function start ({ communication }) {
     if (targetingOrganization) {
       organizationOwnerId = orgOwnerId || getRealCurrentUserId(req)
       orgOwner = await User.query().findById(organizationOwnerId)
-      if (!orgOwner) throw createError(422, 'The user to promote as org owner is not found.')
+      if (!orgOwner)
+        throw createError(422, 'The user to promote as org owner is not found.')
       createAttrs.orgOwnerId = orgOwner.id
     }
 
@@ -384,22 +367,32 @@ function start ({ communication }) {
         // do not create an auth mean because user cannot directly authenticate as an organization
         if (!targetingOrganization) {
           await AuthMean.query(trx).insert({
-            id: await getObjectId({ prefix: AuthMean.idPrefix, platformId, env }),
+            id: await getObjectId({
+              prefix: AuthMean.idPrefix,
+              platformId,
+              env,
+            }),
             provider: '_local_',
             password,
-            userId: createdUser.id
+            userId: createdUser.id,
           })
         } else {
           const newOrganizations = {
             [createdUser.id]: {
-              roles: ['dev'] // owner is automatically an org admin
-            }
+              roles: ['dev'], // owner is automatically an org admin
+            },
           }
 
           orgOwnerUpdateAttrs = {}
-          orgOwnerUpdateAttrs.organizations = User.rawJsonbMerge('organizations', newOrganizations)
+          orgOwnerUpdateAttrs.organizations = User.rawJsonbMerge(
+            'organizations',
+            newOrganizations
+          )
 
-          updatedOrgOwnerUser = await User.query(trx).patchAndFetchById(organizationOwnerId, orgOwnerUpdateAttrs)
+          updatedOrgOwnerUser = await User.query(trx).patchAndFetchById(
+            organizationOwnerId,
+            orgOwnerUpdateAttrs
+          )
         }
 
         return createdUser
@@ -416,7 +409,7 @@ function start ({ communication }) {
       user,
       eventDate: user.createdDate,
       platformId,
-      env
+      env,
     })
 
     if (updatedOrgOwnerUser) {
@@ -425,7 +418,7 @@ function start ({ communication }) {
         organizationId: user.id,
         eventDate: updatedOrgOwnerUser.updatedDate,
         platformId,
-        env
+        env,
       })
     }
 
@@ -448,17 +441,12 @@ function start ({ communication }) {
       'description',
       'roles',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      username,
-      roles,
-      metadata,
-      platformData
-    } = payload
+    const { username, roles, metadata, platformData } = payload
 
     const user = await User.query().findById(userId)
     if (!user) {
@@ -481,13 +469,20 @@ function start ({ communication }) {
     // or have 'user:edit:all' permission
     if (targetingOrganization && orgOwnerId) {
       const realCurrentUserId = getRealCurrentUserId(req)
-      const isOrgOwner = realCurrentUserId ? user.orgOwnerId === realCurrentUserId : false
-      const canChangeOrgOwner = isOrgOwner || req._matchedPermissions['user:edit:all']
+      const isOrgOwner = realCurrentUserId
+        ? user.orgOwnerId === realCurrentUserId
+        : false
+      const canChangeOrgOwner =
+        isOrgOwner || req._matchedPermissions['user:edit:all']
       if (!canChangeOrgOwner) {
-        throw createError(403, 'Must be owner of the organization to transfer ownership, ' +
-          'or have "user:edit:all" permission', {
-          public: { userId: realCurrentUserId, organizationId: userId }
-        })
+        throw createError(
+          403,
+          'Must be owner of the organization to transfer ownership, ' +
+            'or have "user:edit:all" permission',
+          {
+            public: { userId: realCurrentUserId, organizationId: userId },
+          }
+        )
       }
     }
 
@@ -497,7 +492,7 @@ function start ({ communication }) {
       req,
       roles,
       targetingOrganization,
-      user
+      user,
     })
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
@@ -507,22 +502,23 @@ function start ({ communication }) {
       updateAttrs.metadata = User.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = User.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = User.rawJsonbMerge(
+        'platformData',
+        platformData
+      )
     }
 
-    const {
-      dynamicReadNamespaces,
-      isValidEditNamespaces
-    } = await namespaceRequester.send({
-      type: 'getDynamicNamespaces',
-      platformId,
-      env,
-      readNamespaces: req._readNamespaces,
-      editNamespaces: req._editNamespaces,
-      object: Object.assign({}, user, { metadata, platformData }),
-      deltaObject: { metadata, platformData },
-      currentUserId
-    })
+    const { dynamicReadNamespaces, isValidEditNamespaces } =
+      await namespaceRequester.send({
+        type: 'getDynamicNamespaces',
+        platformId,
+        env,
+        readNamespaces: req._readNamespaces,
+        editNamespaces: req._editNamespaces,
+        object: Object.assign({}, user, { metadata, platformData }),
+        deltaObject: { metadata, platformData },
+        currentUserId,
+      })
 
     if (!isValidEditNamespaces) {
       throw createError(403, 'Invalid namespace')
@@ -532,7 +528,8 @@ function start ({ communication }) {
 
     if (targetingOrganization && orgOwnerId) {
       const orgOwner = await User.query().findById(orgOwnerId)
-      if (!orgOwner) throw createError(422, 'The user to promote as org owner is not found.')
+      if (!orgOwner)
+        throw createError(422, 'The user to promote as org owner is not found.')
       updateAttrs.orgOwnerId = orgOwner.id
     }
 
@@ -555,19 +552,19 @@ function start ({ communication }) {
           platformId,
           env,
           userId: orgOwnerId,
-          organizationId: userId
+          organizationId: userId,
         })
         if (!isOrgMember || !roles.includes('dev')) {
           isNewOrgOwnerJoining = !isOrgMember
           newRoles = roles.concat(['dev'])
           const newOrganization = {
             [userId]: {
-              roles: newRoles // owner is automatically an org admin
+              roles: newRoles, // owner is automatically an org admin
               // Note that previous owner keeps 'dev' role by default
-            }
+            },
           }
           newOrgOwnerUser = await User.query().patchAndFetchById(orgOwnerId, {
-            organizations: User.rawJsonbMerge('organizations', newOrganization)
+            organizations: User.rawJsonbMerge('organizations', newOrganization),
           })
         }
       } catch (err) {
@@ -575,7 +572,7 @@ function start ({ communication }) {
           platformId,
           env,
           custom: { organizationId: userId, userId: orgOwnerId },
-          message: 'Fail to make new owner join organization.'
+          message: 'Fail to make new owner join organization.',
         })
       }
     }
@@ -585,7 +582,7 @@ function start ({ communication }) {
       updateAttrs: updateAttrsBeforeFullDataMerge,
       eventDate: newUser.updatedDate,
       platformId,
-      env
+      env,
     })
 
     if (newOrgOwnerUser) {
@@ -594,14 +591,17 @@ function start ({ communication }) {
         organizationId: userId,
         eventDate: newOrgOwnerUser.updatedDate,
         platformId,
-        env
+        env,
       }
       if (isNewOrgOwnerJoining) {
         publisher.publish('userOrganizationJoined', eventPayload)
       } else {
-        publisher.publish('userOrganizationRightsChanged', Object.assign({}, eventPayload, {
-          changesRequested: { roles: newRoles }
-        }))
+        publisher.publish(
+          'userOrganizationRightsChanged',
+          Object.assign({}, eventPayload, {
+            changesRequested: { roles: newRoles },
+          })
+        )
       }
     }
 
@@ -628,19 +628,28 @@ function start ({ communication }) {
 
     if (!canRemoveUser && isOrganization && realCurrentUserId) {
       if (realCurrentUserId !== user.orgOwnerId) {
-        throw createError(403, 'Must be owner of the organization to delete, ' +
-          'or have "user:remove:all" permission', {
-          public: { userId: realCurrentUserId, organizationId: userId }
-        })
+        throw createError(
+          403,
+          'Must be owner of the organization to delete, ' +
+            'or have "user:remove:all" permission',
+          {
+            public: { userId: realCurrentUserId, organizationId: userId },
+          }
+        )
       }
     } else if (!canRemoveUser) throw createError(403, 'Can’t delete this user.')
 
     // fetch assets for this user
-    const [{ count: nbAssets }] = await Asset.query().count().where({ ownerId: user.id })
+    const [{ count: nbAssets }] = await Asset.query()
+      .count()
+      .where({ ownerId: user.id })
     if (nbAssets) {
-      throw createError(422, `${nbAssets} Asset${
-        nbAssets > 1 ? 's' : ''
-      } still belong to ${user.id}. Please delete all User Assets before deleting this User.`)
+      throw createError(
+        422,
+        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${
+          user.id
+        }. Please delete all User Assets before deleting this User.`
+      )
     }
 
     let orgMembers = []
@@ -648,20 +657,41 @@ function start ({ communication }) {
 
     if (isOrganization) {
       // cannot remove the organization if it's a parent organization
-      const childrenOrganizations = await getOrganizationsDependencies({ platformId, env, type: 'organization', organizationId: user.id })
+      const childrenOrganizations = await getOrganizationsDependencies({
+        platformId,
+        env,
+        type: 'organization',
+        organizationId: user.id,
+      })
       if (childrenOrganizations.length) {
-        throw createError(422, `${childrenOrganizations.length} children organizations still reference this organization`)
+        throw createError(
+          422,
+          `${childrenOrganizations.length} children organizations still reference this organization`
+        )
       }
 
       // User members will automatically leave the organization
-      orgMembers = await getOrganizationsDependencies({ platformId, env, type: 'user', organizationId: user.id })
+      orgMembers = await getOrganizationsDependencies({
+        platformId,
+        env,
+        type: 'user',
+        organizationId: user.id,
+      })
     } else {
       // cannot remove a user who is owner of some organization
-      const ownedOrganizations = await User.query().column('id').where({ orgOwnerId: user.id })
+      const ownedOrganizations = await User.query()
+        .column('id')
+        .where({ orgOwnerId: user.id })
       if (ownedOrganizations.length) {
-        throw createError(422, 'This user owns organizations. Please delete these first or transfer ownership.', {
-          public: { ownedOrganizationIds: ownedOrganizations.map(o => o.id) }
-        })
+        throw createError(
+          422,
+          'This user owns organizations. Please delete these first or transfer ownership.',
+          {
+            public: {
+              ownedOrganizationIds: ownedOrganizations.map((o) => o.id),
+            },
+          }
+        )
       }
     }
 
@@ -673,9 +703,9 @@ function start ({ communication }) {
       } else if (orgMembers.length) {
         // remove the ID of the organization from every member
         updatedOrgMembers = await User.query(trx)
-          .findByIds(orgMembers.map(m => m.id))
+          .findByIds(orgMembers.map((m) => m.id))
           .patch({
-            organizations: raw(`"organizations" - '${userId}'`)
+            organizations: raw(`"organizations" - '${userId}'`),
           })
           .returning('*')
       }
@@ -690,7 +720,7 @@ function start ({ communication }) {
         eventDate: new Date().toISOString(),
         platformId,
         env,
-        req
+        req,
       })
     }
 
@@ -699,32 +729,39 @@ function start ({ communication }) {
     } else {
       // Not awaiting this non-critical step for potentially *much* faster response
       // OK as long as required DELETE logic was executed (just above).
-      bluebird.map(updatedOrgMembers, async (m) => {
-        try {
-          // throttle concurrent events to let local instance handle these
-          // since we can’t await a publisher
-          await new Promise(resolve => setTimeout(resolve, 10))
+      bluebird
+        .map(
+          updatedOrgMembers,
+          async (m) => {
+            try {
+              // throttle concurrent events to let local instance handle these
+              // since we can’t await a publisher
+              await new Promise((resolve) => setTimeout(resolve, 10))
 
-          publisher.publish('userOrganizationLeft', {
-            user: m,
-            organizationId: userId,
-            eventDate: m.updatedDate,
-            metadata: { stelaceComment: 'Organization deleted' },
-            platformId,
-            env
-          })
-        } catch (err) {
-          logError(err, {
-            platformId,
-            env,
-            custom: { organizationId: userId, userId: m.id },
-            message: 'Fail to create user__organization_left events after deleting an organization.'
-          })
-        }
-      }, {
-        // all events are generated on same current instance so let’s be gentle
-        concurrency: 2
-      }).finally(emitDeletedEvent)
+              publisher.publish('userOrganizationLeft', {
+                user: m,
+                organizationId: userId,
+                eventDate: m.updatedDate,
+                metadata: { stelaceComment: 'Organization deleted' },
+                platformId,
+                env,
+              })
+            } catch (err) {
+              logError(err, {
+                platformId,
+                env,
+                custom: { organizationId: userId, userId: m.id },
+                message:
+                  'Fail to create user__organization_left events after deleting an organization.',
+              })
+            }
+          },
+          {
+            // all events are generated on same current instance so let’s be gentle
+            concurrency: 2,
+          }
+        )
+        .finally(emitDeletedEvent)
     }
 
     return { id: userId }
@@ -735,27 +772,30 @@ function start ({ communication }) {
     const env = req.env
     const { User } = await getModels({ platformId, env })
 
-    const {
-      userId,
-      organizationId,
-      roles,
-      req: origReq
-    } = req
+    const { userId, organizationId, roles, req: origReq } = req
 
     const user = await User.query().findById(userId)
     if (!user) {
       throw createError(404)
     }
-    const organizations = await getOrganizations({ platformId, env, organizationsIds: [organizationId] })
+    const organizations = await getOrganizations({
+      platformId,
+      env,
+      organizationsIds: [organizationId],
+    })
     if (!organizations.length) {
       throw createError(422, `Unknown organization "${organizationId}"`)
     }
 
     const targetingOrganization = user.roles.includes(organizationRole)
     if (targetingOrganization && Object.keys(user.organizations).length) {
-      throw createError(403, 'Cannot update the "organizations" config of a child organization', {
-        public: { parentOrganizationId: Object.keys(user.organizations)[0] }
-      })
+      throw createError(
+        403,
+        'Cannot update the "organizations" config of a child organization',
+        {
+          public: { parentOrganizationId: Object.keys(user.organizations)[0] },
+        }
+      )
     }
 
     await canChangeUserOrganizationConfig({
@@ -763,39 +803,37 @@ function start ({ communication }) {
       env,
       req,
       origReq,
-      organizationId
+      organizationId,
     })
 
     const { valid, invalidRoles } = await roleRequester.send({
       type: '_isValidRoles',
       platformId,
       env,
-      roles
+      roles,
     })
     if (!valid) {
       throw createError(422, `Invalid roles: ${invalidRoles.join(', ')}`)
     }
 
     const newOrganizations = User.rawJsonbMerge('organizations', {
-      [organizationId]: { roles }
+      [organizationId]: { roles },
     })
 
     const currentUserId = getRealCurrentUserId(req)
 
-    const {
-      dynamicReadNamespaces
-    } = await namespaceRequester.send({
+    const { dynamicReadNamespaces } = await namespaceRequester.send({
       type: 'getDynamicNamespaces',
       platformId,
       env,
       readNamespaces: req._readNamespaces,
       editNamespaces: req._editNamespaces,
       object: user,
-      currentUserId
+      currentUserId,
     })
 
     const updateAttrs = {
-      organizations: newOrganizations
+      organizations: newOrganizations,
     }
 
     const newUser = await User.query().patchAndFetchById(userId, updateAttrs)
@@ -806,7 +844,7 @@ function start ({ communication }) {
       changesRequested: { roles },
       eventDate: newUser.updatedDate,
       platformId,
-      env
+      env,
     })
 
     return User.expose(newUser, { req, namespaces: dynamicReadNamespaces })
@@ -817,18 +855,17 @@ function start ({ communication }) {
     const env = req.env
     const { User } = await getModels({ platformId, env })
 
-    const {
-      userId,
-      organizationId,
-      req: origReq
-    } = req
+    const { userId, organizationId, req: origReq } = req
 
     const user = await User.query().findById(userId)
     if (!user) throw createError(404)
 
     const targetingOrganization = user.roles.includes(organizationRole)
     if (targetingOrganization) {
-      throw createError(403, 'Cannot update the "organizations" config of a child organization')
+      throw createError(
+        403,
+        'Cannot update the "organizations" config of a child organization'
+      )
     }
 
     await canChangeUserOrganizationConfig({
@@ -836,25 +873,23 @@ function start ({ communication }) {
       env,
       req,
       origReq,
-      organizationId
+      organizationId,
     })
 
     const currentUserId = getRealCurrentUserId(req)
 
-    const {
-      dynamicReadNamespaces
-    } = await namespaceRequester.send({
+    const { dynamicReadNamespaces } = await namespaceRequester.send({
       type: 'getDynamicNamespaces',
       platformId,
       env,
       readNamespaces: req._readNamespaces,
       editNamespaces: req._editNamespaces,
       object: user,
-      currentUserId
+      currentUserId,
     })
 
     const newUser = await User.query().patchAndFetchById(userId, {
-      organizations: raw(`"organizations" - '${organizationId}'`)
+      organizations: raw(`"organizations" - '${organizationId}'`),
     })
 
     publisher.publish('userOrganizationLeft', {
@@ -862,7 +897,7 @@ function start ({ communication }) {
       organizationId,
       eventDate: newUser.updatedDate,
       platformId,
-      env
+      env,
     })
 
     return User.expose(newUser, { req, namespaces: dynamicReadNamespaces })
@@ -873,108 +908,121 @@ function start ({ communication }) {
   responder.on('_getOrganizations', async (req) => {
     const { platformId, env, organizationsIds } = req
 
-    const organizations = await getOrganizations({ platformId, env, organizationsIds })
+    const organizations = await getOrganizations({
+      platformId,
+      env,
+      organizationsIds,
+    })
     return organizations
   })
 
   responder.on('_isOrganizationMember', async (req) => {
-    const {
-      platformId,
-      env,
-      userId,
-      organizationId
-    } = req
+    const { platformId, env, userId, organizationId } = req
 
     const result = await isOrganizationMember({
       platformId,
       env,
       userId,
-      organizationId
+      organizationId,
     })
     return result
   })
 
   // EVENTS
 
-  subscriber.on('userCreated', async ({ user, eventDate, platformId, env } = {}) => {
-    try {
-      const { Event, User } = await getModels({ platformId, env })
+  subscriber.on(
+    'userCreated',
+    async ({ user, eventDate, platformId, env } = {}) => {
+      try {
+        const { Event, User } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'user__created',
-        objectId: user.id,
-        object: User.expose(user, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { userId: user.id },
-        message: 'Fail to create event user__created'
-      })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'user__created',
+            objectId: user.id,
+            object: User.expose(user, { namespaces: ['*'] }),
+          },
+          { platformId, env }
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { userId: user.id },
+          message: 'Fail to create event user__created',
+        })
+      }
     }
-  })
+  )
 
-  subscriber.on('userUpdated', async ({
-    newUser,
-    updateAttrs,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Event, User } = await getModels({ platformId, env })
+  subscriber.on(
+    'userUpdated',
+    async ({ newUser, updateAttrs, eventDate, platformId, env } = {}) => {
+      try {
+        const { Event, User } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'user__updated',
-        objectId: newUser.id,
-        object: User.expose(newUser, { namespaces: ['*'] }),
-        changesRequested: User.expose(updateAttrs, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { userId: newUser.id },
-        message: 'Fail to create event user__updated'
-      })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'user__updated',
+            objectId: newUser.id,
+            object: User.expose(newUser, { namespaces: ['*'] }),
+            changesRequested: User.expose(updateAttrs, { namespaces: ['*'] }),
+          },
+          { platformId, env }
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { userId: newUser.id },
+          message: 'Fail to create event user__updated',
+        })
+      }
     }
-  })
+  )
 
-  subscriber.on('userDeleted', async ({
-    userId,
-    user,
-    eventDate,
-    platformId,
-    env,
-    req
-  } = {}) => {
-    try {
-      const { Event, User } = await getModels({ platformId, env })
+  subscriber.on(
+    'userDeleted',
+    async ({ userId, user, eventDate, platformId, env, req } = {}) => {
+      try {
+        const { Event, User } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'user__deleted',
-        objectId: userId,
-        object: User.expose(user, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { userId },
-        message: 'Fail to create event user__deleted'
-      })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'user__deleted',
+            objectId: userId,
+            object: User.expose(user, { req, namespaces: ['*'] }),
+          },
+          { platformId, env }
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { userId },
+          message: 'Fail to create event user__deleted',
+        })
+      }
     }
-  })
+  )
 
-  subscriber.on('userOrganizationJoined', createOrgEventFn('user__organization_joined'))
-  subscriber.on('userOrganizationLeft', createOrgEventFn('user__organization_left'))
-  subscriber.on('userOrganizationRightsChanged', createOrgEventFn('user__organization_rights_changed'))
+  subscriber.on(
+    'userOrganizationJoined',
+    createOrgEventFn('user__organization_joined')
+  )
+  subscriber.on(
+    'userOrganizationLeft',
+    createOrgEventFn('user__organization_left')
+  )
+  subscriber.on(
+    'userOrganizationRightsChanged',
+    createOrgEventFn('user__organization_rights_changed')
+  )
 
-  function createOrgEventFn (type) {
+  function createOrgEventFn(type) {
     return async ({
       user,
       organizationId,
@@ -982,39 +1030,44 @@ function start ({ communication }) {
       metadata,
       eventDate,
       platformId,
-      env
+      env,
     } = {}) => {
       try {
         const { Event, User } = await getModels({ platformId, env })
 
-        await Event.createEvent({
-          createdDate: eventDate,
-          type,
-          objectId: user.id,
-          object: User.expose(user, { namespaces: ['*'] }),
-          changesRequested,
-          metadata,
-          // populate relatedObjectsIds
-          _tmpObject: { organizationId }
-        }, { platformId, env })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type,
+            objectId: user.id,
+            object: User.expose(user, { namespaces: ['*'] }),
+            changesRequested,
+            metadata,
+            // populate relatedObjectsIds
+            _tmpObject: { organizationId },
+          },
+          { platformId, env }
+        )
       } catch (err) {
         logError(err, {
           platformId,
           env,
           custom: { userId: user.id },
-          message: `Fail to create event ${type}`
+          message: `Fail to create event ${type}`,
         })
       }
     }
   }
 }
 
-async function getOrganizations ({ platformId, env, organizationsIds } = {}) {
+async function getOrganizations({ platformId, env, organizationsIds } = {}) {
   const { User } = await getModels({ platformId, env })
 
   if (organizationsIds && !organizationsIds.length) return []
 
-  const queryBuilder = User.query().whereJsonSupersetOf('roles', [organizationRole])
+  const queryBuilder = User.query().whereJsonSupersetOf('roles', [
+    organizationRole,
+  ])
 
   if (organizationsIds) {
     queryBuilder.whereIn('id', organizationsIds)
@@ -1024,10 +1077,18 @@ async function getOrganizations ({ platformId, env, organizationsIds } = {}) {
   return organizations
 }
 
-async function getOrganizationsDependencies ({ platformId, env, organizationId, type }) {
+async function getOrganizationsDependencies({
+  platformId,
+  env,
+  organizationId,
+  type,
+}) {
   const { User } = await getModels({ platformId, env })
 
-  const queryBuilder = User.query().whereJsonSupersetOf(`organizations:${organizationId}`, {})
+  const queryBuilder = User.query().whereJsonSupersetOf(
+    `organizations:${organizationId}`,
+    {}
+  )
 
   if (type === 'user') {
     queryBuilder.whereJsonNotSupersetOf('roles', [organizationRole])
@@ -1041,11 +1102,11 @@ async function getOrganizationsDependencies ({ platformId, env, organizationId, 
   return deps
 }
 
-async function isOrganizationMember ({
+async function isOrganizationMember({
   platformId,
   env,
   userId,
-  organizationId
+  organizationId,
 }) {
   const { User } = await getModels({ platformId, env })
 
@@ -1066,7 +1127,7 @@ async function isOrganizationMember ({
       ancestorOrganizations,
       realOrganization,
       isOrgMember,
-      errors
+      errors,
     }
   }
 
@@ -1092,7 +1153,7 @@ async function isOrganizationMember ({
     realOrganization = organization
     roles = user.organizations[realOrganization.id].roles
     isOrgMember = true
-  // search if the user belongs to one of the ancestor organizations
+    // search if the user belongs to one of the ancestor organizations
   } else {
     const maxLvlOrg = 10
     let lvl = maxLvlOrg // avoid infinite loop
@@ -1107,7 +1168,9 @@ async function isOrganizationMember ({
 
       const parentOrganization = indexedOrganizations[parentOrganizationId]
       if (!parentOrganization) {
-        throw createError(`There is no parent organization with ID "${parentOrganizationId}"`)
+        throw createError(
+          `There is no parent organization with ID "${parentOrganizationId}"`
+        )
       }
 
       ancestorOrganizations.push(parentOrganization)
@@ -1126,27 +1189,32 @@ async function isOrganizationMember ({
   return displayResult()
 }
 
-async function checkRolesBeforeCreate ({
+async function checkRolesBeforeCreate({
   platformId,
   env,
   req,
   roles,
   targetingOrganization,
   config,
-  defaultRoles
+  defaultRoles,
 }) {
   let newRoles
 
   if (roles) {
     if (!req._matchedPermissions['user:config:all']) {
-      const whitelistRoles = _.get(config, 'stelace.roles.whitelist') || defaultRoles
+      const whitelistRoles =
+        _.get(config, 'stelace.roles.whitelist') || defaultRoles
       if (roles.includes('dev')) {
         throw createError(403, 'Cannot provide the role "dev"')
       }
 
       const nonWhitelistRoles = _.difference(roles, whitelistRoles)
       if (nonWhitelistRoles.length) {
-        throw createError(422, 'The following roles are not whitelisted: ' + nonWhitelistRoles.join(', '))
+        throw createError(
+          422,
+          'The following roles are not whitelisted: ' +
+            nonWhitelistRoles.join(', ')
+        )
       }
     }
 
@@ -1156,7 +1224,7 @@ async function checkRolesBeforeCreate ({
       type: '_isValidRoles',
       platformId,
       env,
-      roles
+      roles,
     })
     if (!valid) {
       throw createError(422, `Invalid roles: ${invalidRoles.join(', ')}`)
@@ -1174,13 +1242,13 @@ async function checkRolesBeforeCreate ({
   return newRoles
 }
 
-async function checkRolesBeforeUpdate ({
+async function checkRolesBeforeUpdate({
   platformId,
   env,
   req,
   roles,
   targetingOrganization,
-  user
+  user,
 }) {
   const newRoles = user.roles.slice(0)
 
@@ -1192,20 +1260,29 @@ async function checkRolesBeforeUpdate ({
   const hasOrganizationRoles = roles.includes(organizationRole)
 
   if (targetingOrganization && !hasOrganizationRoles) {
-    throw createError(422, 'Cannot transform an organization into a normal user')
+    throw createError(
+      422,
+      'Cannot transform an organization into a normal user'
+    )
   } else if (!targetingOrganization && hasOrganizationRoles) {
-    throw createError(422, 'Cannot transform a normal user into an organization')
+    throw createError(
+      422,
+      'Cannot transform a normal user into an organization'
+    )
   }
 
   if (!req._matchedPermissions['user:config:all']) {
-    throw createError(403, 'Roles cannot be updated without "user:config:all" permission.')
+    throw createError(
+      403,
+      'Roles cannot be updated without "user:config:all" permission.'
+    )
   }
 
   const { valid, invalidRoles } = await roleRequester.send({
     type: '_isValidRoles',
     platformId,
     env,
-    roles
+    roles,
   })
   if (!valid) {
     throw createError(422, `Invalid roles: ${invalidRoles.join(', ')}`)
@@ -1214,58 +1291,69 @@ async function checkRolesBeforeUpdate ({
   return newRoles
 }
 
-async function checkOrganizationsBeforeCreate ({
+async function checkOrganizationsBeforeCreate({
   platformId,
   env,
   req,
   organizations: organizationsConfig,
   targetingOrganization,
-  orgOwnerId
+  orgOwnerId,
 }) {
-  const organizationsIds = organizationsConfig && Object.keys(organizationsConfig)
+  const organizationsIds =
+    organizationsConfig && Object.keys(organizationsConfig)
 
   // no config to check
   if (!organizationsIds || !organizationsIds.length) return
 
   if (!targetingOrganization) {
-    throw createError(422, 'Cannot specify the "organizations" object when creating a user')
+    throw createError(
+      422,
+      'Cannot specify the "organizations" object when creating a user'
+    )
   }
 
   if (organizationsIds.length > 1) {
-    throw createError(422, 'An organization cannot belong to multiple parent organizations')
+    throw createError(
+      422,
+      'An organization cannot belong to multiple parent organizations'
+    )
   }
 
   const organizationId = organizationsIds[0]
 
   const organizationOwnerId = orgOwnerId || getRealCurrentUserId(req)
   if (!organizationOwnerId) {
-    throw createError(403, `Missing organization owner for the organization with ID "${organizationId}"`)
+    throw createError(
+      403,
+      `Missing organization owner for the organization with ID "${organizationId}"`
+    )
   }
 
-  const {
-    isOrgMember
-  } = await isOrganizationMember({
+  const { isOrgMember } = await isOrganizationMember({
     platformId,
     env,
     userId: organizationOwnerId,
-    organizationId
+    organizationId,
   })
 
   if (!isOrgMember) {
-    throw createError(403, `The current user does not belong to the parent organization with ID "${organizationId}"`)
+    throw createError(
+      403,
+      `The current user does not belong to the parent organization with ID "${organizationId}"`
+    )
   }
 }
 
-async function canChangeUserOrganizationConfig ({
+async function canChangeUserOrganizationConfig({
   platformId,
   env,
   req,
   origReq,
-  organizationId
+  organizationId,
 }) {
   const permissionsToCheck = [
     'user:configOrganization',
-    'user:configOrganization:all'
+    'user:configOrganization:all',
   ]
 
   const realCurrentUserId = getRealCurrentUserId(req)
@@ -1278,28 +1366,27 @@ async function canChangeUserOrganizationConfig ({
       throw createError(403)
     }
   } else {
-    const {
-      isOrgMember
-    } = await isOrganizationMember({
+    const { isOrgMember } = await isOrganizationMember({
       platformId,
       env,
       userId: realCurrentUserId,
-      organizationId
+      organizationId,
     })
 
     if (isOrgMember) {
       await checkPermissionsPromise(permissionsToCheck, origReq, {
-        getOrganizationIdFn: () => organizationId
+        getOrganizationIdFn: () => organizationId,
       })
 
-      if (!origReq.matchedPermissions['user:configOrganization:all'] &&
+      if (
+        !origReq.matchedPermissions['user:configOrganization:all'] &&
         !origReq.matchedPermissions['user:configOrganization']
       ) {
         throw createError(403)
       }
     } else {
       await checkPermissionsPromise(permissionsToCheck, origReq, {
-        getOrganizationIdFn: () => null
+        getOrganizationIdFn: () => null,
       })
 
       if (!origReq.matchedPermissions['user:configOrganization:all']) {
@@ -1309,7 +1396,7 @@ async function canChangeUserOrganizationConfig ({
   }
 }
 
-function checkPermissionsPromise (permissions, req, options) {
+function checkPermissionsPromise(permissions, req, options) {
   const middleware = checkPermissions(permissions, options)
   return new Promise((resolve, reject) => {
     middleware(req, null, (err) => {
@@ -1319,7 +1406,7 @@ function checkPermissionsPromise (permissions, req, options) {
   })
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -1341,5 +1428,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

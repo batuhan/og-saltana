@@ -42,7 +42,7 @@ function init (server, { middlewares, helpers } = {}) {
     const payload = _.pick(req.body, fields)
 
     let params = populateRequesterParams(req)({
-      type: 'login-with-magic'
+      type: 'loginMagic'
     })
 
     params = Object.assign({}, params, payload)

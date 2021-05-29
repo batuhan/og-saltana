@@ -1,53 +1,36 @@
 import { useSession } from 'next-auth/client'
-import React from 'react'
-import { QueryClient, useQuery } from 'react-query'
-import api from './instance'
+import { QueryClient, useQuery, useMutation } from 'react-query'
+import { useApiInstance, _getMethod, sharedInstance } from './useApi'
 const sharedQueryClient = new QueryClient()
 
-function getApi(resourceType, method, data) {
-  return {
-    key: [resourceType, method, data],
-    call: () => api[resourceType][method](data),
-  }
-}
-
 export function useApi(resourceType, method, data, opts = {}) {
-  const { key, call } = getApi(resourceType, method, data)
-  const [session, loading] = useSession()
-  const [isAuthenticated, setIsAuthenticated] = React.useState(
-    loading ? loading : api.auth.info().isAuthenticated
-  )
-
-  //@TODO: This should be done in a parent provider but I'm too tired
-  React.useEffect(() => {
-    if (session && !api.auth.info().isAuthenticated) {
-      const coreSession = api.auth.setTokens({
-        accessToken: session.accessToken,
-        refreshToken: session.refreshToken,
-        tokenType: 'Bearer',
-        userId: session.user.id,
-      })
-      setIsAuthenticated(coreSession.isAuthenticated)
-    }
-  }, [session])
+  const { getMethod, ready } = useApiInstance()
+  const { key, call } = getMethod(resourceType, method, data)
 
   return useQuery(key, call, {
-    enabled: opts.waitForAuthentication ? isAuthenticated : true,
+    enabled: ready,
     ...opts,
   })
 }
 
+export function useApiMutation(resourceType, method, data, opts = {}) {
+  const { getMethod } = useApiInstance()
+  const { call } = getMethod(resourceType, method, data)
+
+  return useMutation(call)
+}
+
 export function useAuthenticatedApi(resourceType, method, data) {
-  return useApi(resourceType, method, data, true)
+  return useApi(resourceType, method, data, {})
 }
 
 export async function prefetchQuery(
   resourceType,
   method,
   data,
-  queryClient = new QueryClient()
+  queryClient = sharedQueryClient
 ) {
-  const { key, call } = getApi(resourceType, method, data)
+  const { key, call } = _getMethod(sharedInstance)(resourceType, method, data)
   await queryClient.prefetchQuery(key, call)
   return queryClient
 }
@@ -61,8 +44,8 @@ export function getSharedQueryClient() {
 }
 
 // Organizations/Users/Creators
-export function useUser(userId) {
-  return useApi('users', 'read', userId)
+export function useUser(username) {
+  return useApi('users', 'read', username)
 }
 
 export function prefetchUser(userId) {
@@ -77,12 +60,11 @@ export function useAssetTypes({ nbResultsPerPage = 100 }) {
   })
 }
 
-export function prefetchAssetTypes({  nbResultsPerPage = 100 }) {
+export function prefetchAssetTypes({ nbResultsPerPage = 100 }) {
   return prefetchSharedQuery('assetTypes', 'list', {
     nbResultsPerPage,
   })
 }
-
 
 // Assets
 export function useAssets({ ownerId, nbResultsPerPage = 100 }) {

@@ -60,38 +60,38 @@ export const Sidebar = (props: FlexProps) => {
             <NavGroup label="Creator Page">
               <NavLink
                 label="Profile"
-                href={`/${encodeURIComponent(user.data.id)}`}
+                href={`/${encodeURIComponent(user.data.username)}`}
               />
               <NavLink
                 label="Products"
-                href={`/${encodeURIComponent(user.data.id)}/dashboard/products`}
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/products`}
               />
               <NavLink
                 label="Pages"
-                href={`/${encodeURIComponent(user.data.id)}/dashboard/pages`}
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/pages`}
               />
               <NavLink
                 label="Links"
-                href={`/${encodeURIComponent(user.data.id)}/dashboard/links`}
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/links`}
               />
               <NavLink
                 label="Forms"
-                href={`/${encodeURIComponent(user.data.id)}/dashboard/forms`}
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/forms`}
               />
               <NavLink
                 label="Workflows & Integrations"
                 href={`/${encodeURIComponent(
-                  user.data.id
+                  user.data.username
                 )}/dashboard/workflows`}
               />
               <NavLink
                 label="Earnings & Payouts"
-                href={`/${encodeURIComponent(user.data.id)}/dashboard/payouts`}
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/payouts`}
               />
               <NavLink
                 label="Customization"
                 href={`/${encodeURIComponent(
-                  user.data.id
+                  user.data.username
                 )}/dashboard/customize`}
               />
             </NavGroup>

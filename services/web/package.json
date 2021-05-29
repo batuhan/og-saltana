@@ -12,10 +12,11 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "1.0.13",
-    "@chakra-ui/react": "1.6.1",
+    "@chakra-ui/react": "1.6.3",
     "@chakra-ui/system": "^1.6.7",
     "@emotion/react": "11.4.0",
     "@emotion/styled": "11.3.0",
+    "@saltana/common": "workspace:packages/common",
     "@saltana/sdk": "workspace:packages/sdk",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.15.0",
@@ -39,26 +40,23 @@
     "jest": "26.6.3",
     "lodash.sortby": "^4.7.0",
     "magic-sdk": "^4.3.0",
-    "next": "10.2.0",
-    "next-auth": "^3.23.2",
+    "next": "10.2.3",
+    "next-auth": "^3.24.0",
     "next-seo": "^4.24.0",
     "prettier": "2.3.0",
     "pretty-quick": "3.1.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "react-hook-form": "^7.6.0",
+    "react-hook-form": "^7.7.0",
     "react-icons": "^4.2.0",
     "react-query": "^3.16.0",
     "react-use-cart": "^1.11.1",
-    "typescript": "3.7.2"
+    "typescript": "4.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
     "@types/babel__core": "^7",
     "autoprefixer": "^10.2.5",
     "postcss": "^8.3.0"
-  },
-  "volta": {
-    "node": "16.2.0"
   }
 }
