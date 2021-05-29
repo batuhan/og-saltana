@@ -1,5 +1,5 @@
 const createError = require('http-errors')
-const joi = require('@hapi/joi')
+const joi = require('joi')
 const apm = require('elastic-apm-node')
 const _ = require('lodash')
 

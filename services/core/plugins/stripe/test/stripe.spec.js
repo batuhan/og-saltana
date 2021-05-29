@@ -1,11 +1,11 @@
-require('dotenv').config()
+require('@saltana/common').load()
 
 const test = require('ava')
 const request = require('supertest')
 
 const {
   testTools: { lifecycle, auth, util }
-} = require('stelace-server')
+} = require('@saltana/core')
 
 const { WebhookManager } = util
 

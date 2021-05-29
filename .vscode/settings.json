@@ -20,5 +20,9 @@
       "username": "user",
       "password": "password"
     }
+  ],
+  "i18n-ally.localesPaths": [
+    "playground/heroes-platform-demo/src/i18n",
+    "playground/marketplace-demo/src/i18n"
   ]
 }

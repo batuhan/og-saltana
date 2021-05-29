@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('@saltana/common').load()
 
 const test = require('ava')
 const request = require('supertest')

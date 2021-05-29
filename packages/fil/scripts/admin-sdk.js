@@ -1,8 +1,6 @@
 const env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-require('dotenv').config({
-  path: `.env.${env}`
-})
+require('@saltana/common').load()
 
 const { initStelaceSdk } = require('./sdk')
 

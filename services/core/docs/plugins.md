@@ -22,7 +22,7 @@ You can:
 When using `INSTALLED_PLUGINS` and `yarn plugins`, this runs two commands internally, supporting __private plugins__:
 
 - `yarn plugins:install` adds `INSTALLED_PLUGINS` to node_modules without updating package.json, unless you pass `--save` flag. Modules are then copied to `plugins/installed` `.gitignore`’d directory to avoid tampering with node_modules.
-- `yarn plugins:prepare` rewrites `require('stelace-server')` calls to use local server.
+- `yarn plugins:prepare` rewrites `require('@saltana/core')` calls to use local server.
 
 ## Develop
 
@@ -38,13 +38,13 @@ Plugins are expected to export the following properties from `index.js` file, in
 
 ### External repository
 
-When developing a plugin as an external repository, you can `yarn add -D https://github.com/stelace/stelace.git` as a devDependency to be able to use exports from `server.js` using `require('stelace-server')`.
+When developing a plugin as an external repository, you can `yarn add -D https://github.com/stelace/stelace.git` as a devDependency to be able to use exports from `server.js` using `require('@saltana/core')`.
 
 Look at official [Search filter DSL parser plugin](https://github.com/stelace/stelace-search-filter-dsl-parser) or [Stripe plugin](https://github.com/stelace/stelace-stripe) for a blueprint.
 
 #### Running plugin tests
 
-You can easily run your own external plugin tests with 'stelace-server' as a devDependency.
+You can easily run your own external plugin tests with '@saltana/core' as a devDependency.
 
 Add this script to package.json file in your plugin repository:
 
@@ -65,7 +65,7 @@ const {
     lifecycle,
     /* … */
   }
-} = require('stelace-server')
+} = require('@saltana/core')
 
 const { before, beforeEach, after } = lifecycle
 
@@ -96,7 +96,7 @@ _Note: this relies on `npm explore`._
 During continuous integration with circleCI:
 
 - missing `INSTALLED_PLUGINS` are automatically installed using `yarn plugins:install --save` script, which updates package.json before building Docker image.
-- After build, `yarn plugins:prepare` in `Dockerfile.prod` rewrites some `require('stelace-server')` calls to run all of server and plugin tests with local server before ending CI process.
+- After build, `yarn plugins:prepare` in `Dockerfile.prod` rewrites some `require('@saltana/core')` calls to run all of server and plugin tests with local server before ending CI process.
 
 To support private plugins, `Dockerfile.prod` is configured to accept SSH key from ssh-agent as a secret during circleCI build.
 This way it does not leak into any Docker image layer.

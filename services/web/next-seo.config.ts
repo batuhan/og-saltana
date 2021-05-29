@@ -1,15 +1,15 @@
-const title = "React 2025 – Build applications from the future, today.";
+const title = "Saltana";
 const description =
   "Learn how to build and deploy a modern Jamstack application using the most popular open-source software.";
 
 const SEO = {
   title,
   description,
-  canonical: "https://react2025.com",
+  canonical: "https://www.saltana.com",
   openGraph: {
     type: "website",
-    locale: "en_IE",
-    url: "https://react2025.com",
+    locale: "en_US",
+    url: "https://www.saltana.com",
     title,
     description,
     images: [
@@ -22,8 +22,8 @@ const SEO = {
     ],
   },
   twitter: {
-    handle: "@leeerob",
-    site: "@leeerob",
+    handle: "@withSaltana",
+    site: "@withSaltana",
     cardType: "summary_large_image",
   },
 };

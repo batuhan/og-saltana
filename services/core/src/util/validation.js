@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 
-const Joi = require('@hapi/joi')
+const Joi = require('joi')
 const Bourne = require('@hapi/bourne')
 
 const {

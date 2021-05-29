@@ -1,6 +1,6 @@
 /**
  * This scripts prepares installed plugins to run with local server
- * by rewriting require('stelace-server') calls.
+ * by rewriting require('@saltana/core') calls.
  * Docker/CI build process requires to separate this step from plugin install,
  * so that we can use secrets in Dockerfile.prod
  */
@@ -13,7 +13,7 @@ const { getInstalledPluginsNames } = require('../plugins')
 const stelaceServerPath = path.resolve(__dirname, '..')
 
 if (getInstalledPluginsNames().length) {
-  console.log("Replacing `require('stelace-server')` with local server for tests of installed plugins")
+  console.log("Replacing `require('@saltana/core')` with local server for tests of installed plugins")
 
   const pluginFiles = shell
     .find(`${stelaceServerPath}/plugins/installed`)

@@ -1,11 +1,11 @@
-require('dotenv').config()
+require('@saltana/common').load()
 
 const test = require('ava')
 const request = require('supertest')
 const path = require('path')
 
 // Loading current plugin manually _before_ loading server to run tests
-const { loadPlugin } = require('stelace-server/plugins')
+const { loadPlugin } = require('@saltana/core/plugins')
 loadPlugin(path.resolve(__dirname, '..'))
 
 const {
@@ -17,7 +17,7 @@ const {
   utils: {
     time: { computeDate }
   }
-} = require('stelace-server')
+} = require('@saltana/core')
 
 const { before, beforeEach, after } = lifecycle
 const { getAccessTokenHeaders } = auth

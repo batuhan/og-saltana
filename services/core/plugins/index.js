@@ -72,8 +72,8 @@ function getPluginName (str) {
 }
 
 /**
- * Additional way to load any plugin using `require('stelace-server/plugins')`.
- * Must be called __before__ `require('stelace-server')`.
+ * Additional way to load any plugin using `require('@saltana/core/plugins')`.
+ * Must be called __before__ `require('@saltana/core')`.
  * This lets external plugins manually load themselves to run their own test suite.
  * @param {String} path - Absolute path loaded with server `require`
  */

@@ -8,34 +8,12 @@ let deps = {}
 function init (server, { middlewares, helpers } = {}) {
   const {
     checkPermissions,
-    testMiddleware, // middleware created by this plugin
+   // testMiddleware, // middleware created by this plugin
   } = middlewares
   const {
     wrapAction,
     getRequestContext
   } = helpers
-
-  const statsFields = [
-    'orderBy',
-    'order',
-    'nbResultsPerPage',
-
-    // offset pagination
-    'page',
-
-    // cursor pagination
-    'startingAfter',
-    'endingBefore',
-
-    'groupBy',
-    'computeRanking',
-
-    'authorId',
-    'targetId',
-    'assetId',
-    'transactionId',
-    'label'
-  ]
 
   server.get({
     name: 'link.list',

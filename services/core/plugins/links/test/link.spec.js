@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('@saltana/common').load()
 
 const test = require('ava')
 const request = require('supertest')
@@ -92,128 +92,23 @@ test('integrates plugin middleware', async (t) => {
 
 // run this test serially because there is no filter and some other tests create events
 // that can turn the check on `count` property incorrect
-test.serial('gets aggregated link stats with ranking', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'link:stats:all',
-      'link:list:all'
-    ]
-  })
-
-  const groupBy = 'authorId'
-
-  const { body: { results: links } } = await request(t.context.serverUrl)
-    .get('/links')
-    .set(authorizationHeaders)
-    .expect(200)
-
-  const { body: obj } = await request(t.context.serverUrl)
-    .get(`/links/stats?groupBy=${groupBy}&computeRanking=true`)
-    .set(authorizationHeaders)
-    .expect(200)
-
-  let ranking
-
-  checkCursorPaginatedStatsObject({
-    t,
-    obj,
-    groupBy,
-    field: 'score', // implicit for Rating API
-    avgPrecision: 0, // implicit for Rating API
-    results: ratings,
-    orderBy: 'avg',
-    order: 'desc',
-    expandedGroupByField: false,
-    additionalResultCheckFn: (result) => {
-      t.is(typeof result.ranking, 'number')
-      t.is(typeof result.lowestRanking, 'number')
-
-      t.is(result.lowestRanking, obj.results.length) // is true because there is no filter
-
-      // check ranking order
-      if (typeof ranking === 'undefined') {
-        ranking = result.ranking
-      } else {
-        t.true(ranking < result.ranking)
-      }
-    }
-  })
-})
-
-test('gets aggregated rating stats with wildcard label', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'rating:list:all',
-      'rating:stats:all'
-    ]
-  })
-
-  const authorId = 'usr_WHlfQps1I3a1gJYz2I3a'
-
-  const { body: { results: ratings } } = await request(t.context.serverUrl)
-    .get(`/ratings?authorId=${authorId}&label=main:*`)
-    .set(authorizationHeaders)
-    .expect(200)
-
-  const { body: { results } } = await request(t.context.serverUrl)
-    .get(`/ratings/stats?groupBy=authorId&label=main:*&authorId=${authorId}`)
-    .set(authorizationHeaders)
-    .expect(200)
-
-  const nbRatings = ratings.length
-  const avgRatings = Math.round(ratings.reduce((memo, rating) => memo + rating.score, 0) / nbRatings)
-
-  t.is(avgRatings, results[0].avg)
-})
-
-test('gets aggregated rating stats with multiple labels', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'rating:stats:all'
-    ]
-  })
-
-  const authorId = 'usr_WHlfQps1I3a1gJYz2I3a'
-
-  const { body: { results } } = await request(t.context.serverUrl)
-    .get(`/ratings/stats?groupBy=authorId&label=main:*,main:friendliness,main:pricing&authorId=${authorId}`)
-    .set(authorizationHeaders)
-    .expect(200)
-
-  const checkStatObject = obj => {
-    t.is(typeof obj, 'object')
-    t.is(obj.authorId, authorId)
-    t.is(typeof obj.count, 'number')
-    t.is(typeof obj.sum, 'number')
-    t.is(typeof obj.avg, 'number')
-    t.is(typeof obj.min, 'number')
-    t.is(typeof obj.max, 'number')
-  }
-
-  checkStatObject(results[0]['main:*'])
-  checkStatObject(results[0]['main:friendliness'])
-  checkStatObject(results[0]['main:pricing'])
-})
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
-test.serial('lists ratings with pagination', async (t) => {
+test.serial('lists links with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
 
   await checkCursorPaginationScenario({
     t,
-    endpointUrl: '/ratings',
+    endpointUrl: '/links',
     authorizationHeaders,
   })
 })
 
-test('lists ratings with id filter', async (t) => {
+test('lists links with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get('/ratings?id=rtg_2l7fQps1I3a1gJYz2I3a')
+    .get('/links?id=lnk_2l7fQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .expect(200)
 
@@ -221,11 +116,11 @@ test('lists ratings with id filter', async (t) => {
   t.is(obj.results.length, 1)
 })
 
-test('lists ratings with advanced filter', async (t) => {
+test('lists links with advanced filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
 
   const result1 = await request(t.context.serverUrl)
-    .get('/ratings?authorId=usr_WHlfQps1I3a1gJYz2I3a,user-external-id')
+    .get('/links?authorId=usr_WHlfQps1I3a1gJYz2I3a,user-external-id')
     .set(authorizationHeaders)
     .expect(200)
 
@@ -270,11 +165,11 @@ test('lists ratings with advanced filter', async (t) => {
   })
 })
 
-test('lists ratings with label filter', async (t) => {
+test('lists links with label filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get('/ratings?label=main:friendliness,main:pricing')
+    .get('/links?label=main:friendliness,main:pricing')
     .set(authorizationHeaders)
     .expect(200)
 

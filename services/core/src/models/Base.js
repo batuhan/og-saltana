@@ -14,7 +14,7 @@ const {
 
 // create a custom query builder to automatically set the schema
 class SchemaQueryBuilder extends QueryBuilder {
-  constructor(modelClass) {
+  constructor (modelClass) {
     super(modelClass)
     if (modelClass.defaultSchema) {
       this.withSchema(modelClass.defaultSchema)
@@ -26,35 +26,35 @@ Model.QueryBuilder = SchemaQueryBuilder
 Model.RelatedQueryBuilder = SchemaQueryBuilder
 
 class Base extends DbErrors(Model) {
-  $beforeInsert() {
+  $beforeInsert () {
     const now = new Date().toISOString()
 
     this.createdDate = now
     this.updatedDate = now
   }
 
-  $beforeUpdate() {
+  $beforeUpdate () {
     this.updatedDate = new Date().toISOString()
   }
 
-  static getAccessFields(access) {
+  static getAccessFields (access) {
     const accessFields = {}
     return accessFields[access]
   }
 
-  static isNamespaceKey(key) {
+  static isNamespaceKey (key) {
     return key.charAt(0) === '_'
   }
 
-  static getNamespace(key) {
+  static getNamespace (key) {
     return key.slice(1)
   }
 
-  static getNamespaceKey(namespace) {
+  static getNamespaceKey (namespace) {
     return '_' + namespace
   }
 
-  static checkDataNamespaces(element = {}, namespaces = []) {
+  static checkDataNamespaces (element = {}, namespaces = []) {
     const exposeAllNamespaces = namespaces.includes('*')
     if (exposeAllNamespaces) {
       return true
@@ -71,7 +71,7 @@ class Base extends DbErrors(Model) {
     }, true)
   }
 
-  static getDataNamespaces(element) {
+  static getDataNamespaces (element) {
     const foundNamespaces = []
 
     if (element.metadata && typeof element.metadata === 'object') {
@@ -92,7 +92,7 @@ class Base extends DbErrors(Model) {
     return _.uniq(foundNamespaces)
   }
 
-  static isAllowedNamespace(namespace, listNamespaces) {
+  static isAllowedNamespace (namespace, listNamespaces) {
     return listNamespaces.includes(namespace) || listNamespaces.includes('*')
   }
 
@@ -113,7 +113,7 @@ class Base extends DbErrors(Model) {
    *
    * @return {Object} exposedElement
    */
-  static expose(element, {
+  static expose (element, {
     access = 'api',
     locale,
     fallbackLocale,
@@ -256,7 +256,7 @@ class Base extends DbErrors(Model) {
     }
   }
 
-  static exposeAll(elements, params) {
+  static exposeAll (elements, params) {
     if (!Array.isArray(elements)) {
       throw new Error('array of elements expected')
     }
@@ -264,11 +264,11 @@ class Base extends DbErrors(Model) {
     return elements.map(element => this.expose(element, params))
   }
 
-  static exposeTransform( /* element, field, { access, namespaces, plan, planPermissions, isSystem, options } = {} */ ) {
+  static exposeTransform (/* element, field, { access, namespaces, plan, planPermissions, isSystem, options } = {} */) {
     // do nothing (only for template, exposeTransform on model override)
   }
 
-  static getI18nModel(element, {
+  static getI18nModel (element, {
     locale,
     fallbackLocale,
     useOnlyLocale
@@ -287,7 +287,7 @@ class Base extends DbErrors(Model) {
     })
   }
 
-  static getI18nModelDelta(element, attrs, {
+  static getI18nModelDelta (element, attrs, {
     locale,
     fallbackLocale
   }) {
@@ -304,7 +304,7 @@ class Base extends DbErrors(Model) {
     })
   }
 
-  static setI18nModel(element, attrs, {
+  static setI18nModel (element, attrs, {
     locale,
     fallbackLocale
   }) {
@@ -334,7 +334,7 @@ class Base extends DbErrors(Model) {
    * @param {String} [params.replaceField] - if true in data object, data is overwritten on element
    * @return {Object} Checks values of type (array of) string (attributes to compare) or function
    */
-  static getCustomData(element, params) {
+  static getCustomData (element, params) {
     const {
       metadata,
       platformData,
@@ -372,12 +372,12 @@ class Base extends DbErrors(Model) {
     }
   }
 
-  static getUpdateDeltaFields(rawPayload, fields, resource) {
+  static getUpdateDeltaFields (rawPayload, fields, resource) {
     return fields.reduce((changes, field) => {
       const potentialChange = typeof rawPayload[field] !== 'undefined'
-      const isEqualToPreviousValue = resource && typeof resource === 'object' ?
-        _.isEqual(rawPayload[field], resource[field]) :
-        false
+      const isEqualToPreviousValue = resource && typeof resource === 'object'
+        ? _.isEqual(rawPayload[field], resource[field])
+        : false
 
       if (potentialChange && !isEqualToPreviousValue) {
         changes[field] = rawPayload[field]
@@ -387,7 +387,7 @@ class Base extends DbErrors(Model) {
   }
 }
 
-function getI18nModel(model, {
+function getI18nModel (model, {
   i18nMap = {},
   locale,
   fallbackLocale,
@@ -412,7 +412,7 @@ function getI18nModel(model, {
   return obj
 }
 
-function getI18nModelDelta(model, attrs, {
+function getI18nModelDelta (model, attrs, {
   i18nMap = {},
   locale,
   fallbackLocale
@@ -444,7 +444,7 @@ function getI18nModelDelta(model, attrs, {
   return delta
 }
 
-function setI18nModel(model, attrs, {
+function setI18nModel (model, attrs, {
   i18nMap = {},
   locale,
   fallbackLocale
@@ -465,7 +465,7 @@ function setI18nModel(model, attrs, {
   return model
 }
 
-function getI18nValue(model, {
+function getI18nValue (model, {
   field,
   fieldI18n,
   locale,
@@ -491,7 +491,7 @@ function getI18nValue(model, {
   return model[field]
 }
 
-function setI18nValue(model, value, {
+function setI18nValue (model, value, {
   field,
   fieldI18n,
   locale,
