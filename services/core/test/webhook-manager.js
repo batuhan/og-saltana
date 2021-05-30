@@ -5,13 +5,13 @@ const { getAccessTokenHeaders } = require('./auth')
 
 const noop = () => Promise.resolve()
 
-// Utility to test external service webhooks integration into Stelace
+// Utility to test external service webhooks integration into Saltana
 // Two operating modes:
 // - Test external webhook integration for real via Ngrok,
 //     as long as the external service lets you create webhooks with some API,
 //     or you have a paid ngrok plan and a stable URL to use for a longlived test webhook
 // - Simulate external webhook by polling external service events
-//    and propagate them to some Stelace endpoint, provided the external service
+//    and propagate them to some Saltana endpoint, provided the external service
 //    has some Event API to fetch latest external events.
 class WebhookManager {
   /**
@@ -20,7 +20,7 @@ class WebhookManager {
    * @param {Boolean}  [params.isWebhookSimulated = true]
    *
    * @param {Function} [params.simulateWebhookSince(lastFetchTimestamp)] - required if isWebhookSimulated is true
-   *   poll events from external service and hit Stelace webhook endpoint
+   *   poll events from external service and hit Saltana webhook endpoint
    *   should return the last event timestamp for next fetch
    *   this timestamp will be injected at the next call of the function `simulateWebhookSince`
    * @example
@@ -59,7 +59,7 @@ class WebhookManager {
    * @param {Boolean}  [params.webhookFetchInterval = 2000] - interval in milliseconds between calls to external Events API
    *   if isWebhookSimulated is true
    * @param {Function} [params.createWebhook(tunnelUrl)] - can be provided if isWebhookSimulated is false
-   *   tunnelUrl being the ngrok endpoint to prepend to Stelace API endpoint path.
+   *   tunnelUrl being the ngrok endpoint to prepend to Saltana API endpoint path.
    * @param {Function} [params.removeWebhook] - can be provided if isWebhookSimulated is false
    *
    * Please refer to ngrok options (https://github.com/bubenshchykov/ngrok#options)
@@ -69,7 +69,7 @@ class WebhookManager {
    * @param {String}   [params.tunnel.authToken]
    *
    * @example Webhook manager usage in non-simulating mode
-   *   const webhookUrl = `/stelace_api/webhook/url/with/platform_identifiers/e${t.context.platformId}_${t.context.env}`
+   *   const webhookUrl = `/saltana_api/webhook/url/with/platform_identifiers/e${t.context.platformId}_${t.context.env}`
    *   let webhook
    *
    *   const createWebhook = async (tunnelUrl) => {

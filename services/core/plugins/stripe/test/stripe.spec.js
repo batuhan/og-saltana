@@ -27,7 +27,7 @@ if (!secretApiKey) {
 } else {
   test.before(async t => {
     await before({
-      name: 'stelaceStripe'
+      name: 'saltanaStripe'
     })(t)
     await beforeEach()(t)
 
@@ -36,7 +36,7 @@ if (!secretApiKey) {
     await request(t.context.serverUrl)
       .patch('/config/private')
       .send({
-        stelace: {
+        saltana: {
           integrations: {
             stripe: {
               secretApiKey
@@ -45,9 +45,9 @@ if (!secretApiKey) {
         }
       })
       .set({
-        'x-stelace-system-key': systemKey,
+        'x-saltana-system-key': systemKey,
         'x-platform-id': t.context.platformId,
-        'x-stelace-env': t.context.env
+        'x-saltana-env': t.context.env
       })
       .expect(200)
   })
@@ -111,7 +111,7 @@ if (!secretApiKey) {
 
     try {
       await webhookManager.updatePrivateConfig({
-        stelace: {
+        saltana: {
           integrations: {
             stripe: {
               webhookSecret: webhook.secret

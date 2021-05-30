@@ -299,11 +299,11 @@ async function setPlatformMetrics (platformId, env, metrics = {}) {
 }
 
 /**
- * Returns all Stelace tasks, that generate events based on schedule config
+ * Returns all Saltana tasks, that generate events based on schedule config
  * @param {String} [platformId] - optional filter
  * @param {String} [env] - optional filter
  */
-async function getAllStelaceTasks ({ platformId, env } = {}) {
+async function getAllSaltanaTasks ({ platformId, env } = {}) {
   // Avoid loading tasks of all platforms in memory at once
   const platformRegex = new RegExp(`"platformId":"${platformId}"`)
   const envRegex = new RegExp(`"env":"${env}"`)
@@ -314,12 +314,12 @@ async function getAllStelaceTasks ({ platformId, env } = {}) {
 }
 
 /**
- * Add/Replace Stelace task by ID
+ * Add/Replace Saltana task by ID
  * @param {String} platformId
  * @param {String} env
  * @param {Object} task
  */
-async function setStelaceTask ({ platformId, env, task }) {
+async function setSaltanaTask ({ platformId, env, task }) {
   if (!task.id) {
     throw new Error('Expected Task ID')
   }
@@ -332,17 +332,17 @@ async function setStelaceTask ({ platformId, env, task }) {
     task
   }
 
-  await client.hsetAsync('stelace_tasks', task.id, JSON.stringify(payload))
+  await client.hsetAsync('saltana_tasks', task.id, JSON.stringify(payload))
 }
 
 /**
- * Remove Stelace task(s)
+ * Remove Saltana task(s)
  * @param {String} platformId
  * @param {String} env
  * @param {String|String[]} taskId - Can be wildcard '*' string to remove all tasks
- * @returns {Array} taskIds removed, potentially needed to clean up stelace_tasks_execution_date
+ * @returns {Array} taskIds removed, potentially needed to clean up saltana_tasks_execution_date
  */
-async function removeStelaceTask ({ platformId, env, taskId }) {
+async function removeSaltanaTask ({ platformId, env, taskId }) {
   if (!taskId) throw new Error('Expected Task ID or wildcard "*"')
 
   const client = _getClient({ platformId, env })
@@ -358,7 +358,7 @@ async function removeStelaceTask ({ platformId, env, taskId }) {
   }
 
   // Array of args for HDEL: https://github.com/NodeRedis/node_redis/issues/369
-  if (taskIds.length) await client.hdelAsync('stelace_tasks', ...taskIds)
+  if (taskIds.length) await client.hdelAsync('saltana_tasks', ...taskIds)
   return taskIds
 }
 
@@ -367,25 +367,25 @@ async function removeStelaceTask ({ platformId, env, taskId }) {
  * @param {String} taskId
  * @param {String} executionDate
  */
-async function didStelaceTaskExecute ({ taskId, executionDate }) {
+async function didSaltanaTaskExecute ({ taskId, executionDate }) {
   if (!taskId) {
     throw new Error('Expected Task ID')
   }
 
   const client = getRedisClient()
 
-  const res = await client.zrankAsync(`stelace_tasks_execution_date:${taskId}`, executionDate)
+  const res = await client.zrankAsync(`saltana_tasks_execution_date:${taskId}`, executionDate)
   return res !== null
 }
 
 /**
- * Add a new execution date for Stelace task
+ * Add a new execution date for Saltana task
  * If the date has already been added, only a unique date is saved
  * @param {String} taskId
  * @param {String} executionDate
  * @param {String} [nbSavedDates = 5] - only keep this number of dates to save space
  */
-async function addStelaceTaskExecutionDate ({ taskId, executionDate, nbSavedDates = 5 }) {
+async function addSaltanaTaskExecutionDate ({ taskId, executionDate, nbSavedDates = 5 }) {
   if (!taskId) {
     throw new Error('Expected Task ID')
   }
@@ -394,7 +394,7 @@ async function addStelaceTaskExecutionDate ({ taskId, executionDate, nbSavedDate
 
   const timestamp = new Date(executionDate).getTime()
 
-  const key = `stelace_tasks_execution_date:${taskId}`
+  const key = `saltana_tasks_execution_date:${taskId}`
 
   await client.zaddAsync(key, [timestamp, executionDate])
 
@@ -403,19 +403,19 @@ async function addStelaceTaskExecutionDate ({ taskId, executionDate, nbSavedDate
 }
 
 /**
- * Remove Stelace task saved execution dates
+ * Remove Saltana task saved execution dates
  * @param {String|String[]} taskId
  */
-async function removeStelaceTaskExecutionDates ({ taskId }) {
+async function removeSaltanaTaskExecutionDates ({ taskId }) {
   if (!taskId) throw new Error('Expected Task ID(s)')
   const client = getRedisClient()
 
-  const keys = _.flatten([taskId]).map(id => `stelace_tasks_execution_date:${id}`)
+  const keys = _.flatten([taskId]).map(id => `saltana_tasks_execution_date:${id}`)
   if (keys.length) await client.delAsync(keys)
 }
 
 /**
- * Use HSCAN to retrieve redis `stelace_tasks` hash values matching `filterFn`.
+ * Use HSCAN to retrieve redis `saltana_tasks` hash values matching `filterFn`.
  * @param {Function} [filterFn] - Invoked over all tasks of __all__ platforms,
  *   so that you have to pay attention to performance.
  * @param {Function} [mapFn] - Optional transformation of task objects
@@ -431,7 +431,7 @@ async function _scanAndFilterTasks ({ filterFn = _ => _, mapFn = _ => _, client 
     // and we avoid loading all tasks of all platforms in memory (COUNT).
     // https://redis.io/commands/scan
     // Unfortunately can’t use MATCH pattern option for hash values so we filter manually
-    const res = await cl.hscanAsync('stelace_tasks', start, 'COUNT', 100)
+    const res = await cl.hscanAsync('saltana_tasks', start, 'COUNT', 100)
     let [cursor, results] = res
     // probably faster than using JSON.parse
     const platformTasks = results
@@ -468,11 +468,11 @@ module.exports = {
   getPlatformMetrics,
   setPlatformMetrics,
 
-  getAllStelaceTasks,
-  setStelaceTask,
-  removeStelaceTask,
+  getAllSaltanaTasks,
+  setSaltanaTask,
+  removeSaltanaTask,
 
-  didStelaceTaskExecute,
-  addStelaceTaskExecutionDate,
-  removeStelaceTaskExecutionDates
+  didSaltanaTaskExecute,
+  addSaltanaTaskExecutionDate,
+  removeSaltanaTaskExecutionDates
 }

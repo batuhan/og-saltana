@@ -1,5 +1,5 @@
 module.exports = {
-  name: 'stelace-stripe',
+  name: 'saltana-stripe',
   version: '0.1.0',
 
   routes: require('./routes'),

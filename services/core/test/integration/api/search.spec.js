@@ -1797,7 +1797,7 @@ test('fails to search assets if missing or invalid parameters', async (t) => {
     .post('/search')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1809,7 +1809,7 @@ test('fails to search assets if missing or invalid parameters', async (t) => {
     .post('/search')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       query: true,
@@ -1874,7 +1874,7 @@ test('fails to search assets if missing or invalid parameters', async (t) => {
     .post('/search')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       query: true,
@@ -1938,7 +1938,7 @@ test('fails to search assets if missing or invalid parameters', async (t) => {
     .post('/search')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       save: false,
@@ -1954,7 +1954,7 @@ test('fails to search assets if missing or invalid parameters', async (t) => {
     .post('/search')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       savedSearch: true

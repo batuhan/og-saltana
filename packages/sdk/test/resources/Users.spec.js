@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('checkAvailability: sends the correct request', (t) => {
-  return stelace.users.checkAvailability({ username: 'foo@bar.com' })
+  return saltana.users.checkAvailability({ username: 'foo@bar.com' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users/check-availability',
         data: {},
@@ -18,9 +18,9 @@ test('checkAvailability: sends the correct request', (t) => {
 })
 
 test('list: sends the correct request', (t) => {
-  return stelace.users.list({ page: 2, nbResultsPerPage: 10 })
+  return saltana.users.list({ page: 2, nbResultsPerPage: 10 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
@@ -31,9 +31,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.users.read('user_1')
+  return saltana.users.read('user_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users/user_1',
         data: {},
@@ -44,9 +44,9 @@ test('read: sends the correct request', (t) => {
 })
 
 test('create: sends the correct request', (t) => {
-  return stelace.users.create({ username: 'Foo', password: 'secretPassword' })
+  return saltana.users.create({ username: 'Foo', password: 'secretPassword' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/users',
         data: { username: 'Foo', password: 'secretPassword' },
@@ -57,9 +57,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.users.update('user_1', { displayName: 'FooBar' })
+  return saltana.users.update('user_1', { displayName: 'FooBar' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/users/user_1',
         data: { displayName: 'FooBar' },
@@ -70,9 +70,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.users.remove('user_1')
+  return saltana.users.remove('user_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/users/user_1',
         data: {},
@@ -84,9 +84,9 @@ test('remove: sends the correct request', (t) => {
 
 // DEPRECATED
 test('updateOrganization: sends the correct request', (t) => {
-  return stelace.users.updateOrganization('user_1', 'organization_1', { roles: ['user'] })
+  return saltana.users.updateOrganization('user_1', 'organization_1', { roles: ['user'] })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PUT',
         path: '/users/user_1/organizations/organization_1',
         data: { roles: ['user'] },
@@ -97,9 +97,9 @@ test('updateOrganization: sends the correct request', (t) => {
 })
 // DEPRECATED:END
 test('joinOrganizationOrUpdateRights: sends the correct request', (t) => {
-  return stelace.users.joinOrganizationOrUpdateRights('user_1', 'organization_1', { roles: ['user'] })
+  return saltana.users.joinOrganizationOrUpdateRights('user_1', 'organization_1', { roles: ['user'] })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PUT',
         path: '/users/user_1/organizations/organization_1',
         data: { roles: ['user'] },
@@ -110,9 +110,9 @@ test('joinOrganizationOrUpdateRights: sends the correct request', (t) => {
 })
 
 test('removeFromOrganization: sends the correct request', (t) => {
-  return stelace.users.removeFromOrganization('user_1', 'organization_1')
+  return saltana.users.removeFromOrganization('user_1', 'organization_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/users/user_1/organizations/organization_1',
         data: {},

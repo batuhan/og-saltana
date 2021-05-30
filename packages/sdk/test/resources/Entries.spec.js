@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.entries.list({ page: 2, nbResultsPerPage: 10 })
+  return saltana.entries.list({ page: 2, nbResultsPerPage: 10 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/entries',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.entries.read('entry_1')
+  return saltana.entries.read('entry_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/entries/entry_1',
         data: {},
@@ -40,9 +40,9 @@ test('create: sends the correct request', (t) => {
     }
   }
 
-  return stelace.entries.create(data)
+  return saltana.entries.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/entries',
         data,
@@ -53,9 +53,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.entries.update('entry_1', { content: 'random content' })
+  return saltana.entries.update('entry_1', { content: 'random content' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/entries/entry_1',
         data: { content: 'random content' },
@@ -66,9 +66,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.entries.remove('entry_1')
+  return saltana.entries.remove('entry_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/entries/entry_1',
         data: {},

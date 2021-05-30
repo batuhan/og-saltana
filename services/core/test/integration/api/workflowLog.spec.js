@@ -24,9 +24,9 @@ const {
 
 function getAuthorizationHeaders ({ t, systemKey }) {
   const headers = {
-    'x-stelace-system-key': systemKey,
+    'x-saltana-system-key': systemKey,
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
   }
   return headers
 }

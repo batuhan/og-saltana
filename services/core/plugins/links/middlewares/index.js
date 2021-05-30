@@ -1,4 +1,4 @@
-const debug = require('debug')('stelace:api')
+const debug = require('debug')('saltana:api')
 
 function testMiddleware (req, res, next) {
   if (process.env.NODE_ENV === 'test') {

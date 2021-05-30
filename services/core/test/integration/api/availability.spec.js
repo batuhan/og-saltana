@@ -503,7 +503,7 @@ test('fails to create an availability if missing or invalid parameters', async (
     .post('/availabilities')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -515,7 +515,7 @@ test('fails to create an availability if missing or invalid parameters', async (
     .post('/availabilities')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -531,7 +531,7 @@ test('fails to create an availability if missing or invalid parameters', async (
     .post('/availabilities')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       assetId: true,
@@ -566,7 +566,7 @@ test('fails to update an availability if missing or invalid parameters', async (
     .patch('/availabilities/avl_ZnRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -578,7 +578,7 @@ test('fails to update an availability if missing or invalid parameters', async (
     .patch('/availabilities/avl_ZnRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       startDate: 10,

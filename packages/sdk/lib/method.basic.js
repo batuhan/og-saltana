@@ -1,29 +1,29 @@
-export default function getBasicMethods (path, stelaceMethod) {
+export default function getBasicMethods (path, saltanaSdkMethod) {
   return {
-    list: stelaceMethod({
+    list: saltanaSdkMethod({
       path,
       method: 'GET',
       isList: true
     }),
 
-    read: stelaceMethod({
+    read: saltanaSdkMethod({
       path: `${path}/:id`,
       method: 'GET',
       urlParams: ['id']
     }),
 
-    create: stelaceMethod({
+    create: saltanaSdkMethod({
       path,
       method: 'POST'
     }),
 
-    update: stelaceMethod({
+    update: saltanaSdkMethod({
       path: `${path}/:id`,
       method: 'PATCH',
       urlParams: ['id']
     }),
 
-    remove: stelaceMethod({
+    remove: saltanaSdkMethod({
       path: `${path}/:id`,
       method: 'DELETE',
       urlParams: ['id']

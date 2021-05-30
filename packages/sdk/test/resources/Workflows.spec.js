@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.workflows.list()
+  return saltana.workflows.list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/workflows',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.workflows.read('workflow_1')
+  return saltana.workflows.read('workflow_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/workflows/workflow_1',
         data: {},
@@ -59,9 +59,9 @@ test('create: sends the correct request', (t) => {
     }
   }
 
-  return stelace.workflows.create(data)
+  return saltana.workflows.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/workflows',
         data,
@@ -72,9 +72,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.workflows.update('workflow_1', { name: 'Updated workflow' })
+  return saltana.workflows.update('workflow_1', { name: 'Updated workflow' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/workflows/workflow_1',
         data: { name: 'Updated workflow' },
@@ -85,9 +85,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.workflows.remove('workflow_1')
+  return saltana.workflows.remove('workflow_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/workflows/workflow_1',
         data: {},

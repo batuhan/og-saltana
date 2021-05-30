@@ -1,6 +1,6 @@
-// Stelace secret API key used will depend on current NODE_ENV
+// Saltana secret API key used will depend on current NODE_ENV
 // and your .env.[development|production] files
-const stelace = require('./admin-sdk')
+const saltana = require('./admin-sdk')
 
 const script = require('commander')
 const pMap = require('p-map')
@@ -49,27 +49,27 @@ async function run () {
   const translationFiles = await readDir(translationsPath)
 
   // TODO: Merge this into one call once API allows array of collections
-  const fetchEntriesPage = (...args) => stelace.entries.list(...args)
+  const fetchEntriesPage = (...args) => saltana.entries.list(...args)
   const apiEntries = await fetchAllResults(fetchEntriesPage, { collection: defaultCollection })
   const emailEntries = await fetchAllResults(fetchEntriesPage, { collection: emailCollection })
   apiEntries.push(...emailEntries)
 
-  // Sync config to enable Stelace dashboard live content editor and populate email templates
-  const config = await stelace.config.read()
+  // Sync config to enable Saltana dashboard live content editor and populate email templates
+  const config = await saltana.config.read()
   const newInstantConfigAttrs = {}
-  const configPlatformUrl = _.get(config, 'stelace.instant.platformUrl')
-  const platformUrl = process.env.STELACE_INSTANT_WEBSITE_URL
+  const configPlatformUrl = _.get(config, 'saltana.instant.platformUrl')
+  const platformUrl = process.env.SALTANA_INSTANT_WEBSITE_URL
   if (platformUrl && configPlatformUrl !== platformUrl) {
     newInstantConfigAttrs.platformUrl = platformUrl
   }
-  const configServiceName = _.get(config, 'stelace.instant.serviceName')
+  const configServiceName = _.get(config, 'saltana.instant.serviceName')
   const serviceName = process.env.VUE_APP_SERVICE_NAME
   if (serviceName && configServiceName !== serviceName) {
     newInstantConfigAttrs.serviceName = serviceName
   }
   if (!_.isEmpty(newInstantConfigAttrs)) {
-    stelace.config.update({
-      stelace: { instant: newInstantConfigAttrs }
+    saltana.config.update({
+      saltana: { instant: newInstantConfigAttrs }
     })
     log(`Updated ${Object.keys(newInstantConfigAttrs).join(', ')} in config`)
   }
@@ -127,11 +127,11 @@ async function run () {
       }
 
       if (shouldUpdate) {
-        const updated = await stelace.entries.update(existingEntry.id, updateAttrs)
+        const updated = await saltana.entries.update(existingEntry.id, updateAttrs)
         stats.updated.push(`${collection} ${locale} -> ${updated.name}`)
       } else if (!existingEntry) {
         const createAttrs = Object.assign({}, updateAttrs, { collection, locale, name: n })
-        const created = await stelace.entries.create(createAttrs)
+        const created = await saltana.entries.create(createAttrs)
         stats.created.push(`${collection} ${locale} -> ${created.name}`)
       }
     }, { concurrency: 4 })

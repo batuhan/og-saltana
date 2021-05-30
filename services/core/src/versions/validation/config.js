@@ -68,7 +68,7 @@ schemas['2019-05-20'] = {}
 schemas['2019-05-20'].read = null
 schemas['2019-05-20'].update = {
   body: Joi.object({
-    stelace: Joi.object().keys({
+    saltana: Joi.object().keys({
       roles: Joi.object().keys({
         whitelist: Joi.array().unique().items(Joi.string()).allow(null),
         default: Joi.array().unique().items(Joi.string()).allow(null)
@@ -95,8 +95,8 @@ schemas['2019-05-20'].update = {
 schemas['2019-05-20'].readPrivate = null
 schemas['2019-05-20'].updatePrivate = {
   body: Joi.object({
-    stelace: Joi.object().keys({
-      stelaceAuthRefreshTokenExpiration: refreshTokenExpirationSchema.allow(null),
+    saltana: Joi.object().keys({
+      saltanaAuthRefreshTokenExpiration: refreshTokenExpirationSchema.allow(null),
       ssoConnections: Joi.object()
         .pattern(Joi.string().max(64), ssoConnectionSchema.allow(null)),
 
@@ -132,8 +132,8 @@ schemas['2019-05-20'].updatePrivate = {
 schemas['2019-05-20'].readSystem = null
 schemas['2019-05-20'].updateSystem = {
   body: Joi.object({
-    stelace: Joi.object().keys({
-      stelaceVersion: Joi.string()
+    saltana: Joi.object().keys({
+      saltanaVersion: Joi.string()
     }).unknown(),
     custom: Joi.object().unknown(),
   }).required()

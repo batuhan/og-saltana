@@ -63,8 +63,8 @@ const resources = {
   Workflows,
 }
 
-// export Stelace for tests
-export class Stelace {
+// export Saltana for tests
+export class Saltana {
   /**
    * @param {Object} params
    * @param {String} [params.apiKey]
@@ -75,7 +75,7 @@ export class Stelace {
   constructor(params) {
     if (!params || typeof params !== 'object') {
       throw new Error(
-        'A configuration object is expected to initialize Stelace'
+        'A configuration object is expected to initialize Saltana SDK'
       )
     }
 
@@ -84,9 +84,9 @@ export class Stelace {
       apiVersion,
       tokenStore,
       beforeRefreshToken,
-      apiHost = Stelace.DEFAULT_HOST,
-      apiProtocol = Stelace.DEFAULT_PROTOCOL,
-      apiPort = Stelace.DEFAULT_PORT,
+      apiHost = Saltana.DEFAULT_HOST,
+      apiProtocol = Saltana.DEFAULT_PROTOCOL,
+      apiPort = Saltana.DEFAULT_PORT,
     } = params
 
     this._api = {
@@ -94,8 +94,8 @@ export class Stelace {
       host: apiHost,
       protocol: apiProtocol,
       port: apiPort,
-      version: Stelace.DEFAULT_API_VERSION,
-      timeout: Stelace.DEFAULT_TIMEOUT,
+      version: Saltana.DEFAULT_API_VERSION,
+      timeout: Saltana.DEFAULT_TIMEOUT,
       tokenStore: null,
       beforeRefreshToken: null,
       organizationId: null,
@@ -144,7 +144,7 @@ export class Stelace {
   setTimeout(timeout) {
     this._setApiField(
       'timeout',
-      typeof timeout === 'number' ? timeout : Stelace.DEFAULT_TIMEOUT
+      typeof timeout === 'number' ? timeout : Saltana.DEFAULT_TIMEOUT
     )
   }
 
@@ -189,7 +189,7 @@ export class Stelace {
   }
 
   getConstant(c) {
-    return Stelace[c]
+    return Saltana[c]
   }
 
   getUserAgent() {
@@ -199,7 +199,7 @@ export class Stelace {
     }
 
     return (
-      Stelace.USER_AGENT_STRING +
+      Saltana.USER_AGENT_STRING +
       (browserUserAgent ? ' ' + browserUserAgent : '')
     )
   }
@@ -235,14 +235,14 @@ export class Stelace {
   }
 }
 
-Stelace.DEFAULT_HOST = 'localhost'
-Stelace.DEFAULT_PROTOCOL = 'http'
-Stelace.DEFAULT_PORT = 4100
-Stelace.DEFAULT_API_VERSION = null
-Stelace.DEFAULT_TIMEOUT = 30 * 1000 // 30s
-Stelace.PACKAGE_VERSION = '1.0'
-Stelace.USER_AGENT_STRING = `Saltana/${Stelace.PACKAGE_VERSION}`
+Saltana.DEFAULT_HOST = 'localhost'
+Saltana.DEFAULT_PROTOCOL = 'http'
+Saltana.DEFAULT_PORT = 4100
+Saltana.DEFAULT_API_VERSION = null
+Saltana.DEFAULT_TIMEOUT = 30 * 1000 // 30s
+Saltana.PACKAGE_VERSION = '1.0'
+Saltana.USER_AGENT_STRING = `Saltana/${Saltana.PACKAGE_VERSION}`
 
 export const createInstance = (...args) => {
-  return new Stelace(...args)
+  return new Saltana(...args)
 }

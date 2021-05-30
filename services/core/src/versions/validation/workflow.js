@@ -27,7 +27,7 @@ const runSchema = Joi.array().items(Joi.object({
   endpointMethod: Joi.string().valid('GET', 'PATCH', 'POST', 'DELETE').required(),
   endpointUri: Joi.string()
     // allow leading $ for template strings in workflows (endpointUri: "${computed.url}")
-    .regex(/^(\/|http|\$)/, 'full external URL like "https://your.api.com" or Stelace endpoint path like "/assets"')
+    .regex(/^(\/|http|\$)/, 'full external URL like "https://your.api.com" or Saltana endpoint path like "/assets"')
     .required(),
   endpointPayload: Joi.object(),
   endpointHeaders: Joi.object().pattern(Joi.string(), Joi.string())

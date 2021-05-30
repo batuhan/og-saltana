@@ -1,5 +1,5 @@
 // Following objects are exposed on server object as well
-// and can be required from a standalone plugin repo with stelace-server installed as devDependency.
+// and can be required from a standalone plugin repo with saltana-server installed as devDependency.
 // But we can’t require them from plugins within server project as it would entail circular dependencies.
 
 const lifecycle = require('../test/lifecycle')

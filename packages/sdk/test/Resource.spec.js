@@ -2,28 +2,28 @@ import test from 'blue-tape'
 
 import { clone } from '../lib/utils'
 
-import { getSpyableStelace, getStelaceStub } from '../testUtils'
+import { getSpyableSaltana, getSaltanaStub } from '../testUtils'
 
 import Resource from '../lib/Resource'
 
 test('Gets correct API base URL', (t) => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  const resource = new Resource(stelace)
+  const resource = new Resource(saltana)
 
-  t.is(resource.getBaseURL(), 'https://api.stelace.com')
+  t.is(resource.getBaseURL(), 'https://api.saltana.com')
 
-  stelace.setHost('127.0.0.1', 3000, 'http')
+  saltana.setHost('127.0.0.1', 3000, 'http')
   t.is(resource.getBaseURL(), 'http://127.0.0.1:3000')
 
   t.end()
 })
 
 test('Extracts pagination "results" from response', (t) => {
-  const stelace = getSpyableStelace()
-  const resource = new Resource(stelace)
+  const saltana = getSpyableSaltana()
+  const resource = new Resource(saltana)
 
-  const api = getStelaceStub()
+  const api = getSaltanaStub()
   api.startStub()
 
   const customAttributes = {
@@ -79,10 +79,10 @@ test('Extracts pagination "results" from response', (t) => {
 })
 
 test('Passes plain array response as is', (t) => {
-  const stelace = getSpyableStelace()
-  const resource = new Resource(stelace)
+  const saltana = getSpyableSaltana()
+  const resource = new Resource(saltana)
 
-  const api = getStelaceStub()
+  const api = getSaltanaStub()
   api.startStub()
 
   // Some resources are not paginated
@@ -139,11 +139,11 @@ test('Passes plain array response as is', (t) => {
 })
 
 test('Adds basic methods for Resource instances', (t) => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
   class ResourceExample extends Resource {}
 
-  const resource1 = new ResourceExample(stelace)
+  const resource1 = new ResourceExample(saltana)
   t.notOk(resource1.list)
   t.notOk(resource1.read)
   t.notOk(resource1.create)
@@ -152,7 +152,7 @@ test('Adds basic methods for Resource instances', (t) => {
 
   Resource.addBasicMethods(ResourceExample, { path: '/resource', includeBasic: ['list', 'read', 'create'] })
 
-  const resource2 = new ResourceExample(stelace)
+  const resource2 = new ResourceExample(saltana)
   t.true(typeof resource2.list === 'function')
   t.true(typeof resource2.read === 'function')
   t.true(typeof resource2.create === 'function')

@@ -28,7 +28,7 @@ class Config extends Base {
           type: 'string',
           maxLength: 255
         },
-        stelace: {
+        saltana: {
           type: 'object',
           default: {}
         },
@@ -47,7 +47,7 @@ class Config extends Base {
   static getAccessFields (access) {
     const accessFields = {
       api: [
-        'stelace',
+        'saltana',
         'custom',
 
         'livemode' // added in the expose function

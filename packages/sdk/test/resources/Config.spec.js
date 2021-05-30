@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('read: sends the correct request', (t) => {
-  return stelace.config.read()
+  return saltana.config.read()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/config',
         data: {},
@@ -18,9 +18,9 @@ test('read: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.config.update({ assetsValidationAutomatic: true })
+  return saltana.config.update({ assetsValidationAutomatic: true })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/config',
         data: { assetsValidationAutomatic: true },
@@ -31,9 +31,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('readPrivate: sends the correct request', (t) => {
-  return stelace.config.readPrivate()
+  return saltana.config.readPrivate()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/config/private',
         data: {},
@@ -45,14 +45,14 @@ test('readPrivate: sends the correct request', (t) => {
 
 test('updatePrivate: sends the correct request', (t) => {
   const payload = {
-    stelace: {
+    saltana: {
       someProtectedValue: true
     }
   }
 
-  return stelace.config.updatePrivate(payload)
+  return saltana.config.updatePrivate(payload)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/config/private',
         data: payload,

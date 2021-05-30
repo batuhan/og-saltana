@@ -402,14 +402,14 @@ test.serial('removes a custom attribute after automatic dereferencing and emits 
   // Please refer to comment above about asynchronous events
   t.true(filteredEvents.length > 1 && filteredEvents.length <= assetIds.length)
   t.true(filteredEvents.every(e => _.isEqual(e.changesRequested, updateAttrs)))
-  t.true(filteredEvents.every(e => e.metadata.stelaceComment.includes('automatically')))
+  t.true(filteredEvents.every(e => e.metadata.saltanaComment.includes('automatically')))
 
   type = 'asset__updated'
   filteredEvents = events.filter(e => e.type === type && assetIds.includes(e.objectId))
   // Please refer to comment above
   t.true(filteredEvents.length > 1 && filteredEvents.length <= assetIds.length)
   t.true(filteredEvents.every(e => _.isEqual(e.changesRequested, updateAttrs)))
-  t.true(filteredEvents.every(e => e.metadata.stelaceComment.includes('automatically')))
+  t.true(filteredEvents.every(e => e.metadata.saltanaComment.includes('automatically')))
 })
 
 // ////// //
@@ -519,7 +519,7 @@ test('fails to create a custom attribute if missing or invalid parameters', asyn
     .post('/custom-attributes')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -531,7 +531,7 @@ test('fails to create a custom attribute if missing or invalid parameters', asyn
     .post('/custom-attributes')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -545,7 +545,7 @@ test('fails to create a custom attribute if missing or invalid parameters', asyn
     .post('/custom-attributes')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -573,7 +573,7 @@ test('fails to update a custom attribute if missing or invalid parameters', asyn
     .patch('/custom-attributes/attr_WmwQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -585,7 +585,7 @@ test('fails to update a custom attribute if missing or invalid parameters', asyn
     .patch('/custom-attributes/attr_WmwQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       listValues: true,

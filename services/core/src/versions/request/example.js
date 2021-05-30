@@ -5,7 +5,7 @@ const requestChanges = {
   '2018-07-30': [ // this is the target version for the following array of changes
     // changes in this array will be applied if:
     // selected version <= '2018-07-30' < latest API version
-    // selected version being Stelace version header in request OR platform config version
+    // selected version being Saltana version header in request OR platform config version
     {
       target: 'category.create', // route name
       description: 'Describe changes here for documentation.',

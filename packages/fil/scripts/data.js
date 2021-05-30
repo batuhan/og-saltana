@@ -1,4 +1,4 @@
-// This file is used to seed Stelace database with data exported below,
+// This file is used to seed Saltana database with data exported below,
 // using init-data.js script (`yarn seed`).
 
 const { getWorkflows } = require('../workflows')
@@ -56,9 +56,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'aix-1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238380/live/images/76fe774a40e19a2d56fdfd862b82c814-aix-1.jpg' },
-          { name: 'aix-2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238380/live/images/b855f98d62fea4c380d3336cf2169db7-aix-2.jpg' },
-          { name: 'aix-3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238380/live/images/03fba6aeda5a0240de8f401879bf5f4a-aix-3.jpg' }
+          { name: 'aix-1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238380/live/images/76fe774a40e19a2d56fdfd862b82c814-aix-1.jpg' },
+          { name: 'aix-2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238380/live/images/b855f98d62fea4c380d3336cf2169db7-aix-2.jpg' },
+          { name: 'aix-3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238380/live/images/03fba6aeda5a0240de8f401879bf5f4a-aix-3.jpg' }
         ]
       }
     },
@@ -83,9 +83,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238380/live/images/b28173dcc77e0a259412bcf30e32ad9e-marseille-1.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238380/live/images/c15f255d0d35346eafa9845e78795643-marseille-2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238380/live/images/8b929770769a1e32de7e05080bd45d47-marseille-3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238380/live/images/b28173dcc77e0a259412bcf30e32ad9e-marseille-1.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238380/live/images/c15f255d0d35346eafa9845e78795643-marseille-2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238380/live/images/8b929770769a1e32de7e05080bd45d47-marseille-3.jpg' }
         ]
       }
     },
@@ -110,9 +110,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/6593ff9acf8efb7fcc25e61fb6967c03-Cassis1.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/7a8d6518ee6592b9ea75e5719afa37b5-Cassis2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/779cfe2670ff3efb901ad53d9bcd4d35-Cassis3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/6593ff9acf8efb7fcc25e61fb6967c03-Cassis1.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/7a8d6518ee6592b9ea75e5719afa37b5-Cassis2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/779cfe2670ff3efb901ad53d9bcd4d35-Cassis3.jpg' }
         ]
       }
     },
@@ -137,9 +137,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/6b829b00e28723f54bf77e6cab0d0979-aixVilla.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/8d501b6e9f6a68c858826d2711eb1c46-aixVilla2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/1fdb2d9c60a3021e6878a93fc4ff5261-aixVilla3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/6b829b00e28723f54bf77e6cab0d0979-aixVilla.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/8d501b6e9f6a68c858826d2711eb1c46-aixVilla2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/1fdb2d9c60a3021e6878a93fc4ff5261-aixVilla3.jpg' }
         ]
       }
     },
@@ -164,9 +164,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/760d88c8f1039f3ad77e523093ff8227-GypsyCaravan.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/d5c2c159cb9777b9a8db1d20f5318b3f-GypsyCaravan2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/22ca5fd18e71ec54c9299ce1727e79bf-GypsyCaravan3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/760d88c8f1039f3ad77e523093ff8227-GypsyCaravan.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/d5c2c159cb9777b9a8db1d20f5318b3f-GypsyCaravan2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/22ca5fd18e71ec54c9299ce1727e79bf-GypsyCaravan3.jpg' }
         ]
       }
     },
@@ -191,9 +191,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/9b510308034a9a8561d23dc7a165202b-cabriesHouse.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/4e772bdaa583139a8b2a6d130eac32e9-cabriesHouse2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/bae0a885c9ea1744e73660b8fb108133-cabriesHouse3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/9b510308034a9a8561d23dc7a165202b-cabriesHouse.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/4e772bdaa583139a8b2a6d130eac32e9-cabriesHouse2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/bae0a885c9ea1744e73660b8fb108133-cabriesHouse3.jpg' }
         ]
       }
     },
@@ -218,9 +218,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/7f0b6685f43a852ec6d165c5167de265-Mimet.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/a5b6588a15e5a00b2dc8ad23f5f9f959-Mimet2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/a5b6588a15e5a00b2dc8ad23f5f9f959-Mimet2.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/7f0b6685f43a852ec6d165c5167de265-Mimet.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/a5b6588a15e5a00b2dc8ad23f5f9f959-Mimet2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/a5b6588a15e5a00b2dc8ad23f5f9f959-Mimet2.jpg' }
         ]
       }
     },
@@ -245,9 +245,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/f00937ea4e13abf5549f598d5b698376-cosyMarseille.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/01463da3eb461fd4690bb14676519c7b-cosyMarseille2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/1073f6b5d21096cac91d43fff36be7c9-cosyMarseille3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/f00937ea4e13abf5549f598d5b698376-cosyMarseille.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/01463da3eb461fd4690bb14676519c7b-cosyMarseille2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/1073f6b5d21096cac91d43fff36be7c9-cosyMarseille3.jpg' }
         ]
       }
     },
@@ -272,9 +272,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/dbeefb18e2a7e64ebd6c33f9487dfbe4-rouetMarseille.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/172738604141e782a525af06ac9dc3d1-rouetMarseille2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/6881038976d70521bedac26788f203a7-rouetMarseille3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/dbeefb18e2a7e64ebd6c33f9487dfbe4-rouetMarseille.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/172738604141e782a525af06ac9dc3d1-rouetMarseille2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/6881038976d70521bedac26788f203a7-rouetMarseille3.jpg' }
         ]
       }
     },
@@ -299,9 +299,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/a6438c61933032761bf1539cf1251bf1-brightMarseille.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/807cc6549f26fff45a223dd1e063349d-brightMarseille2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/39d771fa4474de2a218c3742a29e74a2-brightMarseille3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/a6438c61933032761bf1539cf1251bf1-brightMarseille.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/807cc6549f26fff45a223dd1e063349d-brightMarseille2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/39d771fa4474de2a218c3742a29e74a2-brightMarseille3.jpg' }
         ]
       }
     },
@@ -326,9 +326,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/449a049ef5387a87b0a446f549fd47f2-niceMarseille.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/6d7181677943923fcc4c0aab3639199a-niceMarseille2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/5d3a13afad67316ec149bd8878431758-niceMarseille3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/449a049ef5387a87b0a446f549fd47f2-niceMarseille.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/6d7181677943923fcc4c0aab3639199a-niceMarseille2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/5d3a13afad67316ec149bd8878431758-niceMarseille3.jpg' }
         ]
       }
     },
@@ -353,9 +353,9 @@ module.exports = {
       },
       metadata: {
         images: [
-          { name: 'image1', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/cc6ef183328ef05383ba4d9ffc92e326-charmingAix.jpg' },
-          { name: 'image2', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/1fa226c3b105c1b491381ef070e57227-charmingAix2.jpg' },
-          { name: 'image3', url: 'https://stelace-instant-files.s3.amazonaws.com/p/238388/test/images/752075b8043a5358b1eae8d15a1d0a27-charmingAix3.jpg' }
+          { name: 'image1', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/cc6ef183328ef05383ba4d9ffc92e326-charmingAix.jpg' },
+          { name: 'image2', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/1fa226c3b105c1b491381ef070e57227-charmingAix2.jpg' },
+          { name: 'image3', url: 'https://saltana-instant-files.s3.amazonaws.com/p/238388/test/images/752075b8043a5358b1eae8d15a1d0a27-charmingAix3.jpg' }
         ]
       }
     }
@@ -370,10 +370,10 @@ module.exports = {
   },
   config: {
     default: {
-      stelace: {
+      saltana: {
         instant: {
           serviceName: process.env.VUE_APP_SERVICE_NAME,
-          // The following is kept in sync with STELACE_INSTANT_WEBSITE_URL when deploying translations
+          // The following is kept in sync with SALTANA_INSTANT_WEBSITE_URL when deploying translations
           // And needed to enable dashboard live content editor
           // platformUrl: 'https://example.com,
           logoUrl: '',
@@ -455,7 +455,7 @@ module.exports = {
           googleAnalyticsTrackingActive: true,
           googleAnalyticsTrackingId: 'UA-XXXXXX-1', // for development
 
-          twitterUsername: 'StelaceAPI',
+          twitterUsername: 'SaltanaAPI',
           // facebookUrl: ''
         }
       }
@@ -523,7 +523,7 @@ module.exports = {
         },
 
         instant: {
-          avatarUrl: 'https://stelace-instant-files.s3.eu-central-1.amazonaws.com/p/238380/live/images/b857b499cb5da04af538d320ae6c28cc-Jeanne.png'
+          avatarUrl: 'https://saltana-instant-files.s3.eu-central-1.amazonaws.com/p/238380/live/images/b857b499cb5da04af538d320ae6c28cc-Jeanne.png'
         }
       }
     },
@@ -540,7 +540,7 @@ module.exports = {
         },
 
         instant: {
-          avatarUrl: 'https://stelace-instant-files.s3.eu-central-1.amazonaws.com/p/238380/live/images/4d188e4b6ce42fe5d460372a3d6f3a1d-Richard.png'
+          avatarUrl: 'https://saltana-instant-files.s3.eu-central-1.amazonaws.com/p/238380/live/images/4d188e4b6ce42fe5d460372a3d6f3a1d-Richard.png'
         }
       }
     },

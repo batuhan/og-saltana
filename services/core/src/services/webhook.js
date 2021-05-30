@@ -411,7 +411,7 @@ async function callWebhook ({ webhook, event, platformId, env }) {
   return request.post(webhook.targetUrl)
     .send(payload)
     .set({
-      'x-webhook-source': 'stelace'
+      'x-webhook-source': 'saltana'
     })
     .catch(err => {
       logError(err.response ? err.response.body : err, {

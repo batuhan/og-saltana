@@ -742,7 +742,7 @@ function start({ communication }) {
                 user: m,
                 organizationId: userId,
                 eventDate: m.updatedDate,
-                metadata: { stelaceComment: 'Organization deleted' },
+                metadata: { saltanaComment: 'Organization deleted' },
                 platformId,
                 env,
               })
@@ -1203,7 +1203,7 @@ async function checkRolesBeforeCreate({
   if (roles) {
     if (!req._matchedPermissions['user:config:all']) {
       const whitelistRoles =
-        _.get(config, 'stelace.roles.whitelist') || defaultRoles
+        _.get(config, 'saltana.roles.whitelist') || defaultRoles
       if (roles.includes('dev')) {
         throw createError(403, 'Cannot provide the role "dev"')
       }
@@ -1230,7 +1230,7 @@ async function checkRolesBeforeCreate({
       throw createError(422, `Invalid roles: ${invalidRoles.join(', ')}`)
     }
   } else {
-    const configDefaultRoles = _.get(config, 'stelace.roles.default')
+    const configDefaultRoles = _.get(config, 'saltana.roles.default')
 
     newRoles = configDefaultRoles || defaultRoles
   }

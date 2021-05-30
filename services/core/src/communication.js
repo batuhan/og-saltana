@@ -102,13 +102,13 @@ function handleRemoteNotFoundError (err) {
 }
 
 // will be used to generate the API base URL in testing (dynamic port)
-// in Stelace API internal request
+// in Saltana API internal request
 function setServerPort (port) {
   serverPort = port
 }
 
 /**
- * Helper function to send Stelace API request to any service endpoint.
+ * Helper function to send Saltana API request to any service endpoint.
  * @param {String} endpointUri - (e.g. '/users')
  * @param {Object} params
  * @param {String} params.platformId
@@ -122,7 +122,7 @@ function setServerPort (port) {
  *   Can only be used with list endpoints. Returns last read page object with merged `results` array.
  *   Iterator stops when reaching this number of results, that cannot exceed 10000.
  */
-async function stelaceApiRequest (endpointUri, {
+async function saltanaApiRequest (endpointUri, {
   platformId,
   env,
   method = 'GET', // superagent default
@@ -140,19 +140,19 @@ async function stelaceApiRequest (endpointUri, {
 
   const defaultHeaders = {
     'x-platform-id': platformId,
-    'x-stelace-env': env,
-    'x-stelace-system-key': process.env.SYSTEM_KEY,
+    'x-saltana-env': env,
+    'x-saltana-system-key': process.env.SYSTEM_KEY,
 
     // force the new version to have cursor pagination
-    'x-stelace-version': '2020-08-10'
+    'x-saltana-version': '2020-08-10'
   }
 
   const headersToSend = Object.assign({}, defaultHeaders, headers || {})
 
   const endpointUrl = `${apiBaseUrl}${endpointUri}`
-  const stelaceRequest = (params) => request[method.toLowerCase()](endpointUrl, params)
+  const saltanaRequest = (params) => request[method.toLowerCase()](endpointUrl, params)
     .set(headersToSend)
-    .catch(propagateStelaceApiError)
+    .catch(propagateSaltanaApiError)
 
   if (leafThroughResults) {
     const MAX_ARRAY_SIZE = 10000
@@ -177,7 +177,7 @@ async function stelaceApiRequest (endpointUri, {
     return iterator
   }
 
-  const { body: result } = await stelaceRequest(payload)
+  const { body: result } = await saltanaRequest(payload)
   if (apmSpan) apmSpan.end()
   return result
 
@@ -198,7 +198,7 @@ async function stelaceApiRequest (endpointUri, {
             pageApmSpan = apm.startSpan('Paging through Internal HTTP API')
           }
 
-          return stelaceRequest(Object.assign({}, params, { startingAfter: state.endCursor }))
+          return saltanaRequest(Object.assign({}, params, { startingAfter: state.endCursor }))
             .then(({ body: response }) => {
               if (!hasNextPage(response)) state.done = true
 
@@ -235,10 +235,10 @@ function getApiBaseUrl ({ serverPort }) {
   return apiBase
 }
 
-// this function handles error from Stelace API to propagate
+// this function handles error from Saltana API to propagate
 // the correct data and error status
 // Without it, errors will be considered to be status 500
-function propagateStelaceApiError (err) {
+function propagateSaltanaApiError (err) {
   if (err.response) {
     const status = err.response.status
     const sourceError = err.response.body
@@ -265,7 +265,7 @@ module.exports = {
 
   handleRemoteNotFoundError,
   setServerPort,
-  stelaceApiRequest,
+  saltanaApiRequest,
   getApiBaseUrl,
-  propagateStelaceApiError
+  propagateSaltanaApiError
 }

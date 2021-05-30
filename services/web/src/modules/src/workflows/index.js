@@ -1,6 +1,6 @@
 
-// Workflows to be used with Stelace API.
-// Please refer to the Docs for more info: https://stelace.com/docs/command/workflows
+// Workflows to be used with Saltana API.
+// Please refer to the Docs for more info: https://saltana.com/docs/command/workflows
 
 // '`${computed.var}`' template strings can be used in plain strings in Workflows,
 // and will be evaluated during run.
@@ -17,9 +17,9 @@ module.exports = {
       name: '[Check] Email check token at user registration',
       description: 'Create a token used to validate the email address of a new user',
       event: 'user__created',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
-        missingEnvVariables: '!env.STELACE_INSTANT_WEBSITE_URL',
+        missingEnvVariables: '!env.SALTANA_INSTANT_WEBSITE_URL',
         expirationDate: 'new Date(new Date().getTime() + 24 * 3600 * 1000).toISOString()'
       },
       run: [
@@ -31,7 +31,7 @@ module.exports = {
             userId: 'user.id',
             type: '"email"',
             expirationDate: 'computed.expirationDate',
-            redirectUrl: '`${env.STELACE_INSTANT_WEBSITE_URL}?check=email`',
+            redirectUrl: '`${env.SALTANA_INSTANT_WEBSITE_URL}?check=email`',
             data: {
               registration: true
             }
@@ -43,9 +43,9 @@ module.exports = {
       name: '[Check] Email check token for email validation',
       description: 'Create a token to validate a new email address filled by user',
       event: 'email_check_request',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
-        missingEnvVariables: '!env.STELACE_INSTANT_WEBSITE_URL',
+        missingEnvVariables: '!env.SALTANA_INSTANT_WEBSITE_URL',
         userId: 'objectId',
         expirationDate: 'new Date(new Date().getTime() + 3600 * 1000).toISOString()',
         toEmail: 'metadata.email'
@@ -59,7 +59,7 @@ module.exports = {
             userId: 'computed.userId',
             type: '"email"',
             expirationDate: 'computed.expirationDate',
-            redirectUrl: '`${env.STELACE_INSTANT_WEBSITE_URL}?check=email`',
+            redirectUrl: '`${env.SALTANA_INSTANT_WEBSITE_URL}?check=email`',
             data: {
               email: 'computed.toEmail',
               replaceEmail: true
@@ -75,12 +75,12 @@ module.exports = {
       Used at user registration or when the user updates her email.
       `,
       event: 'token__check_requested',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
         toName: 'user.displayName',
         tokenEmail: '_.get(metadata, "data.email")',
         isRegistration: '_.get(metadata, "data.registration", false)',
-        emailCheckLink: '`${env.SALTANA_CORE_API_URL || "https://api.stelace.com"}/token/check/${metadata.token}?redirect=true`'
+        emailCheckLink: '`${env.SALTANA_CORE_API_URL || "https://api.saltana.com"}/token/check/${metadata.token}?redirect=true`'
       },
       run: [
         {
@@ -134,12 +134,12 @@ module.exports = {
       name: '[Email] Password reset',
       description: 'Send an email with password reset link requested by user',
       event: 'password__reset_requested',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
-        missingEnvVariables: '!env.STELACE_INSTANT_WEBSITE_URL',
+        missingEnvVariables: '!env.SALTANA_INSTANT_WEBSITE_URL',
         toName: 'user.displayName',
         toEmail: 'user.email',
-        passwordResetLink: '`${env.STELACE_INSTANT_WEBSITE_URL}/?reset-password=${metadata.resetToken}`'
+        passwordResetLink: '`${env.SALTANA_INSTANT_WEBSITE_URL}/?reset-password=${metadata.resetToken}`'
       },
       run: [
         {
@@ -163,9 +163,9 @@ module.exports = {
       name: '[Email] Transaction update to taker',
       description: 'Send an email to taker when a transaction is accepted or refused by owner',
       event: 'transaction__status_changed',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
-        missingEnvVariables: '!env.STELACE_INSTANT_WEBSITE_URL',
+        missingEnvVariables: '!env.SALTANA_INSTANT_WEBSITE_URL',
         // fallback to empty strings for email content
         transactionId: 'transaction.id',
         ownerName: 'owner.displayName || ""',
@@ -186,7 +186,7 @@ module.exports = {
           endpointMethod: 'POST',
           computed: {
             isEmptyConversation: '!responses.messages.results.filter(message => !message.metadata.isHiddenMessage).length',
-            conversationLink: '`${env.STELACE_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
+            conversationLink: '`${env.SALTANA_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
           },
           stop: '!computed.toEmail || computed.isEmptyConversation',
           skip: 'transaction.status !== "accepted"',
@@ -211,7 +211,7 @@ module.exports = {
           endpointMethod: 'POST',
           computed: {
             isEmptyConversation: '!responses.messages.results.filter(message => !message.metadata.isHiddenMessage).length',
-            conversationLink: '`${env.STELACE_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
+            conversationLink: '`${env.SALTANA_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
           },
           stop: '!computed.toEmail || computed.isEmptyConversation',
           skip: `
@@ -241,9 +241,9 @@ module.exports = {
       name: '[Email] Transaction update to owner',
       description: 'Send email to owner when transaction is accepted or refused by taker',
       event: 'transaction__status_changed',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
-        missingEnvVariables: '!env.STELACE_INSTANT_WEBSITE_URL',
+        missingEnvVariables: '!env.SALTANA_INSTANT_WEBSITE_URL',
         // fallback to empty strings for email content
         transactionId: 'transaction.id',
         takerName: 'taker.displayName || ""',
@@ -265,7 +265,7 @@ module.exports = {
           endpointMethod: 'POST',
           computed: {
             isEmptyConversation: '!responses.messages.results.filter(message => !message.metadata.isHiddenMessage).length',
-            conversationLink: '`${env.STELACE_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
+            conversationLink: '`${env.SALTANA_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
           },
           stop: '!computed.toEmail || computed.isEmptyConversation',
           skip: 'transaction.status !== "validated"',
@@ -299,7 +299,7 @@ module.exports = {
           endpointMethod: 'POST',
           computed: {
             isEmptyConversation: '!responses.messages.results.filter(message => !message.metadata.isHiddenMessage).length',
-            conversationLink: '`${env.STELACE_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
+            conversationLink: '`${env.SALTANA_INSTANT_WEBSITE_URL}/i/${responses.messages.results[0].conversationId}`'
           },
           endpointUri: '/emails/send-template',
           endpointPayload: {
@@ -322,7 +322,7 @@ module.exports = {
       name: 'New message notification',
       description: 'Send a notification via Signal',
       event: 'message__created',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
         messageId: '_.get(message, "id")',
         receiverId: '_.get(message, "receiverId")',
@@ -423,7 +423,7 @@ module.exports = {
         and trigger the transition 'confirmAndPay' as taker has paid.
       `,
       event: 'stripe_checkout.session.completed',
-      context: ['stelace'],
+      context: ['saltana'],
       computed: {
         paymentIntentId: '_.get(metadata, "data.object.payment_intent")',
       },

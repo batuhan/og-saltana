@@ -253,8 +253,8 @@ function start ({ communication, isSystem }) {
       })
     ])
 
-    const whitelistRoles = _.get(config, 'config.stelace.roles.whitelist')
-    const defaultRoles = _.get(config, 'config.stelace.roles.default')
+    const whitelistRoles = _.get(config, 'config.saltana.roles.whitelist')
+    const defaultRoles = _.get(config, 'config.saltana.roles.default')
 
     if (nbApiKeys) {
       throw createError(422, `This role is still referenced in ${nbApiKeys} api keys`)

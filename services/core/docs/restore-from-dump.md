@@ -30,7 +30,7 @@ POST http://localhost:4100/store/platforms
 
 // headers
 {
-  'x-stelace-system-key': <system_key>
+  'x-saltana-system-key': <system_key>
 }
 ```
 
@@ -59,7 +59,7 @@ PUT http://localhost:4100/store/platforms/<platform_id>/data/test
 
 // headers
 {
-  'x-stelace-system-key': <system_key>
+  'x-saltana-system-key': <system_key>
 }
 ```
 
@@ -100,13 +100,13 @@ PATCH http://localhost:4100/config/system
 
 // headers
 {
-  'x-stelace-system-key': <system_key>,
+  'x-saltana-system-key': <system_key>,
   'x-platform-id': <platform_id>,
-  'x-stelace-env': 'test'
+  'x-saltana-env': 'test'
 }
 ```
 
-Set the API version for live environment as well by setting header 'x-stelace-env' to 'live'.
+Set the API version for live environment as well by setting header 'x-saltana-env' to 'live'.
 
 ## Synchronizing Elasticsearch
 
@@ -116,12 +116,12 @@ Let's synchronize the data first (perform the request for test and live environm
 ```
 POST http://localhost:4100/store/platforms/<platform_id>/elasticsearch/sync
 {
-  'x-stelace-system-key': <system_key>,
-  'x-stelace-env': 'test'
+  'x-saltana-system-key': <system_key>,
+  'x-saltana-env': 'test'
 }
 ```
 
-Do the same for live environment by setting header 'x-stelace-env' to 'live'.
+Do the same for live environment by setting header 'x-saltana-env' to 'live'.
 
 After few moments depending on the number of your assets, you will be able to search assets as you did with Stelace API.
 
@@ -132,9 +132,9 @@ In Stelace API, some data stored in PostgreSQL like tasks are cached into Redis 
 ```
 POST http://localhost:4100/store/platforms/<platform_id>/cache/sync
 {
-  'x-stelace-system-key': <system_key>,
-  'x-stelace-env': 'test'
+  'x-saltana-system-key': <system_key>,
+  'x-saltana-env': 'test'
 }
 ```
 
-Do the same for live environment by setting header 'x-stelace-env' to 'live'.
+Do the same for live environment by setting header 'x-saltana-env' to 'live'.

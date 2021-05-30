@@ -1,10 +1,10 @@
 {
   "name": "@saltana/sdk",
   "version": "0.14.0",
-  "description": "Server and front-end client for Stelace API",
-  "main": "lib/stelace.js",
-  "module": "dist/es-modules/stelace.js",
-  "jsnext:main": "dist/es-modules/stelace.js",
+  "description": "Server and front-end client for Saltana Core API",
+  "main": "lib/saltana.js",
+  "module": "dist/es-modules/saltana.js",
+  "jsnext:main": "dist/es-modules/saltana.js",
   "scripts": {
     "clean": "rimraf dist",
     "build": "npm run clean && npm run build:modules && npm run build:standalone",

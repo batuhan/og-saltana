@@ -12,78 +12,34 @@ import {
   Container,
 } from '@chakra-ui/react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import * as React from 'react'
-import { HiBadgeCheck, HiPencilAlt } from 'react-icons/hi'
 import { dehydrate } from 'react-query/hydration'
 import CreatorSpaceShell from '../../../components/CreatorSpaceShell'
-import { CardContent } from '../../../components/organization/CardContent'
-import { CardWithAvatar } from '../../../components/organization/CardWithAvatar'
-import { GridSystemDemo } from '../../../components/organization/GridSystem/App'
-import ProductPreviewCard from '../../../components/organization/ProductPreviewCard'
-import { UserInfo } from '../../../components/organization/UserInfo'
 import {
   getSharedQueryClient,
-  prefetchAsset,
-  prefetchAssets,
-  prefetchUser,
-  useAsset,
-  useAssets,
+  prefetchQuery,
+  useApi,
+  useCurrentUser,
 } from '../../../modules/api'
+import { sharedInstance } from '../../../modules/api/useApi'
 
-const Ma = (props) => {
-  return (
-    <>
-      <Box>
-        <Link
-          href={`/${encodeURIComponent(props.ownerId)}/${encodeURIComponent(
-            props.id
-          )}`}
-        >
-          <chakra.h1
-            color={useColorModeValue('gray.800', 'white')}
-            fontWeight="bold"
-            fontSize="3xl"
-            textTransform="uppercase"
-          >
-            {props.name}
-          </chakra.h1>
-        </Link>
-        <chakra.p
-          mt={1}
-          fontSize="sm"
-          color={useColorModeValue('gray.600', 'gray.400')}
-        >
-          {props.description}
-        </chakra.p>
-      </Box>
+import ProductPage from '../../../modules/assets/ProductPage'
+import ProductEdit from '../../../modules/assets/ProductEdit'
+const OrganizationAssetPage = ({ assetId, creatorId }) => {
+  const { is, session } = useCurrentUser()
+  const [canEdit, setCanEdit] = React.useState(is(creatorId))
 
-      <Image
-        h={48}
-        w="full"
-        fit="cover"
-        mt={2}
-        src={props.metadata.images[0].url}
-        alt={props.name}
-      />
-    </>
-  )
-}
+  React.useEffect(() => {
+    console.log(is(creatorId), creatorId)
+    setCanEdit(is(creatorId))
+  }, [session])
 
-const Asset = () => {
-  const router = useRouter()
-  const { product: assetId } = router.query
-  const { data = {} } = useAsset({ assetId })
-  return <Ma {...data} />
-}
+  const { data, isSuccess } = useApi('assets', 'read', assetId, {})
 
-const OrganizationAssetPage = () => {
   return (
     <CreatorSpaceShell>
-      <Container maxW="container.xl">
-        <SimpleGrid columns={2} spacingX="40px" spacingY="20px">
-          <Asset />
-        </SimpleGrid>
+      <Container maxW="container.lg">
+         <ProductEdit {...data} />
       </Container>
     </CreatorSpaceShell>
   )
@@ -92,11 +48,27 @@ const OrganizationAssetPage = () => {
 export async function getServerSideProps({
   params: { organization, product },
 }) {
-  await prefetchUser(organization)
-  await prefetchAsset({ assetId: product })
-  return {
-    props: { dehydratedState: dehydrate(getSharedQueryClient()) },
+  try {
+    const asset = await sharedInstance.assets.read(product)
+    if (!asset) {
+      throw new Error('NO_ASSET')
+    }
+    const queryClient = getSharedQueryClient()
+    queryClient.setQueryData(['assets', 'read', asset.id], asset)
+    await prefetchQuery('users', 'read', organization)
+    return {
+      props: {
+        dehydratedState: dehydrate(queryClient),
+        assetId: asset.id,
+        creatorId: organization,
+      },
+    }
+  } catch (err) {
+    return {
+      notFound: true,
+    }
   }
 }
 
+OrganizationAssetPage.useGlobalHeader = true
 export default OrganizationAssetPage

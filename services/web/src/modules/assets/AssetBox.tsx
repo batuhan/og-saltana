@@ -46,7 +46,7 @@ export default function AssetBox(props) {
         w="full"
         fit="cover"
         mt={2}
-        src={props.metadata.images[0].url}
+        src={props.metadata.images && props.metadata.images[0].url}
         alt="NIKE AIR"
       />
 

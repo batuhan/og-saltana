@@ -10,8 +10,8 @@ import {
 } from './utils'
 
 export default class Resource {
-  constructor (stelace) {
-    this._stelace = stelace
+  constructor (saltana) {
+    this._saltana = saltana
   }
 
   _request ({ path, method, data, queryParams, options = {} }) {
@@ -20,7 +20,7 @@ export default class Resource {
       method,
       baseURL: this.getBaseURL(),
       headers: this._prepareHeaders(options),
-      timeout: this._stelace.getApiField('timeout'),
+      timeout: this._saltana.getApiField('timeout'),
     }
 
     if (queryParams && Object.keys(queryParams).length) {
@@ -67,7 +67,7 @@ export default class Resource {
   }
 
   _prepareHeaders (options) {
-    const apiKey = this._stelace.getApiField('key')
+    const apiKey = this._saltana.getApiField('key')
     const headers = {}
 
     // Migrating to 'Authorization: Basic|Bearer|SaltanaCore-V1' header
@@ -76,19 +76,19 @@ export default class Resource {
     token = token && token[1]
     // Transforming to custom Authorization scheme
     // https://tools.ietf.org/html/draft-ietf-httpbis-p7-auth-19#appendix-B
-    // Note that Stelace API header content parsing is case-insensitive
+    // Note that Saltana API header content parsing is case-insensitive
     // But we use casing for clarity here, as in 'apiKey'
     if (token) { headers.authorization = `SaltanaCore-V1 apiKey=${apiKey}, token=${token}` } else if (apiKey) { headers.authorization = `Basic ${encodeBase64(apiKey + ':')}` }
 
     // cannot set the user agent in browser environment for security reasons
     // https://github.com/axios/axios/issues/1231
-    if (!isBrowser()) headers['user-agent'] = this._stelace.getUserAgent()
+    if (!isBrowser()) headers['user-agent'] = this._saltana.getUserAgent()
 
-    const apiVersion = this._stelace.getApiField('version')
-    if (apiVersion) headers['x-stelace-version'] = apiVersion
+    const apiVersion = this._saltana.getApiField('version')
+    if (apiVersion) headers['x-saltana-version'] = apiVersion
 
-    const organizationId = this._stelace.getApiField('organizationId')
-    if (organizationId) headers['x-stelace-organization-id'] = organizationId
+    const organizationId = this._saltana.getApiField('organizationId')
+    if (organizationId) headers['x-saltana-organization-id'] = organizationId
 
     if (options.headers) {
       Object.assign(
@@ -101,9 +101,9 @@ export default class Resource {
   }
 
   getBaseURL () {
-    const protocol = this._stelace.getApiField('protocol')
-    const host = this._stelace.getApiField('host')
-    const port = this._stelace.getApiField('port')
+    const protocol = this._saltana.getApiField('protocol')
+    const host = this._saltana.getApiField('host')
+    const port = this._saltana.getApiField('port')
 
     return (
       protocol + '://' + host + ([80, 443].includes(port) ? '' : `:${port}`)

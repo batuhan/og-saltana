@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.transactions.list({ page: 2, nbResultsPerPage: 10 })
+  return saltana.transactions.list({ page: 2, nbResultsPerPage: 10 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/transactions',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.transactions.read('transaction_1')
+  return saltana.transactions.read('transaction_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/transactions/transaction_1',
         data: {},
@@ -31,9 +31,9 @@ test('read: sends the correct request', (t) => {
 })
 
 test('preview: sends the correct request', (t) => {
-  return stelace.transactions.preview({ assetId: 'asset_1', quantity: 2 })
+  return saltana.transactions.preview({ assetId: 'asset_1', quantity: 2 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/transactions/preview',
         data: { assetId: 'asset_1', quantity: 2 },
@@ -44,9 +44,9 @@ test('preview: sends the correct request', (t) => {
 })
 
 test('create: sends the correct request', (t) => {
-  return stelace.transactions.create({ assetId: 'asset_1', quantity: 2 })
+  return saltana.transactions.create({ assetId: 'asset_1', quantity: 2 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/transactions',
         data: { assetId: 'asset_1', quantity: 2 },
@@ -57,9 +57,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.transactions.update('transaction_1', { status: 'customStatus' })
+  return saltana.transactions.update('transaction_1', { status: 'customStatus' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/transactions/transaction_1',
         data: { status: 'customStatus' },
@@ -70,9 +70,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('process: sends the correct request', (t) => {
-  return stelace.transactions.createTransition('transaction_1')
+  return saltana.transactions.createTransition('transaction_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/transactions/transaction_1/transitions',
         data: {},

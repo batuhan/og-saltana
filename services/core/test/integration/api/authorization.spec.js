@@ -56,7 +56,7 @@ test('permissions can be checked', async (t) => {
     })
     .set({
       'x-platform-id': platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(200)
 
@@ -68,7 +68,7 @@ test('permissions can be checked', async (t) => {
     .post('/permissions/check')
     .set({
       'x-platform-id': platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 })
@@ -98,12 +98,12 @@ test('uses system features but checks provided permissions with optional header'
       name: 'Random category'
     })
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-system-key': systemKey
+      'x-saltana-system-key': systemKey
     }))
     .expect(200)
 
   // cannot create a category because even if it's from the system,
-  // the 'x-stelace-system-permissions' header means the permissions check should be performed
+  // the 'x-saltana-system-permissions' header means the permissions check should be performed
   // before allowing the request
   await request(t.context.serverUrl)
     .post('/categories')
@@ -111,8 +111,8 @@ test('uses system features but checks provided permissions with optional header'
       name: 'Random category'
     })
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-system-key': systemKey,
-      'x-stelace-system-permissions': 'check'
+      'x-saltana-system-key': systemKey,
+      'x-saltana-system-permissions': 'check'
     }))
     .expect(403)
 

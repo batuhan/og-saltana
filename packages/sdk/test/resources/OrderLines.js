@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('read: sends the correct request', (t) => {
-  return stelace.orderLines.read('orderLine_1')
+  return saltana.orderLines.read('orderLine_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/order-lines/orderLine_1',
         data: {},
@@ -23,9 +23,9 @@ test('create: sends the correct request', (t) => {
     transactionId: 'transaction_1'
   }
 
-  return stelace.orderLines.create(data)
+  return saltana.orderLines.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/order-lines',
         data,
@@ -38,9 +38,9 @@ test('create: sends the correct request', (t) => {
 test('update: sends the correct request', (t) => {
   const data = { payerAmount: 5000 }
 
-  return stelace.orderLines.update('orderLine_1', data)
+  return saltana.orderLines.update('orderLine_1', data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/order-lines/orderLine_1',
         data: data,

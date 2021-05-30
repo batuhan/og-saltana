@@ -417,7 +417,7 @@ test.serial('creates an asset with validated to false if the config value assets
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         assetsValidationAutomatic: false
       }
     })
@@ -495,7 +495,7 @@ test('updates an asset without namespaces with api keys', async (t) => {
     .set({
       'x-api-key': 'seck_live_iuJzTKo5wumuE1imSjmcgimR',
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       active: true,
@@ -663,7 +663,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
     .post('/assets')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -675,7 +675,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
     .post('/assets')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -688,7 +688,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
     .post('/assets')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -734,7 +734,7 @@ test('fails to update an asset if missing or invalid parameters', async (t) => {
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -746,7 +746,7 @@ test('fails to update an asset if missing or invalid parameters', async (t) => {
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,

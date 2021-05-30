@@ -23,7 +23,7 @@ test('gets config', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  t.is(typeof config.stelace, 'object')
+  t.is(typeof config.saltana, 'object')
   t.is(typeof config.custom, 'object')
   t.is(typeof config.theme, 'object')
 
@@ -33,13 +33,13 @@ test('gets config', async (t) => {
     .set(authorizationHeaders2)
     .expect(200)
 
-  t.is(typeof config2.stelace, 'object')
+  t.is(typeof config2.saltana, 'object')
 })
 
 test('updates config', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
   const payload = {
-    stelace: {
+    saltana: {
       instant: {
         locale: 'fr'
       }
@@ -52,18 +52,18 @@ test('updates config', async (t) => {
     .send(payload)
     .expect(200)
 
-  t.is(typeof config.stelace, 'object')
-  t.is(config.stelace.instant.locale, 'fr')
+  t.is(typeof config.saltana, 'object')
+  t.is(config.saltana.instant.locale, 'fr')
 
   const authorizationHeaders2 = await getAccessTokenHeaders({ t, permissions: ['config:edit:all'] })
-  payload.stelace.instant.locale = 'en'
+  payload.saltana.instant.locale = 'en'
   const { body: config2 } = await request(t.context.serverUrl)
     .patch('/config')
     .set(authorizationHeaders2)
     .send(payload)
     .expect(200)
 
-  t.is(config2.stelace.instant.locale, 'en')
+  t.is(config2.saltana.instant.locale, 'en')
 })
 
 test('changes default and whitelist roles in config', async (t) => {
@@ -73,7 +73,7 @@ test('changes default and whitelist roles in config', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         roles: {
           default: ['user'],
           whitelist: ['provider']
@@ -82,9 +82,9 @@ test('changes default and whitelist roles in config', async (t) => {
     })
     .expect(200)
 
-  t.is(typeof config.stelace, 'object')
-  t.deepEqual(config.stelace.roles.default, ['user'])
-  t.deepEqual(config.stelace.roles.whitelist, ['provider'])
+  t.is(typeof config.saltana, 'object')
+  t.deepEqual(config.saltana.roles.default, ['user'])
+  t.deepEqual(config.saltana.roles.whitelist, ['provider'])
 })
 
 test('cannot provide an unknown role', async (t) => {
@@ -94,7 +94,7 @@ test('cannot provide an unknown role', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         roles: {
           default: ['unknownRole']
         }
@@ -112,7 +112,7 @@ test('cannot provide dev role in roles whitelist', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         roles: {
           whitelist: ['dev', 'user']
         }
@@ -130,7 +130,7 @@ test('cannot provide dev role in default roles list', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         roles: {
           default: ['dev', 'user']
         }
@@ -165,8 +165,8 @@ test('gets the private config', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  t.is(typeof config.stelace, 'object')
-  t.is(typeof config.stelace.workflow, 'object')
+  t.is(typeof config.saltana, 'object')
+  t.is(typeof config.saltana.workflow, 'object')
 })
 
 test('updates the private config', async (t) => {
@@ -176,13 +176,13 @@ test('updates the private config', async (t) => {
     .patch('/config/private')
     .set(authorizationHeaders)
     .send({
-      stelace: {
-        stelaceAuthRefreshTokenExpiration: { d: 14 }
+      saltana: {
+        saltanaAuthRefreshTokenExpiration: { d: 14 }
       }
     })
     .expect(200)
 
-  t.deepEqual(config.stelace.stelaceAuthRefreshTokenExpiration, { d: 14 })
+  t.deepEqual(config.saltana.saltanaAuthRefreshTokenExpiration, { d: 14 })
 })
 
 test('gets the system config', async (t) => {
@@ -191,13 +191,13 @@ test('gets the system config', async (t) => {
   const { body: config } = await request(t.context.serverUrl)
     .get('/config/system')
     .set({
-      'x-stelace-system-key': systemKey,
+      'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(200)
 
-  t.is(typeof config.stelace, 'object')
+  t.is(typeof config.saltana, 'object')
   t.is(typeof config.custom, 'object')
 })
 
@@ -207,14 +207,14 @@ test('updates the system config', async (t) => {
   const { body: config } = await request(t.context.serverUrl)
     .patch('/config/system')
     .set({
-      'x-stelace-system-key': systemKey,
+      'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      stelace: {
+      saltana: {
         // change API version, propagates to redis internally
-        stelaceVersion: apiVersions[0]
+        saltanaVersion: apiVersions[0]
       },
       custom: {
         anySystemProtectedValue: { system: true }
@@ -222,7 +222,7 @@ test('updates the system config', async (t) => {
     })
     .expect(200)
 
-  t.is(config.stelace.stelaceVersion, apiVersions[0])
+  t.is(config.saltana.saltanaVersion, apiVersions[0])
   t.deepEqual(config.custom.anySystemProtectedValue, { system: true })
 })
 
@@ -250,14 +250,14 @@ test('fails to update the config if missing parameters', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: true,
+      saltana: true,
       custom: true,
       theme: true
     })
     .expect(400)
 
   error = result.body
-  t.true(error.message.includes('"stelace" must be of type object'))
+  t.true(error.message.includes('"saltana" must be of type object'))
   t.true(error.message.includes('"custom" must be of type object'))
   t.true(error.message.includes('"theme" must be of type object'))
 })
@@ -282,10 +282,10 @@ test('fails to update the private config if missing parameters', async (t) => {
     .patch('/config/private')
     .set(authorizationHeaders)
     .send({
-      stelace: true
+      saltana: true
     })
     .expect(400)
 
   error = result.body
-  t.true(error.message.includes('"stelace" must be of type object'))
+  t.true(error.message.includes('"saltana" must be of type object'))
 })

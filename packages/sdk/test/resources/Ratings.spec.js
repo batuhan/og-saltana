@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('getStats: sends the correct request', (t) => {
-  return stelace.ratings.getStats({ orderBy: 'count', page: 2, nbResultsPerPage: 10, groupBy: 'authorId' })
+  return saltana.ratings.getStats({ orderBy: 'count', page: 2, nbResultsPerPage: 10, groupBy: 'authorId' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/ratings/stats',
         data: {},
@@ -18,9 +18,9 @@ test('getStats: sends the correct request', (t) => {
 })
 
 test('list: sends the correct request', (t) => {
-  return stelace.ratings.list({ page: 2, nbResultsPerPage: 10 })
+  return saltana.ratings.list({ page: 2, nbResultsPerPage: 10 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/ratings',
         data: {},
@@ -31,9 +31,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.ratings.read('rating_1')
+  return saltana.ratings.read('rating_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/ratings/rating_1',
         data: {},
@@ -49,9 +49,9 @@ test('create: sends the correct request', (t) => {
     targetId: 'user_2'
   }
 
-  return stelace.ratings.create(data)
+  return saltana.ratings.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/ratings',
         data,
@@ -62,9 +62,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.ratings.update('rating_1', { score: 70 })
+  return saltana.ratings.update('rating_1', { score: 70 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/ratings/rating_1',
         data: { score: 70 },
@@ -75,9 +75,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.ratings.remove('rating_1')
+  return saltana.ratings.remove('rating_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/ratings/rating_1',
         data: {},

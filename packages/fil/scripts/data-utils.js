@@ -1,4 +1,4 @@
-const stelace = require('./admin-sdk')
+const saltana = require('./admin-sdk')
 const { get, keyBy, mapValues, pick, isBoolean, unset, isEqual, isUndefined, omitBy, isNil } = require('lodash')
 const pMap = require('p-map')
 const pProps = require('p-props')
@@ -39,7 +39,7 @@ const initDataScript = 'initDataScript'
 
 class DataManager {
   constructor () {
-    // data fetched via Stelace API
+    // data fetched via Saltana API
     this.existingData = {} // { objectType: [objects] } // except for the objectType 'config'
 
     // data keyed by alias that was used as reference ID in seed file
@@ -61,7 +61,7 @@ class DataManager {
   /**
    * @param {Object}  [options]
    * @param {Boolean} [options.shouldOnlyRemoveScriptObjects = true] - only remove objects created by this script
-   * @param {Boolean} [options.shouldUpdateConfig = true] - update Stelace config
+   * @param {Boolean} [options.shouldUpdateConfig = true] - update Saltana config
    * @param {Object}  [options.objectsAction] - for each objects collection, specify an action to apply
    * @param {String}  [options.objectsAction[type]]
    *   allowed values: 'create', 'remove', 'remove-and-create', 'none'
@@ -100,17 +100,17 @@ class DataManager {
 
   async fetchExistingData () {
     this.existingData = await pProps({
-      assets: stelace.assets.list({ nbResultsPerPage: 100 }),
-      assetTypes: stelace.assetTypes.list({ nbResultsPerPage: 100 }),
-      categories: stelace.categories.list({ nbResultsPerPage: 100 }),
+      assets: saltana.assets.list({ nbResultsPerPage: 100 }),
+      assetTypes: saltana.assetTypes.list({ nbResultsPerPage: 100 }),
+      categories: saltana.categories.list({ nbResultsPerPage: 100 }),
       config: {},
-      customAttributes: stelace.customAttributes.list(),
-      messages: stelace.messages.list({ nbResultsPerPage: 100 }),
-      ratings: stelace.ratings.list({ nbResultsPerPage: 100 }),
-      tasks: stelace.tasks.list({ nbResultsPerPage: 100 }),
-      transactions: stelace.transactions.list({ nbResultsPerPage: 100 }),
-      users: stelace.users.list({ nbResultsPerPage: 100 }),
-      workflows: stelace.workflows.list(),
+      customAttributes: saltana.customAttributes.list(),
+      messages: saltana.messages.list({ nbResultsPerPage: 100 }),
+      ratings: saltana.ratings.list({ nbResultsPerPage: 100 }),
+      tasks: saltana.tasks.list({ nbResultsPerPage: 100 }),
+      transactions: saltana.transactions.list({ nbResultsPerPage: 100 }),
+      users: saltana.users.list({ nbResultsPerPage: 100 }),
+      workflows: saltana.workflows.list(),
     })
     this.syncedData = mapValues(this.existingData, () => ({}))
     this.referencedData = mapValues(this.existingData, objects => keyBy(objects, getObjectAlias))
@@ -264,7 +264,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.assetTypes[key] = await stelace.assetTypes.create(payload)
+      this.syncedData.assetTypes[key] = await saltana.assetTypes.create(payload)
     }
   }
 
@@ -273,19 +273,19 @@ class DataManager {
     if (!this.data.config || !this.data.config.default) return
 
     const payload = this.data.config.default
-    const existingConfig = await stelace.config.read(payload)
+    const existingConfig = await saltana.config.read(payload)
 
-    await stelace.config.update(payload)
+    await saltana.config.update(payload)
 
     // Keep Asset Types in Config if when not deleting all objects
     // since some preserved Assets can rely on these Asset Types.
-    const existingAssetTypesConfig = get(existingConfig, 'stelace.instant.assetTypes', {})
+    const existingAssetTypesConfig = get(existingConfig, 'saltana.instant.assetTypes', {})
     const existingAssetTypeIdsToKeep = this.shouldOnlyRemoveScriptObjects
       ? this.existingData.assetTypes
         .map(a => a.id)
       : []
 
-    const assetTypesConfig = get(this.data.config.default, 'stelace.instant.assetTypes')
+    const assetTypesConfig = get(this.data.config.default, 'saltana.instant.assetTypes')
     if (assetTypesConfig) {
       const assetTypesIds = Object.keys(assetTypesConfig).concat()
       assetTypesIds.forEach(assetTypeId => {
@@ -300,15 +300,15 @@ class DataManager {
       Object.assign(assetTypesConfig, pick(existingAssetTypesConfig, existingAssetTypeIdsToKeep))
 
       // clean existing config, we have to clean because of API object merging strategy
-      await stelace.config.update({
-        stelace: {
+      await saltana.config.update({
+        saltana: {
           instant: {
             assetTypes: null
           }
         }
       })
-      await stelace.config.update({
-        stelace: {
+      await saltana.config.update({
+        saltana: {
           instant: {
             assetTypes: assetTypesConfig
           }
@@ -316,8 +316,8 @@ class DataManager {
       })
     }
 
-    const existingSearchOptions = get(existingConfig, 'stelace.instant.searchOptions', {})
-    const searchOptions = get(this.data.config.default, 'stelace.instant.searchOptions')
+    const existingSearchOptions = get(existingConfig, 'saltana.instant.searchOptions', {})
+    const searchOptions = get(this.data.config.default, 'saltana.instant.searchOptions')
     if (searchOptions) {
       const newSearchOptions = {
         modes: {}
@@ -346,15 +346,15 @@ class DataManager {
       })
 
       // clean existing config, we have to clean because of API object merging strategy
-      await stelace.config.update({
-        stelace: {
+      await saltana.config.update({
+        saltana: {
           instant: {
             searchOptions: null
           }
         }
       })
-      await stelace.config.update({
-        stelace: {
+      await saltana.config.update({
+        saltana: {
           instant: {
             searchOptions: newSearchOptions
           }
@@ -374,7 +374,7 @@ class DataManager {
         const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
         payload.metadata = metadata
 
-        this.syncedData.categories[key] = await stelace.categories.create(payload)
+        this.syncedData.categories[key] = await saltana.categories.create(payload)
       }
     }
 
@@ -395,7 +395,7 @@ class DataManager {
         const metadata = Object.assign({}, payload.metadata, { initDataScript })
         payload.metadata = metadata
 
-        const newCategory = await stelace.categories.create(payload)
+        const newCategory = await saltana.categories.create(payload)
         this.syncedData.categories[cat._label] = newCategory
         categoriesByReference[cat._reference] = newCategory
       }
@@ -413,7 +413,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.customAttributes[key] = await stelace.customAttributes.create(payload)
+      this.syncedData.customAttributes[key] = await saltana.customAttributes.create(payload)
     }
   }
 
@@ -454,12 +454,12 @@ class DataManager {
         ]
 
         if (!existingWorkflow) {
-          this.syncedData.workflows[key] = await stelace.workflows.create(payload)
+          this.syncedData.workflows[key] = await saltana.workflows.create(payload)
         } else if (hasObjectChanged(existingWorkflow, payload, valuesToCompare)) {
-          this.syncedData.workflows[key] = await stelace.workflows.update(existingWorkflow.id, payload)
+          this.syncedData.workflows[key] = await saltana.workflows.update(existingWorkflow.id, payload)
         }
       } else {
-        this.syncedData.workflows[key] = await stelace.workflows.create(payload)
+        this.syncedData.workflows[key] = await saltana.workflows.create(payload)
       }
     }
   }
@@ -476,7 +476,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.tasks[key] = await stelace.tasks.create(payload)
+      this.syncedData.tasks[key] = await saltana.tasks.create(payload)
     }
   }
 
@@ -495,7 +495,7 @@ class DataManager {
       const categoryId = get(payload, 'metadata.instant.categoryId')
       if (categoryId) payload.metadata.instant.categoryId = this._getRealIdentifier('categories', categoryId)
 
-      this.syncedData.users[key] = await stelace.users.create(payload)
+      this.syncedData.users[key] = await saltana.users.create(payload)
     }
 
     // wait for user workflows to complete
@@ -503,7 +503,7 @@ class DataManager {
 
     const usersIds = keys.map(key => this.syncedData.users[key].id)
 
-    const users = await stelace.users.list({
+    const users = await saltana.users.list({
       id: usersIds,
       nbResultsPerPage: 100
     })
@@ -530,7 +530,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.assets[key] = await stelace.assets.create(payload)
+      this.syncedData.assets[key] = await saltana.assets.create(payload)
     }
   }
 
@@ -548,7 +548,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.transactions[key] = await stelace.transactions.create(payload)
+      this.syncedData.transactions[key] = await saltana.transactions.create(payload)
     }
   }
 
@@ -569,7 +569,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.messages[key] = await stelace.messages.create(payload)
+      this.syncedData.messages[key] = await saltana.messages.create(payload)
     }
   }
 
@@ -589,7 +589,7 @@ class DataManager {
       const metadata = Object.assign({}, payload.metadata, { initDataScript, alias })
       payload.metadata = metadata
 
-      this.syncedData.ratings[key] = await stelace.ratings.create(payload)
+      this.syncedData.ratings[key] = await saltana.ratings.create(payload)
     }
   }
 
@@ -628,7 +628,7 @@ class DataManager {
     }
 
     async function removeObject (id) {
-      await stelace[type].remove(id)
+      await saltana[type].remove(id)
       log(`removed ${id}`)
     }
   }
@@ -639,11 +639,11 @@ class DataManager {
     for (const user of this.existingData.users) {
       if (!this.shouldOnlyRemoveScriptObjects || isCreatedBySeedScript(user)) {
         const organizationsIds = Object.keys(user.organizations)
-        const organizations = await stelace.users.list({ id: organizationsIds })
+        const organizations = await saltana.users.list({ id: organizationsIds })
         const organizationsById = keyBy(organizations, 'id')
 
         for (const organizationId of organizationsIds) {
-          await stelace.users.remove(organizationId)
+          await saltana.users.remove(organizationId)
 
           const organization = organizationsById[organizationId]
           if (organization) {
@@ -653,7 +653,7 @@ class DataManager {
           log(`removed ${organizationId}`)
         }
 
-        await stelace.users.remove(user.id)
+        await saltana.users.remove(user.id)
         const alias = getObjectAlias(user)
         unset(this.referencedData, `users.${alias}`)
         log(`removed ${user.id}`)
@@ -666,7 +666,7 @@ class DataManager {
 
     for (const transaction of this.existingData.transactions) {
       if (!this.shouldOnlyRemoveScriptObjects || isCreatedBySeedScript(transaction)) {
-        await stelace.transactions.createTransition(transaction.id, { name: 'cancel', data: { cancellationReason: 'forceCancel' } })
+        await saltana.transactions.createTransition(transaction.id, { name: 'cancel', data: { cancellationReason: 'forceCancel' } })
 
         const alias = getObjectAlias(transaction)
         unset(this.referencedData, `transactions.${alias}`)

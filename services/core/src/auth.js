@@ -15,7 +15,7 @@ const { parsePermission } = require('./permissions')
 
 const systemNamespaces = [
   'system',
-  'stelace'
+  'saltana'
 ]
 const protectedNamespaces = [
   'private',
@@ -112,7 +112,7 @@ async function checkAuthToken ({
   const apmSpan = apm.startSpan(apmLabel)
 
   let decodedToken
-  let isStelaceAuthToken
+  let isSaltanaAuthToken
   let isTokenExpired = false
 
   try {
@@ -123,7 +123,7 @@ async function checkAuthToken ({
     })
 
     const options = { algorithms: ['HS256'] }
-    isStelaceAuthToken = true
+    isSaltanaAuthToken = true
 
     try {
       jwt.decode(authToken, { complete: true })
@@ -141,7 +141,7 @@ async function checkAuthToken ({
 
   return {
     decodedToken,
-    isStelaceAuthToken,
+    isSaltanaAuthToken,
     isTokenExpired
   }
 }
@@ -153,7 +153,7 @@ function loadStrategies (server) {
     if (bypassAuthTokenCheck || !hasToken) return next()
 
     try {
-      const { decodedToken, isStelaceAuthToken, isTokenExpired } = await checkAuthToken({
+      const { decodedToken, isSaltanaAuthToken, isTokenExpired } = await checkAuthToken({
         authToken: req.authorization.token,
         platformId: req.platformId,
         env: req.env
@@ -161,7 +161,7 @@ function loadStrategies (server) {
 
       if (!isTokenExpired) {
         req.auth = decodedToken
-        req._stelaceAuthToken = isStelaceAuthToken
+        req._saltanaAuthToken = isSaltanaAuthToken
       }
 
       next()
@@ -206,8 +206,8 @@ function checkPermissions (permissions = [], {
       const token = req[requestProperty]
       const rawApiKey = _.get(req.authorization, 'apiKey') ||
         req.headers['x-api-key'] // legacy x-api-key, convenient during development
-      const stelaceWorkflowKey = req.headers['x-stelace-workflow-key']
-      const targetUserId = req.headers['x-stelace-user-id']
+      const saltanaWorkflowKey = req.headers['x-saltana-workflow-key']
+      const targetUserId = req.headers['x-saltana-user-id']
       const userId = token && (token.sub || token.userId)
       let organizationId
       let realOrganizationId
@@ -231,7 +231,7 @@ function checkPermissions (permissions = [], {
 
       // do not duplicate permissions check in system
       // add behaviour of system like expose system namespace or do not obfuscate api keys
-      const checkPermissionsFromSystem = isSystemRequest && req.headers['x-stelace-system-permissions'] === 'check'
+      const checkPermissionsFromSystem = isSystemRequest && req.headers['x-saltana-system-permissions'] === 'check'
 
       let isPublishableApiKey = false
 
@@ -261,10 +261,10 @@ function checkPermissions (permissions = [], {
         accessInfo.arrayPermissions = permissionsToCheck
         accessInfo.readNamespaces = ['*']
         accessInfo.editNamespaces = ['*']
-      } else if (stelaceWorkflowKey) {
-        sources.push('stelaceWorkflow')
+      } else if (saltanaWorkflowKey) {
+        sources.push('saltanaWorkflow')
 
-        if (stelaceWorkflowKey !== localInstanceKey) throw createError(400)
+        if (saltanaWorkflowKey !== localInstanceKey) throw createError(400)
 
         accessInfo.arrayPermissions = permissionsToCheck
         accessInfo.readNamespaces = ['*']
@@ -290,8 +290,8 @@ function checkPermissions (permissions = [], {
 
         const apmSpan = apm.startSpan('Get access info for token')
 
-        // the header x-stelace-organization-id is only useful for authentication by token
-        organizationId = req.headers['x-stelace-organization-id']
+        // the header x-saltana-organization-id is only useful for authentication by token
+        organizationId = req.headers['x-saltana-organization-id']
 
         const tokenPermissions = token.permissions || []
 
@@ -307,7 +307,7 @@ function checkPermissions (permissions = [], {
 
         if (organizationId) {
           if (!userId) {
-            throw createError(403, 'Cannot provide the header x-stelace-organization-id if there is no sub or userId in the token')
+            throw createError(403, 'Cannot provide the header x-saltana-organization-id if there is no sub or userId in the token')
           } else {
             const {
               roles: userRoles,
@@ -649,7 +649,7 @@ function checkRequestData ({
 
   const systemNamespacesToEdit = _.intersection(dataNamespaces, systemNamespaces)
   if (!isSystemRequest && systemNamespacesToEdit.length) {
-    throw createError(403, 'Can’t edit Stelace reserved namespace', {
+    throw createError(403, 'Can’t edit Saltana reserved namespace', {
       public: {
         forbiddenNamespaces: systemNamespacesToEdit
       }
@@ -727,7 +727,7 @@ function parseAuthorizationHeader (req, { noThrowIfError = false } = {}) {
       token = credentials[0]
       break
 
-    case 'stelace-v1': // legacy
+    case 'saltana-v1': // legacy
       apiKey = extractFromCredentials('apiKey')
       token = extractFromCredentials('token')
       break

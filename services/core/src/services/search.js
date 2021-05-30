@@ -1,6 +1,6 @@
 const createError = require('http-errors')
 const _ = require('lodash')
-const debug = require('debug')('stelace:api:search')
+const debug = require('debug')('saltana:api:search')
 
 const { logError } = require('../../server/logger')
 
@@ -97,7 +97,7 @@ function start ({ communication, isSystem }) {
       env,
       access: 'default'
     })
-    const searchConfig = config.stelace.search || {}
+    const searchConfig = config.saltana.search || {}
 
     const defaultMaxDistance = searchConfig.maxDistance
 
@@ -352,7 +352,7 @@ function start ({ communication, isSystem }) {
         // Adding specific rules is the preferred method to tune relevance.
 
         // TODO: add regression test suite with specific full-text scenarios
-        // (e.g. using Stelace Heroes Demo), focusing on rules below and precision/recall.
+        // (e.g. using Saltana Heroes Demo), focusing on rules below and precision/recall.
         bool.should = [
           { // Fuzzy match
             match: {
@@ -542,7 +542,7 @@ function start ({ communication, isSystem }) {
       queryBody.more_like_this = moreLikeThis
     }
 
-    // Filter DSL parsed by Stelace plugin middleware
+    // Filter DSL parsed by Saltana plugin middleware
     if (parsedFilter && queryBody.bool && queryBody.bool.filter) {
       queryBody.bool.filter = queryBody.bool.filter.concat(parsedFilter)
     }

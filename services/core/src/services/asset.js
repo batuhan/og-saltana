@@ -396,8 +396,8 @@ function start ({ communication }) {
     })
 
     if (typeof validated === 'undefined') {
-      if (typeof config.stelace.assetsValidationAutomatic !== 'undefined') {
-        createAttrs.validated = !!config.stelace.assetsValidationAutomatic
+      if (typeof config.saltana.assetsValidationAutomatic !== 'undefined') {
+        createAttrs.validated = !!config.saltana.assetsValidationAutomatic
       } else {
         createAttrs.validated = true
       }

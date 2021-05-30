@@ -352,7 +352,7 @@ function getRandomPlatformId () {
 
 /**
  * Returned extracted information from “public” platform ID like `e11` or `e11_live`,
- * containing info needed to locate the platform on infrastructure built with Stelace server.
+ * containing info needed to locate the platform on infrastructure built with Saltana server.
  * Note that this function does not throw and rather sets `hasValidFormat` value to `false`
  * in returned object if `publicPlatformId` format is invalid.
  * @param  {String} publicPlatformId

@@ -18,7 +18,7 @@ openssl rsa -passin pass:abcd -in ${BASEDIR}/rootCA.pass.key -out ${BASEDIR}/roo
 rm ${BASEDIR}/rootCA.pass.key
 
 # Create self-signed root CA certificate
-openssl req -x509 -new -nodes -key ${BASEDIR}/rootCA.key -sha256 -days 1024 -out ${BASEDIR}/rootCA.crt -subj /CN=stelace-ca
+openssl req -x509 -new -nodes -key ${BASEDIR}/rootCA.key -sha256 -days 1024 -out ${BASEDIR}/rootCA.crt -subj /CN=saltana-ca
 
 # Generate key for server certificate
 openssl genrsa -des3 -passout pass:abcd -out ${BASEDIR}/server.pass.key 2048

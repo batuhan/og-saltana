@@ -35,7 +35,7 @@ function createMiddleware () {
     getCurrentUserId,
     middlewares: { checkPermissions },
     routes: { getRouteRequestContext, wrapAction },
-    communication: { stelaceApiRequest },
+    communication: { saltanaApiRequest },
     models: {
       Asset,
       SavedSearch
@@ -150,7 +150,7 @@ function createMiddleware () {
     }
 
     // check the validity of the search query
-    await stelaceApiRequest('/search?_validateOnly=true', {
+    await saltanaApiRequest('/search?_validateOnly=true', {
       platformId,
       env,
       method: 'POST',
@@ -187,7 +187,7 @@ function createMiddleware () {
     } = searchQuery
 
     if (useSavedSearchQuery) {
-      const { results: savedSearches } = await stelaceApiRequest('/search', {
+      const { results: savedSearches } = await saltanaApiRequest('/search', {
         platformId,
         env,
         method: 'GET',
@@ -242,7 +242,7 @@ function createMiddleware () {
           overrideCreatedRangeFilter ? createdRangeFilter : {}
         )
 
-        const { results } = await stelaceApiRequest('/search', {
+        const { results } = await saltanaApiRequest('/search', {
           platformId,
           env,
           method: 'POST',

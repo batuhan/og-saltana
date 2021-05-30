@@ -1,11 +1,11 @@
 require('@saltana/common').load()
 
-const { IGNORED_LOCAL_PLUGINS, TESTS, STELACE_PLUGINS_PATHS, INSTANT_DATA } = process.env
+const { IGNORED_LOCAL_PLUGINS, TESTS, SALTANA_PLUGINS_PATHS, INSTANT_DATA } = process.env
 
 const fromEnvVar = (v = '') => v.split(',').filter(Boolean).map(s => s.trim())
 
 const pluginTestsToIgnore = fromEnvVar(IGNORED_LOCAL_PLUGINS).map(p => `!plugins/${p}/**/*`)
-const cliLoadedPluginTests = fromEnvVar(STELACE_PLUGINS_PATHS).map(p => `${p}/**/*.spec.js`)
+const cliLoadedPluginTests = fromEnvVar(SALTANA_PLUGINS_PATHS).map(p => `${p}/**/*.spec.js`)
 
 let tests = []
 const seedTests = ['scripts/instantData.js']

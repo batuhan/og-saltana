@@ -5,7 +5,7 @@
  * Categories are not included in bundle as there can be many of these.
  */
 
-const { initStelaceSdk } = require('./sdk')
+const { initSaltanaSdk } = require('./sdk')
 
 const dotenv = require('dotenv')
 const path = require('path')
@@ -26,11 +26,11 @@ dotenv.config({
 })
 
 const apiBaseURL = process.env.SALTANA_CORE_API_URL
-const apiKey = process.env.STELACE_PUBLISHABLE_API_KEY
+const apiKey = process.env.SALTANA_PUBLISHABLE_API_KEY
 
-const stelace = initStelaceSdk({ apiBaseURL, apiKey })
+const saltana = initSaltanaSdk({ apiBaseURL, apiKey })
 // Don’t delay build for too long if network fails
-stelace.setTimeout(10000)
+saltana.setTimeout(10000)
 
 const commonPath = path.join(__dirname, '../src/store/common')
 const configPath = path.join(commonPath, 'config-copy.json')
@@ -42,15 +42,15 @@ run()
   .catch(createEmptyFiles)
 
 async function run () {
-  const fetchCustomAttributesPage = (...args) => stelace.customAttributes.list(...args)
+  const fetchCustomAttributesPage = (...args) => saltana.customAttributes.list(...args)
 
   const [
     config,
     assetTypes,
     customAttributes
   ] = await Promise.all([
-    stelace.config.read(),
-    stelace.assetTypes.list(),
+    saltana.config.read(),
+    saltana.assetTypes.list(),
     fetchAllResults(fetchCustomAttributesPage),
   ])
 

@@ -52,7 +52,7 @@ test('gets objects with livemode attribute', async (t) => {
   const { body: { results: liveCategories } } = await request(t.context.serverUrl)
     .get('/categories')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-env': 'live'
+      'x-saltana-env': 'live'
     }))
     .expect(200)
 
@@ -239,7 +239,7 @@ test('cannot create a category with reserved system namespaces', async (t) => {
     .send({
       name: 'Electric',
       metadata: {
-        _stelace: {
+        _saltana: {
           test: true
         }
       }
@@ -268,28 +268,28 @@ test('can create a category with reserved system namespaces if it is the system'
   const { body: category1 } = await request(t.context.serverUrl)
     .post('/categories')
     .set({
-      'x-stelace-system-key': systemKey,
+      'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Electric',
       metadata: {
-        _stelace: {
+        _saltana: {
           test: true
         }
       }
     })
     .expect(200)
 
-  t.is(category1.metadata._stelace.test, true)
+  t.is(category1.metadata._saltana.test, true)
 
   const { body: category2 } = await request(t.context.serverUrl)
     .post('/categories')
     .set({
-      'x-stelace-system-key': systemKey,
+      'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Electric',
@@ -426,7 +426,7 @@ test('cannot update a category with reserved system namespaces', async (t) => {
     .send({
       name: 'Electric',
       metadata: {
-        _stelace: {
+        _saltana: {
           test: true
         }
       }
@@ -455,28 +455,28 @@ test('can update a category with reserved system namespaces if it is the system'
   const { body: category1 } = await request(t.context.serverUrl)
     .patch('/categories/ctgy_WW5Qps1I3a1gJYz2I3a')
     .set({
-      'x-stelace-system-key': systemKey,
+      'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Electric',
       metadata: {
-        _stelace: {
+        _saltana: {
           test: true
         }
       }
     })
     .expect(200)
 
-  t.is(category1.metadata._stelace.test, true)
+  t.is(category1.metadata._saltana.test, true)
 
   const { body: category2 } = await request(t.context.serverUrl)
     .patch('/categories/ctgy_WW5Qps1I3a1gJYz2I3a')
     .set({
-      'x-stelace-system-key': systemKey,
+      'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Electric',
@@ -559,7 +559,7 @@ test('fails to create an category if missing or invalid parameters', async (t) =
     .post('/categories')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -571,7 +571,7 @@ test('fails to create an category if missing or invalid parameters', async (t) =
     .post('/categories')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -584,7 +584,7 @@ test('fails to create an category if missing or invalid parameters', async (t) =
     .post('/categories')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -610,7 +610,7 @@ test('fails to update an category if missing or invalid parameters', async (t) =
     .patch('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -622,7 +622,7 @@ test('fails to update an category if missing or invalid parameters', async (t) =
     .patch('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -763,7 +763,7 @@ test('2019-05-20: gets objects with livemode attribute', async (t) => {
   const { body: liveCategories } = await request(t.context.serverUrl)
     .get('/categories')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-env': 'live'
+      'x-saltana-env': 'live'
     }))
     .expect(200)
 

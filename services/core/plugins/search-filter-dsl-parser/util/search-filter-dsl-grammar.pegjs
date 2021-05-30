@@ -1,4 +1,4 @@
-/* Stelace Search Filter DSL parser
+/* Saltana Search Filter DSL parser
 
 Powerful filter expressions for complex yet flexible and dynamic search.
 Can be combined with fuzzy text queries and availability depending on asset type and transaction process.
@@ -150,7 +150,7 @@ cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/query-filter
   }
 
   const didYouMeanBuiltIn = function (name) {
-    return options.builtIns.includes(`_${name}`) ? `Did you mean Stelace built-in "_${name}"?` : ''
+    return options.builtIns.includes(`_${name}`) ? `Did you mean Saltana built-in "_${name}"?` : ''
   }
 
   const removeBuiltInEscape = function (name) {

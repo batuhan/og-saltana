@@ -9,7 +9,7 @@ Auth.prototype.login = method({
   path: '/auth/login',
   method: 'POST',
   afterRequest: (res, self) => {
-    const tokenStore = self._stelace.getApiField('tokenStore')
+    const tokenStore = self._saltana.getApiField('tokenStore')
 
     tokenStore.setTokens(res)
 
@@ -21,7 +21,7 @@ Auth.prototype.loginMagic = method({
   path: '/auth/login/magic',
   method: 'POST',
   afterRequest: (res, self) => {
-    const tokenStore = self._stelace.getApiField('tokenStore')
+    const tokenStore = self._saltana.getApiField('tokenStore')
 
     tokenStore.setTokens(res)
 
@@ -30,7 +30,7 @@ Auth.prototype.loginMagic = method({
 })
 
 Auth.prototype.setTokens = function (tokens) {
-  const tokenStore = this._stelace.getApiField('tokenStore')
+  const tokenStore = this._saltana.getApiField('tokenStore')
   tokenStore.setTokens(tokens)
   return this.info()
 }
@@ -46,7 +46,7 @@ Auth.prototype.logout = method({
     return requestParams
   },
   afterRequest: (res, self) => {
-    const tokenStore = self._stelace.getApiField('tokenStore')
+    const tokenStore = self._saltana.getApiField('tokenStore')
     tokenStore.removeTokens()
 
     return res
@@ -54,7 +54,7 @@ Auth.prototype.logout = method({
 })
 
 Auth.prototype.info = function () {
-  const tokenStore = this._stelace.getApiField('tokenStore')
+  const tokenStore = this._saltana.getApiField('tokenStore')
 
   const infoResult = {
     isAuthenticated: false,
@@ -81,7 +81,7 @@ Auth.prototype.getTokens = method({
   path: '/auth/token',
   method: 'POST',
   afterRequest: (res, self) => {
-    const tokenStore = self._stelace.getApiField('tokenStore')
+    const tokenStore = self._saltana.getApiField('tokenStore')
 
     tokenStore.setTokens(res)
 

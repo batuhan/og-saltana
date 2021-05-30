@@ -505,7 +505,7 @@ test('fails to create a task if missing or invalid parameters', async (t) => {
     .post('/tasks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -517,7 +517,7 @@ test('fails to create a task if missing or invalid parameters', async (t) => {
     .post('/tasks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -530,7 +530,7 @@ test('fails to create a task if missing or invalid parameters', async (t) => {
     .post('/tasks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       executionDate: true,
@@ -566,7 +566,7 @@ test('fails to update a task if missing or invalid parameters', async (t) => {
     .patch('/tasks/task_4bJEZe1bA91i7IQYbA8')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -578,7 +578,7 @@ test('fails to update a task if missing or invalid parameters', async (t) => {
     .patch('/tasks/task_4bJEZe1bA91i7IQYbA8')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       executionDate: true,

@@ -34,7 +34,7 @@ function init (server, { middlewares, helpers } = {}) {
     'config:edit', 'config:edit:all'
   ]), wrapAction(async (req, res) => {
     const fields = [
-      'stelace',
+      'saltana',
       'custom',
       'theme'
     ]
@@ -71,7 +71,7 @@ function init (server, { middlewares, helpers } = {}) {
     'config:edit:all'
   ]), wrapAction(async (req, res) => {
     const fields = [
-      'stelace',
+      'saltana',
     ]
 
     const payload = _.pick(req.body, fields)
@@ -102,7 +102,7 @@ function init (server, { middlewares, helpers } = {}) {
     path: '/config/system'
   }, allowSystem, wrapAction(async (req, res) => {
     const fields = [
-      'stelace',
+      'saltana',
       'custom'
     ]
 

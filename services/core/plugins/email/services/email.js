@@ -223,7 +223,7 @@ module.exports = function createService (deps) {
   }
 
   function getPlatformInfoFromConfig (config) {
-    const instantConfig = _.get(config, 'stelace.instant', {})
+    const instantConfig = _.get(config, 'saltana.instant', {})
 
     return {
       serviceName: instantConfig.serviceName,
@@ -244,17 +244,17 @@ module.exports = function createService (deps) {
   }
 
   function getBrandingFields ({ serviceName, language }) {
-    const stelaceUrl = 'https://stelace.com/?utm_campaign=powered-by&utm_source=galaxy&utm_medium=email'
+    const saltanaUrl = 'https://saltana.com/?utm_campaign=powered-by&utm_source=galaxy&utm_medium=email'
     const brandingByLocale = {
-      en: `${serviceName} is powered by <a href="${stelaceUrl}">Stelace API</a>.`,
-      fr: `${serviceName} est propulsé par <a href="${stelaceUrl}">l’API Stelace</a>.`
+      en: `${serviceName} is powered by <a href="${saltanaUrl}">Saltana API</a>.`,
+      fr: `${serviceName} est propulsé par <a href="${saltanaUrl}">l’API Saltana</a>.`
     }
 
     return {
       branding: brandingByLocale[language] || '',
-      stelace_website__img_url: `${stelaceUrl}&utm_content=logo`,
-      stelace_logo__alt: 'Stelace',
-      stelace_logo__url: 'https://stelace-instant-files.s3.amazonaws.com/s/stelace-platform-runner-small.png',
+      saltana_website__img_url: `${saltanaUrl}&utm_content=logo`,
+      saltana_logo__alt: 'Saltana',
+      saltana_logo__url: 'https://saltana-instant-files.s3.amazonaws.com/s/saltana-platform-runner-small.png',
     }
   }
 
@@ -316,7 +316,7 @@ module.exports = function createService (deps) {
       type: 'readPrivate'
     })
 
-    const emailConfig = _.get(privateConfig, 'stelace.email') || {}
+    const emailConfig = _.get(privateConfig, 'saltana.email') || {}
 
     const transporter = await getTransporter({ platformId, env, emailConfig, ignoreInvalidCertificates })
 

@@ -32,7 +32,7 @@ async function setEmailConfig (t, config = {}) {
   })
 
   const configPayload = _.merge({}, {
-    stelace: {
+    saltana: {
       email: {
         port: 465,
         host: 'smtp.example.com',
@@ -80,7 +80,7 @@ test.serial('sends email for real and check that information is correct', async 
     process.env.DEBUG_EMAILS = debugAddresses
 
     await setEmailConfig(t, {
-      stelace: {
+      saltana: {
         email: {
           host: account.smtp.host,
           port: account.smtp.port,
@@ -700,7 +700,7 @@ test('data are enriched via platform config', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         instant: {
           serviceName: 'BigCompany'
         }
@@ -876,7 +876,7 @@ test('branding is displayed by default', async (t) => {
     .expect(200)
 
   t.is(emailContextEn.subject, 'Some subject')
-  t.true(emailContextEn.html.includes('Stelace'))
+  t.true(emailContextEn.html.includes('Saltana'))
 
   await request(t.context.serverUrl)
     .post('/entries')
@@ -896,7 +896,7 @@ test('branding is displayed by default', async (t) => {
     .expect(200)
 
   t.is(emailContextFr.subject, 'Un sujet')
-  t.true(emailContextFr.html.includes('Stelace'))
+  t.true(emailContextFr.html.includes('Saltana'))
 })
 
 test('branding can be removed if branding values set to empty', async (t) => {
@@ -979,7 +979,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
     .post('/emails/send')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -991,7 +991,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
     .post('/emails/send-template')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1004,7 +1004,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
     .post('/emails/send')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       html: true,
@@ -1050,7 +1050,7 @@ test('fails to send an email with template if missing or invalid parameters', as
     .post('/emails/send-template')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1062,7 +1062,7 @@ test('fails to send an email with template if missing or invalid parameters', as
     .post('/emails/send-template')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,

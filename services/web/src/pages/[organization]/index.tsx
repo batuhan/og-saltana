@@ -4,28 +4,24 @@ import * as React from 'react'
 import CreatorSpaceShell from '../../components/CreatorSpaceShell'
 import {
   getSharedQueryClient,
-  prefetchAssets,
-  prefetchSharedQuery,
-  prefetchUser,
-  useAssets,
+  useApi,
+  prefetchQuery,
 } from '../../modules/api'
 import { sharedInstance } from '../../modules/api/useApi'
 import { dehydrate } from 'react-query/hydration'
 import AssetBox from '../../modules/assets/AssetBox'
 
-const OrganizationAssets = () => {
-  const router = useRouter()
-  const { organization: ownerId } = router.query
-  const { data = [] } = useAssets({ ownerId })
+const OrganizationAssets = ({ creatorId: ownerId }) => {
+  const { data = [] } = useApi('assets', 'list', { ownerId })
   return data.map((asset) => <AssetBox key={asset.id} {...asset} />)
 }
 
-const OrganizationProfile = () => {
+const OrganizationProfile = ({ creatorId }) => {
   return (
     <CreatorSpaceShell>
       <Container maxW="container.xl">
         <SimpleGrid columns={2} spacingX="40px" spacingY="20px">
-          <OrganizationAssets />
+          <OrganizationAssets creatorId={creatorId} />
         </SimpleGrid>
       </Container>
     </CreatorSpaceShell>
@@ -41,9 +37,9 @@ export async function getServerSideProps({ params: { organization } }) {
 
     const queryClient = getSharedQueryClient()
     queryClient.setQueryData(['users', 'read', user.id], user)
-    await prefetchAssets({ ownerId: user.id })
+    await prefetchQuery('assets', 'list', { ownerId: user.id })
     return {
-      props: { dehydratedState: dehydrate(queryClient) },
+      props: { dehydratedState: dehydrate(queryClient), creatorId: user.id },
     }
   } catch (err) {
     return {

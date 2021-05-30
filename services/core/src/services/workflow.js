@@ -19,10 +19,10 @@ const { apiVersions, applyObjectChanges } = require('../versions')
 const { performListQuery, performHistoryQuery } = require('../util/listQueryBuilder')
 const { getRetentionLimitDate } = require('../util/timeSeries')
 
-// Stelace Workflows: reuse sandbox for performance
+// Saltana Workflows: reuse sandbox for performance
 const { VM } = require('vm2')
 
-const debug = require('debug')('stelace:api')
+const debug = require('debug')('saltana:api')
 let apiBase
 
 let localInstanceKey
@@ -624,7 +624,7 @@ function start ({ communication, serverPort }) {
 
       const workflowsHaveEnvVariables = workflows.some(w => !_.isEmpty(w.context))
       if (workflowsHaveEnvVariables) {
-        const { stelace: systemConfig } = await configRequester.send({
+        const { saltana: systemConfig } = await configRequester.send({
           type: '_getConfig',
           platformId,
           env,
@@ -816,7 +816,7 @@ function start ({ communication, serverPort }) {
               eventId: event.id,
               runId
             },
-            message: 'Fail to execute stelace workflow'
+            message: 'Fail to execute saltana workflow'
           })
         } finally {
           if (apmSpans.allRuns) apmSpans.allRuns.end()
@@ -1071,7 +1071,7 @@ function start ({ communication, serverPort }) {
               eventId: event.id,
               objectId: event.objectId
             },
-            message: 'Fail to prepare Stelace Workflow'
+            message: 'Fail to prepare Saltana Workflow'
           })
 
           const log = _getWorkflowLogMetadata({
@@ -1121,18 +1121,18 @@ function start ({ communication, serverPort }) {
       const method = workflowStep.endpointMethod.toLowerCase()
 
       const isInternalApiEndpoint = endpointUri.startsWith('/')
-      const stelaceHeaders = isInternalApiEndpoint ? {
+      const saltanaHeaders = isInternalApiEndpoint ? {
         // WARNING: internal values must not be exposed
         'x-platform-id': platformId,
-        'x-stelace-env': env,
-        'x-stelace-workflow-key': localInstanceKey,
-        'x-stelace-version': workflow.apiVersion
-        // 'x-stelace-workflows': '' // TODO: sequence of workflows to avoid infinite loops
+        'x-saltana-env': env,
+        'x-saltana-workflow-key': localInstanceKey,
+        'x-saltana-version': workflow.apiVersion
+        // 'x-saltana-workflows': '' // TODO: sequence of workflows to avoid infinite loops
       } : {
-        'x-webhook-source': 'stelace'
+        'x-webhook-source': 'saltana'
       }
 
-      const headers = Object.assign({}, endpointHeaders, stelaceHeaders)
+      const headers = Object.assign({}, endpointHeaders, saltanaHeaders)
 
       const log = _getWorkflowLogMetadata({
         workflowStep,
@@ -1148,7 +1148,7 @@ function start ({ communication, serverPort }) {
         .send(endpointPayload) // superagent converts this to query string when using GET method
         .set(headers)
         .timeout({
-          // Should be enough for Stelace batch call endpoint with 100 objects (currently maximum)
+          // Should be enough for Saltana batch call endpoint with 100 objects (currently maximum)
           response: 15000, // For concurrency of 4 in batch service it takes (100/4) * 400ms = 10000ms
           deadline: 30000 // Twice as much in case of slow response download
           // but we need reasonable value as well to prevent huge file download / infinite buffering
@@ -1160,7 +1160,7 @@ function start ({ communication, serverPort }) {
           if (err.status) return err.response // let user handle HTTP error if they want to
 
           // If there is no status it’s probably related to unhandled Workflow code error,
-          // or it’s a Stelace error.
+          // or it’s a Saltana error.
           logError(err.response ? err.response.body : err, {
             platformId,
             env,
@@ -1171,7 +1171,7 @@ function start ({ communication, serverPort }) {
               eventId: event.id,
               objectId: event.objectId
             },
-            message: 'Fail to execute Stelace Workflow'
+            message: 'Fail to execute Saltana Workflow'
           })
 
           return {} // no response body to save below
@@ -1253,7 +1253,7 @@ async function notifyAfterCompleted ({
     })
     .send(payload)
     .set({
-      'x-webhook-source': 'stelace'
+      'x-webhook-source': 'saltana'
     })
     .then(res => {
       statusCode = res.statusCode

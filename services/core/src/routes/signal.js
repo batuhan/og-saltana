@@ -26,7 +26,7 @@ function init (server, { middlewares, helpers } = {}) {
     } = req.body || {}
 
     const params = populateRequesterParams(req)({
-      type: 'stelaceSignal',
+      type: 'saltanaSignal',
       destination,
       message,
       event

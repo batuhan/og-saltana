@@ -1576,7 +1576,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
     .post('/transactions/preview')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1588,7 +1588,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
     .post('/transactions/preview')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1601,7 +1601,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
     .post('/transactions/preview')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       assetId: true,
@@ -1633,7 +1633,7 @@ test('fails to create a transaction if missing or invalid parameters', async (t)
     .post('/transactions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1645,7 +1645,7 @@ test('fails to create a transaction if missing or invalid parameters', async (t)
     .post('/transactions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       assetId: true,
@@ -1679,7 +1679,7 @@ test('fails to update a transaction if missing or invalid parameters', async (t)
     .patch('/transactions/trn_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1691,7 +1691,7 @@ test('fails to update a transaction if missing or invalid parameters', async (t)
     .patch('/transactions/trn_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       assetId: true,
@@ -1725,7 +1725,7 @@ test('fails to create a transaction transition if missing or invalid parameters'
     .post('/transactions/trn_UEZfQps1I3a1gJYz2I3a/transitions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1737,7 +1737,7 @@ test('fails to create a transaction transition if missing or invalid parameters'
     .post('/transactions/trn_UEZfQps1I3a1gJYz2I3a/transitions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1750,7 +1750,7 @@ test('fails to create a transaction transition if missing or invalid parameters'
     .post('/transactions/trn_UEZfQps1I3a1gJYz2I3a/transitions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,

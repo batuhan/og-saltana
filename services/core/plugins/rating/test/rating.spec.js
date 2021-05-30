@@ -516,7 +516,7 @@ test('fails to create a rating if missing or invalid parameters', async (t) => {
     .post('/ratings')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -528,7 +528,7 @@ test('fails to create a rating if missing or invalid parameters', async (t) => {
     .post('/ratings')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       score: 'invalid',
@@ -564,7 +564,7 @@ test('fails to update a rating if missing or invalid parameters', async (t) => {
     .patch('/ratings/rtg_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -576,7 +576,7 @@ test('fails to update a rating if missing or invalid parameters', async (t) => {
     .patch('/ratings/rtg_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       score: 'invalid',

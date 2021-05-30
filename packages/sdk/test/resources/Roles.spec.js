@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.roles.list()
+  return saltana.roles.list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/roles',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.roles.read('role_1')
+  return saltana.roles.read('role_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/roles/role_1',
         data: {},
@@ -31,9 +31,9 @@ test('read: sends the correct request', (t) => {
 })
 
 test('create: sends the correct request', (t) => {
-  return stelace.roles.create({ name: 'Developer', value: 'dev' })
+  return saltana.roles.create({ name: 'Developer', value: 'dev' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/roles',
         data: { name: 'Developer', value: 'dev' },
@@ -44,9 +44,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.roles.update('role_1', { name: 'Custom developer' })
+  return saltana.roles.update('role_1', { name: 'Custom developer' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/roles/role_1',
         data: { name: 'Custom developer' },
@@ -57,9 +57,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.roles.remove('role_1')
+  return saltana.roles.remove('role_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/roles/role_1',
         data: {},

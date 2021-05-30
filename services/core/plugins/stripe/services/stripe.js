@@ -1,12 +1,12 @@
 const Stripe = require('stripe')
-const debug = require('debug')('stelace:integrations:stripe')
+const debug = require('debug')('saltana:integrations:stripe')
 const _ = require('lodash')
 const { parsePublicPlatformId } = require('@saltana/util-keys')
 
 module.exports = function createService (deps) {
   const {
     createError,
-    communication: { stelaceApiRequest },
+    communication: { saltanaApiRequest },
 
     configRequester,
   } = deps
@@ -24,7 +24,7 @@ module.exports = function createService (deps) {
       access: 'private'
     })
 
-    const { secretApiKey } = _.get(privateConfig, 'stelace.integrations.stripe', {})
+    const { secretApiKey } = _.get(privateConfig, 'saltana.integrations.stripe', {})
     if (!secretApiKey) throw createError(403, 'Stripe secret API key not configured')
 
     const stripe = Stripe(secretApiKey)
@@ -70,7 +70,7 @@ module.exports = function createService (deps) {
       access: 'private'
     })
 
-    const { secretApiKey, webhookSecret } = _.get(privateConfig, 'stelace.integrations.stripe', {})
+    const { secretApiKey, webhookSecret } = _.get(privateConfig, 'saltana.integrations.stripe', {})
     if (!secretApiKey) throw createError(403, 'Stripe API key not configured')
     if (!webhookSecret) throw createError(403, 'Stripe Webhook secret not configured')
 
@@ -95,7 +95,7 @@ module.exports = function createService (deps) {
       page: 1
     }
 
-    const { results: sameEvents } = await stelaceApiRequest('/events', {
+    const { results: sameEvents } = await saltanaApiRequest('/events', {
       platformId,
       env,
       payload: {
@@ -111,7 +111,7 @@ module.exports = function createService (deps) {
       debug('Stripe integration: idempotency check with event id: %O', sameEvents)
     }
 
-    await stelaceApiRequest('/events', {
+    await saltanaApiRequest('/events', {
       platformId,
       env,
       method: 'POST',

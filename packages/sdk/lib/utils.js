@@ -1,9 +1,9 @@
 import jwtDecode from 'jwt-decode'
 
 const OPTIONS_KEYS = [
-  'stelaceVersion',
-  'stelaceUserId',
-  'stelaceOrganizationId'
+  'saltanaVersion',
+  'saltanaUserId',
+  'saltanaOrganizationId'
 ]
 
 const hasOwn = {}.hasOwnProperty
@@ -98,14 +98,14 @@ export const getOptionsFromArgs = (args) => {
         emitWarning(`Invalid options found (${extraKeys.join(', ')}); ignoring.`)
       }
 
-      if (params.stelaceVersion) {
-        opts.headers['x-stelace-version'] = params.stelaceVersion
+      if (params.saltanaVersion) {
+        opts.headers['x-saltana-version'] = params.saltanaVersion
       }
-      if (params.stelaceUserId) {
-        opts.headers['x-stelace-user-id'] = params.stelaceUserId
+      if (params.saltanaUserId) {
+        opts.headers['x-saltana-user-id'] = params.saltanaUserId
       }
-      if (typeof params.stelaceOrganizationId !== 'undefined') {
-        opts.headers['x-stelace-organization-id'] = params.stelaceOrganizationId
+      if (typeof params.saltanaOrganizationId !== 'undefined') {
+        opts.headers['x-saltana-organization-id'] = params.saltanaOrganizationId
       }
     }
   }
@@ -128,10 +128,10 @@ export const decodeJwtToken = (jwtToken) => {
 function emitWarning (warning) {
   if (process) {
     if (typeof process.emitWarning !== 'function') {
-      return console.warn('Stelace: ' + warning)
+      return console.warn('Saltana: ' + warning)
     }
 
-    return process.emitWarning(warning, 'Stelace')
+    return process.emitWarning(warning, 'Saltana')
   }
 }
 

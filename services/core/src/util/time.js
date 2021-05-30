@@ -15,7 +15,7 @@ const allowedTimeUnits = [
   'M' // month
 ]
 
-// (key: value): stelace unit => moment unit
+// (key: value): saltana unit => moment unit
 const mapMomentTimeUnits = {
   n: 'd'
 }

@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('change: sends the correct request', (t) => {
-  return stelace.password.change({ currentPassword: 'secretPassword', newPassword: 'newSecretPassword' })
+  return saltana.password.change({ currentPassword: 'secretPassword', newPassword: 'newSecretPassword' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/password/change',
         data: { currentPassword: 'secretPassword', newPassword: 'newSecretPassword' },
@@ -18,9 +18,9 @@ test('change: sends the correct request', (t) => {
 })
 
 test('resetRequest: sends the correct request', (t) => {
-  return stelace.password.resetRequest({ username: 'foo' })
+  return saltana.password.resetRequest({ username: 'foo' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/password/reset/request',
         data: { username: 'foo' },
@@ -31,9 +31,9 @@ test('resetRequest: sends the correct request', (t) => {
 })
 
 test('resetConfirm: sends the correct request', (t) => {
-  return stelace.password.resetConfirm({ resetToken: 'resetTokenExample', newPassword: 'newSecretPassword' })
+  return saltana.password.resetConfirm({ resetToken: 'resetTokenExample', newPassword: 'newSecretPassword' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/password/reset/confirm',
         data: { resetToken: 'resetTokenExample', newPassword: 'newSecretPassword' },

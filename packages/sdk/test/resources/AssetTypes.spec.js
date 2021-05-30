@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.assetTypes.list()
+  return saltana.assetTypes.list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/asset-types',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.assetTypes.read('assetType_1')
+  return saltana.assetTypes.read('assetType_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/asset-types/assetType_1',
         data: {},
@@ -31,9 +31,9 @@ test('read: sends the correct request', (t) => {
 })
 
 test('create: sends the correct request', (t) => {
-  return stelace.assetTypes.create({ name: 'New asset type' })
+  return saltana.assetTypes.create({ name: 'New asset type' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/asset-types',
         data: { name: 'New asset type' },
@@ -44,9 +44,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.assetTypes.update('assetType_1', { name: 'Updated asset type' })
+  return saltana.assetTypes.update('assetType_1', { name: 'Updated asset type' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/asset-types/assetType_1',
         data: { name: 'Updated asset type' },
@@ -57,9 +57,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.assetTypes.remove('assetType_1')
+  return saltana.assetTypes.remove('assetType_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/asset-types/assetType_1',
         data: {},

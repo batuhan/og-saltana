@@ -27,7 +27,7 @@ function init (server, { middlewares, helpers } = {}) {
     const params = populateRequesterParams(req)({
       type: 'search',
       searchQuery: req.body,
-      parsedFilter: req._stlParsedSearchFilter, // can be added by Stelace filter DSL parser plugin
+      parsedFilter: req._stlParsedSearchFilter, // can be added by Saltana filter DSL parser plugin
       _size: req.query && req.query._size,
       _validateOnly: req.query && req.query._validateOnly
     })

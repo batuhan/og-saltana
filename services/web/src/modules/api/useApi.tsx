@@ -9,27 +9,17 @@ export const sharedInstance = createInstance({
   apiKey,
 })
 
-export const _getMethod =
-  (apiInstance = sharedInstance) =>
-  (resourceType, method, data) => ({
-    key: [resourceType, method, data],
-    call: (_data = data) => apiInstance[resourceType][method](_data),
-  })
-
 export default function ApiInstanceContextComp({ children }) {
   const [session, loading] = useSession()
-  const instance = useMemo(
-    () =>
-      createInstance({
-        apiKey,
-      }),
-    [session]
-  )
+  const instance = createInstance({
+    apiKey,
+  })
 
   useEffect(() => {
+    console.log({session, loading})
     if (session) {
       instance.auth.setTokens({
-        accessToken: session.accessToken,
+        accessToken: session.coreAccessToken,
         refreshToken: session.refreshToken,
         tokenType: 'Bearer',
         userId: session.user.id,
@@ -39,7 +29,7 @@ export default function ApiInstanceContextComp({ children }) {
     const unsubscribe =
       instance &&
       instance.onError('userSessionExpired', function () {
-        signOut()
+        //  signOut()
       })
 
     return () => {
@@ -56,7 +46,6 @@ export default function ApiInstanceContextComp({ children }) {
         loading,
         ready: !loading,
         instance,
-        getMethod: _getMethod(instance),
       }}
     >
       {children}

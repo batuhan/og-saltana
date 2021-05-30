@@ -966,7 +966,7 @@ async function computeTransactionInformation ({
         assetTypeId: assetType.id,
         assetType,
         assetSnapshot: asset,
-        currency: asset.currency || _.get(config, 'stelace.instant.currency'),
+        currency: asset.currency || _.get(config, 'saltana.instant.currency'),
         timeUnit: _.get(assetType, 'timing.timeUnit'),
         unitPrice: asset.price,
         status: transaction ? undefined : 'draft',

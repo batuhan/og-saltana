@@ -188,7 +188,7 @@ function getAssetMappingTemplate (customAttributes = []) {
 
       // All text fields are copied into `allContent` field to enable term-centric instead of field-centric search
       // https://www.elastic.co/guide/en/elasticsearch/guide/current/field-centric.html
-      // https://github.com/stelace/stelace-core/issues/14
+      // https://github.com/saltana/saltana-core/issues/14
       allContent: {
         type: 'text',
         analyzer: 'stl_icu_analyzer',

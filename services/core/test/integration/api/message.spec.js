@@ -306,7 +306,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
     .post('/messages')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -318,7 +318,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
     .post('/messages')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -333,7 +333,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
     .post('/messages')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       topicId: true,
@@ -369,7 +369,7 @@ test('fails to update a message if missing or invalid parameters', async (t) => 
     .patch('/messages/msg_GYT4WXs15RC1gFLjp5RC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -381,7 +381,7 @@ test('fails to update a message if missing or invalid parameters', async (t) => 
     .patch('/messages/msg_GYT4WXs15RC1gFLjp5RC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       read: 'invalid',

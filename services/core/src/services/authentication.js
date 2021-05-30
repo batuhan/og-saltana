@@ -348,7 +348,7 @@ function start ({ communication, serverPort, isSystem }) {
     }
   })
 
-  // Stelace API accepts the object jwks as configuration value.
+  // Saltana API accepts the object jwks as configuration value.
   // That's to cover cases where API consumers have public certificate to provide
   // but hasn't implemented the endpoint jwks_uri on their side.
 
@@ -638,7 +638,7 @@ function start ({ communication, serverPort, isSystem }) {
                   env,
                 }),
                 roles:
-                  _.get(config, 'stelace.roles.default') || User.defaultRoles,
+                  _.get(config, 'saltana.roles.default') || User.defaultRoles,
               },
               _.omit(userAttrs, ['id', 'role'])
             )
@@ -754,7 +754,7 @@ function start ({ communication, serverPort, isSystem }) {
         // exposing tokens in query params isn't an option
 
         // we need to create a special code and add it to the redirect URL
-        // this code (usable once) gives an access to retrieve Stelace authentication tokens
+        // this code (usable once) gives an access to retrieve Saltana authentication tokens
         // via the endpoint '/auth/token' with grantType === 'authorizationCode'
         const authToken = await AuthToken.query().insert({
           id: await getObjectId({
@@ -1121,7 +1121,7 @@ function start ({ communication, serverPort, isSystem }) {
       access: 'default',
     })
 
-    const fallbackRedirectUrl = config.stelace.tokenCheckRedirectUrl
+    const fallbackRedirectUrl = config.saltana.tokenCheckRedirectUrl
 
     const authToken = await AuthToken.query().findOne({ value: token })
     if (!authToken || authToken.type !== 'check') {
@@ -1598,7 +1598,7 @@ async function getSSOConnection ({ publicPlatformId, provider }) {
 
   const connectionConfig = _.get(
     privateConfig,
-    `stelace.ssoConnections.${provider}`
+    `saltana.ssoConnections.${provider}`
   )
   if (!connectionConfig || !_.isPlainObject(connectionConfig)) {
     throw createError(422, 'Missing connection configuration')
@@ -1882,7 +1882,7 @@ async function createLoginTokens ({
   })
 
   const refreshTokenExpiration =
-    privateConfig.stelace.stelaceAuthRefreshTokenExpiration
+    privateConfig.saltana.saltanaAuthRefreshTokenExpiration
 
   const secret = await getAuthSecret({ platformId, env })
 

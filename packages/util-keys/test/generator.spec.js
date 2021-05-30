@@ -1,5 +1,5 @@
 const test = require('ava')
-const debug = require('debug')('stelace:util')
+const debug = require('debug')('saltana:util')
 const { performance } = require('perf_hooks')
 
 const {

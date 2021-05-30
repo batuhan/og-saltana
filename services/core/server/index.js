@@ -2,7 +2,7 @@ require('@saltana/common').load()
 require('../src/secure-env').config()
 
 const restify = require('restify')
-const debug = require('debug')('stelace:api')
+const debug = require('debug')('saltana:api')
 const http = require('http')
 const _ = require('lodash')
 const createError = require('http-errors')
@@ -19,13 +19,13 @@ const cors = corsMiddleware({
   // we can’t use middleware `credentials: true` option with wildcard
   allowHeaders: [
     'x-api-key',
-    'x-stelace-version',
+    'x-saltana-version',
     'authorization',
     'user-agent',
-    'x-stelace-organization-id'
+    'x-saltana-organization-id'
   ],
   exposeHeaders: [
-    'x-stelace-version',
+    'x-saltana-version',
     'x-request-id'
   ]
 })
@@ -135,7 +135,7 @@ process.on('uncaughtException', (err) => {
 })
 
 const restifyAuthorizationParser = restify.plugins.authorizationParser()
-const stelaceTooling = {
+const saltanaTooling = {
   // utility functions often used
   logError,
   createError,
@@ -347,15 +347,15 @@ function loadServer () {
   })
 
   try {
-    // plugins can use Stelace core dependencies if they provide a function
-    const injectStelaceTooling = (pluginObject) => {
-      if (typeof pluginObject === 'function') return pluginObject(stelaceTooling)
+    // plugins can use Saltana core dependencies if they provide a function
+    const injectSaltanaTooling = (pluginObject) => {
+      if (typeof pluginObject === 'function') return pluginObject(saltanaTooling)
       else return pluginObject
     }
 
     // Let external plugins self-load using command line for tests.
     // Please refer to docs/plugins.md.
-    const toLoad = (process.env.STELACE_PLUGINS_PATHS || '')
+    const toLoad = (process.env.SALTANA_PLUGINS_PATHS || '')
       // Comma-separated list of plugin absolute paths to load before starting server.
       .split(',')
       .filter(Boolean)
@@ -371,33 +371,33 @@ function loadServer () {
         routes.registerRoutes(name, plugin.routes)
       }
       if (plugin.middlewares) {
-        middlewares.register(injectStelaceTooling(plugin.middlewares))
+        middlewares.register(injectSaltanaTooling(plugin.middlewares))
       }
       if (plugin.versions) {
         if (plugin.versions.validation) {
           plugin.versions.validation.forEach(v => {
-            registerValidationVersions(injectStelaceTooling(v))
+            registerValidationVersions(injectSaltanaTooling(v))
           })
         }
         if (plugin.versions.request) {
           plugin.versions.request.forEach(change => {
-            registerRequestChanges(injectStelaceTooling(change))
+            registerRequestChanges(injectSaltanaTooling(change))
           })
         }
         if (plugin.versions.response) {
           plugin.versions.response.forEach(change => {
-            registerResponseChanges(injectStelaceTooling(change))
+            registerResponseChanges(injectSaltanaTooling(change))
           })
         }
         if (plugin.versions.object) {
           plugin.versions.object.forEach(change => {
-            registerObjectChanges(injectStelaceTooling(change))
+            registerObjectChanges(injectSaltanaTooling(change))
           })
         }
       }
       if (plugin.permissions) {
         plugin.permissions.forEach(permission => {
-          registerPermission(injectStelaceTooling(permission))
+          registerPermission(injectSaltanaTooling(permission))
         })
       }
     })
@@ -464,7 +464,7 @@ function loadServer () {
     const apmSpan = apm.startSpan('System headers')
 
     try {
-      const rawSystemKey = req.headers['x-stelace-system-key']
+      const rawSystemKey = req.headers['x-saltana-system-key']
       if (rawSystemKey) {
         if (!systemHashFunction) {
           systemHashFunction = getSystemKeyHashFunction(systemHashPassphrase)
@@ -474,7 +474,7 @@ function loadServer () {
         req._systemHash = systemHashFunction(rawSystemKey)
       }
 
-      const rawWorkflowHeader = req.headers['x-stelace-workflow-key']
+      const rawWorkflowHeader = req.headers['x-saltana-workflow-key']
       const workflowKey = getLocalInstanceKey()
 
       // Detect workflow requests, currently executed by same instance only.
@@ -487,13 +487,13 @@ function loadServer () {
         req._workflow = true
       }
 
-      // If the header 'x-platform-id' or 'x-stelace-env' are present and allowed to be used
+      // If the header 'x-platform-id' or 'x-saltana-env' are present and allowed to be used
       // they override the platformId and env usually set by API key.
       // TODO: use API Key in tests to align with 'production' NODE_ENV (cf. test/auth.js getAccessTokenHeaders)
       const usePlatformHeaders = TEST || Boolean(req._workflow) || isSystem(req._systemHash)
 
       const rawPlatformIdHeader = req.headers['x-platform-id']
-      const rawEnvHeader = req.headers['x-stelace-env']
+      const rawEnvHeader = req.headers['x-saltana-env']
 
       if (rawPlatformIdHeader && usePlatformHeaders) {
         req.platformId = rawPlatformIdHeader
@@ -588,14 +588,14 @@ function loadServer () {
   })
 
   server.use(async (req, res, next) => {
-    const apmSpan = apm.startSpan('Stelace version')
+    const apmSpan = apm.startSpan('Saltana version')
     const { platformId, env } = req
 
     try {
-      const selectedVersion = req.headers['x-stelace-version']
+      const selectedVersion = req.headers['x-saltana-version']
 
       if (selectedVersion && !apiVersions.includes(selectedVersion)) {
-        throw createError(400, `Invalid Stelace version '${selectedVersion}'`, {
+        throw createError(400, `Invalid Saltana version '${selectedVersion}'`, {
           public: { versionsAvailable: apiVersions }
         })
       }
@@ -659,7 +659,7 @@ function loadServer () {
     next()
   })
 
-  middlewares.beforeRoutes(server, stelaceTooling)
+  middlewares.beforeRoutes(server, saltanaTooling)
 
   routes.init(server, {
     middlewares: {
@@ -695,7 +695,7 @@ function getAuthorizationParams (req) {
     _roles: req.roles,
     _readNamespaces: req.readNamespaces,
     _editNamespaces: req.editNamespaces,
-    _stelaceAuthToken: !!req._stelaceAuthToken,
+    _saltanaAuthToken: !!req._saltanaAuthToken,
     _ip: req._ip,
     _userAgent: req.headers['user-agent'],
     _requestId: req._requestId,
@@ -765,7 +765,7 @@ function wrapAction (fn, { routeAction = true } = {}) {
         const transformed = await applyResponseChanges({ target, fromVersion, toVersion, params: { req, result } })
         const { result: newResult } = transformed
 
-        res.header('x-stelace-version', toVersion)
+        res.header('x-saltana-version', toVersion)
         res.header('x-request-id', req._requestId)
 
         res.json(newResult)
@@ -809,7 +809,7 @@ function start ({
     }
 
     let app
-    let stelaceIO
+    let saltanaIO
 
     if (useFreePort) {
       app = server.listen(onStarted)
@@ -821,17 +821,17 @@ function start ({
       if (err) return reject(err)
 
       if (enableSignal) {
-        stelaceIO = socketIO.listen(app, { path: '/signal' })
-        server.stelaceIO = stelaceIO
+        saltanaIO = socketIO.listen(app, { path: '/signal' })
+        server.saltanaIO = saltanaIO
       }
 
       const serverPort = server.address().port
 
       communication.setServerPort(serverPort)
 
-      const startParams = Object.assign({}, stelaceTooling, {
+      const startParams = Object.assign({}, saltanaTooling, {
         serverPort,
-        stelaceIO
+        saltanaIO
       })
 
       auth.start(startParams)
@@ -873,7 +873,7 @@ function stop ({
   gracefulStopDuration = 1000
 } = {}) {
   return new Promise((resolve) => {
-    ;(serverToStop.stelaceIO || serverToStop).close(() => {
+    ;(serverToStop.saltanaIO || serverToStop).close(() => {
       auth.stop()
       services.stop()
       routes.stop()

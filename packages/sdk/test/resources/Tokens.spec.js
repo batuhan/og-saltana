@@ -1,8 +1,8 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('checkRequest: sends the correct request', (t) => {
   const expirationDate = new Date((new Date().getTime() + 3600 * 1000)).toISOString()
@@ -15,9 +15,9 @@ test('checkRequest: sends the correct request', (t) => {
     }
   }
 
-  return stelace.tokens.checkRequest(data)
+  return saltana.tokens.checkRequest(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/token/check/request',
         data,
@@ -28,9 +28,9 @@ test('checkRequest: sends the correct request', (t) => {
 })
 
 test('checkConfirm: sends the correct request', (t) => {
-  return stelace.tokens.checkConfirm('token_1', { redirect: 'https://example.com' })
+  return saltana.tokens.checkConfirm('token_1', { redirect: 'https://example.com' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/token/check/token_1',
         data: {},

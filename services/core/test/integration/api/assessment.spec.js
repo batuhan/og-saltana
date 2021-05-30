@@ -85,7 +85,7 @@ test('shows the sign code only for the current signer if the user has normal rig
   const result2 = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
     }))
     .expect(200)
 
@@ -97,7 +97,7 @@ test('shows the sign code only for the current signer if the user has normal rig
   const result3 = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': 'user-external-id'
+      'x-saltana-user-id': 'user-external-id'
     }))
     .expect(200)
 
@@ -428,7 +428,7 @@ test('signs an assessment partially will propagate the user statement to the glo
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
     }))
     .send({
       signCode: 'secret2'
@@ -497,7 +497,7 @@ test('updating a partial signed challenge assessment to pass will reset the stat
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
     }))
     .send({
       signCode: 'secret2'
@@ -575,7 +575,7 @@ test('updating a partial signed to pass after a challenge statement will get a g
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
     }))
     .send({
       signCode: 'secret2'
@@ -624,7 +624,7 @@ test('signs an assessment as many times as it should to be completely signed', a
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
     }))
     .send({
       signCode: 'secret2'
@@ -664,7 +664,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
     .post('/assessments')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -676,7 +676,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
     .post('/assessments')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -689,7 +689,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
     .post('/assessments')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       status: true,
@@ -731,7 +731,7 @@ test('fails to update an assessment if missing or invalid parameters', async (t)
     .patch('/assessments/assm_SWtQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -743,7 +743,7 @@ test('fails to update an assessment if missing or invalid parameters', async (t)
     .patch('/assessments/assm_SWtQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       status: true,
@@ -777,7 +777,7 @@ test('fails to sign an assessment if missing or invalid parameters', async (t) =
     .post('/assessments/assm_SWtQps1I3a1gJYz2I3a/signatures')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -789,7 +789,7 @@ test('fails to sign an assessment if missing or invalid parameters', async (t) =
     .post('/assessments/assm_SWtQps1I3a1gJYz2I3a/signatures')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       signCode: true
@@ -923,7 +923,7 @@ test.serial('generates assessment__* events', async (t) => {
   const { body: assessmentSignedOnce } = await request(t.context.serverUrl)
     .post(`/assessments/${assessmentUpdated.id}/signatures`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': signers[0]
+      'x-saltana-user-id': signers[0]
     }))
     .send({})
     .expect(200)
@@ -945,7 +945,7 @@ test.serial('generates assessment__* events', async (t) => {
   const { body: assessmentSigned } = await request(t.context.serverUrl)
     .post(`/assessments/${assessmentUpdated.id}/signatures`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-user-id': signers[1]
+      'x-saltana-user-id': signers[1]
     }))
     .send({})
     .expect(200)

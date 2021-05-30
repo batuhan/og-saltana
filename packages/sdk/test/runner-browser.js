@@ -2,7 +2,7 @@
 // https://github.com/tmcw-up-for-adoption/karma-tap/issues/10
 
 require('./Resource.spec.js')
-require('./stelace.spec.js')
+require('./saltana.spec.js')
 require('./utils.spec.js')
 
 require('./resources/ApiKeys.spec.js')

@@ -553,7 +553,7 @@ module.exports = {
       createdDate: now,
       updatedDate: now,
       access: 'default',
-      stelace: {
+      saltana: {
         instant: {
           locale: 'en'
         }
@@ -567,7 +567,7 @@ module.exports = {
       createdDate: now,
       updatedDate: now,
       access: 'private',
-      stelace: {
+      saltana: {
         workflow: {
           contexts: {
             test: {
@@ -593,7 +593,7 @@ module.exports = {
       createdDate: now,
       updatedDate: now,
       access: 'system',
-      stelace: {},
+      saltana: {},
       custom: {},
       theme: {}
     })
@@ -1431,7 +1431,7 @@ module.exports = {
       locale: 'en-US',
       name: 'home',
       fields: {
-        title: 'Welcome to Stelace',
+        title: 'Welcome to Saltana',
         description: '',
         nestedContent: {
           random1: {
@@ -1463,7 +1463,7 @@ module.exports = {
       locale: 'en-US',
       name: 'signup',
       fields: {
-        subject: 'Hi, welcome to Stelace',
+        subject: 'Hi, welcome to Saltana',
         content: 'You just signed up. Please check your email.'
       },
       metadata: {}

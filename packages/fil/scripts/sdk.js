@@ -1,9 +1,9 @@
-const { createInstance } = require('stelace')
+const { createInstance } = require('saltana')
 
 const apiVersion = '2019-05-20'
 
-function initStelaceSdk ({ apiBaseURL, apiKey }) {
-  const stelace = createInstance({ apiKey, apiVersion })
+function initSaltanaSdk ({ apiBaseURL, apiKey }) {
+  const saltana = createInstance({ apiKey, apiVersion })
 
   if (apiBaseURL) {
     const parsedUrl = new URL(apiBaseURL)
@@ -12,12 +12,12 @@ function initStelaceSdk ({ apiBaseURL, apiKey }) {
     const port = parsedUrl.port
     const protocol = parsedUrl.protocol.slice(0, -1)
 
-    stelace.setHost(host, port, protocol)
+    saltana.setHost(host, port, protocol)
   }
 
-  return stelace
+  return saltana
 }
 
 module.exports = {
-  initStelaceSdk
+  initSaltanaSdk
 }

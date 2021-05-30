@@ -35,7 +35,10 @@ export async function login(email, { redirect = false }) {
 function useLogin({ redirect = false }) {
   const [session] = useSession()
   const loginMutation = useMutation(({ email }) => login(email, { redirect }), {
-    onError: () => signOut(),
+    onError: (err) => {
+      console.log({ err })
+      //signOut()
+    },
   })
   const router = useRouter()
 
@@ -45,7 +48,7 @@ function useLogin({ redirect = false }) {
 
   useEffect(() => {
     if (session) {
-      router.push("/");
+      router.push('/')
     }
     return () => {}
   }, [session])

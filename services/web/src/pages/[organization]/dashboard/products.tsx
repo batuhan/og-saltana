@@ -22,6 +22,7 @@ import {
 import * as React from 'react'
 import { HiChartBar, HiDownload, HiPlus } from 'react-icons/hi'
 import DashboardShell from '../../../components/DashboardShell'
+import CreateProductButton from '../../../components/CreateProductButton'
 
 export const CreatorProducts = () => {
   return (
@@ -52,24 +53,7 @@ export const CreatorProducts = () => {
                   >
                     Import
                   </Button>
-                  <Popover initialFocusRef={initialFocusRef} isOpen>
-      <PopoverTrigger>
-        <Button variant="outline">Feedback</Button>
-      </PopoverTrigger>
-      <Portal>
-        <PopoverContent boxShadow="xl" p="3" _focus={{ outline: 'none' }}>
-          <FeedbackForm forwardedRef={initialFocusRef} />
-        </PopoverContent>
-      </Portal>
-    </Popover>
-
-                  <Button
-                    colorScheme="blue"
-                    leftIcon={<HiPlus />}
-                    fontSize="sm"
-                  >
-                    Create product
-                  </Button>
+                  <CreateProductButton />
                 </HStack>
               </Flex>
 

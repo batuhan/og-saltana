@@ -7,9 +7,9 @@ const { getModels } = require('../models')
 const { logError } = require('../../server/logger')
 
 const {
-  setStelaceTask,
-  removeStelaceTask,
-  removeStelaceTaskExecutionDates
+  setSaltanaTask,
+  removeSaltanaTask,
+  removeSaltanaTaskExecutionDates
 } = require('../redis')
 
 const { getObjectId } = require('@saltana/util-keys')
@@ -199,7 +199,7 @@ function start ({ communication }) {
 
     if (task.active) {
       // Do not include `metadata` or `platformData` to save space in Redis
-      await setStelaceTask({ platformId, env, task: _.omit(task, ['metadata', 'platformData']) })
+      await setSaltanaTask({ platformId, env, task: _.omit(task, ['metadata', 'platformData']) })
     }
 
     return Task.expose(task, { req })
@@ -273,9 +273,9 @@ function start ({ communication }) {
 
     if (newTask.active) {
       // Do not include `metadata` or `platformData` to save space in Redis
-      await setStelaceTask({ platformId, env, task: _.omit(newTask, ['metadata', 'platformData']) })
+      await setSaltanaTask({ platformId, env, task: _.omit(newTask, ['metadata', 'platformData']) })
     } else {
-      await removeStelaceTask({ platformId, env, taskId: newTask.id })
+      await removeSaltanaTask({ platformId, env, taskId: newTask.id })
     }
 
     return Task.expose(newTask, { req })
@@ -323,8 +323,8 @@ async function removeTask ({ taskId, platformId, env }) {
 
   await Task.query().deleteById(taskId)
 
-  await removeStelaceTask({ platformId, env, taskId })
-  await removeStelaceTaskExecutionDates({ taskId })
+  await removeSaltanaTask({ platformId, env, taskId })
+  await removeSaltanaTaskExecutionDates({ taskId })
 }
 
 function stop () {

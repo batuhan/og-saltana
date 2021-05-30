@@ -60,7 +60,7 @@ module.exports = (env) => ({
       createdDate: now,
       updatedDate: now,
       access: 'default',
-      stelace: {
+      saltana: {
         instant: {
           locale: 'en',
           currency: 'USD'
@@ -75,7 +75,7 @@ module.exports = (env) => ({
       createdDate: now,
       updatedDate: now,
       access: 'private',
-      stelace: {
+      saltana: {
         instant: {
         }
       },
@@ -88,7 +88,7 @@ module.exports = (env) => ({
       createdDate: now,
       updatedDate: now,
       access: 'system',
-      stelace: {
+      saltana: {
       },
       custom: {},
       theme: {}
@@ -173,7 +173,7 @@ module.exports = (env) => ({
       editNamespaces: [],
       metadata: {
         instant: {
-          // used in Stelace Dashboard to display localized custom role names
+          // used in Saltana Dashboard to display localized custom role names
           i18n: {
             label: {
               entry: 'instant',

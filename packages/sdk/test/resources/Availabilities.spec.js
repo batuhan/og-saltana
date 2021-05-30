@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('getGraph: sends the correct request', (t) => {
-  return stelace.availabilities.getGraph({ assetId: 'asset_1' })
+  return saltana.availabilities.getGraph({ assetId: 'asset_1' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/availabilities/graph',
         data: {},
@@ -20,9 +20,9 @@ test('getGraph: sends the correct request', (t) => {
 })
 
 test('list: sends the correct request', (t) => {
-  return stelace.availabilities.list({ assetId: 'asset_1' })
+  return saltana.availabilities.list({ assetId: 'asset_1' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/availabilities',
         data: {},
@@ -42,9 +42,9 @@ test('create: sends the correct request', (t) => {
     quantity: 1
   }
 
-  return stelace.availabilities.create(data)
+  return saltana.availabilities.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/availabilities',
         data,
@@ -61,9 +61,9 @@ test('update: sends the correct request', (t) => {
     quantity: 2
   }
 
-  return stelace.availabilities.update('availability_1', data)
+  return saltana.availabilities.update('availability_1', data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/availabilities/availability_1',
         data,
@@ -74,9 +74,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.availabilities.remove('availability_1')
+  return saltana.availabilities.remove('availability_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/availabilities/availability_1',
         data: {},

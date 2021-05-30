@@ -471,7 +471,7 @@ function start ({ communication, isSystem }) {
 
   function canRevealApiKey (req) {
     return isSystem(req._systemHash) ||
-      (req._stelaceAuthToken &&
+      (req._saltanaAuthToken &&
         (req._matchedPermissions['apiKey:create:all'] || req._matchedPermissions['apiKey:edit:all'])
       )
   }

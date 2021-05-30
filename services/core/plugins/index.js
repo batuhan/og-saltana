@@ -17,7 +17,7 @@ const { version: serverVersion } = require(path.join(__dirname, '../package.json
 
 const { IGNORED_LOCAL_PLUGINS, INSTALLED_PLUGINS } = process.env
 
-const stelaceServerPath = path.resolve(__dirname, '..')
+const saltanaServerPath = path.resolve(__dirname, '..')
 const pluginsLoadedManually = []
 const logged = {}
 
@@ -85,7 +85,7 @@ function load (name, { isLocalModule, isManual, useInstalledCopy } = {}) {
   let p
   try {
     let mod = isLocalModule ? `./${name}` : name
-    if (useInstalledCopy) mod = path.join(stelaceServerPath, 'plugins/installed', name)
+    if (useInstalledCopy) mod = path.join(saltanaServerPath, 'plugins/installed', name)
     p = require(mod)
   } catch (err) {
     const installedModuleError = err.code === 'MODULE_NOT_FOUND' &&
@@ -108,7 +108,7 @@ function load (name, { isLocalModule, isManual, useInstalledCopy } = {}) {
   if (!p.version) throw new Error('Missing plugin version')
 
   if (versions && !semver.satisfies(serverVersion, versions)) {
-    throw new Error(`${serverVersion} Stelace server version not supported by ${
+    throw new Error(`${serverVersion} Saltana server version not supported by ${
       p.name
     } plugin (${versions || 'missing range'})`)
   }

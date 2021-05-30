@@ -81,10 +81,10 @@ if (!fs.existsSync(`.env.${env}`)) {
     `\nMissing .env file. Please start with "cp .env.example .env.${env}".\n` +
       'More info is available in README.md.\n'
   )
-} else if (!process.env.STELACE_SECRET_API_KEY) {
+} else if (!process.env.SALTANA_SECRET_API_KEY) {
   return log(chalk.cyan.bold(
-    '\nMissing STELACE_SECRET_API_KEY env variable.\n' +
-      'Please head over to https://stelace.com to ask your free key.\n'
+    '\nMissing SALTANA_SECRET_API_KEY env variable.\n' +
+      'Please head over to https://saltana.com to ask your free key.\n'
   ))
 } else {
   run()

@@ -1,4 +1,4 @@
-// Copy this file to the root of stelace-core project
+// Copy this file to the root of saltana-core project
 
 // Objective: migrate platforms from PostgreSQL to TimescaleDB
 
@@ -10,7 +10,7 @@ const script = require('commander')
 const { execSync } = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const debug = require('debug')('stelace:scripts')
+const debug = require('debug')('saltana:scripts')
 
 const { getConnection } = require('./src/models')
 const { getKnex } = require('./src/models/util')

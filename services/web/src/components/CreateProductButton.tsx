@@ -1,48 +1,78 @@
-import React from "react"
+import React from 'react'
 
-import { Popover, PopoverTrigger, Button, Portal, PopoverContent } from "@chakra-ui/react"
-import { useForm } from "react-hook-form"
+import {
+  Popover,
+  PopoverTrigger,
+  Button,
+  Portal,
+  PopoverContent,
+  useColorModeValue,
+  Stack,
+  Textarea,
+  Flex,
+  Input,
+} from '@chakra-ui/react'
+import { useForm } from 'react-hook-form'
+import { useApiMutation, useCurrentUser } from '../modules/api'
+import { HiPlus } from 'react-icons/hi'
+import { useRouter } from 'next/router'
 
 function CreateProductButton() {
-  const initialFocusRef = React.useRef(null)
-  useApiMutation
+  const router = useRouter()
+  const { data } = useCurrentUser()
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm()
+  const addProduct = useApiMutation('assets', 'create', {
+    onSuccess: ({ id }) => {
+      console.log(`/${data.username}/${id}/?mode=edit`)
+      router.push(`/${data.username}/${id}/?mode=edit`)
+    },
+  })
+
+  function onSubmit({ name }) {
+    addProduct.mutate({ name })
+  }
 
   return (
-    <Popover initialFocusRef={initialFocusRef} isOpen>
+    <Popover>
       <PopoverTrigger>
-        <Button variant="outline">Feedback</Button>
+        <Button colorScheme="blue" leftIcon={<HiPlus />} fontSize="sm">
+          Add product
+        </Button>
       </PopoverTrigger>
       <Portal>
         <PopoverContent boxShadow="xl" p="3" _focus={{ outline: 'none' }}>
-        <form onSubmit={handleSubmit(loginMutation.onSubmit)}>
-
-      <Stack spacing="3">
-        <Textarea
-          ref={forwardedRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Your Feedback"
-          required
-          focusBorderColor={useColorModeValue('blue.500', 'blue.300')}
-          _placeholder={{
-            opacity: 1,
-            color: useColorModeValue('gray.500', 'whiteAlpha.700'),
-          }}
-          resize="none"
-        />
-        <Flex justifyContent="space-between">
-          <Button type="submit" size="sm" variant="outline">
-            Send
-          </Button>
-        </Flex>
-      </Stack>
-    </form>
-
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Stack spacing="3">
+              <Input
+                type="text"
+                {...register('name', {
+                  required: true,
+                })}
+                isReadOnly={addProduct.isLoading}
+                placeholder="Your Feedback"
+                focusBorderColor={useColorModeValue('blue.500', 'blue.300')}
+                _placeholder={{
+                  opacity: 1,
+                  color: useColorModeValue('gray.500', 'whiteAlpha.700'),
+                }}
+                resize="none"
+              />
+              <Flex justifyContent="space-between">
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="outline"
+                  disabled={addProduct.isLoading}
+                >
+                  Add
+                </Button>
+              </Flex>
+            </Stack>
+          </form>
         </PopoverContent>
       </Portal>
     </Popover>

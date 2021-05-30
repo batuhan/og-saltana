@@ -435,7 +435,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -447,7 +447,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -460,7 +460,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -486,7 +486,7 @@ test('fails to create a webhook with an invalid API version', async (t) => {
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Invalid API version webhook',
@@ -506,7 +506,7 @@ test('fails to update a webhook if missing or invalid parameters', async (t) => 
     .patch('/webhooks/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -518,7 +518,7 @@ test('fails to update a webhook if missing or invalid parameters', async (t) => 
     .patch('/webhooks/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -542,7 +542,7 @@ test('fails to update a webhook with an invalid API version', async (t) => {
     .patch('/webhooks/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       apiVersion: '2016-01-01'

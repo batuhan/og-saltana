@@ -407,7 +407,7 @@ function start ({ communication }) {
 
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
-      // before reading the last version of Stelace order
+      // before reading the last version of Saltana order
       const order = await Order.query(trx).forUpdate()
         .findById(orderId)
       if (!order) {
@@ -526,7 +526,7 @@ function start ({ communication }) {
 
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
-      // before reading the last version of Stelace order
+      // before reading the last version of Saltana order
       const orders = await Order.query(trx).forUpdate()
         .whereJsonSupersetOf('lines', [{ id: orderLineId }])
         .limit(1)
@@ -677,7 +677,7 @@ function start ({ communication }) {
 
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
-      // before reading the last version of Stelace order
+      // before reading the last version of Saltana order
       const order = await Order.query(trx).forUpdate()
         .findById(orderId)
       if (!order) {
@@ -789,7 +789,7 @@ function start ({ communication }) {
 
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
-      // before reading the last version of Stelace order
+      // before reading the last version of Saltana order
       const orders = await Order.query(trx).forUpdate()
         .whereJsonSupersetOf('moves', [{ id: orderMoveId }])
         .limit(1)

@@ -2,7 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const _ = require('lodash')
 
-const debug = require('debug')('stelace:api:search')
+const debug = require('debug')('saltana:api:search')
 const log = console.log
 
 const peg = require('pegjs')
@@ -53,7 +53,7 @@ async function parse (req) {
   if (_.isEmpty(body) || !communication) return ''
 
   const { filter } = body
-  const { stelaceApiRequest } = communication
+  const { saltanaApiRequest } = communication
   if (!filter) return ''
 
   const apmSpans = {}
@@ -62,7 +62,7 @@ async function parse (req) {
 
   try {
     if (m) apmSpans.customAttributes = apm.startSpan('Fetch Custom Attributes before parsing')
-    const { results: customAttributes } = await stelaceApiRequest('/custom-attributes', {
+    const { results: customAttributes } = await saltanaApiRequest('/custom-attributes', {
       leafThroughResults: 10000,
       platformId,
       env

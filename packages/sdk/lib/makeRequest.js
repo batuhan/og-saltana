@@ -27,7 +27,7 @@ function getRequestOpts (requestArgs, spec, tokens) {
     const arg = args[0]
     if (typeof arg !== 'string') {
       throw new Error(
-        `Stelace: "${urlParam}" must be a string, but got: ${typeof arg}` +
+        `Saltana: "${urlParam}" must be a string, but got: ${typeof arg}` +
         ` (on API request to ${requestMethod} ${path})`
       )
     }
@@ -55,7 +55,7 @@ function getRequestOpts (requestArgs, spec, tokens) {
   // Validate that there are no more args.
   if (args.length) {
     throw new Error(
-      `Stelace: Unknown arguments (${args}). Did you mean to pass an options object?` +
+      `Saltana: Unknown arguments (${args}). Did you mean to pass an options object?` +
       ` (on API request to ${requestMethod} ${path})`
     )
   }
@@ -112,16 +112,16 @@ function handlePaginationMeta (res) {
 function getTokens (self) {
   return Promise.resolve()
     .then(() => {
-      const apiKey = self._stelace.getApiField('key')
+      const apiKey = self._saltana.getApiField('key')
 
       const needsAuthToken = !isSecretApiKey(apiKey)
       if (!needsAuthToken) return
 
-      const tokenStore = self._stelace.getApiField('tokenStore')
+      const tokenStore = self._saltana.getApiField('tokenStore')
       const tokens = tokenStore.getTokens()
       if (!tokens) return
 
-      const beforeRefreshToken = self._stelace.getApiField('beforeRefreshToken')
+      const beforeRefreshToken = self._saltana.getApiField('beforeRefreshToken')
 
       const canRefreshToken = !!tokens.refreshToken || beforeRefreshToken
       if (!canRefreshToken) return tokens
@@ -177,7 +177,7 @@ function getTokens (self) {
           .catch((err) => {
             if (err.lastResponse && err.lastResponse.statusCode === 403) {
               const error = Object.assign({}, err, { message: 'User session expired' })
-              self._stelace._emitError('userSessionExpired', error)
+              self._saltana._emitError('userSessionExpired', error)
               tokenStore.removeTokens()
               throw error
             }

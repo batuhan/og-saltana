@@ -1069,7 +1069,7 @@ test('fails to create an event if missing or invalid parameters', async (t) => {
     .post('/events')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1081,7 +1081,7 @@ test('fails to create an event if missing or invalid parameters', async (t) => {
     .post('/events')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1094,7 +1094,7 @@ test('fails to create an event if missing or invalid parameters', async (t) => {
     .post('/events')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       type: true,

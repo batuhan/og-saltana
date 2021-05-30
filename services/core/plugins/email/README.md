@@ -1,4 +1,4 @@
-# Stelace Email plugin
+# Saltana Email plugin
 
 This plugin enables Email API with Nodemailer.
 

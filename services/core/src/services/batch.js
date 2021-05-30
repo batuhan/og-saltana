@@ -42,16 +42,16 @@ function start ({ communication, serverPort }) {
     const allowedHeaders = [
       'user-agent',
       'authorization',
-      'x-stelace-user-id',
-      'x-stelace-organization-id',
+      'x-saltana-user-id',
+      'x-saltana-organization-id',
 
       // internal
-      'x-stelace-system-key',
-      'x-stelace-workflow-key',
+      'x-saltana-system-key',
+      'x-saltana-workflow-key',
 
       // used for test
       'x-platform-id',
-      'x-stelace-env'
+      'x-saltana-env'
     ]
 
     const batchHeaders = _.pick(rawHeaders, allowedHeaders)

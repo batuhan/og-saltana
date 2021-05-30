@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.savedSearch.list()
+  return saltana.savedSearch.list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/search',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.savedSearch.read('savedSearch_1')
+  return saltana.savedSearch.read('savedSearch_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/search/savedSearch_1',
         data: {},
@@ -36,9 +36,9 @@ test('create: sends the correct request with save option automatically set to tr
     query: 'some value'
   }
 
-  return stelace.savedSearch.create(data)
+  return saltana.savedSearch.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/search',
         data: Object.assign({}, data, { save: true }), // automatically set `save` to true
@@ -49,9 +49,9 @@ test('create: sends the correct request with save option automatically set to tr
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.savedSearch.update('savedSearch_1', { name: 'Custom query' })
+  return saltana.savedSearch.update('savedSearch_1', { name: 'Custom query' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/search/savedSearch_1',
         data: { name: 'Custom query' },
@@ -62,9 +62,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.savedSearch.remove('savedSearch_1')
+  return saltana.savedSearch.remove('savedSearch_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/search/savedSearch_1',
         data: {},

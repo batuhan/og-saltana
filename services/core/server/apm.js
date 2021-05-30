@@ -23,11 +23,11 @@ apm.addFilter(payload => {
     if (requestHeaders['x-api-key']) {
       requestHeaders['x-api-key'] = obfuscateSensitiveInfo(requestHeaders['x-api-key'], { prefixRegex: apiKeyRegex })
     }
-    if (requestHeaders['x-stelace-system-key']) {
-      requestHeaders['x-stelace-system-key'] = obfuscateSensitiveInfo(requestHeaders['x-stelace-system-key'])
+    if (requestHeaders['x-saltana-system-key']) {
+      requestHeaders['x-saltana-system-key'] = obfuscateSensitiveInfo(requestHeaders['x-saltana-system-key'])
     }
-    if (requestHeaders['x-stelace-workflow-key']) {
-      requestHeaders['x-stelace-workflow-key'] = obfuscateSensitiveInfo(requestHeaders['x-stelace-workflow-key'])
+    if (requestHeaders['x-saltana-workflow-key']) {
+      requestHeaders['x-saltana-workflow-key'] = obfuscateSensitiveInfo(requestHeaders['x-saltana-workflow-key'])
     }
   }
 

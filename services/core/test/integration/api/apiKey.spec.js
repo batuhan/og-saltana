@@ -70,7 +70,7 @@ test('rejects invalid api key format with 401 and www-authenticate header', asyn
 
       // should use the platformId with the old format api key (no information in it)
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(401)
 
@@ -236,7 +236,7 @@ test('use the publishable key in Authorization header to identify the platform I
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'My publishable key',
@@ -459,7 +459,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -471,7 +471,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -484,7 +484,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -584,8 +584,8 @@ test('secret key can be revealed if the request is from system', async (t) => {
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
       name: 'New secret api key',
@@ -597,8 +597,8 @@ test('secret key can be revealed if the request is from system', async (t) => {
     .get(`/api-keys/${apiKey.id}`)
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .expect(200)
 
@@ -609,15 +609,15 @@ test('secret key can be revealed if the request is from system', async (t) => {
     .get(`/api-keys/${apiKey.id}?reveal=1`)
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .expect(200)
 
   t.true(apiKey.key === revealedApiKey.key) // non obfuscated
 })
 
-test('secret key can be revealed if the request is from Stelace auth token', async (t) => {
+test('secret key can be revealed if the request is from Saltana auth token', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: [
@@ -651,7 +651,7 @@ test('secret key can be revealed if the request is from Stelace auth token', asy
   t.true(apiKey.key === revealedApiKey.key) // non obfuscated
 })
 
-test('secret key cannot be revealed if the request is from Stelace auth token and there is not enough permissions', async (t) => {
+test('secret key cannot be revealed if the request is from Saltana auth token and there is not enough permissions', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: [
@@ -800,7 +800,7 @@ test('2019-05-20: list api keys with api key', async (t) => {
     .get('/api-keys')
     .set({
       authorization: `Basic ${encodeBase64('seck_test_wakWA41rBTUXs1Y5pNRjeY5o:')}`,
-      'x-stelace-version': '2019-05-20'
+      'x-saltana-version': '2019-05-20'
     })
     .expect(200)
 

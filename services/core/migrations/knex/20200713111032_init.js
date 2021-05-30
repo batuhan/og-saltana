@@ -173,7 +173,7 @@ exports.up = async (knex) => {
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
     table.string('access')
-    table.jsonb('stelace')
+    table.jsonb('saltana')
     table.jsonb('custom')
     table.jsonb('theme')
 

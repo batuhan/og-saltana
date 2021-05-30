@@ -54,7 +54,7 @@ function getRequestContext (req) {
 
     // Granting all existing permissions to ease maintenance
 
-    // Stelace services can communicate with each other thanks to `customRequester.communicate()`.
+    // Saltana services can communicate with each other thanks to `customRequester.communicate()`.
     // However, even if the request is considered as a system request,
     // some permissions may protect service logic.
     // By automatically granting all permissions, should the permissions needed by a service change,

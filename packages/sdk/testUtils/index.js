@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter'
 import { capitalize } from 'lodash'
 import jwt from 'jsonwebtoken'
 
-import { createInstance } from '../lib/stelace'
+import { createInstance } from '../lib/saltana'
 
 export function getApiKey ({ type = 'seck' } = {}) {
   const secretKey = 'seck_test_wakWA41rBTUXs1Y5oNRjeY5o'
@@ -19,26 +19,26 @@ export function getApiKey ({ type = 'seck' } = {}) {
   }
 }
 
-export function getSpyableStelace ({ keyType } = {}) {
+export function getSpyableSaltana ({ keyType } = {}) {
   const key = getApiKey({ type: keyType })
 
-  const stelace = createInstance({ apiKey: key })
+  const saltana = createInstance({ apiKey: key })
 
-  cleanStelace(stelace)
+  cleanSaltana(saltana)
 
-  stelace.REQUESTS = []
+  saltana.REQUESTS = []
 
-  for (const i in stelace) {
-    makeInstanceSpyable(stelace, stelace[i])
+  for (const i in saltana) {
+    makeInstanceSpyable(saltana, saltana[i])
   }
 
-  function makeInstanceSpyable (stelace, thisInstance) {
-    patchRequest(stelace, thisInstance)
+  function makeInstanceSpyable (saltana, thisInstance) {
+    patchRequest(saltana, thisInstance)
   }
 
-  function patchRequest (stelace, instance) {
+  function patchRequest (saltana, instance) {
     instance._request = function ({ path, method, data, queryParams, options = {} }) {
-      stelace.LAST_REQUEST = {
+      saltana.LAST_REQUEST = {
         path,
         method,
         data,
@@ -46,53 +46,53 @@ export function getSpyableStelace ({ keyType } = {}) {
         headers: options.headers || {}
       }
 
-      stelace.REQUESTS.push(stelace.LAST_REQUEST)
+      saltana.REQUESTS.push(saltana.LAST_REQUEST)
 
       return Promise.resolve({})
     }
   }
 
-  return stelace
+  return saltana
 }
 
-export function getStelaceStub ({ keyType, noKey } = {}) {
+export function getSaltanaStub ({ keyType, noKey } = {}) {
   const key = getApiKey({ type: keyType })
 
-  const stelace = noKey ? createInstance({}) : createInstance({ apiKey: key })
+  const saltana = noKey ? createInstance({}) : createInstance({ apiKey: key })
 
-  stelace._lastRequest = {}
+  saltana._lastRequest = {}
 
-  stelace.getLastRequest = () => stelace._lastRequest
+  saltana.getLastRequest = () => saltana._lastRequest
 
-  stelace.startStub = () => {
+  saltana.startStub = () => {
     const mock = new MockAdapter(axios)
-    stelace._mock = mock
+    saltana._mock = mock
   }
 
-  stelace.stopStub = () => {
-    if (!stelace._mock) return
-    stelace._mock.restore()
+  saltana.stopStub = () => {
+    if (!saltana._mock) return
+    saltana._mock.restore()
   }
 
-  stelace.stubRequest = (url, { method, data, status, headers, response }) => {
-    if (!stelace._mock) return
+  saltana.stubRequest = (url, { method, data, status, headers, response }) => {
+    if (!saltana._mock) return
 
     const getMockingFnKey = `on${capitalize(method)}`
-    stelace._mock[getMockingFnKey](url, data).reply(status, response, headers)
+    saltana._mock[getMockingFnKey](url, data).reply(status, response, headers)
   }
 
   // to be able to get the last sent request config
   axios.interceptors.request.use(
     config => {
-      stelace._lastRequest = { config }
+      saltana._lastRequest = { config }
       return config
     },
     Promise.reject
   )
 
-  cleanStelace(stelace)
+  cleanSaltana(saltana)
 
-  return stelace
+  return saltana
 }
 
 export function encodeJwtToken (data, { secret = 'secret', expiresIn }) {
@@ -100,8 +100,8 @@ export function encodeJwtToken (data, { secret = 'secret', expiresIn }) {
   return token
 }
 
-function cleanStelace (stelace) {
-  const tokenStore = stelace.getApiField('tokenStore')
+function cleanSaltana (saltana) {
+  const tokenStore = saltana.getApiField('tokenStore')
   if (tokenStore) {
     tokenStore.removeTokens()
   }

@@ -3,47 +3,47 @@ import sinon from 'sinon'
 
 import {
   getApiKey,
-  getSpyableStelace,
-  getStelaceStub,
+  getSpyableSaltana,
+  getSaltanaStub,
   encodeJwtToken,
 } from '../testUtils'
 
 import { decodeBase64 } from '../lib/utils'
 
-import { Stelace, createInstance } from '../lib/stelace'
+import { Saltana, createInstance } from '../lib/saltana'
 
 test('Sets the API key', t => {
-  const stelace = createInstance({
+  const saltana = createInstance({
     apiKey: 'seck_test_example1',
   })
-  t.is(stelace.getApiField('key'), 'seck_test_example1')
+  t.is(saltana.getApiField('key'), 'seck_test_example1')
 
-  stelace.setApiKey('seck_test_example2')
-  t.is(stelace.getApiField('key'), 'seck_test_example2')
+  saltana.setApiKey('seck_test_example2')
+  t.is(saltana.getApiField('key'), 'seck_test_example2')
 
   t.end()
 })
 
 test('Set a custom timeout', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  t.is(stelace.getApiField('timeout'), Stelace.DEFAULT_TIMEOUT)
+  t.is(saltana.getApiField('timeout'), Saltana.DEFAULT_TIMEOUT)
 
-  stelace.setTimeout(100)
-  t.is(stelace.getApiField('timeout'), 100)
+  saltana.setTimeout(100)
+  t.is(saltana.getApiField('timeout'), 100)
 
-  stelace.setTimeout(null)
-  t.is(stelace.getApiField('timeout'), Stelace.DEFAULT_TIMEOUT)
+  saltana.setTimeout(null)
+  t.is(saltana.getApiField('timeout'), Saltana.DEFAULT_TIMEOUT)
 
   t.end()
 })
 
 test('Methods work with callback', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
   t.plan(2)
 
-  stelace.categories.list((err, categories) => {
+  saltana.categories.list((err, categories) => {
     t.notOk(err)
     t.ok(categories)
     t.end()
@@ -51,25 +51,25 @@ test('Methods work with callback', t => {
 })
 
 test('Methods return a promise', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  return stelace.categories
+  return saltana.categories
     .list()
     .then(categories => t.ok(categories))
     .catch(err => t.notOk(err))
 })
 
 test('Sets Authorization header with token and apiKey', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
-  const baseURL = stelace.auth.getBaseURL()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
+  const baseURL = saltana.auth.getBaseURL()
   const accessToken = encodeJwtToken({ userId: 'user_1' }, { expiresIn: '1h' })
   const testApiKey = getApiKey({ type: 'pubk' })
 
   const basicAuthorizationRegex = /Basic\s(.*)/i
-  // Stelace custom Authorization scheme params
+  // Saltana custom Authorization scheme params
   // https://tools.ietf.org/html/draft-ietf-httpbis-p7-auth-19#appendix-B
-  const stelaceSchemeParamRegex = /(apiKey|token)\s?=\s?([^,\s]*)/gi
+  const saltanaSchemeParamRegex = /(apiKey|token)\s?=\s?([^,\s]*)/gi
   const expectedParams = {
     apiKey: testApiKey,
     token: accessToken,
@@ -78,7 +78,7 @@ test('Sets Authorization header with token and apiKey', t => {
   const validateSchemeParam = exec =>
     exec && exec[2] === expectedParams[exec[1]]
 
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: { 'x-request-id': 'f1f25173-32a5-48da-aa2f-0079568abea0' },
@@ -90,7 +90,7 @@ test('Sets Authorization header with token and apiKey', t => {
     },
   })
 
-  stelace.stubRequest(`${baseURL}/users/user_1`, {
+  saltana.stubRequest(`${baseURL}/users/user_1`, {
     status: 200,
     method: 'get',
     headers: { 'x-request-id': 'ca4b0b1f-2c0b-4eed-858e-d76d097615ae' },
@@ -102,104 +102,104 @@ test('Sets Authorization header with token and apiKey', t => {
     },
   })
 
-  stelace.stubRequest(`${baseURL}/auth/logout`, {
+  saltana.stubRequest(`${baseURL}/auth/logout`, {
     status: 200,
     method: 'post',
     headers: { 'x-request-id': 'e79a0f16-ebd1-468a-b35d-9ea9f6bcff0d' },
     response: { success: true },
   })
 
-  return stelace.users
+  return saltana.users
     .read('user_1')
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const basic = headers.authorization.match(basicAuthorizationRegex)
 
       t.true(decodeBase64(basic[1]) === `${testApiKey}:`)
 
-      return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+      return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const basic = headers.authorization.match(basicAuthorizationRegex)
 
       t.true(decodeBase64(basic[1]) === `${testApiKey}:`)
 
-      return stelace.users.read('user_1')
+      return saltana.users.read('user_1')
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
 
-      const stelaceSchemeParam1 = stelaceSchemeParamRegex.exec(
+      const saltanaSchemeParam1 = saltanaSchemeParamRegex.exec(
         headers.authorization
       )
-      const stelaceSchemeParam2 = stelaceSchemeParamRegex.exec(
+      const saltanaSchemeParam2 = saltanaSchemeParamRegex.exec(
         headers.authorization
       )
       // Should reset RexExp lastIndex
-      const stelaceSchemeParam3 = stelaceSchemeParamRegex.exec(
+      const saltanaSchemeParam3 = saltanaSchemeParamRegex.exec(
         headers.authorization
       )
 
       t.true(headers.authorization.startsWith('SaltanaCore-V1 '))
       t.true(headers.authorization.includes(',')) // 2 auth-params
       // Checking we have both apiKey and token
-      t.not(stelaceSchemeParam1[1], stelaceSchemeParam2[1])
-      t.not(stelaceSchemeParam1[2], stelaceSchemeParam2[2])
-      t.true(stelaceSchemeParam3 === null)
-      t.true(validateSchemeParam(stelaceSchemeParam1))
-      t.true(validateSchemeParam(stelaceSchemeParam2))
+      t.not(saltanaSchemeParam1[1], saltanaSchemeParam2[1])
+      t.not(saltanaSchemeParam1[2], saltanaSchemeParam2[2])
+      t.true(saltanaSchemeParam3 === null)
+      t.true(validateSchemeParam(saltanaSchemeParam1))
+      t.true(validateSchemeParam(saltanaSchemeParam2))
 
-      return stelace.auth.logout()
+      return saltana.auth.logout()
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
 
-      const stelaceSchemeParam1 = stelaceSchemeParamRegex.exec(
+      const saltanaSchemeParam1 = saltanaSchemeParamRegex.exec(
         headers.authorization
       )
-      const stelaceSchemeParam2 = stelaceSchemeParamRegex.exec(
+      const saltanaSchemeParam2 = saltanaSchemeParamRegex.exec(
         headers.authorization
       )
-      const stelaceSchemeParam3 = stelaceSchemeParamRegex.exec(
+      const saltanaSchemeParam3 = saltanaSchemeParamRegex.exec(
         headers.authorization
       )
 
       t.true(headers.authorization.startsWith('SaltanaCore-V1 '))
       t.true(headers.authorization.includes(',')) // 2 auth-params
       // Checking we have both apiKey and token
-      t.not(stelaceSchemeParam1[1], stelaceSchemeParam2[1])
-      t.not(stelaceSchemeParam1[2], stelaceSchemeParam2[2])
-      t.true(stelaceSchemeParam3 === null)
-      t.true(validateSchemeParam(stelaceSchemeParam1))
-      t.true(validateSchemeParam(stelaceSchemeParam2))
+      t.not(saltanaSchemeParam1[1], saltanaSchemeParam2[1])
+      t.not(saltanaSchemeParam1[2], saltanaSchemeParam2[2])
+      t.true(saltanaSchemeParam3 === null)
+      t.true(validateSchemeParam(saltanaSchemeParam1))
+      t.true(validateSchemeParam(saltanaSchemeParam2))
 
-      return stelace.users.read('user_1')
+      return saltana.users.read('user_1')
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const basic = headers.authorization.match(basicAuthorizationRegex)
 
       t.true(decodeBase64(basic[1]) === `${testApiKey}:`)
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('Does not set Basic Authorization header when apiKey is missing', t => {
-  const stelace = getStelaceStub({ noKey: true })
-  stelace.startStub()
-  const baseURL = stelace.auth.getBaseURL()
+  const saltana = getSaltanaStub({ noKey: true })
+  saltana.startStub()
+  const baseURL = saltana.auth.getBaseURL()
 
-  stelace.stubRequest(`${baseURL}/search`, {
+  saltana.stubRequest(`${baseURL}/search`, {
     status: 200,
     method: 'post',
     headers: { 'x-request-id': 'ca4b0b1f-2c0b-4eed-858e-d76d097615ae' },
@@ -210,28 +210,28 @@ test('Does not set Basic Authorization header when apiKey is missing', t => {
     },
   })
 
-  return stelace.search
+  return saltana.search
     .list({ query: 'test' })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
 
       t.notOk(headers.authorization)
     })
-    .then(stelace.stopStub)
+    .then(saltana.stopStub)
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('Set the API version for a specific request', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  return stelace.categories
+  return saltana.categories
     .list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/categories',
         data: {},
@@ -240,28 +240,28 @@ test('Set the API version for a specific request', t => {
       })
     })
     .then(() => {
-      return stelace.categories.list({ stelaceVersion: '2018-07-30' })
+      return saltana.categories.list({ saltanaVersion: '2018-07-30' })
     })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/categories',
         data: {},
         queryParams: {},
         headers: {
-          'x-stelace-version': '2018-07-30',
+          'x-saltana-version': '2018-07-30',
         },
       })
     })
 })
 
 test('Set the target user for a specific request', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  return stelace.categories
+  return saltana.categories
     .list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/categories',
         data: {},
@@ -270,28 +270,28 @@ test('Set the target user for a specific request', t => {
       })
     })
     .then(() => {
-      return stelace.categories.list({ stelaceUserId: 'user_1' })
+      return saltana.categories.list({ saltanaUserId: 'user_1' })
     })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/categories',
         data: {},
         queryParams: {},
         headers: {
-          'x-stelace-user-id': 'user_1',
+          'x-saltana-user-id': 'user_1',
         },
       })
     })
 })
 
 test('Set the target organization for a specific request', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  return stelace.users
+  return saltana.users
     .list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
@@ -300,30 +300,30 @@ test('Set the target organization for a specific request', t => {
       })
     })
     .then(() => {
-      return stelace.users.list({ stelaceOrganizationId: 'organization_1' })
+      return saltana.users.list({ saltanaOrganizationId: 'organization_1' })
     })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
         queryParams: {},
         headers: {
-          'x-stelace-organization-id': 'organization_1',
+          'x-saltana-organization-id': 'organization_1',
         },
       })
     })
 })
 
 test('Override the global target organization for a specific request', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  stelace.setOrganizationId('organization_1')
+  saltana.setOrganizationId('organization_1')
 
-  return stelace.users
+  return saltana.users
     .list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
@@ -332,30 +332,30 @@ test('Override the global target organization for a specific request', t => {
       })
     })
     .then(() => {
-      return stelace.users.list({ stelaceOrganizationId: 'organization_2' })
+      return saltana.users.list({ saltanaOrganizationId: 'organization_2' })
     })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
         queryParams: {},
         headers: {
-          'x-stelace-organization-id': 'organization_2',
+          'x-saltana-organization-id': 'organization_2',
         },
       })
     })
 })
 
 test('Remove the target organization for a specific request', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
-  stelace.setOrganizationId('organization_1')
+  saltana.setOrganizationId('organization_1')
 
-  return stelace.users
+  return saltana.users
     .list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
@@ -364,23 +364,23 @@ test('Remove the target organization for a specific request', t => {
       })
     })
     .then(() => {
-      return stelace.users.list({ stelaceOrganizationId: null })
+      return saltana.users.list({ saltanaOrganizationId: null })
     })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/users',
         data: {},
         queryParams: {},
         headers: {
-          'x-stelace-organization-id': null, // null value will be removed when sending the requets
+          'x-saltana-organization-id': null, // null value will be removed when sending the requets
         },
       })
     })
 })
 
 test('Sets the token store', t => {
-  const stelace = getSpyableStelace()
+  const saltana = getSpyableSaltana()
 
   const tokenStore = {
     getTokens: function () {},
@@ -388,18 +388,18 @@ test('Sets the token store', t => {
     removeTokens: function () {},
   }
 
-  stelace.setTokenStore(tokenStore)
-  t.is(stelace.getApiField('tokenStore'), tokenStore)
+  saltana.setTokenStore(tokenStore)
+  t.is(saltana.getApiField('tokenStore'), tokenStore)
   t.end()
 })
 
 test('Methods return lastResponse', t => {
-  const stelace = getStelaceStub()
+  const saltana = getSaltanaStub()
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.assets.getBaseURL()
-  stelace.stubRequest(`${baseURL}/assets/asset_1`, {
+  const baseURL = saltana.assets.getBaseURL()
+  saltana.stubRequest(`${baseURL}/assets/asset_1`, {
     status: 200,
     method: 'get',
     headers: {
@@ -408,7 +408,7 @@ test('Methods return lastResponse', t => {
     response: { id: 'asset_1', name: 'Asset 1' },
   })
 
-  return stelace.assets
+  return saltana.assets
     .read('asset_1')
     .then(asset => {
       t.deepEqual(asset, { id: 'asset_1', name: 'Asset 1' })
@@ -417,20 +417,20 @@ test('Methods return lastResponse', t => {
         requestId: 'f1f25173-32a5-48da-aa2f-0079568abea0',
       })
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('Methods return paginationMeta for list endpoints', t => {
-  const stelace = getStelaceStub()
+  const saltana = getSaltanaStub()
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.assets.getBaseURL()
-  stelace.stubRequest(`${baseURL}/assets`, {
+  const baseURL = saltana.assets.getBaseURL()
+  saltana.stubRequest(`${baseURL}/assets`, {
     status: 200,
     method: 'get',
     headers: {
@@ -447,7 +447,7 @@ test('Methods return paginationMeta for list endpoints', t => {
       ],
     },
   })
-  stelace.stubRequest(`${baseURL}/users`, {
+  saltana.stubRequest(`${baseURL}/users`, {
     status: 200,
     method: 'get',
     headers: {
@@ -466,7 +466,7 @@ test('Methods return paginationMeta for list endpoints', t => {
     },
   })
 
-  return stelace.assets
+  return saltana.assets
     .list()
     .then(assets => {
       // offset pagination
@@ -485,7 +485,7 @@ test('Methods return paginationMeta for list endpoints', t => {
         nbResultsPerPage: 10,
       })
 
-      return stelace.users.list()
+      return saltana.users.list()
     })
     .then(users => {
       // cursor pagination
@@ -505,20 +505,20 @@ test('Methods return paginationMeta for list endpoints', t => {
         nbResultsPerPage: 10,
       })
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('Methods return array from list endpoints without pagination', t => {
-  const stelace = getStelaceStub()
+  const saltana = getSaltanaStub()
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.workflows.getBaseURL()
-  stelace.stubRequest(`${baseURL}/workflows`, {
+  const baseURL = saltana.workflows.getBaseURL()
+  saltana.stubRequest(`${baseURL}/workflows`, {
     status: 200,
     method: 'get',
     headers: {
@@ -526,7 +526,7 @@ test('Methods return array from list endpoints without pagination', t => {
     },
     response: [],
   })
-  stelace.stubRequest(`${baseURL}/webhooks`, {
+  saltana.stubRequest(`${baseURL}/webhooks`, {
     status: 200,
     method: 'get',
     headers: {
@@ -538,7 +538,7 @@ test('Methods return array from list endpoints without pagination', t => {
     ],
   })
 
-  return stelace.workflows
+  return saltana.workflows
     .list()
     .then(workflows => {
       t.true(Array.isArray(workflows))
@@ -548,7 +548,7 @@ test('Methods return array from list endpoints without pagination', t => {
         requestId: 'f1f25173-32a5-48da-aa2f-0079568abea0',
       })
 
-      return stelace.webhooks.list()
+      return saltana.webhooks.list()
     })
     .then(webhooks => {
       t.true(Array.isArray(webhooks))
@@ -561,21 +561,21 @@ test('Methods return array from list endpoints without pagination', t => {
         requestId: 'ca4b0b1f-2c0b-4eed-858e-d76d097615ae',
       })
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('Emits an event when the user session has expired', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
-  stelace.startStub()
+  saltana.startStub()
 
   const clock = sinon.useFakeTimers()
 
-  const baseURL = stelace.auth.getBaseURL()
+  const baseURL = saltana.auth.getBaseURL()
   const accessToken = encodeJwtToken({ userId: 'user_1' }, { expiresIn: '1h' })
 
   let called1 = 0
@@ -584,14 +584,14 @@ test('Emits an event when the user session has expired', t => {
   let firstError
   let secondError
 
-  const unsubscribe1 = stelace.onError('userSessionExpired', () => {
+  const unsubscribe1 = saltana.onError('userSessionExpired', () => {
     called1 += 1
   })
-  stelace.onError('userSessionExpired', () => {
+  saltana.onError('userSessionExpired', () => {
     called2 += 1
   })
 
-  stelace.stubRequest(`${baseURL}/auth/token`, {
+  saltana.stubRequest(`${baseURL}/auth/token`, {
     status: 403,
     method: 'post',
     headers: {
@@ -602,7 +602,7 @@ test('Emits an event when the user session has expired', t => {
     },
   })
 
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: { 'x-request-id': 'f1f25173-32a5-48da-aa2f-0079568abea0' },
@@ -614,7 +614,7 @@ test('Emits an event when the user session has expired', t => {
     },
   })
 
-  stelace.stubRequest(`${baseURL}/assets`, {
+  saltana.stubRequest(`${baseURL}/assets`, {
     status: 200,
     method: 'get',
     headers: { 'x-request-id': 'ca4b0b1f-2c0b-4eed-858e-d76d097615ae' },
@@ -627,15 +627,15 @@ test('Emits an event when the user session has expired', t => {
     },
   })
 
-  return stelace.auth
+  return saltana.auth
     .login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
       clock.tick(1000)
-      return stelace.assets.list()
+      return saltana.assets.list()
     })
     .then(() => {
       clock.tick(3600 * 1000)
-      return stelace.assets.list().catch(err => {
+      return saltana.assets.list().catch(err => {
         firstError = err
       })
     })
@@ -643,10 +643,10 @@ test('Emits an event when the user session has expired', t => {
       unsubscribe1()
 
       // recreate the authentication tokens
-      return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+      return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     })
     .then(() => {
-      return stelace.assets.list().catch(err => {
+      return saltana.assets.list().catch(err => {
         secondError = err
       })
     })
@@ -657,10 +657,10 @@ test('Emits an event when the user session has expired', t => {
       t.is(called1, 1)
       t.is(called2, 2)
 
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
 
-      const tokenStore = stelace.getTokenStore()
+      const tokenStore = saltana.getTokenStore()
       tokenStore.removeTokens() // clear tokens for other tests
     })
 })

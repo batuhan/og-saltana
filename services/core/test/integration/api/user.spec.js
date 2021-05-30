@@ -33,7 +33,7 @@ test('checks if the username is available', async (t) => {
     .get('/users/check-availability?username=admin')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(200)
 
@@ -45,7 +45,7 @@ test('checks if the username is available', async (t) => {
     .get('/users/check-availability?username=noone')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(200)
 
@@ -280,7 +280,7 @@ test('creates a user', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: _.uniqueId('randomUser'),
@@ -307,7 +307,7 @@ test('cannot use a existing username to create a user', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'admin',
@@ -352,7 +352,7 @@ test('creates a user with roles if the roles are in whitelist', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         roles: {
           default: ['provider']
         }
@@ -366,7 +366,7 @@ test('creates a user with roles if the roles are in whitelist', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username,
@@ -381,7 +381,7 @@ test('creates a user with roles if the roles are in whitelist', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username,
@@ -398,7 +398,7 @@ test('creates a user with the config default roles', async (t) => {
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         roles: {
           default: ['provider']
         }
@@ -409,7 +409,7 @@ test('creates a user with the config default roles', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: _.uniqueId('randomUser'),
@@ -425,7 +425,7 @@ test('cannot create a user with roles if missing config permission', async (t) =
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: _.uniqueId('randomUser'),
@@ -565,7 +565,7 @@ test('creates a child organization', async (t) => {
   const { body: organization } = await request(t.context.serverUrl)
     .post('/users')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
+      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
     }))
     .send({
       type: 'organization',
@@ -589,7 +589,7 @@ test('cannot create a child organization if the current user does not belong to 
   await request(t.context.serverUrl)
     .post('/users')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
+      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
     }))
     .send({
       type: 'organization',
@@ -615,7 +615,7 @@ test('cannot create a child organization if providing an invalid parent organiza
   const { body: error } = await request(t.context.serverUrl)
     .post('/users')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': parentOrgId
+      'x-saltana-organization-id': parentOrgId
     }))
     .send({
       type: 'organization',
@@ -643,7 +643,7 @@ test('cannot update a child organization rights in parent org or join other orga
   const { body: error } = await request(t.context.serverUrl)
     .put(`/users/${childOrgId}/organizations/${parentOrgId}`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': childOrgId
+      'x-saltana-organization-id': childOrgId
     }))
     .send({ roles: ['user'] })
     .expect(403)
@@ -674,7 +674,7 @@ test('creates an organization if the user belongs to an ancestor organization', 
   const { body: organization } = await request(t.context.serverUrl)
     .post('/users')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_toMLWis1EpB1gwNcfEpB'
+      'x-saltana-organization-id': 'org_toMLWis1EpB1gwNcfEpB'
     }))
     .send({
       type: 'organization',
@@ -701,7 +701,7 @@ test('cannot create an organization that references a parent organization if the
   await request(t.context.serverUrl)
     .post('/users')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_yiBSnhs1zaP1hh8rczaP'
+      'x-saltana-organization-id': 'org_yiBSnhs1zaP1hh8rczaP'
     }))
     .send({
       type: 'organization',
@@ -848,7 +848,7 @@ test('cannot update a user with new roles if "user:config:all" permission is mis
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       roles: ['dev']
@@ -910,7 +910,7 @@ test('updates an organization if the user is a member', async (t) => {
   const { body: organization } = await request(t.context.serverUrl)
     .patch('/users/org_xC3ZlGs1Jo71gb2G0Jo7')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
+      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
     }))
     .send({
       firstname: 'Firstname',
@@ -956,7 +956,7 @@ test('transfers organization ownership as an owner', async (t) => {
   const { body: organization } = await request(t.context.serverUrl)
     .get(`/users/${organizationId}`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': organizationId
+      'x-saltana-organization-id': organizationId
     }))
     .expect(200)
 
@@ -966,7 +966,7 @@ test('transfers organization ownership as an owner', async (t) => {
     .patch(`/users/${organizationId}`)
     .set(Object.assign({}, authorizationHeaders, {
       // Impersonating org lets us edit the org without 'user:edit:all' permission
-      'x-stelace-organization-id': organizationId
+      'x-saltana-organization-id': organizationId
     }))
     .send({ orgOwnerId: newOwnerId })
     .expect(200)
@@ -987,7 +987,7 @@ test('transfers organization ownership as an owner', async (t) => {
   await request(t.context.serverUrl)
     .patch(`/users/${organizationId}`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': organizationId
+      'x-saltana-organization-id': organizationId
     }))
     .send({ orgOwnerId: userId })
     .expect(403) // Does not work since userId of authorizationHeaders is not owner anymore
@@ -1044,7 +1044,7 @@ test('transfers organization ownership as an owner', async (t) => {
   t.deepEqual(secondOwnerRolesAfterTransfers, secondOwnerRolesAfterTransfer1)
 })
 
-test('cannot update an organization as a plain user without x-stelace-organization-id header', async (t) => {
+test('cannot update an organization as a plain user without x-saltana-organization-id header', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['user:edit'],
@@ -1062,7 +1062,7 @@ test('cannot update an organization as a plain user without x-stelace-organizati
   const { body: updated1 } = await request(t.context.serverUrl)
     .patch(`/users/${organizationId}`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': organizationId
+      'x-saltana-organization-id': organizationId
     }))
     .send({ metadata: { comment } })
     .expect(200)
@@ -1116,7 +1116,7 @@ test('updates a user’s rights in organization with API key', async (t) => {
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       roles: ['user', 'provider']
@@ -1213,7 +1213,7 @@ test('removes a user', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'userToRemove',
@@ -1290,7 +1290,7 @@ test('removes an organization', async (t) => {
   const { body: payload } = await request(t.context.serverUrl)
     .delete('/users/org_4YsuuQe1X0h1hznSoX0g')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_4YsuuQe1X0h1hznSoX0g'
+      'x-saltana-organization-id': 'org_4YsuuQe1X0h1hznSoX0g'
     }))
     .expect(200)
 
@@ -1353,7 +1353,7 @@ test('removing an organization automatically makes members leave the org', async
   await request(t.context.serverUrl)
     .delete(`/users/${organizationId}`)
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': organizationId
+      'x-saltana-organization-id': organizationId
     }))
     .expect(200)
 
@@ -1391,7 +1391,7 @@ test('removing an organization automatically makes members leave the org', async
       event: userOrgLeftEvent,
       relatedObjectsIds: { organizationId: organizationId },
       object: userUpdatedAfterLeavingOrg,
-      metadata: { stelaceComment: 'Organization deleted' },
+      metadata: { saltanaComment: 'Organization deleted' },
       t
     })
   }
@@ -1409,9 +1409,9 @@ test('cannot remove an organization if it is the parent of other organizations',
   await request(t.context.serverUrl)
     .delete('/users/org_toMLWis1EpB1gwNcfEpB')
     .set(Object.assign({}, authorizationHeaders, {
-      'x-stelace-organization-id': 'org_toMLWis1EpB1gwNcfEpB'
+      'x-saltana-organization-id': 'org_toMLWis1EpB1gwNcfEpB'
     }))
-    .expect(403) // 'x-stelace-organization-id' overwrites 'user:remove:all' with org permissions
+    .expect(403) // 'x-saltana-organization-id' overwrites 'user:remove:all' with org permissions
 
   await request(t.context.serverUrl)
     .delete('/users/org_toMLWis1EpB1gwNcfEpB')
@@ -1434,7 +1434,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1446,7 +1446,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1460,7 +1460,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: true,
@@ -1502,7 +1502,7 @@ test('fails to update a user if missing or invalid parameters', async (t) => {
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1514,7 +1514,7 @@ test('fails to update a user if missing or invalid parameters', async (t) => {
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: true,
@@ -1547,7 +1547,7 @@ test('fails to change organization config if missing or invalid parameters', asy
     .put('/users/usr_WHlfQps1I3a1gJYz2I3a/organizations/org_xC3ZlGs1Jo71gb2G0Jo7')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1559,7 +1559,7 @@ test('fails to change organization config if missing or invalid parameters', asy
     .put('/users/usr_WHlfQps1I3a1gJYz2I3a/organizations/org_xC3ZlGs1Jo71gb2G0Jo7')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       roles: true
@@ -1737,7 +1737,7 @@ test.serial('generates user__* events', async (t) => {
 
   await request(t.context.serverUrl)
     .put(`/users/${userId}/organizations/${organization.id}`)
-    .set(Object.assign({}, authorizationHeaders2, { 'x-stelace-organization-id': organization.id }))
+    .set(Object.assign({}, authorizationHeaders2, { 'x-saltana-organization-id': organization.id }))
     .send({ roles: ['dev', 'user'] })
     .expect(200)
 
@@ -1770,7 +1770,7 @@ test.serial('generates user__* events', async (t) => {
 
   await request(t.context.serverUrl)
     .delete(`/users/${organization.id}`)
-    .set(Object.assign({}, authorizationHeaders2, { 'x-stelace-organization-id': organization.id }))
+    .set(Object.assign({}, authorizationHeaders2, { 'x-saltana-organization-id': organization.id }))
     .expect(200)
 
   await new Promise(resolve => setTimeout(resolve, 300))

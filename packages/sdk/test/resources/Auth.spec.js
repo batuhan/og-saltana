@@ -1,14 +1,14 @@
 import test from 'blue-tape'
 import sinon from 'sinon'
 
-import { getSpyableStelace, getStelaceStub, encodeJwtToken } from '../../testUtils'
+import { getSpyableSaltana, getSaltanaStub, encodeJwtToken } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('login: sends the correct request', (t) => {
-  return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+  return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/auth/login',
         data: { username: 'foo', password: 'secretPassword' },
@@ -19,9 +19,9 @@ test('login: sends the correct request', (t) => {
 })
 
 test('logout: sends the correct request', (t) => {
-  return stelace.auth.logout()
+  return saltana.auth.logout()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/auth/logout',
         data: {},
@@ -32,9 +32,9 @@ test('logout: sends the correct request', (t) => {
 })
 
 test('Stores authentication tokens after login', (t) => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
-  stelace.startStub()
+  saltana.startStub()
 
   const response = {
     tokenType: 'Bearer',
@@ -43,8 +43,8 @@ test('Stores authentication tokens after login', (t) => {
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
   }
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
@@ -53,27 +53,27 @@ test('Stores authentication tokens after login', (t) => {
     response
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
 
   t.notOk(tokenStore.getTokens())
 
-  return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+  return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.is(tokens.accessToken, response.accessToken)
       t.is(tokens.refreshToken, response.refreshToken)
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('Removes authentication tokens after logout', (t) => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
-  stelace.startStub()
+  saltana.startStub()
 
   const response = {
     tokenType: 'Bearer',
@@ -82,8 +82,8 @@ test('Removes authentication tokens after logout', (t) => {
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
   }
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
@@ -91,7 +91,7 @@ test('Removes authentication tokens after logout', (t) => {
     },
     response
   })
-  stelace.stubRequest(`${baseURL}/auth/logout`, {
+  saltana.stubRequest(`${baseURL}/auth/logout`, {
     status: 200,
     method: 'post',
     headers: {
@@ -100,25 +100,25 @@ test('Removes authentication tokens after logout', (t) => {
     response: { success: true }
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
 
   t.notOk(tokenStore.getTokens())
 
-  return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+  return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.is(tokens.accessToken, response.accessToken)
       t.is(tokens.refreshToken, response.refreshToken)
 
-      return stelace.auth.logout()
+      return saltana.auth.logout()
     })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.notOk(tokens)
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
@@ -126,7 +126,7 @@ test('Removes authentication tokens after logout', (t) => {
 test('Refreshes authentication tokens when access token is expired', (t) => {
   const clock = sinon.useFakeTimers()
 
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
   const loginResponse = {
     tokenType: 'Bearer',
@@ -140,10 +140,10 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
     accessToken: encodeJwtToken({ userId: 'user_1', num: 2 }, { expiresIn: '1h' })
   }
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
@@ -151,7 +151,7 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
     },
     response: loginResponse
   })
-  stelace.stubRequest(`${baseURL}/auth/token`, {
+  saltana.stubRequest(`${baseURL}/auth/token`, {
     status: 200,
     method: 'post',
     headers: {
@@ -159,7 +159,7 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
     },
     response: refreshTokenResponse
   })
-  stelace.stubRequest(`${baseURL}/assets/asset_1`, {
+  saltana.stubRequest(`${baseURL}/assets/asset_1`, {
     status: 200,
     method: 'get',
     headers: {
@@ -171,12 +171,12 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
     }
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
 
   t.notOk(tokenStore.getTokens())
 
   const isTokenRefreshed = (refreshed) => {
-    return stelace.assets.read('asset_1')
+    return saltana.assets.read('asset_1')
       .then(() => {
         const tokens = tokenStore.getTokens()
         t.is(tokens.refreshToken, loginResponse.refreshToken)
@@ -189,7 +189,7 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
       })
   }
 
-  return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+  return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.is(tokens.accessToken, loginResponse.accessToken)
@@ -205,11 +205,11 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
       return isTokenRefreshed(true)
     })
     .then(() => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
     })
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
       throw err
     })
@@ -218,17 +218,17 @@ test('Refreshes authentication tokens when access token is expired', (t) => {
 test('Do not need to refresh authentication token if using secret API key', (t) => {
   const clock = sinon.useFakeTimers()
 
-  const stelace = getStelaceStub({ keyType: 'seck' })
+  const saltana = getSaltanaStub({ keyType: 'seck' })
 
-  stelace.startStub()
+  saltana.startStub()
 
   const tokensToStore = {
     accessToken: encodeJwtToken({ userId: 'user_1' }, { expiresIn: '1h' }),
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
   }
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/assets/asset_1`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/assets/asset_1`, {
     status: 200,
     method: 'get',
     headers: {
@@ -240,13 +240,13 @@ test('Do not need to refresh authentication token if using secret API key', (t) 
     }
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
   tokenStore.setTokens(tokensToStore)
 
   t.deepEqual(tokenStore.getTokens(), tokensToStore)
 
   const checkTokenNotRefreshed = () => {
-    return stelace.assets.read('asset_1')
+    return saltana.assets.read('asset_1')
       .then(() => {
         const tokens = tokenStore.getTokens()
         t.is(tokens.refreshToken, tokensToStore.refreshToken)
@@ -265,11 +265,11 @@ test('Do not need to refresh authentication token if using secret API key', (t) 
       return checkTokenNotRefreshed()
     })
     .then(() => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
     })
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
       throw err
     })
@@ -278,7 +278,7 @@ test('Do not need to refresh authentication token if using secret API key', (t) 
 test('Calls the callback function `beforeRefreshToken` before token expiration', (t) => {
   const clock = sinon.useFakeTimers()
 
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
   let beforeRefreshTokenCalled = false
 
@@ -291,7 +291,7 @@ test('Calls the callback function `beforeRefreshToken` before token expiration',
     cb(null, tokens)
   }
 
-  stelace.setBeforeRefreshToken(beforeRefreshToken)
+  saltana.setBeforeRefreshToken(beforeRefreshToken)
 
   const loginResponse = {
     tokenType: 'Bearer',
@@ -300,10 +300,10 @@ test('Calls the callback function `beforeRefreshToken` before token expiration',
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
   }
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
@@ -311,7 +311,7 @@ test('Calls the callback function `beforeRefreshToken` before token expiration',
     },
     response: loginResponse
   })
-  stelace.stubRequest(`${baseURL}/assets/asset_1`, {
+  saltana.stubRequest(`${baseURL}/assets/asset_1`, {
     status: 200,
     method: 'get',
     headers: {
@@ -323,16 +323,16 @@ test('Calls the callback function `beforeRefreshToken` before token expiration',
     }
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
 
   const isBeforeRefreshTokenCalled = (called) => {
-    return stelace.assets.read('asset_1')
+    return saltana.assets.read('asset_1')
       .then(() => {
         t.is(called, beforeRefreshTokenCalled)
       })
   }
 
-  return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+  return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.is(tokens.accessToken, loginResponse.accessToken)
@@ -350,11 +350,11 @@ test('Calls the callback function `beforeRefreshToken` before token expiration',
       return isBeforeRefreshTokenCalled(true)
     })
     .then(() => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
     })
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
       throw err
     })
@@ -363,7 +363,7 @@ test('Calls the callback function `beforeRefreshToken` before token expiration',
 test('Calls the promise `beforeRefreshToken` before token expiration', (t) => {
   const clock = sinon.useFakeTimers()
 
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
   let beforeRefreshTokenCalled = false
 
@@ -379,7 +379,7 @@ test('Calls the promise `beforeRefreshToken` before token expiration', (t) => {
       })
   }
 
-  stelace.setBeforeRefreshToken(beforeRefreshToken)
+  saltana.setBeforeRefreshToken(beforeRefreshToken)
 
   const loginResponse = {
     tokenType: 'Bearer',
@@ -388,10 +388,10 @@ test('Calls the promise `beforeRefreshToken` before token expiration', (t) => {
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
   }
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
@@ -399,7 +399,7 @@ test('Calls the promise `beforeRefreshToken` before token expiration', (t) => {
     },
     response: loginResponse
   })
-  stelace.stubRequest(`${baseURL}/assets/asset_1`, {
+  saltana.stubRequest(`${baseURL}/assets/asset_1`, {
     status: 200,
     method: 'get',
     headers: {
@@ -411,16 +411,16 @@ test('Calls the promise `beforeRefreshToken` before token expiration', (t) => {
     }
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
 
   const isBeforeRefreshTokenCalled = (called) => {
-    return stelace.assets.read('asset_1')
+    return saltana.assets.read('asset_1')
       .then(() => {
         t.is(called, beforeRefreshTokenCalled)
       })
   }
 
-  return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+  return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.is(tokens.accessToken, loginResponse.accessToken)
@@ -438,20 +438,20 @@ test('Calls the promise `beforeRefreshToken` before token expiration', (t) => {
       return isBeforeRefreshTokenCalled(true)
     })
     .then(() => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
     })
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       clock.restore()
       throw err
     })
 })
 
 test('Stores authentication tokens after getting token', (t) => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
-  stelace.startStub()
+  saltana.startStub()
 
   const response = {
     tokenType: 'Bearer',
@@ -460,8 +460,8 @@ test('Stores authentication tokens after getting token', (t) => {
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4'
   }
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/token`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/token`, {
     status: 200,
     method: 'post',
     headers: {
@@ -470,30 +470,30 @@ test('Stores authentication tokens after getting token', (t) => {
     response
   })
 
-  const tokenStore = stelace.getApiField('tokenStore')
+  const tokenStore = saltana.getApiField('tokenStore')
 
   t.notOk(tokenStore.getTokens())
 
-  return stelace.auth.getTokens({ grantType: 'authorizationCode', code: 'some_code' })
+  return saltana.auth.getTokens({ grantType: 'authorizationCode', code: 'some_code' })
     .then(() => {
       const tokens = tokenStore.getTokens()
       t.is(tokens.accessToken, response.accessToken)
       t.is(tokens.refreshToken, response.refreshToken)
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })
 
 test('check: sends the correct request', (t) => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
 
-  stelace.startStub()
+  saltana.startStub()
 
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/auth/check`, {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/auth/check`, {
     status: 200,
     method: 'post',
     headers: {
@@ -510,19 +510,19 @@ test('check: sends the correct request', (t) => {
   const apiKey = 'apiKey_1'
   const authorization = 'some_authorization'
 
-  return stelace.auth.check()
+  return saltana.auth.check()
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const data = request.config.data
 
       t.true(headers.authorization.startsWith('Basic'))
       t.is(typeof data, 'undefined')
 
-      return stelace.auth.check({ apiKey })
+      return saltana.auth.check({ apiKey })
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const data = JSON.parse(request.config.data)
 
@@ -530,10 +530,10 @@ test('check: sends the correct request', (t) => {
       t.is(data.apiKey, apiKey)
       t.is(typeof data.authorization, 'undefined')
 
-      return stelace.auth.check({ authorization })
+      return saltana.auth.check({ authorization })
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const data = JSON.parse(request.config.data)
 
@@ -541,10 +541,10 @@ test('check: sends the correct request', (t) => {
       t.is(typeof data.apiKey, 'undefined')
       t.is(data.authorization, authorization)
 
-      return stelace.auth.check({ apiKey, authorization })
+      return saltana.auth.check({ apiKey, authorization })
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
       const data = JSON.parse(request.config.data)
 
@@ -552,9 +552,9 @@ test('check: sends the correct request', (t) => {
       t.is(data.apiKey, apiKey)
       t.is(data.authorization, authorization)
     })
-    .then(() => stelace.stopStub())
+    .then(() => saltana.stopStub())
     .catch(err => {
-      stelace.stopStub()
+      saltana.stopStub()
       throw err
     })
 })

@@ -1,5 +1,5 @@
 module.exports = {
-  name: 'stelace-search-filter-dsl-parser',
+  name: 'saltana-search-filter-dsl-parser',
   version: '0.1.0',
 
   // semver range expected (https://github.com/npm/node-semver)

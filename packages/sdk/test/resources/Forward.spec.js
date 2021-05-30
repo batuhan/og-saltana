@@ -1,10 +1,10 @@
 import test from 'blue-tape'
 
-import { getStelaceStub, encodeJwtToken } from '../../testUtils'
+import { getSaltanaStub, encodeJwtToken } from '../../testUtils'
 
-function initStubbedRequests (stelace) {
-  const baseURL = stelace.auth.getBaseURL()
-  stelace.stubRequest(`${baseURL}/relative/url`, {
+function initStubbedRequests (saltana) {
+  const baseURL = saltana.auth.getBaseURL()
+  saltana.stubRequest(`${baseURL}/relative/url`, {
     status: 200,
     method: 'any',
     response: {
@@ -12,7 +12,7 @@ function initStubbedRequests (stelace) {
     },
   })
 
-  stelace.stubRequest('https://absolute-url.com/with/path', {
+  saltana.stubRequest('https://absolute-url.com/with/path', {
     status: 200,
     method: 'any',
     response: {
@@ -27,7 +27,7 @@ function initStubbedRequests (stelace) {
     refreshToken: '39ac0373-e457-4f7a-970f-20dc7d97e0d4',
   }
 
-  stelace.stubRequest(`${baseURL}/auth/login`, {
+  saltana.stubRequest(`${baseURL}/auth/login`, {
     status: 200,
     method: 'post',
     headers: {
@@ -37,20 +37,20 @@ function initStubbedRequests (stelace) {
   })
 }
 
-function checkForwardResponse ({ t, stelace, method, data }) {
+function checkForwardResponse ({ t, saltana, method, data }) {
   const promiseFn = (url, data) => {
     const mapMethods = {
       delete: 'del',
     }
 
     const m = mapMethods[method] || method
-    if (data) return stelace.forward[m](url, data)
-    else return stelace.forward[m](url)
+    if (data) return saltana.forward[m](url, data)
+    else return saltana.forward[m](url)
   }
 
   return promiseFn('/relative/url', data)
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
 
       t.is(request.config.method, method)
@@ -64,7 +64,7 @@ function checkForwardResponse ({ t, stelace, method, data }) {
       return promiseFn('https://absolute-url.com/with/path', data)
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
 
       t.is(request.config.method, method)
@@ -75,13 +75,13 @@ function checkForwardResponse ({ t, stelace, method, data }) {
       else t.is(request.config.data, data)
     })
     .then(() => {
-      return stelace.auth.login({ username: 'foo', password: 'secretPassword' })
+      return saltana.auth.login({ username: 'foo', password: 'secretPassword' })
     })
     .then(() => {
       return promiseFn('https://absolute-url.com/with/path', data)
     })
     .then(() => {
-      const request = stelace.getLastRequest()
+      const request = saltana.getLastRequest()
       const headers = request.config.headers
 
       t.is(request.config.method, method)
@@ -94,64 +94,64 @@ function checkForwardResponse ({ t, stelace, method, data }) {
 }
 
 test('get: sends the correct request', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
 
-  initStubbedRequests(stelace)
-  return checkForwardResponse({ t, stelace, method: 'get' })
+  initStubbedRequests(saltana)
+  return checkForwardResponse({ t, saltana, method: 'get' })
 })
 
 test('post: sends the correct request', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
 
-  initStubbedRequests(stelace)
+  initStubbedRequests(saltana)
   return checkForwardResponse({
     t,
-    stelace,
+    saltana,
     method: 'post',
     data: { boolean: true, string: 'test' },
   })
 })
 
 test('put: sends the correct request', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
 
-  initStubbedRequests(stelace)
+  initStubbedRequests(saltana)
   return checkForwardResponse({
     t,
-    stelace,
+    saltana,
     method: 'put',
     data: { boolean: true, string: 'test' },
   })
 })
 
 test('patch: sends the correct request', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
 
-  initStubbedRequests(stelace)
+  initStubbedRequests(saltana)
   return checkForwardResponse({
     t,
-    stelace,
+    saltana,
     method: 'patch',
     data: { boolean: true, string: 'test' },
   })
 })
 
 test('del: sends the correct request', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
 
-  initStubbedRequests(stelace)
-  return checkForwardResponse({ t, stelace, method: 'delete' })
+  initStubbedRequests(saltana)
+  return checkForwardResponse({ t, saltana, method: 'delete' })
 })
 
 test('options: sends the correct request', t => {
-  const stelace = getStelaceStub({ keyType: 'pubk' })
-  stelace.startStub()
+  const saltana = getSaltanaStub({ keyType: 'pubk' })
+  saltana.startStub()
 
-  initStubbedRequests(stelace)
-  return checkForwardResponse({ t, stelace, method: 'options' })
+  initStubbedRequests(saltana)
+  return checkForwardResponse({ t, saltana, method: 'options' })
 })

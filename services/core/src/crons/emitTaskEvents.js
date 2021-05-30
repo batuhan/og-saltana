@@ -7,10 +7,10 @@ const { logError } = require('../../server/logger')
 
 const {
   getRedisClient,
-  getAllStelaceTasks,
+  getAllSaltanaTasks,
 
-  didStelaceTaskExecute,
-  addStelaceTaskExecutionDate
+  didSaltanaTaskExecute,
+  addSaltanaTaskExecutionDate
 } = require('../redis')
 
 const {
@@ -46,7 +46,7 @@ async function emitTaskEvents () {
     // use ref date because cron job cannot trigger at the specified time (with 0 millisecond)
     const refDate = getRoundedDate(new Date(), { nbMinutes })
 
-    const taskConfigs = await getAllStelaceTasks()
+    const taskConfigs = await getAllSaltanaTasks()
 
     const filteredTaskConfigs = filterTasks(taskConfigs, refDate, nbMinutes)
 
@@ -65,13 +65,13 @@ async function emitTaskEvents () {
       try {
         // use redlock to ensure the cron process is handled only by one server at a time
         // even within a distributed system
-        const lockResource = `locks:stelace_tasks:${task.id}_${refDate}`
+        const lockResource = `locks:saltana_tasks:${task.id}_${refDate}`
         const lock = await redlock.lock(lockResource, lockTtl)
 
-        const alreadyExecuted = await didStelaceTaskExecute({ taskId: task.id, executionDate: refDate })
+        const alreadyExecuted = await didSaltanaTaskExecute({ taskId: task.id, executionDate: refDate })
 
         if (!alreadyExecuted) {
-          await addStelaceTaskExecutionDate({ taskId: task.id, executionDate: refDate })
+          await addSaltanaTaskExecutionDate({ taskId: task.id, executionDate: refDate })
           await emitTaskEvent({ platformId, env, task })
         }
 
@@ -85,7 +85,7 @@ async function emitTaskEvents () {
       }
     }
   } catch (err) {
-    logError(err, { message: 'Fail to load Stelace tasks' })
+    logError(err, { message: 'Fail to load Saltana tasks' })
   } finally {
     fetchEventsTransaction && fetchEventsTransaction.end()
   }

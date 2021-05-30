@@ -1,15 +1,15 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('preview: sends the correct request', (t) => {
   const data = { transactionIds: ['transaction_1', 'transaction_2'] }
 
-  return stelace.orders.preview(data)
+  return saltana.orders.preview(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/orders/preview',
         data,
@@ -20,9 +20,9 @@ test('preview: sends the correct request', (t) => {
 })
 
 test('list: sends the correct request', (t) => {
-  return stelace.orders.list({ page: 2, nbResultsPerPage: 10 })
+  return saltana.orders.list({ page: 2, nbResultsPerPage: 10 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/orders',
         data: {},
@@ -33,9 +33,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.orders.read('order_1')
+  return saltana.orders.read('order_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/orders/order_1',
         data: {},
@@ -48,9 +48,9 @@ test('read: sends the correct request', (t) => {
 test('create: sends the correct request', (t) => {
   const data = { transactionIds: ['transaction_1', 'transaction_2'] }
 
-  return stelace.orders.create(data)
+  return saltana.orders.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/orders',
         data,
@@ -63,9 +63,9 @@ test('create: sends the correct request', (t) => {
 test('update: sends the correct request', (t) => {
   const data = { metadata: { someVar: true } }
 
-  return stelace.orders.update('order_1', data)
+  return saltana.orders.update('order_1', data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/orders/order_1',
         data: data,

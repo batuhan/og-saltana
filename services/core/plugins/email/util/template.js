@@ -46,9 +46,9 @@ const generalTemplateFields = [
   'style__color_calltoaction',
   'branding__block',
   'branding',
-  'stelace_logo__url',
-  'stelace_logo__alt',
-  'stelace_website__img_url'
+  'saltana_logo__url',
+  'saltana_logo__alt',
+  'saltana_website__img_url'
 ]
 
 function getTemplateHtmlContent (name) {

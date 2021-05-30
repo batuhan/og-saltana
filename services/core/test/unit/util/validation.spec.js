@@ -12,7 +12,7 @@ const {
   getObjectId,
   getRandomPlatformId,
   objectIdLength
-} = require('stelace-util-keys')
+} = require('saltana-util-keys')
 
 test('checks UUID is valid', (t) => {
   for (let i = 0; i < 1000; i++) {

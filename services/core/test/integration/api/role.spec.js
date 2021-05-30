@@ -204,7 +204,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
     .post('/roles')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -216,7 +216,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
     .post('/roles')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -230,7 +230,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
     .post('/roles')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -262,7 +262,7 @@ test('fails to update a role if missing or invalid parameters', async (t) => {
     .patch('/roles/role_2tem1s1CSC1gTgJYCSC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -274,7 +274,7 @@ test('fails to update a role if missing or invalid parameters', async (t) => {
     .patch('/roles/role_2tem1s1CSC1gTgJYCSC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,

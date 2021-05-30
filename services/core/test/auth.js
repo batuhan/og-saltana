@@ -24,12 +24,12 @@ async function getAccessTokenHeaders ({
     authorization: `Bearer ${accessToken}`,
     // TODO: use an API key instead of these special headers
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
   }
 
-  // allows to skip `x-stelace-version` header in individual requests
+  // allows to skip `x-saltana-version` header in individual requests
   if (apiVersion) {
-    headers['x-stelace-version'] = apiVersion
+    headers['x-saltana-version'] = apiVersion
   }
 
   return headers
@@ -59,7 +59,7 @@ async function refreshAccessToken (refreshToken, { status = 200, userAgent, requ
     .post('/auth/token')
     .set('user-agent', userAgent || 'node-superagent/3.8.3')
     .set('x-platform-id', t.context.platformId)
-    .set('x-stelace-env', t.context.env)
+    .set('x-saltana-env', t.context.env)
     .send({
       grantType: 'refreshToken',
       refreshToken
@@ -88,7 +88,7 @@ async function getApiKey ({
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': env || t.context.env
+      'x-saltana-env': env || t.context.env
     })
     .send({ name, type, roles, permissions })
     .expect(200)

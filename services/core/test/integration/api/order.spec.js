@@ -706,7 +706,7 @@ test('simulates a payment process based on a shopping cart', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'user',
@@ -716,7 +716,7 @@ test('simulates a payment process based on a shopping cart', async (t) => {
 
   const userHeaders = {
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
     authorization: `${loginObject.tokenType} ${loginObject.accessToken}`
   }
 
@@ -905,7 +905,7 @@ test('fails to create an order if missing or invalid parameters', async (t) => {
     .post('/orders')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -917,7 +917,7 @@ test('fails to create an order if missing or invalid parameters', async (t) => {
     .post('/orders')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       transactionIds: true,
@@ -945,7 +945,7 @@ test('fails to update an order if missing or invalid parameters', async (t) => {
     .patch('/orders/ord_eP0hwes1jwf1gxMLCjwf')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -957,7 +957,7 @@ test('fails to update an order if missing or invalid parameters', async (t) => {
     .patch('/orders/ord_eP0hwes1jwf1gxMLCjwf')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       metadata: true,
@@ -979,7 +979,7 @@ test('fails to create an order line if missing or invalid parameters', async (t)
     .post('/order-lines')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -991,7 +991,7 @@ test('fails to create an order line if missing or invalid parameters', async (t)
     .post('/order-lines')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1004,7 +1004,7 @@ test('fails to create an order line if missing or invalid parameters', async (t)
     .post('/order-lines')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       orderId: true,
@@ -1044,7 +1044,7 @@ test('fails to update an order line if missing or invalid parameters', async (t)
     .patch('/order-lines/ordl_BPlQws16p51gKm3w6p5')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1056,7 +1056,7 @@ test('fails to update an order line if missing or invalid parameters', async (t)
     .patch('/order-lines/ordl_BPlQws16p51gKm3w6p5')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       metadata: true,
@@ -1078,7 +1078,7 @@ test('fails to create an order move if missing or invalid parameters', async (t)
     .post('/order-moves')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1090,7 +1090,7 @@ test('fails to create an order move if missing or invalid parameters', async (t)
     .post('/order-moves')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -1103,7 +1103,7 @@ test('fails to create an order move if missing or invalid parameters', async (t)
     .post('/order-moves')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       orderId: true,
@@ -1145,7 +1145,7 @@ test('fails to update an order move if missing or invalid parameters', async (t)
     .patch('/order-moves/ordm_yJLKVs101Q1gDyYe01Q')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -1157,7 +1157,7 @@ test('fails to update an order move if missing or invalid parameters', async (t)
     .patch('/order-moves/ordm_yJLKVs101Q1gDyYe01Q')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       real: true,

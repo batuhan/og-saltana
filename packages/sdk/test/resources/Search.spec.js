@@ -1,8 +1,8 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('results: sends the correct request', (t) => {
   const data = {
@@ -15,9 +15,9 @@ test('results: sends the correct request', (t) => {
     }
   }
 
-  return stelace.search.results(data)
+  return saltana.search.results(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/search',
         data,
@@ -39,9 +39,9 @@ test('results: automatically set save to false if it is true', (t) => {
     save: true
   }
 
-  return stelace.search.results(data)
+  return saltana.search.results(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/search',
         data: Object.assign({}, data, { save: false }), // automatically set `save` to false
@@ -62,9 +62,9 @@ test('[DEPRECATED] list (alias of results): sends the correct request', (t) => {
     }
   }
 
-  return stelace.search.list(data)
+  return saltana.search.list(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/search',
         data,

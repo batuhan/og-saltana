@@ -209,7 +209,7 @@ test('creates and updates a workflow', async (t) => {
   t.is(workflowUpdated.apiVersion, '2019-05-20')
 })
 
-test('creates several single-step Stelace workflows', async (t) => {
+test('creates several single-step Saltana workflows', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: [
@@ -304,10 +304,10 @@ test('creates several single-step Stelace workflows', async (t) => {
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      name: 'Asset triggering Stelace Workflow',
+      name: 'Asset triggering Saltana Workflow',
       metadata: { [currentTestProp]: true }
     })
     .expect(200)
@@ -441,17 +441,17 @@ test('creates several single-step Stelace workflows', async (t) => {
     .set(availabilityAuthorizationHeaders)
     .expect(200)
 
-  // Trigger two Stelace Workflows
+  // Trigger two Saltana Workflows
 
   await request(t.context.serverUrl)
     .patch(`/assets/${asset2Id}`)
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      name: 'Asset triggering Stelace Workflow 2',
+      name: 'Asset triggering Saltana Workflow 2',
       metadata: { [currentTestProp]: true }
     })
     .expect(200)
@@ -529,7 +529,7 @@ test('creates several single-step Stelace workflows', async (t) => {
   // New availability for patched asset 2
   t.is(asset2AvailabilitiesAfterWorkflow2.length, asset2AvailabilitiesBeforeWorkflow2.length + 1)
 
-  // Stelace Workflow #2
+  // Saltana Workflow #2
   t.is(assetTypeBeforeWorkflow.metadata.date1, undefined)
   t.is(assetTypeBeforeWorkflow.metadata.date2, undefined)
   t.is(assetTypeAfterWorkflow.metadata.date1, now)
@@ -570,7 +570,7 @@ test('creates several single-step Stelace workflows', async (t) => {
   })
 })
 
-test('creates multi-step Stelace workflow with API version', async (t) => {
+test('creates multi-step Saltana workflow with API version', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: [
@@ -686,7 +686,7 @@ test('creates multi-step Stelace workflow with API version', async (t) => {
     .patch(`/assets/${dummyAssetId}`)
     .set(assetAuthorizationHeaders)
     .send({
-      name: 'Asset not triggering multi-step Stelace Workflow'
+      name: 'Asset not triggering multi-step Saltana Workflow'
     })
     .expect(200)
 
@@ -741,7 +741,7 @@ test('creates multi-step Stelace workflow with API version', async (t) => {
     .post('/assets')
     .set(assetAuthorizationHeaders)
     .send({
-      name: 'Asset triggering multi-step Stelace Workflow',
+      name: 'Asset triggering multi-step Saltana Workflow',
       assetTypeId: 'typ_MWNfQps1I3a1gJYz2I3a',
       quantity: 0,
       price: 20,
@@ -934,7 +934,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
       },
       {
         endpointMethod: 'GET',
-        endpointUri: 'https://api.stelace.com'
+        endpointUri: 'https://api.saltana.com'
       },
       {
         endpointMethod: 'PATCH',
@@ -949,7 +949,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
           metadata: {
             // Responses ars sorted from last to oldest
             nbViews: '_.get(lastResponses, "[2].metadata.nbViews", 0) + 1',
-            stelaceGreeting: '_.get(lastResponses, "[0].message")'
+            saltanaGreeting: '_.get(lastResponses, "[0].message")'
           }
         })
       }]
@@ -970,7 +970,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       type: 'asset_viewed',
@@ -987,7 +987,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
   t.is(userServerCallsHeaders.workflowCustomEventHeaders.length, 1)
   const headersSent = userServerCallsHeaders.workflowCustomEventHeaders[0]
   t.is(headersSent['x-custom-header'], '{ "custom": "content" }') // lower cased header
-  t.is(headersSent['x-webhook-source'], 'stelace') // preserved
+  t.is(headersSent['x-webhook-source'], 'saltana') // preserved
 
   const { body: workflowCustomEventAfterRun } = await request(t.context.serverUrl)
     .get(`/workflows/${workflowCustomEvent.id}?logs=`)
@@ -1010,7 +1010,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
   const workflowCustomEventLogsCall = workflowCustomEventAfterRunActions[0]
   t.is(workflowCustomEventLogsCall.metadata.endpointMethod, 'PATCH')
   t.is(workflowCustomEventLogsCall.metadata.endpointUri, `/assets/${assetId}`)
-  t.truthy(workflowCustomEventLogsCall.metadata.endpointPayload.metadata.stelaceGreeting)
+  t.truthy(workflowCustomEventLogsCall.metadata.endpointPayload.metadata.saltanaGreeting)
 
   const workflowCustomEventHeaders = workflowCustomEventLogsCall.metadata.endpointHeaders
   t.true(workflowCustomEventHeaders['x-platform-id'].includes('ignored, and does not trigger an error'))
@@ -1031,7 +1031,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
     .expect(200)
 
   t.is(asset.metadata.nbViews, 1)
-  t.true(asset.metadata.stelaceGreeting.includes('/docs'))
+  t.true(asset.metadata.saltanaGreeting.includes('/docs'))
 })
 
 test('keeps filtered workflow running when handleErrors option is enabled in erroneous step', async (t) => {
@@ -1179,7 +1179,7 @@ test('keeps filtered workflow running when handleErrors option is enabled in err
   t.is(asset.metadata.patched, true)
   t.is(asset.metadata.assetName, assetName)
   t.is(asset.metadata.handledStatusCode, 404)
-  // Stelace API response
+  // Saltana API response
   t.is(asset.metadata.lastResponse.message, '/unknown does not exist')
 
   // Setting handleErrors back to false default value must stop the workflow
@@ -1394,7 +1394,7 @@ test('accepts nested arrays of literals as endpoint payload parameters', async (
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username,
@@ -1492,7 +1492,7 @@ test('accepts nested object as endpoint payload parameters', async (t) => {
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Created Asset Type triggering Workflow',
@@ -1547,7 +1547,7 @@ Testing asset__updated ==> Workflow A (logs x1 state to update from x0 state wit
 
 These tests of logs urged to create a new workflowLog table handling concurrency.
 */
-test('handles filters and logs errors properly when executing Stelace Workflow', async (t) => {
+test('handles filters and logs errors properly when executing Saltana Workflow', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: [
@@ -1896,7 +1896,7 @@ test('passes basic security checks', async (t) => {
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Category triggering evil Workflow (infinite loop)',
@@ -1965,7 +1965,7 @@ test('passes basic security checks', async (t) => {
     .set({
       authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Category triggering evil Workflow (process)',
@@ -1994,7 +1994,7 @@ test('passes basic security checks', async (t) => {
   t.true(workflowLastError.metadata.message.includes('ReferenceError'))
 })
 
-test('cannot create a Stelace workflow with multiple events', async (t) => {
+test('cannot create a Saltana workflow with multiple events', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['workflow:create:all'] })
   const workflowName = 'Transaction status Workflow'
 
@@ -2064,7 +2064,7 @@ test('fails to create a workflow if missing or invalid parameters', async (t) =>
     .post('/workflows')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2076,11 +2076,11 @@ test('fails to create a workflow if missing or invalid parameters', async (t) =>
     .post('/workflows')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       run: {
-        endpointUri: 'ftp://test.com' // only allow http(s) or stelace endpoint starting with '/'
+        endpointUri: 'ftp://test.com' // only allow http(s) or saltana endpoint starting with '/'
       }
     })
     .expect(400)
@@ -2095,7 +2095,7 @@ test('fails to create a workflow if missing or invalid parameters', async (t) =>
     .post('/workflows')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -2129,7 +2129,7 @@ test('fails to create a workflow with an invalid API version', async (t) => {
     .post('/workflows')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'Invalid API version workflow',
@@ -2149,7 +2149,7 @@ test('fails to update a workflow if missing or invalid parameters', async (t) =>
     .patch('/workflows/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2161,7 +2161,7 @@ test('fails to update a workflow if missing or invalid parameters', async (t) =>
     .patch('/workflows/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: true,
@@ -2193,7 +2193,7 @@ test('fails to update a workflow with an invalid API version', async (t) => {
     .patch('/workflows/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       apiVersion: '2016-01-01'

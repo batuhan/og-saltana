@@ -10,14 +10,14 @@ const api = () => createInstance({
 /*
 async function getUserById(userId) {
   const naturalUser = await api.users.read(userId, {
-    stelaceOrganizationId: null,
+    saltanaOrganizationId: null,
   })
 
   const organizationsIds = Object.keys(naturalUser.organizations)
 
   const promises = organizationsIds.map((organizationId) => {
     return api.users.read(organizationId, {
-      stelaceOrganizationId: organizationId,
+      saltanaOrganizationId: organizationId,
     })
   })
 
@@ -40,14 +40,15 @@ export default NextAuth({
     async session(session, token) {
       const newSession = { ...session }
 
-      newSession.accessToken = token.accessToken
+      newSession.coreAccessToken = token.coreAccessToken
       newSession.refreshToken = token.refreshToken
       newSession.user.id = token.sub
 
       return newSession
     },
     async jwt(token, user, account, profile) {
-      token.accessToken = token.accessToken || profile.accessToken
+      console.log(profile)
+      token.coreAccessToken = token.coreAccessToken || profile.accessToken
       token.refreshToken = token.refreshToken || profile.refreshToken
       token.sub = token.sub || profile.userId
       return token

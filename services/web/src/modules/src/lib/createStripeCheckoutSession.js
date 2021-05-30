@@ -13,11 +13,11 @@ const schema = {
   }).required()
 }
 
-if (!process.env.STELACE_INSTANT_WEBSITE_URL) {
-  throw new Error('Missing Stelace instant website URL')
+if (!process.env.SALTANA_INSTANT_WEBSITE_URL) {
+  throw new Error('Missing Saltana instant website URL')
 }
 
-const { stelace, stripe } = loadSdks({ stripe: true })
+const { saltana, stripe } = loadSdks({ stripe: true })
 
 const createStripeCheckoutSession = async (event, context, callback) => {
   const { transactionId } = event.body
@@ -25,7 +25,7 @@ const createStripeCheckoutSession = async (event, context, callback) => {
   try {
     if (!isAuthenticated(context)) throw createError(403)
 
-    const transaction = await stelace.transactions.read(transactionId)
+    const transaction = await saltana.transactions.read(transactionId)
 
     const { assetId, takerId, ownerId } = transaction
 
@@ -39,9 +39,9 @@ const createStripeCheckoutSession = async (event, context, callback) => {
       taker,
       owner
     ] = await Promise.all([
-      stelace.assets.read(assetId),
-      stelace.users.read(takerId),
-      stelace.users.read(ownerId)
+      saltana.assets.read(assetId),
+      saltana.users.read(takerId),
+      saltana.users.read(ownerId)
     ])
 
     const stripeCustomer = get(taker, 'platformData._private.stripeCustomer')
@@ -89,7 +89,7 @@ const createStripeCheckoutSession = async (event, context, callback) => {
       }
     })
 
-    await stelace.transactions.update(transactionId, {
+    await saltana.transactions.update(transactionId, {
       platformData: {
         stripePaymentIntentId: checkoutSession.payment_intent,
         currencyDecimal // will be used in workflows

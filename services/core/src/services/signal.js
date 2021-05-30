@@ -1,7 +1,7 @@
 const createError = require('http-errors')
 const redisAdapter = require('socket.io-redis')
 const _ = require('lodash')
-const debug = require('debug')('stelace:api')
+const debug = require('debug')('saltana:api')
 const apm = require('elastic-apm-node')
 
 const { parseKey } = require('@saltana/util-keys')
@@ -26,7 +26,7 @@ let redisSubClient
 
 const maxNbClientsPerPlatform = 1000
 
-function start ({ communication, stelaceIO }) {
+function start ({ communication, saltanaIO }) {
   const {
     getResponder,
     getRequester,
@@ -35,12 +35,12 @@ function start ({ communication, stelaceIO }) {
     COMMUNICATION_ID
   } = communication
 
-  if (!stelaceIO) return
+  if (!saltanaIO) return
   else isServiceActive = true
 
   debug('Signal service enabled')
 
-  sockend = getSockend(stelaceIO, {
+  sockend = getSockend(saltanaIO, {
     name: 'Sockend',
     key: `${COMMUNICATION_ID}_signal` // Avoids connecting to all publishers
     // https://github.com/dashersw/cote/blob/master/src/components/sockend.js
@@ -59,13 +59,13 @@ function start ({ communication, stelaceIO }) {
   redisPubClient = getRedisClient({ exclusive: true })
   redisSubClient = getRedisClient({ exclusive: true })
 
-  stelaceIO.adapter(redisAdapter({
+  saltanaIO.adapter(redisAdapter({
     key: 'signal',
     pubClient: redisPubClient,
     subClient: redisSubClient
   }))
 
-  stelaceIO
+  saltanaIO
     .of('/signal')
     .on('connection', function (socket) {
       const authenticationDelay = 2000
@@ -206,7 +206,7 @@ function start ({ communication, stelaceIO }) {
 
         socket.auth = true
 
-        const nbClients = await getNbClients({ stelaceIO, platformId, env })
+        const nbClients = await getNbClients({ saltanaIO, platformId, env })
 
         if (nbClients >= maxNbClientsPerPlatform) { // hard-coded limit for now
           socket.tooMany = true
@@ -271,7 +271,7 @@ function start ({ communication, stelaceIO }) {
     ]
   })
 
-  responder.on('stelaceSignal', async (req) => {
+  responder.on('saltanaSignal', async (req) => {
     const platformId = req.platformId
     const env = req.env
 
@@ -287,7 +287,7 @@ function start ({ communication, stelaceIO }) {
     if (!destination && !req._matchedPermissions['signal:create:all']) throw createError(403)
 
     return new Promise((resolve, reject) => {
-      stelaceIO.of('/signal').adapter.allRooms((err, rooms) => {
+      saltanaIO.of('/signal').adapter.allRooms((err, rooms) => {
         debug('existing rooms %o', rooms)
 
         if (err) {
@@ -339,15 +339,15 @@ function prefixChannel (channel, { platformId, env }) {
 // Thanks to prefixChannel we know any non-number/platformId prefix is available
 function platformChannel ({ platformId, env }) {
   if (!platformId || !env) throw new Error('Missing platformId/env')
-  return `stelaceId__${platformId}_${env}`
+  return `saltanaId__${platformId}_${env}`
 }
 
 // If channel is not provided, returns total number of clients for platformId & env
-function getNbClients ({ stelaceIO, platformId, env, channel }) {
+function getNbClients ({ saltanaIO, platformId, env, channel }) {
   return new Promise((resolve, reject) => {
     const c = channel || platformChannel({ platformId, env })
 
-    stelaceIO.of('/signal').adapter.clients([c], function (err, clients) {
+    saltanaIO.of('/signal').adapter.clients([c], function (err, clients) {
       const nbClients = clients.length
       debug(`Currently ${nbClients} clients in ${c} channel`)
 

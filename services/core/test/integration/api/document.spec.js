@@ -879,7 +879,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/documents')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -891,7 +891,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/documents')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -904,7 +904,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/documents')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       authorId: true,
@@ -936,7 +936,7 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
     .patch('/documents/doc_WWRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -948,7 +948,7 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
     .patch('/documents/doc_WWRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       label: true,

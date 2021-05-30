@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.customAttributes.list({ page: 2, nbResultsPerPage: 10 })
+  return saltana.customAttributes.list({ page: 2, nbResultsPerPage: 10 })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/custom-attributes',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.customAttributes.read('customAttribute_1')
+  return saltana.customAttributes.read('customAttribute_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/custom-attributes/customAttribute_1',
         data: {},
@@ -37,9 +37,9 @@ test('create: sends the correct request', (t) => {
     listValues: ['red', 'blue']
   }
 
-  return stelace.customAttributes.create(data)
+  return saltana.customAttributes.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/custom-attributes',
         data,
@@ -50,9 +50,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.customAttributes.update('customAttribute_1', { listValues: ['red', 'blue', 'yellow'] })
+  return saltana.customAttributes.update('customAttribute_1', { listValues: ['red', 'blue', 'yellow'] })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/custom-attributes/customAttribute_1',
         data: { listValues: ['red', 'blue', 'yellow'] },
@@ -63,9 +63,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.customAttributes.remove('customAttribute_1')
+  return saltana.customAttributes.remove('customAttribute_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/custom-attributes/customAttribute_1',
         data: {},

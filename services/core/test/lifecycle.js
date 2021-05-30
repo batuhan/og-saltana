@@ -12,7 +12,7 @@ const database = require('./database')
 const data = require('./fixtures/data')
 const getInstantData = require('./fixtures/instant-data')
 const elasticsearch = require('./elasticsearch')
-const debug = require('debug')('stelace:test')
+const debug = require('debug')('saltana:test')
 const Uuid = require('uuid')
 
 const { getSystemKey } = require('./auth')
@@ -290,8 +290,8 @@ function handleDropDatabaseError (err) {
 
 function getAuthorizationHeaders ({ env, systemKey }) {
   const headers = {}
-  if (!_.isUndefined(systemKey)) headers['x-stelace-system-key'] = systemKey
-  if (!_.isUndefined(env)) headers['x-stelace-env'] = env
+  if (!_.isUndefined(systemKey)) headers['x-saltana-system-key'] = systemKey
+  if (!_.isUndefined(env)) headers['x-saltana-env'] = env
   return headers
 }
 

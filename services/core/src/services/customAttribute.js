@@ -347,7 +347,7 @@ function start ({ communication }) {
           asset__custom_attribute_changed: updateAttrs
         }
         const eventMetadata = {
-          stelaceComment: `customAttribute '${
+          saltanaComment: `customAttribute '${
             customAttribute.name
           }' automatically removed from asset before DELETE.`
         }

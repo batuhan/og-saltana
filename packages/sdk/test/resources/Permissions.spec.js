@@ -1,8 +1,8 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('check: sends the correct request', (t) => {
   const data = {
@@ -12,9 +12,9 @@ test('check: sends the correct request', (t) => {
     ]
   }
 
-  return stelace.permissions.check(data)
+  return saltana.permissions.check(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/permissions/check',
         data,

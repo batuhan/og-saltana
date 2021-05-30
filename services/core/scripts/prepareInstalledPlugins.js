@@ -10,20 +10,20 @@ const path = require('path')
 const shell = require('shelljs')
 
 const { getInstalledPluginsNames } = require('../plugins')
-const stelaceServerPath = path.resolve(__dirname, '..')
+const saltanaServerPath = path.resolve(__dirname, '..')
 
 if (getInstalledPluginsNames().length) {
   console.log("Replacing `require('@saltana/core')` with local server for tests of installed plugins")
 
   const pluginFiles = shell
-    .find(`${stelaceServerPath}/plugins/installed`)
+    .find(`${saltanaServerPath}/plugins/installed`)
     // no -type f filter in shelljs
     .filter(file => file.match(/\.js$/))
 
   shell.sed(
     '-i',
-    /require\('stelace-server([^']*)'\)/,
-    `require('${stelaceServerPath}$1')`,
+    /require\('saltana-server([^']*)'\)/,
+    `require('${saltanaServerPath}$1')`,
     pluginFiles
   )
 }

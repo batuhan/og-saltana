@@ -1,8 +1,8 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('stripeRequest: sends the correct request', (t) => {
   const data = {
@@ -16,9 +16,9 @@ test('stripeRequest: sends the correct request', (t) => {
     }
   }
 
-  return stelace.providers.stripeRequest(data)
+  return saltana.providers.stripeRequest(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/providers/stripe/request',
         data,

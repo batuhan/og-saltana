@@ -151,11 +151,11 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-system-key': systemKey,
-      'x-stelace-env': t.context.env
+      'x-saltana-system-key': systemKey,
+      'x-saltana-env': t.context.env
     })
     .send({
-      stelace: {
+      saltana: {
         ssoConnections: {
           [provider]: Object.assign({}, ssoConnection, {
             protocol: 'oauth2',
@@ -195,7 +195,7 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       code: applicationCodeUrlObj.searchParams.get('code'),
@@ -220,7 +220,7 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       code: applicationCodeUrlObj.searchParams.get('code'),
@@ -232,7 +232,7 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
 
   const ssoAuthorizationHeaders = {
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
     authorization: `${obj.tokenType} ${obj.accessToken}`
   }
 
@@ -313,7 +313,7 @@ test('login', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'user',
@@ -341,7 +341,7 @@ test('login', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
+      'x-saltana-env': t.context.env,
       authorization: `${obj1.tokenType} ${obj1.accessToken}`
     })
     .send({
@@ -370,7 +370,7 @@ test('logout', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       refreshToken: 'refreshToken1'
@@ -421,7 +421,7 @@ test.serial('fails to refresh token if the refresh token is expired', async (t) 
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'admin',
@@ -441,12 +441,12 @@ test.serial('fails to refresh token if the refresh token is expired', async (t) 
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
-      stelace: {
-        stelaceAuthRefreshTokenExpiration: { d: 1 }
+      saltana: {
+        saltanaAuthRefreshTokenExpiration: { d: 1 }
       }
     })
     .expect(200)
@@ -455,7 +455,7 @@ test.serial('fails to refresh token if the refresh token is expired', async (t) 
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'admin',
@@ -477,12 +477,12 @@ test.serial('fails to refresh token if the refresh token is expired', async (t) 
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
-      stelace: {
-        stelaceAuthRefreshTokenExpiration: null
+      saltana: {
+        saltanaAuthRefreshTokenExpiration: null
       }
     })
     .expect(200)
@@ -522,11 +522,11 @@ test.serial('configures built-in SSO providers', async (t) => {
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
-      stelace: {
+      saltana: {
         ssoConnections: {
           github: githubConnection
         }
@@ -540,11 +540,11 @@ test.serial('configures built-in SSO providers', async (t) => {
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
-      stelace: {
+      saltana: {
         ssoConnections: {
           github: _.omit(githubConnection, [
             'protocol', // protocol is optional for built-in connections
@@ -578,11 +578,11 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-system-key': systemKey,
-      'x-stelace-env': t.context.env
+      'x-saltana-system-key': systemKey,
+      'x-saltana-env': t.context.env
     })
     .send({
-      stelace: {
+      saltana: {
         ssoConnections: {
           my_github: {
             protocol: 'oauth2',
@@ -639,18 +639,18 @@ test.serial('performs a OAuth2 authentication', async (t) => {
   const afterLoginRedirectUrl = page.url() // redirect to afterAuthorizationUrl (like SPA homepage)
   t.true(afterLoginRedirectUrl.startsWith(afterAuthenticationUrl))
 
-  const stelaceCodeUrlObj = new URL(afterLoginRedirectUrl)
-  t.is(typeof stelaceCodeUrlObj.searchParams.get('code'), 'string')
-  t.is(stelaceCodeUrlObj.searchParams.get('status'), 'success')
+  const saltanaCodeUrlObj = new URL(afterLoginRedirectUrl)
+  t.is(typeof saltanaCodeUrlObj.searchParams.get('code'), 'string')
+  t.is(saltanaCodeUrlObj.searchParams.get('status'), 'success')
 
   const { body: obj } = await request(t.context.serverUrl)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      code: stelaceCodeUrlObj.searchParams.get('code'),
+      code: saltanaCodeUrlObj.searchParams.get('code'),
       grantType: 'authorizationCode'
     })
     .expect(200)
@@ -672,10 +672,10 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      code: stelaceCodeUrlObj.searchParams.get('code'),
+      code: saltanaCodeUrlObj.searchParams.get('code'),
       grantType: 'authorizationCode'
     })
     .expect(422)
@@ -684,7 +684,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
 
   const ssoAuthorizationHeaders = {
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
     authorization: `${obj.tokenType} ${obj.accessToken}`
   }
 
@@ -715,7 +715,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username
@@ -762,11 +762,11 @@ test.serial('performs an OpenID authentication', async (t) => {
     .patch('/config/private')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
-      stelace: {
+      saltana: {
         ssoConnections: {
           custom_openid: {
             // authorization server routes: https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#routes
@@ -830,19 +830,19 @@ test.serial('performs an OpenID authentication', async (t) => {
   const afterLoginRedirectUrl = page.url() // redirect to afterAuthorizationUrl (like SPA homepage)
   t.true(afterLoginRedirectUrl.startsWith(afterAuthenticationUrl))
 
-  const stelaceCodeUrlObj = new URL(afterLoginRedirectUrl)
+  const saltanaCodeUrlObj = new URL(afterLoginRedirectUrl)
 
-  t.is(typeof stelaceCodeUrlObj.searchParams.get('code'), 'string')
-  t.is(stelaceCodeUrlObj.searchParams.get('status'), 'success')
+  t.is(typeof saltanaCodeUrlObj.searchParams.get('code'), 'string')
+  t.is(saltanaCodeUrlObj.searchParams.get('status'), 'success')
 
   const { body: obj } = await request(t.context.serverUrl)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      code: stelaceCodeUrlObj.searchParams.get('code'),
+      code: saltanaCodeUrlObj.searchParams.get('code'),
       grantType: 'authorizationCode'
     })
     .expect(200)
@@ -864,10 +864,10 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      code: stelaceCodeUrlObj.searchParams.get('code'),
+      code: saltanaCodeUrlObj.searchParams.get('code'),
       grantType: 'authorizationCode'
     })
     .expect(422)
@@ -876,7 +876,7 @@ test.serial('performs an OpenID authentication', async (t) => {
 
   const ssoAuthorizationHeaders = {
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
     authorization: `${obj.tokenType} ${obj.accessToken}`
   }
 
@@ -918,7 +918,7 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username
@@ -957,7 +957,7 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
+      'x-saltana-env': t.context.env,
     })
     .send({
       refreshToken: obj.refreshToken,
@@ -1015,19 +1015,19 @@ test.serial('performs an OpenID authentication', async (t) => {
   const afterLoginRedirectUrl2 = page.url() // redirect to afterAuthorizationUrl (like SPA homepage)
   t.true(afterLoginRedirectUrl2.startsWith(afterAuthenticationUrl))
 
-  const stelaceCodeUrlObj2 = new URL(afterLoginRedirectUrl2)
+  const saltanaCodeUrlObj2 = new URL(afterLoginRedirectUrl2)
 
-  t.is(typeof stelaceCodeUrlObj2.searchParams.get('code'), 'string')
-  t.is(stelaceCodeUrlObj2.searchParams.get('status'), 'success')
+  t.is(typeof saltanaCodeUrlObj2.searchParams.get('code'), 'string')
+  t.is(saltanaCodeUrlObj2.searchParams.get('status'), 'success')
 
   const { body: obj2 } = await request(t.context.serverUrl)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
-      code: stelaceCodeUrlObj2.searchParams.get('code'),
+      code: saltanaCodeUrlObj2.searchParams.get('code'),
       grantType: 'authorizationCode'
     })
     .expect(200)
@@ -1046,7 +1046,7 @@ test.serial('performs an OpenID authentication', async (t) => {
 
   const ssoAuthorizationHeaders2 = {
     'x-platform-id': t.context.platformId,
-    'x-stelace-env': t.context.env,
+    'x-saltana-env': t.context.env,
     authorization: `${obj2.tokenType} ${obj2.accessToken}`
   }
 
@@ -1276,7 +1276,7 @@ test('impersonates access token for a user', async (t) => {
     .set({
       'user-agent': 'node-superagent/3.8.3',
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
+      'x-saltana-env': t.context.env,
       authorization: `Bearer ${accessToken}`
     })
     .send({
@@ -1306,8 +1306,8 @@ test('impersonates access token for a user via system', async (t) => {
     .set({
       'user-agent': 'node-superagent/3.8.3',
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
       grantType: 'impersonateToken',
@@ -1336,8 +1336,8 @@ test('checks a refresh token', async (t) => {
     .post('/auth/token/check')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
       tokenType: 'refreshToken',
@@ -1353,8 +1353,8 @@ test('checks a refresh token', async (t) => {
     .post('/auth/token/check')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
       tokenType: 'refreshToken',
@@ -1376,8 +1376,8 @@ test('checks an access token', async (t) => {
     .post('/auth/token/check')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
       tokenType: 'accessToken',
@@ -1392,8 +1392,8 @@ test('checks an access token', async (t) => {
     .post('/auth/token/check')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env,
-      'x-stelace-system-key': systemKey
+      'x-saltana-env': t.context.env,
+      'x-saltana-system-key': systemKey
     })
     .send({
       tokenType: 'accessToken',
@@ -1438,7 +1438,7 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'user2',
@@ -1454,7 +1454,7 @@ test('changes the password and emits event', async (t) => {
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       currentPassword: 'wrongPassword',
@@ -1467,7 +1467,7 @@ test('changes the password and emits event', async (t) => {
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       currentPassword: 'user2',
@@ -1479,7 +1479,7 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       refreshToken
@@ -1490,7 +1490,7 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'user2',
@@ -1502,7 +1502,7 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'user2',
@@ -1522,7 +1522,7 @@ test('changes the password and emits event', async (t) => {
     .get(`/users/${userId}`)
     .set(Object.assign({}, eventAccessTokenHeaders, {
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     }))
     .expect(200)
 
@@ -1532,7 +1532,7 @@ test('changes the password and emits event', async (t) => {
     .get('/events')
     .set(Object.assign({}, eventAccessTokenHeaders, {
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     }))
     .expect(200)
 
@@ -1560,7 +1560,7 @@ test.serial('requests the password reset and emits event', async (t) => {
     .get(`/users/${userId}`)
     .set(Object.assign({}, accessTokenHeaders, {
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     }))
     .expect(200)
 
@@ -1568,7 +1568,7 @@ test.serial('requests the password reset and emits event', async (t) => {
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'user3'
@@ -1581,7 +1581,7 @@ test.serial('requests the password reset and emits event', async (t) => {
     .get('/events')
     .set(Object.assign({}, accessTokenHeaders, {
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     }))
     .expect(200)
 
@@ -1604,7 +1604,7 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'admin',
@@ -1617,7 +1617,7 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       resetToken: 'resetToken1',
@@ -1630,7 +1630,7 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: 'admin',
@@ -1643,7 +1643,7 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       resetToken: 'resetToken1',
@@ -1663,7 +1663,7 @@ test('confirms the password reset and emits event', async (t) => {
     .get(`/users/${adminUserId}`)
     .set(Object.assign({}, accessTokenHeaders, {
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     }))
     .expect(200)
 
@@ -1671,7 +1671,7 @@ test('confirms the password reset and emits event', async (t) => {
     .get('/events')
     .set(Object.assign({}, accessTokenHeaders, {
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     }))
     .expect(200)
 
@@ -1689,7 +1689,7 @@ test('fails to confirm the password reset using an expired token', async (t) => 
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       resetToken: 'expiredResetToken',
@@ -1884,7 +1884,7 @@ test.serial('triggers a token check process with the fallback redirection', asyn
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         tokenCheckRedirectUrl: 'https://example.com'
       }
     })
@@ -1960,7 +1960,7 @@ test.serial('triggers a token check process with the fallback redirection', asyn
     .patch('/config')
     .set(authorizationHeaders)
     .send({
-      stelace: {
+      saltana: {
         tokenCheckRedirectUrl: null
       }
     })
@@ -2032,7 +2032,7 @@ test('fails to login if missing or invalid parameters', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2044,7 +2044,7 @@ test('fails to login if missing or invalid parameters', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -2058,7 +2058,7 @@ test('fails to login if missing or invalid parameters', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: true,
@@ -2080,7 +2080,7 @@ test('fails to logout if missing or invalid parameters', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2092,7 +2092,7 @@ test('fails to logout if missing or invalid parameters', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -2105,7 +2105,7 @@ test('fails to logout if missing or invalid parameters', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       refreshToken: true
@@ -2125,7 +2125,7 @@ test('fails to refresh access token if missing or invalid parameters', async (t)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2137,7 +2137,7 @@ test('fails to refresh access token if missing or invalid parameters', async (t)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -2150,7 +2150,7 @@ test('fails to refresh access token if missing or invalid parameters', async (t)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       refreshToken: true,
@@ -2172,7 +2172,7 @@ test('fails to change the password if missing or invalid parameters', async (t) 
     .post('/password/change')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2184,7 +2184,7 @@ test('fails to change the password if missing or invalid parameters', async (t) 
     .post('/password/change')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -2198,7 +2198,7 @@ test('fails to change the password if missing or invalid parameters', async (t) 
     .post('/password/change')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       currentPassword: true,
@@ -2220,7 +2220,7 @@ test('fails to request the password reset if missing or invalid parameters', asy
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2232,7 +2232,7 @@ test('fails to request the password reset if missing or invalid parameters', asy
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -2245,7 +2245,7 @@ test('fails to request the password reset if missing or invalid parameters', asy
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       username: true
@@ -2265,7 +2265,7 @@ test('fails to confirm the password reset if missing or invalid parameters', asy
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .expect(400)
 
@@ -2277,7 +2277,7 @@ test('fails to confirm the password reset if missing or invalid parameters', asy
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({})
     .expect(400)
@@ -2291,7 +2291,7 @@ test('fails to confirm the password reset if missing or invalid parameters', asy
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       resetToken: true,
@@ -2313,7 +2313,7 @@ test('check authentication information', async (t) => {
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-stelace-env': t.context.env
+      'x-saltana-env': t.context.env
     })
     .send({
       name: 'New custom api key',

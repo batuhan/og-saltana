@@ -20,10 +20,10 @@ const {
   setPlatformEnvData,
   removePlatformEnvData,
 
-  getAllStelaceTasks,
-  setStelaceTask,
-  removeStelaceTask,
-  removeStelaceTaskExecutionDates,
+  getAllSaltanaTasks,
+  setSaltanaTask,
+  removeSaltanaTask,
+  removeSaltanaTaskExecutionDates,
 } = require('../redis')
 
 const {
@@ -301,7 +301,7 @@ function start ({ communication }) {
       try {
         const { Task } = await getModels({ platformId, env })
 
-        const cachedTasks = await getAllStelaceTasks({ platformId, env })
+        const cachedTasks = await getAllSaltanaTasks({ platformId, env })
         const tasks = await Task.query().where({ active: true })
 
         const { needSync } = computeCacheDifference({ tasks, cachedTasks: cachedTasks.map(t => t.task) })
@@ -445,7 +445,7 @@ function start ({ communication }) {
 
     const { Task } = await getModels({ platformId, env })
 
-    const cachedTasks = await getAllStelaceTasks({ platformId, env })
+    const cachedTasks = await getAllSaltanaTasks({ platformId, env })
     const tasks = await Task.query().where({ active: true })
 
     const cacheDifference = computeCacheDifference({ tasks, cachedTasks: cachedTasks.map(t => t.task) })
@@ -463,8 +463,8 @@ function start ({ communication }) {
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
 
-    const removedTaskIds = await removeStelaceTask({ platformId, env, taskId: '*' })
-    await removeStelaceTaskExecutionDates({ taskId: removedTaskIds })
+    const removedTaskIds = await removeSaltanaTask({ platformId, env, taskId: '*' })
+    await removeSaltanaTaskExecutionDates({ taskId: removedTaskIds })
 
     return { success: true }
   })
@@ -567,11 +567,11 @@ function computeCacheDifference ({ tasks, cachedTasks }) {
 }
 
 async function syncCache ({ platformId, env, tasksToAdd, taskIdsToRemove, tasksUpdated }) {
-  await removeStelaceTask({ platformId, env, taskId: taskIdsToRemove })
-  await removeStelaceTaskExecutionDates({ taskId: taskIdsToRemove })
+  await removeSaltanaTask({ platformId, env, taskId: taskIdsToRemove })
+  await removeSaltanaTaskExecutionDates({ taskId: taskIdsToRemove })
 
   await bluebird.map(tasksToAdd.concat(tasksUpdated), (task) => {
-    return setStelaceTask({ platformId, env, task: omitTaskMetadata(task) })
+    return setSaltanaTask({ platformId, env, task: omitTaskMetadata(task) })
   }, { concurrency: 10 })
 }
 

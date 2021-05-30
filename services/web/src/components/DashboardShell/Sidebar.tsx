@@ -31,6 +31,7 @@ const UserAvatar = () => {
 export const Sidebar = (props: FlexProps) => {
   const user = useCurrentUser()
 
+  console.log({user})
   return (
     <Flex
       bg={mode('gray.50', 'gray.800')}

@@ -28,7 +28,7 @@ const getPlugins = (envName) => {
   return plugins
 }
 
-const baseFileName = 'stelace'
+const baseFileName = 'saltana'
 
 const getBaseBundleConfig = (envName) => {
   const isNode = envName === 'node'
@@ -41,7 +41,7 @@ const getBaseBundleConfig = (envName) => {
     output: {
       path: path.join(__dirname, 'dist'),
       libraryTarget: isNode ? 'commonjs2' : 'umd',
-      library: 'stelace'
+      library: 'saltana'
     },
     module: {
       rules: [{

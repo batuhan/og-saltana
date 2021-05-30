@@ -52,10 +52,10 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('updatePrivate', async (req) => {
-    const { stelace } = req
+    const { saltana } = req
 
-    if (stelace) {
-      const ssoConnections = stelace.ssoConnections
+    if (saltana) {
+      const ssoConnections = saltana.ssoConnections
 
       if (ssoConnections) {
         const connectionNames = Object.keys(ssoConnections)
@@ -95,7 +95,7 @@ function start ({ communication, isSystem }) {
 
     if (!config) {
       return {
-        stelace: {},
+        saltana: {},
         custom: {},
         theme: {}
       }
@@ -131,9 +131,9 @@ async function updateConfig ({ req, access }) {
   let apiVersion
 
   if (access === 'default') {
-    if (req.stelace) {
-      const whitelistRoles = _.get(req.stelace, 'roles.whitelist')
-      const defaultRoles = _.get(req.stelace, 'roles.default')
+    if (req.saltana) {
+      const whitelistRoles = _.get(req.saltana, 'roles.whitelist')
+      const defaultRoles = _.get(req.saltana, 'roles.default')
 
       if (whitelistRoles && whitelistRoles.includes('dev')) {
         throw createError(422, 'Cannot whitelist the role "dev"')
@@ -166,12 +166,12 @@ async function updateConfig ({ req, access }) {
       }
     }
   } else if (access === 'system') {
-    if (req.stelace) {
-      if (req.stelace.stelaceVersion) {
-        if (!apiVersions.includes(req.stelace.stelaceVersion)) {
-          throw createError(422, 'Invalid Stelace version')
+    if (req.saltana) {
+      if (req.saltana.saltanaVersion) {
+        if (!apiVersions.includes(req.saltana.saltanaVersion)) {
+          throw createError(422, 'Invalid Saltana version')
         }
-        apiVersion = req.stelace.stelaceVersion
+        apiVersion = req.saltana.saltanaVersion
       }
     }
   }
@@ -182,24 +182,24 @@ async function updateConfig ({ req, access }) {
     config = await Config.query().insert({
       id: await getObjectId({ prefix: Config.idPrefix, platformId, env }),
       access,
-      stelace: req.stelace || {},
+      saltana: req.saltana || {},
       custom: req.custom || {},
       theme: req.theme || {}
     })
   } else {
     const updateAttrs = {}
 
-    if (req.stelace) {
-      const TOKEN_EXP = 'stelaceAuthRefreshTokenExpiration'
-      updateAttrs.stelace = Config.rawJsonbMerge('stelace', _.omit(req.stelace, TOKEN_EXP))
+    if (req.saltana) {
+      const TOKEN_EXP = 'saltanaAuthRefreshTokenExpiration'
+      updateAttrs.saltana = Config.rawJsonbMerge('saltana', _.omit(req.saltana, TOKEN_EXP))
 
       if (access === 'private') {
-        if (req.stelace[TOKEN_EXP]) {
+        if (req.saltana[TOKEN_EXP]) {
           // override the whole duration object, we don't want multiple time units
           // Objection.js syntax to update JSONB columns: jsonbColumn:nested.fields
           // https://vincit.github.io/objection.js/recipes/json-queries.html#json-queries
           await Config.query().patch({
-            [`stelace:${TOKEN_EXP}`]: req.stelace[TOKEN_EXP]
+            [`saltana:${TOKEN_EXP}`]: req.saltana[TOKEN_EXP]
           }).where({ id: config.id })
         }
       }
@@ -219,7 +219,7 @@ async function updateConfig ({ req, access }) {
 
 function exposeConfig ({ req, config, access }) {
   const exposedConfig = {
-    stelace: config ? config.stelace : {}
+    saltana: config ? config.saltana : {}
   }
 
   if (access === 'default') {

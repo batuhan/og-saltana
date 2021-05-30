@@ -1,13 +1,13 @@
 import test from 'blue-tape'
 
-import { getSpyableStelace } from '../../testUtils'
+import { getSpyableSaltana } from '../../testUtils'
 
-const stelace = getSpyableStelace()
+const saltana = getSpyableSaltana()
 
 test('list: sends the correct request', (t) => {
-  return stelace.webhooks.list()
+  return saltana.webhooks.list()
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/webhooks',
         data: {},
@@ -18,9 +18,9 @@ test('list: sends the correct request', (t) => {
 })
 
 test('read: sends the correct request', (t) => {
-  return stelace.webhooks.read('webhook_1')
+  return saltana.webhooks.read('webhook_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'GET',
         path: '/webhooks/webhook_1',
         data: {},
@@ -38,9 +38,9 @@ test('create: sends the correct request', (t) => {
     active: true
   }
 
-  return stelace.webhooks.create(data)
+  return saltana.webhooks.create(data)
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'POST',
         path: '/webhooks',
         data,
@@ -51,9 +51,9 @@ test('create: sends the correct request', (t) => {
 })
 
 test('update: sends the correct request', (t) => {
-  return stelace.webhooks.update('webhook_1', { name: 'Updated webhook' })
+  return saltana.webhooks.update('webhook_1', { name: 'Updated webhook' })
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'PATCH',
         path: '/webhooks/webhook_1',
         data: { name: 'Updated webhook' },
@@ -64,9 +64,9 @@ test('update: sends the correct request', (t) => {
 })
 
 test('remove: sends the correct request', (t) => {
-  return stelace.webhooks.remove('webhook_1')
+  return saltana.webhooks.remove('webhook_1')
     .then(() => {
-      t.deepEqual(stelace.LAST_REQUEST, {
+      t.deepEqual(saltana.LAST_REQUEST, {
         method: 'DELETE',
         path: '/webhooks/webhook_1',
         data: {},
