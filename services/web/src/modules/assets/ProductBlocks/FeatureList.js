@@ -1,7 +1,7 @@
 import React from 'react'
 import { BlocksControls, InlineBlocks } from 'react-tinacms-inline'
-import '../styles/features.css'
 import { featureBlock } from './Feature'
+import { SimpleGrid } from '@chakra-ui/react'
 
 /**
  * 1. Define the Block Component
@@ -9,9 +9,9 @@ import { featureBlock } from './Feature'
 function FeatureList({ index }) {
     return (
         <BlocksControls index={index} focusRing={{ offset: 0 }} insetControls>
-            <div className="wrapper">
+            <SimpleGrid>
                 <InlineBlocks name="features" blocks={FEATURE_BLOCKS} direction="row" className="feature-list" />
-            </div>
+            </SimpleGrid>
         </BlocksControls>
     )
 }

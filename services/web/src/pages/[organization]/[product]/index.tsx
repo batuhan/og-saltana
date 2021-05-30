@@ -25,6 +25,7 @@ import { sharedInstance } from '../../../modules/api/useApi'
 
 import ProductPage from '../../../modules/assets/ProductPage'
 import ProductEdit from '../../../modules/assets/ProductEdit'
+import ProductEditMode from '../../../modules/assets/ProductEditMode'
 const OrganizationAssetPage = ({ assetId, creatorId }) => {
   const { is, session } = useCurrentUser()
   const [canEdit, setCanEdit] = React.useState(is(creatorId))
@@ -39,7 +40,7 @@ const OrganizationAssetPage = ({ assetId, creatorId }) => {
   return (
     <CreatorSpaceShell>
       <Container maxW="container.lg">
-         <ProductEdit {...data} />
+         <ProductEditMode {...data} />
       </Container>
     </CreatorSpaceShell>
   )

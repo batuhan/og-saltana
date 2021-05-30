@@ -1,6 +1,5 @@
 import React from 'react'
 import { BlocksControls, InlineImage } from 'react-tinacms-inline'
-import '../styles/images.css'
 
 /**
  * 1. Define the Block Component

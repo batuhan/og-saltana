@@ -18,13 +18,28 @@ import {
   PopoverTrigger,
   Portal,
   PopoverContent,
+  Table,
+  TableCaption,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  Tfoot,
 } from '@chakra-ui/react'
 import * as React from 'react'
 import { HiChartBar, HiDownload, HiPlus } from 'react-icons/hi'
 import DashboardShell from '../../../components/DashboardShell'
 import CreateProductButton from '../../../components/CreateProductButton'
+import { useAuthenticatedApi } from '../../../modules/api'
+import { useSession } from 'next-auth/client'
 
 export const CreatorProducts = () => {
+  const [session] = useSession()
+  const assetsQuery = useAuthenticatedApi('assets', 'list', {
+    ownerId: session.user.id,
+    nbResultsPerPage: 100,
+  }, { initialData: []})
   return (
     <DashboardShell>
       <Tabs isFitted>
@@ -40,7 +55,7 @@ export const CreatorProducts = () => {
                 <HStack mb={{ base: '4', md: '0' }}>
                   <Heading size="lg">Products</Heading>
                   <Text color={mode('gray.500', 'gray.300')} fontSize="sm">
-                    (42 products)
+                    ({assetsQuery.data.length} products)
                   </Text>
                 </HStack>
 
@@ -95,7 +110,39 @@ export const CreatorProducts = () => {
           <Box px="8" flex="1">
             <Box maxW="7xl" mx="auto">
               <TabPanels mt="5" h="full">
-                <TabPanel>Manage</TabPanel>
+                <TabPanel>
+                  <Table variant="simple">
+                    <TableCaption>
+                      Products
+                    </TableCaption>
+                    <Thead>
+                      <Tr>
+                        <Th>Name</Th>
+                        <Th>Description</Th>
+                        <Th>Updated At</Th>
+                        <Th>Created At</Th>
+                        <Th isNumeric>Price</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {assetsQuery.data.map((asset) => (
+                        <Tr key={asset.id}>
+                          <Td>
+                            <Link
+                              href={`/${asset.ownerId}/${asset.id}?mode=edit`}
+                            >
+                              {asset.name}
+                            </Link>
+                          </Td>
+                          <Td>{asset.description}</Td>
+                          <Td>{asset.createdDate}</Td>
+                          <Td>{asset.updatedDate}</Td>
+                          <Td isNumeric>{asset.price}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </TabPanel>
                 <TabPanel>sdfds</TabPanel>
               </TabPanels>
             </Box>

@@ -6,6 +6,9 @@ import { heroBlock } from './ProductBlocks/Hero'
 import { paragraphBlock } from './ProductBlocks/Paragraph'
 import { imagesBlock } from './ProductBlocks/Images'
 import { featureListBlock } from './ProductBlocks/FeatureList'
+import { useApiMutation } from '../api'
+import { useApiInstance } from '../api/useApi'
+import { useMutation } from 'react-query'
 
 const HOME_BLOCKS = {
   hero: heroBlock,
@@ -15,12 +18,54 @@ const HOME_BLOCKS = {
 }
 
 export default function ProductEditMode(props) {
+  const { instance } = useApiInstance()
+  const saveAsset = useMutation((data) =>
+    instance.assets.update(props.id, data)
+  )
+
   const cms = useCMS()
 
   const formConfig = {
-    id: props.id || './data/data.json',
-    initialValues: props,
-    onSubmit() {
+    id: props.id,
+    initialValues: {
+      name: props.name,
+      description: props.description,
+      price: props.price,
+      active: props.active,
+      metadata: props.metadata
+    },
+    fields: [
+      {
+        name: 'name',
+        label: 'Title',
+        component: 'text',
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        component: 'textarea',
+      },
+      {
+        name: 'price',
+        label: 'Price',
+        component: 'number',
+      },
+      {
+        name: 'metadata.available_after',
+        label: 'Available after',
+        component: 'date',
+        dateFormat: 'MMMM DD YYYY',
+        timeFormat: false,
+      },
+      {
+        name: 'active',
+        component: 'toggle',
+        label: 'Active',
+        description: 'Check to mark this to publish the product.',
+      },
+    ],
+    async onSubmit(data) {
+      await saveAsset.mutateAsync(data)
       cms.alerts.success('Saved!')
     },
   }
@@ -30,7 +75,7 @@ export default function ProductEditMode(props) {
   return (
     <div className="home">
       <InlineForm form={form}>
-        <InlineBlocks name="blocks" blocks={HOME_BLOCKS} />
+        <InlineBlocks name="metadata.blocks" blocks={HOME_BLOCKS} />
       </InlineForm>
     </div>
   )

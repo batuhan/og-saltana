@@ -1,6 +1,5 @@
 import React from 'react'
 import { BlocksControls, InlineTextarea } from 'react-tinacms-inline'
-import '../styles/paragraph.css'
 
 /**
  * 1. Define the Block Component
