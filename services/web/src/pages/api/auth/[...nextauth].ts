@@ -47,7 +47,6 @@ export default NextAuth({
       return newSession
     },
     async jwt(token, user, account, profile) {
-      console.log(profile)
       token.coreAccessToken = token.coreAccessToken || profile.accessToken
       token.refreshToken = token.refreshToken || profile.refreshToken
       token.sub = token.sub || profile.userId
