@@ -34,11 +34,13 @@ const CreatorInfoBox = ({ creatorId, assetId }) => {
   )
   const queryClient = useQueryClient()
 
- const { organizations, id, createdDate, updatedDate, livemode, ...creator } = data
   const formConfig = {
     id: data.id,
     label: 'Creator Profile',
-    initialValues: creator,
+    initialValues: {
+      displayName: data.displayName,
+      description: data.description,
+    },
     fields: [
       {
         name: 'displayName',
@@ -51,6 +53,12 @@ const CreatorInfoBox = ({ creatorId, assetId }) => {
         component: 'text',
         label: 'Bio',
         description: 'descp.',
+      },
+      {
+        name: 'Links',
+        component: 'text',
+        label: 'Bio',
+        description: 'Links.',
       },
     ],
     async onSubmit(data) {

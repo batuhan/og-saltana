@@ -26,6 +26,7 @@ import { sharedInstance } from '../../../modules/api/useApi'
 import ProductPage from '../../../modules/assets/ProductPage'
 import ProductEdit from '../../../modules/assets/ProductEdit'
 import ProductEditMode from '../../../modules/assets/ProductEditMode'
+import CheckoutModal from '../../../modules/checkout/CheckoutModal'
 
 const OrganizationAssetPage = ({ assetId, creatorId }) => {
   const { data } = useApi('assets', 'read', assetId, {})
@@ -33,6 +34,7 @@ const OrganizationAssetPage = ({ assetId, creatorId }) => {
   return (
     <CreatorSpaceShell creatorId={creatorId} assetId={assetId}>
       <Container maxW="container.lg">
+          <CheckoutModal />
          <ProductEditMode {...data} />
       </Container>
     </CreatorSpaceShell>

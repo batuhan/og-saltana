@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { CheckoutToDelivery } from '../../components/CheckoutToDelivery'
+import { CheckoutToDelivery } from '../../modules/checkout/CheckoutToDelivery'
 
 export default function Cart() {
   return <CheckoutToDelivery />

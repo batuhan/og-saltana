@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useCart } from 'react-use-cart'
 
 import { Elements } from '@stripe/react-stripe-js'
-import getStripe from '../modules/stripe'
+import getStripe from '../stripe'
 import {
   Box,
   chakra,
@@ -25,9 +25,9 @@ import {
 } from '@chakra-ui/react'
 import { HiTrash } from 'react-icons/hi'
 import { AiOutlineShoppingCart } from 'react-icons/ai'
-import ElementsForm from '../modules/stripe/components/ElementsForm'
-import { Card } from '../modules/checkout/components/Card'
-import { Logo } from './Logo'
+import ElementsForm from '../stripe/components/ElementsForm'
+import { Card } from './components/Card'
+import { Logo } from '../../components/Logo'
 
 interface ProductLineProps {
   name?: string
@@ -37,13 +37,13 @@ interface ProductLineProps {
 }
 
 export const ProductLine = (props: ProductLineProps) => {
-  const { name, id, price } = props
+  const { name, id, price, quantity } = props
   const { removeItem } = useCart()
 
   return (
     <HStack spacing="3">
       <Box flex="1">
-        <Text fontWeight="bold">{name}</Text>
+        <Text fontWeight="bold">{name} ({quantity})</Text>
         <Text fontSize="sm">Delivered digitally</Text>
       </Box>
       <Box fontWeight="bold" color={mode('blue.600', 'blue.400')}>
@@ -115,21 +115,6 @@ export function CheckoutToDelivery() {
           <Elements stripe={getStripe()}>
             <ElementsForm cartTotal={cartTotal} />
           </Elements>
-
-          <Box fontSize="sm">
-            <Text
-              fontWeight="medium"
-              color={useColorModeValue('gray.600', 'gray.400')}
-            >
-              Already have an account?
-            </Text>
-            <Link
-              fontWeight="semibold"
-              color={useColorModeValue('blue.600', 'blue.300')}
-            >
-              Log back in
-            </Link>
-          </Box>
 
           <Text
             mt="16"

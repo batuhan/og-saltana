@@ -8,8 +8,10 @@ import {
 } from '@chakra-ui/react'
 import { HiBadgeCheck } from 'react-icons/hi'
 import { useApi } from '../../modules/api'
+import { useCart } from 'react-use-cart'
 
 const AssetInfoBox = ({ assetId }) => {
+  const { addItem } = useCart()
   const { data, isLoading } = useApi('assets', 'read', assetId)
 
   return (
@@ -29,7 +31,12 @@ const AssetInfoBox = ({ assetId }) => {
       <Flex alignItems="center" px={6} py={3} bg="gray.900">
         <Icon as={HiBadgeCheck} h={6} w={6} color="white" />
 
-        <chakra.h1 mx={3} color="white" fontWeight="bold" fontSize="lg">
+        <chakra.h1 mx={3} color="white" fontWeight="bold" fontSize="lg" onClick={() => addItem({
+          id: data.id,
+          name: data.name,
+          price: data.price,
+          quantity: 1,
+        })}>
           <Skeleton isLoaded={!isLoading}>
             GET NOW FOR {data.price} {data.currency}
           </Skeleton>

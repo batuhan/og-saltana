@@ -2,8 +2,9 @@ import { Button, Input, Stack } from "@chakra-ui/react";
 import { chakra } from "@chakra-ui/system";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useState } from "react";
-import { fetchPostJSON, formatAmountForDisplay } from "../";
+import { formatAmountForDisplay } from "../";
 import * as config from "../config";
+import { useMutation } from "react-query";
 
 const CARD_OPTIONS = {
   iconStyle: "solid" as const,
@@ -38,6 +39,7 @@ const ElementsForm = ({ cartTotal }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const stripe = useStripe();
   const elements = useElements();
+  const {} = useMutation((data) => )
 
   const PaymentStatus = ({ status }: { status: string }) => {
     switch (status) {
@@ -153,7 +155,6 @@ const ElementsForm = ({ cartTotal }) => {
       </Button>
 
       <PaymentStatus status={payment.status} />
-      <PrintObject content={payment} />
     </chakra.form>
   );
 };
