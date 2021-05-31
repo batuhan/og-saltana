@@ -36,7 +36,6 @@ function useLogin({ redirect = false }) {
   const [session] = useSession()
   const loginMutation = useMutation(({ email }) => login(email, { redirect }), {
     onError: (err) => {
-      console.log({ err })
       //signOut()
     },
   })

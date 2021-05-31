@@ -26,19 +26,12 @@ import { sharedInstance } from '../../../modules/api/useApi'
 import ProductPage from '../../../modules/assets/ProductPage'
 import ProductEdit from '../../../modules/assets/ProductEdit'
 import ProductEditMode from '../../../modules/assets/ProductEditMode'
+
 const OrganizationAssetPage = ({ assetId, creatorId }) => {
-  const { is, session } = useCurrentUser()
-  const [canEdit, setCanEdit] = React.useState(is(creatorId))
-
-  React.useEffect(() => {
-    console.log(is(creatorId), creatorId)
-    setCanEdit(is(creatorId))
-  }, [session])
-
-  const { data, isSuccess } = useApi('assets', 'read', assetId, {})
+  const { data } = useApi('assets', 'read', assetId, {})
 
   return (
-    <CreatorSpaceShell>
+    <CreatorSpaceShell creatorId={creatorId} assetId={assetId}>
       <Container maxW="container.lg">
          <ProductEditMode {...data} />
       </Container>
@@ -47,21 +40,22 @@ const OrganizationAssetPage = ({ assetId, creatorId }) => {
 }
 
 export async function getServerSideProps({
-  params: { organization, product },
+  params: { creator, link },
 }) {
   try {
-    const asset = await sharedInstance.assets.read(product)
+    const asset = await sharedInstance.assets.read(link)
     if (!asset) {
       throw new Error('NO_ASSET')
     }
     const queryClient = getSharedQueryClient()
     queryClient.setQueryData(['assets', 'read', asset.id], asset)
-    await prefetchQuery('users', 'read', organization)
+    await prefetchQuery('users', 'read', creator)
     return {
       props: {
         dehydratedState: dehydrate(queryClient),
         assetId: asset.id,
-        creatorId: organization,
+        linkType: 'asset',
+        creatorId: creator
       },
     }
   } catch (err) {

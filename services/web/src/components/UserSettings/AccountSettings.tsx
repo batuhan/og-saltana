@@ -21,7 +21,6 @@ import { HeadingGroup } from './HeadingGroup'
 
 export const AccountSettings = (props: StackProps) => {
   const user = useCurrentUser()
-  console.log({ user })
 
   return (
     <Stack as="section" spacing="6" {...props}>

@@ -31,7 +31,6 @@ const UserAvatar = () => {
 export const Sidebar = (props: FlexProps) => {
   const user = useCurrentUser()
 
-  console.log({user})
   return (
     <Flex
       bg={mode('gray.50', 'gray.800')}
@@ -47,20 +46,13 @@ export const Sidebar = (props: FlexProps) => {
 
         <Stack spacing="6" as="nav" aria-label="Sidebar Navigation">
           <Stack spacing="1">
-            <NavGroup label="ACCOUNT">
-              <NavLink
+            <NavGroup label="Creator Space">
+            <NavLink
                 label="Request an invite to become a creator"
                 href="/request-invite"
               />
-              <NavLink label="Settings" href="/my/notifications" />
-            </NavGroup>
-          </Stack>
-
-          <Divider />
-          <Stack spacing="1">
-            <NavGroup label="Creator Page">
               <NavLink
-                label="Profile"
+                label="Dashboard"
                 href={`/${encodeURIComponent(user.data.username)}`}
               />
               <NavLink
@@ -97,23 +89,17 @@ export const Sidebar = (props: FlexProps) => {
               />
             </NavGroup>
           </Stack>
-
           <Divider />
-
           <Stack spacing="1">
             <NavGroup label="ACCOUNT">
               <NavLink label="Purchases" href="/my/purchases" />
-              <NavLink label="Settings" href="/my/notifications" />
+              <NavLink label="Settings" href="/my/settings" />
+              <NavLink label="Notifications" href="/my/notifications" />
+            <NavLink label="Help" href="https://help.saltana.com" />
+              <NavLink label="Logout" onClick={() => signOut()} />
             </NavGroup>
           </Stack>
 
-          <Divider />
-
-          <Stack spacing="1">
-            <NavLink label="Notifications" href="/my/notifications" />
-            <NavLink label="Help Center" />
-            <NavLink label="Logout" onClick={() => signOut()} />
-          </Stack>
         </Stack>
         <Spacer />
       </Flex>

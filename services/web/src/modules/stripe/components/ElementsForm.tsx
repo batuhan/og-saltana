@@ -3,7 +3,6 @@ import { chakra } from "@chakra-ui/system";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useState } from "react";
 import { fetchPostJSON, formatAmountForDisplay } from "../";
-import PrintObject from "../components/PrintObject";
 import * as config from "../config";
 
 const CARD_OPTIONS = {

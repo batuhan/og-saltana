@@ -90,7 +90,6 @@ export function useCurrentUser() {
     }
   )
   const is = (usernameOrUserId) => {
-    console.log({ usernameOrUserId, session, data: _api.data })
     if (!session) {
       return false
     }

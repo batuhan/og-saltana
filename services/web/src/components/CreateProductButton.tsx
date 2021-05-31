@@ -27,7 +27,6 @@ function CreateProductButton() {
   } = useForm()
   const addProduct = useApiMutation('assets', 'create', {
     onSuccess: ({ id }) => {
-      console.log(`/${data.username}/${id}/?mode=edit`)
       router.push(`/${data.username}/${id}/?mode=edit`)
     },
   })
@@ -53,7 +52,7 @@ function CreateProductButton() {
                   required: true,
                 })}
                 isReadOnly={addProduct.isLoading}
-                placeholder="Your Feedback"
+                placeholder="Name your product"
                 focusBorderColor={useColorModeValue('blue.500', 'blue.300')}
                 _placeholder={{
                   opacity: 1,

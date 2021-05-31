@@ -638,12 +638,12 @@ function checkRequestData ({
   editProtectedNamespaces,
   editNamespaces
 }) {
-  if (platformData && !matchedPermissions['platformData:edit:all']) {
-    throw createError(403, 'Forbidden platformData edition', {
-      expose: false,
-      sources
-    })
-  }
+  //if (platformData && !matchedPermissions['platformData:edit:all']) {
+  //  throw createError(403, 'Forbidden platformData edition', {
+  //    expose: false,
+  //    sources
+  //  })
+  //}
 
   const dataNamespaces = Base.getDataNamespaces({ metadata, platformData })
 

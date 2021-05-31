@@ -21,7 +21,8 @@
     "g:lint": "yarn lint \"$INIT_CWD\"",
     "g:test": "yarn test \"$INIT_CWD\"",
     "postinstall": "husky install",
-    "format": "prettier-eslint \"packages/**\""
+    "format": "prettier-eslint \"packages/**\"",
+    "update:sdks": "yarn pnpify --sdk"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",

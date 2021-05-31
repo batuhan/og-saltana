@@ -1,5 +1,4 @@
 import { SimpleGrid, Container } from '@chakra-ui/react'
-import { useRouter } from 'next/router'
 import * as React from 'react'
 import CreatorSpaceShell from '../../components/CreatorSpaceShell'
 import {
@@ -11,26 +10,26 @@ import { sharedInstance } from '../../modules/api/useApi'
 import { dehydrate } from 'react-query/hydration'
 import AssetBox from '../../modules/assets/AssetBox'
 
-const OrganizationAssets = ({ creatorId: ownerId }) => {
+const CreatorAssets = ({ creatorId: ownerId }) => {
   const { data = [] } = useApi('assets', 'list', { ownerId })
   return data.map((asset) => <AssetBox key={asset.id} {...asset} />)
 }
 
-const OrganizationProfile = ({ creatorId }) => {
+const CreatorProfile = ({ creatorId }) => {
   return (
-    <CreatorSpaceShell>
+    <CreatorSpaceShell creatorId={creatorId}>
       <Container maxW="container.xl">
         <SimpleGrid columns={2} spacingX="40px" spacingY="20px">
-          <OrganizationAssets creatorId={creatorId} />
+          <CreatorAssets creatorId={creatorId} />
         </SimpleGrid>
       </Container>
     </CreatorSpaceShell>
   )
 }
 
-export async function getServerSideProps({ params: { organization } }) {
+export async function getServerSideProps({ params: { creator } }) {
   try {
-    const user = await sharedInstance.users.read(organization)
+    const user = await sharedInstance.users.read(creator)
     if (!user) {
       throw new Error('NO_USER')
     }
@@ -38,6 +37,7 @@ export async function getServerSideProps({ params: { organization } }) {
     const queryClient = getSharedQueryClient()
     queryClient.setQueryData(['users', 'read', user.id], user)
     await prefetchQuery('assets', 'list', { ownerId: user.id })
+
     return {
       props: { dehydratedState: dehydrate(queryClient), creatorId: user.id },
     }
@@ -48,6 +48,6 @@ export async function getServerSideProps({ params: { organization } }) {
   }
 }
 
-OrganizationProfile.useGlobalHeader = true
+CreatorProfile.useGlobalHeader = true
 
-export default OrganizationProfile
+export default CreatorProfile

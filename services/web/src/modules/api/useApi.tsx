@@ -16,7 +16,6 @@ export default function ApiInstanceContextComp({ children }) {
   })
 
   useEffect(() => {
-    console.log({session, loading})
     if (session) {
       instance.auth.setTokens({
         accessToken: session.coreAccessToken,

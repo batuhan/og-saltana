@@ -2,23 +2,7 @@ import {
   Container,
   Heading,
   VStack,
-  Stack,
   Text,
-  Code,
-  OrderedList,
-  ListItem,
-  Link,
-  Button,
-  Slider,
-  SliderThumb,
-  SliderTrack,
-  SliderFilledTrack,
-  Switch,
-  Avatar,
-  Flex,
-  Badge,
-  Box,
-  Divider,
 } from '@chakra-ui/react'
 
 function Home() {
@@ -31,13 +15,12 @@ function Home() {
         <Text fontSize="3xl" textAlign="center">
           Welcome to the Saltana application.
         </Text>
-        <Text>
-        This page is normally loaded from somewhere else.
-        </Text></VStack>
+        <Text>This page is normally loaded from somewhere else.</Text>
+      </VStack>
     </Container>
   )
 }
 
-Home.useGlobalHeader = true;
+Home.useGlobalHeader = true
 
 export default Home

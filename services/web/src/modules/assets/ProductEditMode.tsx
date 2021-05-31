@@ -1,38 +1,30 @@
 import React from 'react'
 import { useCMS, useForm, usePlugin } from 'tinacms'
-import { InlineForm, InlineBlocks } from 'react-tinacms-inline'
-
-import { heroBlock } from './ProductBlocks/Hero'
-import { paragraphBlock } from './ProductBlocks/Paragraph'
-import { imagesBlock } from './ProductBlocks/Images'
-import { featureListBlock } from './ProductBlocks/FeatureList'
-import { useApiMutation } from '../api'
+import { InlineForm, InlineBlocks, InlineText } from 'react-tinacms-inline'
+import { useQuery, useQueryClient } from 'react-query'
 import { useApiInstance } from '../api/useApi'
 import { useMutation } from 'react-query'
-
-const HOME_BLOCKS = {
-  hero: heroBlock,
-  images: imagesBlock,
-  paragraph: paragraphBlock,
-  features: featureListBlock,
-}
+import { HOME_BLOCKS } from './ProductBlocks'
+import { Text } from '@chakra-ui/react'
 
 export default function ProductEditMode(props) {
   const { instance } = useApiInstance()
   const saveAsset = useMutation((data) =>
     instance.assets.update(props.id, data)
   )
+  const queryClient = useQueryClient()
 
   const cms = useCMS()
 
   const formConfig = {
     id: props.id,
+    label: 'Product',
     initialValues: {
       name: props.name,
       description: props.description,
       price: props.price,
       active: props.active,
-      metadata: props.metadata
+      metadata: props.metadata,
     },
     fields: [
       {
@@ -66,17 +58,20 @@ export default function ProductEditMode(props) {
     ],
     async onSubmit(data) {
       await saveAsset.mutateAsync(data)
+      await queryClient.invalidateQueries(['assets', 'read', data.id])
       cms.alerts.success('Saved!')
     },
   }
-  const [, form] = useForm(formConfig)
+  const [modifiedValues, form] = useForm(formConfig)
   usePlugin(form)
 
   return (
-    <div className="home">
-      <InlineForm form={form}>
-        <InlineBlocks name="metadata.blocks" blocks={HOME_BLOCKS} />
-      </InlineForm>
-    </div>
+    <InlineForm form={form}>
+      <Text fontWeight="bold" fontSize="xl" pb="5">
+        <InlineText name="name" />
+      </Text>
+
+      <InlineBlocks name="metadata.blocks" blocks={HOME_BLOCKS} />
+    </InlineForm>
   )
 }
