@@ -11,24 +11,26 @@ export const sharedInstance = createInstance({
 
 export default function ApiInstanceContextComp({ children }) {
   const [session, loading] = useSession()
-  const instance = createInstance({
+
+  const instance = useMemo(() => createInstance({
     apiKey,
-  })
+  }), [session]);
 
   useEffect(() => {
     if (session) {
-      instance.auth.setTokens({
+      const info = instance.auth.setTokens({
         accessToken: session.coreAccessToken,
         refreshToken: session.refreshToken,
         tokenType: 'Bearer',
         userId: session.user.id,
       })
+      console.log({info})
     }
 
     const unsubscribe =
       instance &&
       instance.onError('userSessionExpired', function () {
-        //  signOut()
+        signOut()
       })
 
     return () => {

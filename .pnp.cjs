@@ -1817,6 +1817,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "npm:1.1.1"
       ],
       [
+        "abort-controller",
+        "npm:3.0.0"
+      ],
+      [
         "abortcontroller-polyfill",
         "npm:1.7.3"
       ],
@@ -4001,6 +4005,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "npm:0.1.6"
       ],
       [
+        "event-target-shim",
+        "npm:5.0.1"
+      ],
+      [
         "eventemitter2",
         "npm:6.0.0"
       ],
@@ -4155,6 +4163,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       [
         "fd-slicer",
         "npm:1.1.0"
+      ],
+      [
+        "fetch-blob",
+        "virtual:6d113662d53f111ebc45d76894379672c4bef1024d442c9142fc052527e3a96d54235ec89724f5865223f87cc87cf23a111fa3aa71b23aae42bc577034ca5762#npm:2.1.2"
       ],
       [
         "figgy-pudding",
@@ -5539,6 +5551,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       [
         "koa-convert",
         "npm:1.2.0"
+      ],
+      [
+        "ky",
+        "npm:0.28.5"
+      ],
+      [
+        "ky-universal",
+        "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:0.9.1"
       ],
       [
         "language-subtag-registry",
@@ -14990,12 +15010,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@uppy/core", "npm:1.19.0"],
             ["@uppy/react", "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:1.11.9"],
             ["autoprefixer", "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:10.2.6"],
+            ["axios", "npm:0.21.1"],
             ["babel-jest", "virtual:caddf51df4928b33a437ca87b8f5ddfb6205ebd6d8231f74d4ee7223f3866e6f815b221aa1e2bd33e98915f701e95bae72a93d2288b49a34a6246bdbc2a4a132#npm:26.6.3"],
             ["eslint", "npm:7.26.0"],
             ["eslint-plugin-react", "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:7.23.2"],
             ["framer-motion", "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:4.1.17"],
             ["husky", "npm:6.0.0"],
             ["jest", "npm:26.6.3"],
+            ["ky", "npm:0.28.5"],
+            ["ky-universal", "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:0.9.1"],
             ["limax", "npm:3.0.0"],
             ["lodash.sortby", "npm:4.7.0"],
             ["magic-sdk", "npm:4.3.0"],
@@ -18274,6 +18297,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/abbrev-npm-1.1.1-3659247eab-a4a97ec07d.zip/node_modules/abbrev/",
           "packageDependencies": [
             ["abbrev", "npm:1.1.1"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["abort-controller", [
+        ["npm:3.0.0", {
+          "packageLocation": "./.yarn/cache/abort-controller-npm-3.0.0-2f3a9a2bcb-170bdba9b4.zip/node_modules/abort-controller/",
+          "packageDependencies": [
+            ["abort-controller", "npm:3.0.0"],
+            ["event-target-shim", "npm:5.0.1"]
           ],
           "linkType": "HARD",
         }]
@@ -26371,6 +26404,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["event-target-shim", [
+        ["npm:5.0.1", {
+          "packageLocation": "./.yarn/cache/event-target-shim-npm-5.0.1-cb48709025-1ffe3bb22a.zip/node_modules/event-target-shim/",
+          "packageDependencies": [
+            ["event-target-shim", "npm:5.0.1"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["eventemitter2", [
         ["npm:6.0.0", {
           "packageLocation": "./.yarn/cache/eventemitter2-npm-6.0.0-60547ef9eb-80e545c5a6.zip/node_modules/eventemitter2/",
@@ -26874,6 +26916,26 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["fd-slicer", "npm:1.1.0"],
             ["pend", "npm:1.2.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["fetch-blob", [
+        ["npm:2.1.2", {
+          "packageLocation": "./.yarn/cache/fetch-blob-npm-2.1.2-2056bf83c5-22d4487ce7.zip/node_modules/fetch-blob/",
+          "packageDependencies": [
+            ["fetch-blob", "npm:2.1.2"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:6d113662d53f111ebc45d76894379672c4bef1024d442c9142fc052527e3a96d54235ec89724f5865223f87cc87cf23a111fa3aa71b23aae42bc577034ca5762#npm:2.1.2", {
+          "packageLocation": "./.yarn/__virtual__/fetch-blob-virtual-166ee5ce72/0/cache/fetch-blob-npm-2.1.2-2056bf83c5-22d4487ce7.zip/node_modules/fetch-blob/",
+          "packageDependencies": [
+            ["fetch-blob", "virtual:6d113662d53f111ebc45d76894379672c4bef1024d442c9142fc052527e3a96d54235ec89724f5865223f87cc87cf23a111fa3aa71b23aae42bc577034ca5762#npm:2.1.2"],
+            ["domexception", null]
+          ],
+          "packagePeers": [
+            "domexception"
           ],
           "linkType": "HARD",
         }]
@@ -31805,6 +31867,43 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["ky", [
+        ["npm:0.28.5", {
+          "packageLocation": "./.yarn/cache/ky-npm-0.28.5-253227dcd4-0ae9050941.zip/node_modules/ky/",
+          "packageDependencies": [
+            ["ky", "npm:0.28.5"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["ky-universal", [
+        ["npm:0.9.1", {
+          "packageLocation": "./.yarn/cache/ky-universal-npm-0.9.1-6487443b64-05f3cab617.zip/node_modules/ky-universal/",
+          "packageDependencies": [
+            ["ky-universal", "npm:0.9.1"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:0.9.1", {
+          "packageLocation": "./.yarn/__virtual__/ky-universal-virtual-3422e864bc/0/cache/ky-universal-npm-0.9.1-6487443b64-05f3cab617.zip/node_modules/ky-universal/",
+          "packageDependencies": [
+            ["ky-universal", "virtual:05ee7549c7faa915a717dcce9adde751d4de454efcfcf460bf05cf1ff37f7e1c565a7c8633743e9a5f7b55c645ea327c5276b2ee5796b0eacbeee58ecef96d1b#npm:0.9.1"],
+            ["@types/ky", null],
+            ["@types/web-streams-polyfill", null],
+            ["abort-controller", "npm:3.0.0"],
+            ["ky", "npm:0.28.5"],
+            ["node-fetch", "npm:3.0.0-beta.9"],
+            ["web-streams-polyfill", null]
+          ],
+          "packagePeers": [
+            "@types/ky",
+            "@types/web-streams-polyfill",
+            "ky",
+            "web-streams-polyfill"
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["language-subtag-registry", [
         ["npm:0.3.21", {
           "packageLocation": "./.yarn/cache/language-subtag-registry-npm-0.3.21-b2d9abe624-5f794525a5.zip/node_modules/language-subtag-registry/",
@@ -34250,6 +34349,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["node-fetch", "npm:2.6.1"],
             ["encoding", "npm:0.1.13"]
+          ],
+          "linkType": "HARD",
+        }],
+        ["npm:3.0.0-beta.9", {
+          "packageLocation": "./.yarn/cache/node-fetch-npm-3.0.0-beta.9-6d113662d5-586af09106.zip/node_modules/node-fetch/",
+          "packageDependencies": [
+            ["node-fetch", "npm:3.0.0-beta.9"],
+            ["data-uri-to-buffer", "npm:3.0.1"],
+            ["encoding", "npm:0.1.13"],
+            ["fetch-blob", "virtual:6d113662d53f111ebc45d76894379672c4bef1024d442c9142fc052527e3a96d54235ec89724f5865223f87cc87cf23a111fa3aa71b23aae42bc577034ca5762#npm:2.1.2"]
           ],
           "linkType": "HARD",
         }]

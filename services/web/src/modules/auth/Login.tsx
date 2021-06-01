@@ -32,27 +32,20 @@ export async function login(email, { redirect = false }) {
   }
 }
 
-function useLogin({ redirect = false }) {
+export function useLogin({ redirect = false }) {
   const [session] = useSession()
   const loginMutation = useMutation(({ email }) => login(email, { redirect }), {
     onError: (err) => {
       //signOut()
     },
   })
-  const router = useRouter()
 
   function onSubmit({ email }) {
     loginMutation.mutate({ email })
   }
 
-  useEffect(() => {
-    if (session) {
-      router.push('/')
-    }
-    return () => {}
-  }, [session])
 
-  return { ...loginMutation, onSubmit }
+  return { ...loginMutation, onSubmit, session }
 }
 
 export function LoginForm() {
@@ -62,7 +55,16 @@ export function LoginForm() {
     formState: { errors },
   } = useForm()
 
+  const router = useRouter()
   const loginMutation = useLogin({ redirect: true })
+
+  useEffect(() => {
+    if (loginMutation.session) {
+      router.push('/')
+    }
+    return () => {}
+  }, [loginMutation.session])
+
   return (
     <form onSubmit={handleSubmit(loginMutation.onSubmit)}>
       <Stack spacing="6">

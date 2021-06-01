@@ -113,7 +113,7 @@ export function CheckoutToDelivery() {
           </Stack>
 
           <Elements stripe={getStripe()}>
-            <ElementsForm cartTotal={cartTotal} />
+            <ElementsForm cartTotal={cartTotal} items={items} />
           </Elements>
 
           <Text
