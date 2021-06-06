@@ -224,6 +224,7 @@ function start({ communication }) {
     const user = await User.query()
       .where('id', userId)
       .orWhere('username', userId)
+      .orWhere('email', userId) // @TODO: this is ugly
       .first()
 
     if (!user) {

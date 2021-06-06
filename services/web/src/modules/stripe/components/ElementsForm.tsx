@@ -81,16 +81,18 @@ const ElementsForm = ({ cartTotal, items }) => {
   const loginMutation = useLogin({ redirect: true })
 
   const onSubmit = async ({ email, cardholderName }) => {
-
     setPaymentStatus('processing')
 
-    const paymentIntentResponse = await axios.post('/api/checkout-intent', {
-      assets,
-      email,
-      cardholderName,
-    })
+    const paymentIntentResponse = await axios.post(
+      '/api/methods/checkout-intent',
+      {
+        assets,
+        email,
+        cardholderName,
+      }
+    )
 
-    setPaymentStatus('processing')
+    console.log({ paymentIntentResponse })
 
     if (paymentIntentResponse.status === 500) {
       setPaymentStatus('error')
@@ -101,7 +103,7 @@ const ElementsForm = ({ cartTotal, items }) => {
     const cardElement = elements.getElement(CardElement)
 
     const { error, paymentIntent } = await stripe.confirmCardPayment(
-      paymentIntentResponse.data.client_secret,
+      paymentIntentResponse.data.paymentIntent.client_secret,
       {
         payment_method: {
           card: cardElement,
@@ -118,7 +120,7 @@ const ElementsForm = ({ cartTotal, items }) => {
 
     if (paymentIntent) {
       setPaymentStatus('waiting_email_verification')
-      await loginMutation.mutateAsync({email})
+      await loginMutation.mutateAsync({ email })
 
       console.log(paymentIntent)
       setPaymentStatus('succeeded')
@@ -163,13 +165,14 @@ const ElementsForm = ({ cartTotal, items }) => {
       </Stack>
 
       <Button
+        type="submit"
         mt="3"
         isFullWidth
         fontSize="sm"
         fontWeight="bold"
         colorScheme="gray"
         disabled={
-          !['initial', 'succeeded', 'error'].includes(status) || !stripe
+          !['initial', 'succeeded', 'error'].includes(paymentStatus) || !stripe
         }
       >
         Pay {formatAmountForDisplay(cartTotal, config.CURRENCY)}

@@ -267,6 +267,7 @@ function getUserIdFromObj (object) {
 
   if (type === 'user') userId = object.id
   else if (type === 'asset') userId = object.ownerId
+  else if (type === 'document') userId = object.authorId
 
   return userId
 }
