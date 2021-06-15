@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.build.json",
+
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@saltana/*": [
+        "services/web",
+        "services/edge",
+        "services/core",
+        "packages/common",
+        "packages/fil",
+        "packages/sdk",
+        "packages/util-keys",
+        "packages/editor",
+        "packages/vendor-objection",
+        "packages/react-hook-form-chakra-fields"
+      ]
+    }
+  }
+}

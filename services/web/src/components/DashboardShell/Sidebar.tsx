@@ -52,34 +52,26 @@ export const Sidebar = (props: FlexProps) => {
                 href="/request-invite"
               />
               <NavLink
-                label="Dashboard"
+                label="Profile"
                 href={`/${encodeURIComponent(user.data.username)}`}
-              />
-              <NavLink
-                label="Products"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/products`}
-              />
-              <NavLink
-                label="Pages"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/pages`}
               />
               <NavLink
                 label="Links"
                 href={`/${encodeURIComponent(user.data.username)}/dashboard/links`}
               />
               <NavLink
-                label="Forms"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/forms`}
+                label="Sales"
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/sales`}
+              />
+              <NavLink
+                label="Analytics"
+                href={`/${encodeURIComponent(user.data.username)}/dashboard/analytics`}
               />
               <NavLink
                 label="Workflows & Integrations"
                 href={`/${encodeURIComponent(
                   user.data.username
                 )}/dashboard/workflows`}
-              />
-              <NavLink
-                label="Earnings & Payouts"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/payouts`}
               />
               <NavLink
                 label="Customization"

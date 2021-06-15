@@ -9,9 +9,9 @@ const DashboardShell: React.FC = ({ children }) => {
       <MobileTopBar />
       <Flex flex="1" overflow="hidden">
         <Sidebar display={{ base: 'none', md: 'flex' }} />
-        <Box as="main" flex="1" overflow="auto">
+        <Container as="main">
           {children}
-        </Box>
+        </Container>
       </Flex>
     </Flex>
   )

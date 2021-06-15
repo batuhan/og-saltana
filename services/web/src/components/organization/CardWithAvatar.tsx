@@ -20,7 +20,6 @@ export const CardWithAvatar = (props: CardWithAvatarProps) => {
       direction="column"
       align={{ sm: 'center' }}
       bg={useColorModeValue('white', 'gray.700')}
-      shadow={{ sm: 'base' }}
       rounded={{ sm: 'lg' }}
       {...rest}
     >

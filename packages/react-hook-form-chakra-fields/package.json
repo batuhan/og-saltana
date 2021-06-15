@@ -1,0 +1,114 @@
+{
+  "version": "0.1.6",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --passWithNoTests",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why",
+    "storybook": "start-storybook -p 6006"
+  },
+  "peerDependencies": {
+    "@chakra-ui/icons": ">=1.0.4",
+    "@chakra-ui/react": ">=1.0.4",
+    "@emotion/react": ">=11.1.4",
+    "@emotion/styled": ">=11.0.0",
+    "@types/react-datepicker": ">=3.1.2",
+    "@types/react-select": ">=3.1.2",
+    "@types/react-text-mask": ">=5.4.6",
+    "currency.js": ">=2.0.3",
+    "dayjs": ">=1.9.8",
+    "framer-motion": ">=3.1.1",
+    "react": ">=16",
+    "react-datepicker": ">=3.3.0",
+    "react-hook-form": ">=6.13.1",
+    "react-number-format": ">=4.4.1",
+    "react-select": ">=3.1.1",
+    "react-text-mask": ">=5.4.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "name": "@saltana/react-hook-form-chakra-fields",
+  "private": true,
+  "author": "Bartosz Stolc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bartstc/react-hook-form-chakra-fields"
+  },
+  "homepage": "https://github.com/bartstc/react-hook-form-chakra-fields",
+  "keywords": [
+    "react-hook-form",
+    "chakra-ui",
+    "chakra-ui/react",
+    "react",
+    "typescript",
+    "form-fields",
+    "js-libraries-integration"
+  ],
+  "module": "dist/react-hook-form-chakra-fields.esm.js",
+  "size-limit": [
+    {
+      "path": "dist/react-hook-form-chakra-fields.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/react-hook-form-chakra-fields.esm.js",
+      "limit": "10 KB"
+    }
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@chakra-ui/icons": "^1.0.4",
+    "@chakra-ui/react": "^1.0.4",
+    "@emotion/react": "^11.1.4",
+    "@emotion/styled": "^11.0.0",
+    "@size-limit/preset-small-lib": "^4.10.1",
+    "@types/react": "^17.0.3",
+    "@types/react-datepicker": "^3.1.2",
+    "@types/react-dom": "^17.0.3",
+    "@types/react-select": "^3.1.2",
+    "@types/react-text-mask": "^5.4.6",
+    "babel-loader": "^8.2.2",
+    "currency.js": "^2.0.3",
+    "dayjs": "^1.9.8",
+    "framer-motion": "^3.1.1",
+    "husky": "^5.2.0",
+    "react": "^17.0.2",
+    "react-datepicker": "^3.3.0",
+    "react-dom": "^17.0.2",
+    "react-hook-form": "^6.13.1",
+    "react-is": "^17.0.2",
+    "react-number-format": "^4.4.1",
+    "react-select": "^3.1.1",
+    "react-text-mask": "^5.4.3",
+    "size-limit": "^4.10.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0",
+    "typescript": "^4.2.3",
+    "webpack": "^5.38.1"
+  },
+  "dependencies": {
+    "@chakra-ui/system": "^1.6.7"
+  }
+}

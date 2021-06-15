@@ -1,0 +1,17 @@
+{
+  "packages": [
+    "services/web",
+    "services/edge",
+    "services/core",
+    "packages/common",
+    "packages/fil",
+    "packages/sdk",
+    "packages/util-keys",
+    "packages/editor",
+    "packages/vendor-objection",
+    "packages/react-hook-form-chakra-fields"
+  ],
+  "version": "independent",
+  "npmClient": "yarn",
+  "useWorkspaces": true
+}

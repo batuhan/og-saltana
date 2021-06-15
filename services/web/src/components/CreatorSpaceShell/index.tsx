@@ -1,44 +1,51 @@
-import {
-  Box,
-  Grid,
-} from '@chakra-ui/react'
-import { TinaProvider, TinaCMS } from 'tinacms'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { useCurrentUser } from '../../modules/api'
-import CreatorInfoBox from './CreatorInfoBox'
-import AssetInfoBox from './AssetInfoBox'
+import { useCurrentUser, useApi } from '../../modules/api'
+import Shell from './Shell'
+import OwnerShell from './OwnerShell'
+import { NextSeo } from 'next-seo'
 
-const CreatorSpaceShell = ({ children, creatorId, assetId }) => {
-  const { query: { mode } } = useRouter()
+const CreatorSpaceShell = ({ children, creatorId }) => {
+  const { data = {}, isLoading } = useApi('users', 'read', creatorId)
+  const {
+    query: { mode },
+  } = useRouter()
   const { is, session } = useCurrentUser()
   const [editModeEnabled, setEditModeEnabled] = React.useState(false)
+  const [canEdit, setCanEdit] = React.useState(false)
 
   React.useEffect(() => {
-    setEditModeEnabled(is(creatorId) && mode === 'edit')
+    const isOwner = is(creatorId)
+    setCanEdit(isOwner)
+    setEditModeEnabled(isOwner && mode === 'edit')
   }, [session, mode])
 
-  const cms = React.useMemo(
-    () => new TinaCMS({ enabled: editModeEnabled, sidebar: true, toolbar: true }),
-    [editModeEnabled]
+  const shell = editModeEnabled ? (
+    <OwnerShell
+      isLoading={isLoading}
+      editModeEnabled={editModeEnabled}
+      creatorId={creatorId}
+      canEdit={canEdit}
+      {...data}
+    >
+      {children}
+    </OwnerShell>
+  ) : (
+    <Shell
+      isLoading={isLoading}
+      creatorId={creatorId}
+      canEdit={canEdit}
+      {...data}
+    >
+      {children}
+    </Shell>
   )
 
-  return (
-    <TinaProvider cms={cms}>
-      <Grid templateColumns="70% 30%">
-        <Box border={0}>{children}</Box>
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="stretch"
-          border={0}
-        >
-          <CreatorInfoBox creatorId={creatorId} assetId={assetId} />
-          {assetId && <AssetInfoBox assetId={assetId} />}
-        </Box>
-      </Grid>
-    </TinaProvider>
-  )
+  return (<>
+    <NextSeo
+      title={data.displayName}
+    />
+  {shell}</>)
 }
 
 export default CreatorSpaceShell

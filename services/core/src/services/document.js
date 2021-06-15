@@ -498,8 +498,13 @@ function start ({ communication }) {
 
     const documentId = req.documentId
 
-    const document = await Document.query().findById(documentId)
-    if (!document) {
+    const document = await Document.query()
+      .where('id', documentId)
+    //  .orWhere('username', documentId)
+    //  .orWhere('email', documentId) // @TODO: this is ugly
+      .first()
+
+      if (!document) {
       throw createError(404)
     }
 
