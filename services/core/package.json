@@ -63,7 +63,7 @@
     "cote": "1.0.2",
     "cron": "^1.8.2",
     "debug": "^4.3.1",
-    "elastic-apm-node": "~3.12.1",
+    "elastic-apm-node": "3.16.0",
     "glob": "^7.1.7",
     "handlebars": "^4.7.7",
     "http-errors": "^1.8.0",

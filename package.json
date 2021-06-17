@@ -20,7 +20,7 @@
     "pub": "lerna publish",
     "test": "lerna run test",
     "lint": "eslint --ext js,ts,tsx .",
-    "install:all": "yarn workspaces foreach -ip install",
+    "bootstrap": "lerna bootstrap",
     "start": "yarn workspaces foreach -ip run start",
     "dev": "concurrently '(cd ./packages/app && yarn dev)' '(cd ./packages/core && yarn dev)'",
     "lint:l": "eslint --cache --report-unused-disable-directives .",
