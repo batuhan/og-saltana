@@ -5,6 +5,7 @@ import { createInstance } from '@saltana/sdk'
 
 const api = () => createInstance({
   apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST
 })
 
 /*
@@ -38,6 +39,7 @@ export default NextAuth({
       return true
     },
     async session(session, token) {
+      console.log('session', session, token)
       const newSession = { ...session }
 
       newSession.coreAccessToken = token.coreAccessToken
@@ -47,6 +49,7 @@ export default NextAuth({
       return newSession
     },
     async jwt(token, user, account, profile) {
+      console.log('jwt', token, user, account, profile)
       token.coreAccessToken = token.coreAccessToken || profile.accessToken
       token.refreshToken = token.refreshToken || profile.refreshToken
       token.sub = token.sub || profile.userId
@@ -65,6 +68,7 @@ export default NextAuth({
       },
       async authorize({ token }) {
         try {
+          console.log(process.env.NEXT_PUBLIC_CORE_API_HOST, { token })
           return await api().auth.loginMagic({
             token,
           })

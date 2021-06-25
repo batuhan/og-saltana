@@ -1,0 +1,7 @@
+dev.saltana.com
+reverse_proxy localhost:3000
+
+handle_path /api/v1* {
+	rewrite * {path}
+	reverse_proxy localhost:4100
+}

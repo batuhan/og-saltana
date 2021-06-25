@@ -87,6 +87,7 @@ export class Saltana {
       apiHost = Saltana.DEFAULT_HOST,
       apiProtocol = Saltana.DEFAULT_PROTOCOL,
       apiPort = Saltana.DEFAULT_PORT,
+      apiPath = Saltana.DEFAULT_PATH
     } = params
 
     this._api = {
@@ -94,6 +95,7 @@ export class Saltana {
       host: apiHost,
       protocol: apiProtocol,
       port: apiPort,
+      path: apiPath,
       version: Saltana.DEFAULT_API_VERSION,
       timeout: Saltana.DEFAULT_TIMEOUT,
       tokenStore: null,
@@ -127,6 +129,10 @@ export class Saltana {
 
   setPort(port) {
     this._setApiField('port', port)
+  }
+
+  setPath(path) {
+    this._setApiField('path', path)
   }
 
   setApiVersion(key) {
@@ -235,9 +241,10 @@ export class Saltana {
   }
 }
 
-Saltana.DEFAULT_HOST = 'localhost'
-Saltana.DEFAULT_PROTOCOL = 'http'
-Saltana.DEFAULT_PORT = 4100
+Saltana.DEFAULT_HOST = 'saltana.com'
+Saltana.DEFAULT_PROTOCOL = 'https'
+Saltana.DEFAULT_PORT = 80
+Saltana.DEFAULT_PATH = '/api/v1'
 Saltana.DEFAULT_API_VERSION = null
 Saltana.DEFAULT_TIMEOUT = 30 * 1000 // 30s
 Saltana.PACKAGE_VERSION = '1.0'

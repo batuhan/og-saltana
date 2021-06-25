@@ -80,7 +80,7 @@ export function prefetchAssets({ ownerId, nbResultsPerPage = 100 }) {
 
 // Authenticated
 export function useCurrentUser() {
-  const [session] = useSession()
+  const [session, loading] = useSession()
   const _api = useAuthenticatedApi(
     'users',
     'read',

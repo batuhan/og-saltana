@@ -11,7 +11,7 @@
   "sqltools.connections": [
     {
       "previewLimit": 50,
-      "server": "10.0.0.123",
+      "server": "164.90.174.135",
       "port": 6543,
       "driver": "PostgreSQL",
       "name": "Saltana Dev",
@@ -24,5 +24,22 @@
   "i18n-ally.localesPaths": [
     "playground/heroes-platform-demo/src/i18n",
     "playground/marketplace-demo/src/i18n"
-  ]
+  ],
+  "scss.validate": false,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "editor.autoClosingQuotes": "always",
+  "tailwindCSS.experimental.classRegex": [
+    "tw`([^`]*)",
+    "tw=\"([^\"]*)",
+    "tw={\"([^\"}]*)",
+    "tw\\.\\w+`([^`]*)",
+    "tw\\(.*?\\)`([^`]*)"
+  ],
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  "tailwindCSS.lint.cssConflict": "ignore"
 }

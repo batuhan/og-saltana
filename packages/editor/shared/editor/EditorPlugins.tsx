@@ -104,35 +104,6 @@ import {
 } from 'wix-rich-content-plugin-unsupported-blocks';
 import { UNSUPPORTED_BLOCKS_TYPE } from 'wix-rich-content-plugin-commons';
 
-import 'wix-rich-content-editor-common/dist/styles.min.css';
-import 'wix-rich-content-plugin-commons/dist/styles.min.css';
-import 'wix-rich-content-common/dist/styles.min.css';
-import 'wix-rich-content-editor/dist/styles.min.css';
-import 'wix-rich-content-plugin-button/dist/styles.min.css';
-// import 'wix-rich-content-plugin-code-block/dist/styles.min.css';
-import 'wix-rich-content-plugin-divider/dist/styles.min.css';
-import 'wix-rich-content-plugin-emoji/dist/styles.min.css';
-import 'wix-rich-content-plugin-html/dist/styles.min.css';
-import 'wix-rich-content-plugin-hashtag/dist/styles.min.css';
-import 'wix-rich-content-plugin-line-spacing/dist/styles.min.css';
-import 'wix-rich-content-plugin-link/dist/styles.min.css';
-import 'wix-rich-content-plugin-link-preview/dist/styles.min.css';
-import 'wix-rich-content-plugin-mentions/dist/styles.min.css';
-import 'wix-rich-content-plugin-image/dist/styles.min.css';
-import 'wix-rich-content-plugin-gallery/dist/styles.min.css';
-import 'wix-rich-content-plugin-video/dist/styles.min.css';
-import 'wix-rich-content-plugin-giphy/dist/styles.min.css';
-import 'wix-rich-content-plugin-map/dist/styles.min.css';
-import 'wix-rich-content-plugin-social-polls/dist/styles.min.css';
-import 'wix-rich-content-plugin-file-upload/dist/styles.min.css';
-import 'wix-rich-content-plugin-spoiler/dist/styles.min.css';
-import 'wix-rich-content-plugin-text-color/dist/styles.min.css';
-import 'wix-rich-content-plugin-headings/dist/styles.min.css';
-import 'wix-rich-content-plugin-vertical-embed/dist/styles.min.css';
-import 'wix-rich-content-plugin-table/dist/styles.min.css';
-import 'wix-rich-content-plugin-collapsible-list/dist/styles.min.css';
-import 'wix-rich-content-plugin-unsupported-blocks/dist/styles.min.css';
-
 import {
   customForegroundStyleFn,
   styleSelectionPredicate,

@@ -7,11 +7,9 @@ const DashboardShell: React.FC = ({ children }) => {
   return (
     <Flex h="100vh" flexDirection="column">
       <MobileTopBar />
-      <Flex flex="1" overflow="hidden">
+      <Flex flex="1">
         <Sidebar display={{ base: 'none', md: 'flex' }} />
-        <Container as="main">
-          {children}
-        </Container>
+        {children}
       </Flex>
     </Flex>
   )

@@ -1,10 +1,7 @@
 import React from 'react'
-import { useCMS, useForm, usePlugin } from 'tinacms'
-import { InlineForm, InlineBlocks, InlineText } from 'react-tinacms-inline'
 import { useQuery, useQueryClient } from 'react-query'
 import { useApiInstance } from '../api/useApi'
 import { useMutation } from 'react-query'
-import { HOME_BLOCKS } from './ProductBlocks'
 import { Text } from '@chakra-ui/react'
 
 export default function ProductEditMode(props) {
@@ -13,8 +10,6 @@ export default function ProductEditMode(props) {
     instance.assets.update(props.id, data)
   )
   const queryClient = useQueryClient()
-
-  const cms = useCMS()
 
   const formConfig = {
     id: props.id,
@@ -59,19 +54,15 @@ export default function ProductEditMode(props) {
     async onSubmit(data) {
       await saveAsset.mutateAsync(data)
       await queryClient.invalidateQueries(['assets', 'read', data.id])
-      cms.alerts.success('Saved!')
+      //  cms.alerts.success('Saved!')
     },
   }
-  const [modifiedValues, form] = useForm(formConfig)
-  usePlugin(form)
+  // const [modifiedValues, form] = useForm(formConfig)
+  //usePlugin(form)
 
   return (
-    <InlineForm form={form}>
-      <Text fontWeight="bold" fontSize="xl" pb="5">
-        <InlineText name="name" />
-      </Text>
-
-      <InlineBlocks name="metadata.blocks" blocks={HOME_BLOCKS} />
-    </InlineForm>
+    <Text fontWeight="bold" fontSize="xl" pb="5">
+      test
+    </Text>
   )
 }

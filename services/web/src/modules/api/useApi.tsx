@@ -3,17 +3,18 @@ import { createInstance } from '@saltana/sdk'
 import { useSession, signOut } from 'next-auth/client'
 
 export const ApiInstanceContext = createContext(null)
-const apiKey = process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY
 
 export const sharedInstance = createInstance({
-  apiKey,
+  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST
 })
 
 export default function ApiInstanceContextComp({ children }) {
   const [session, loading] = useSession()
 
   const instance = useMemo(() => createInstance({
-    apiKey,
+    apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+    apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST
   }), [session]);
 
   useEffect(() => {

@@ -109,7 +109,7 @@ import {
 
 const linkPluginSettings = {
   onClick: (event, url) => console.log('link clicked!', url),
-  siteUrl: 'http://localhost:3000/', //siteUrl is for anchor SEO
+  siteUrl: 'https://dev.saltana.com/', //siteUrl is for anchor SEO
 };
 const mentionsPluginSettings = {
   onMentionClick: mention => console.log('mention clicked!', mention),

@@ -19,16 +19,18 @@ export const GlobalTopBar = () => {
 
   return (
     <Flex>
-      <Logo h="10" />
+      <Logo h="5" />
 
-      {session && <IconButton
-        onClick={() => setIsOpen(true)}
-        variant="unstyled"
-        display="flex"
-        cursor="pointer"
-        aria-label="Menu"
-        icon={<HiOutlineMenu fontSize="1.5rem" />}
-      />}
+      {session && (
+        <IconButton
+          onClick={() => setIsOpen(true)}
+          variant="unstyled"
+          display="flex"
+          cursor="pointer"
+          aria-label="Menu"
+          icon={<HiOutlineMenu fontSize="1.5rem" />}
+        />
+      )}
       <Drawer
         size="xs"
         placement="left"

@@ -47,7 +47,7 @@ export const Sidebar = (props: FlexProps) => {
         <Stack spacing="6" as="nav" aria-label="Sidebar Navigation">
           <Stack spacing="1">
             <NavGroup label="Creator Space">
-            <NavLink
+              <NavLink
                 label="Request an invite to become a creator"
                 href="/request-invite"
               />
@@ -56,16 +56,26 @@ export const Sidebar = (props: FlexProps) => {
                 href={`/${encodeURIComponent(user.data.username)}`}
               />
               <NavLink
+                label="Dashboard"
+                href={`/${encodeURIComponent(user.data.username)}/dashboard`}
+              />
+              <NavLink
                 label="Links"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/links`}
+                href={`/${encodeURIComponent(
+                  user.data.username
+                )}/dashboard/links`}
               />
               <NavLink
                 label="Sales"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/sales`}
+                href={`/${encodeURIComponent(
+                  user.data.username
+                )}/dashboard/sales`}
               />
               <NavLink
                 label="Analytics"
-                href={`/${encodeURIComponent(user.data.username)}/dashboard/analytics`}
+                href={`/${encodeURIComponent(
+                  user.data.username
+                )}/dashboard/analytics`}
               />
               <NavLink
                 label="Workflows & Integrations"
@@ -84,14 +94,13 @@ export const Sidebar = (props: FlexProps) => {
           <Divider />
           <Stack spacing="1">
             <NavGroup label="ACCOUNT">
-              <NavLink label="Purchases" href="/my/purchases" />
+              <NavLink label="Payments" href="/my/payments" />
               <NavLink label="Settings" href="/my/settings" />
               <NavLink label="Notifications" href="/my/notifications" />
-            <NavLink label="Help" href="https://help.saltana.com" />
+              <NavLink label="Help" href="https://help.saltana.com" />
               <NavLink label="Logout" onClick={() => signOut()} />
             </NavGroup>
           </Stack>
-
         </Stack>
         <Spacer />
       </Flex>

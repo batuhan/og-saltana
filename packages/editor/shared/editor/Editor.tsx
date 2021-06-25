@@ -1,8 +1,7 @@
 import React, { ElementType, PureComponent } from 'react';
 import { RichContentEditor, RichContentEditorProps } from 'wix-rich-content-editor';
-import { testVideos } from '../utils/mock';
 import * as Plugins from './EditorPlugins';
-import theme from '../theme/theme'; // must import after custom styles
+//import theme from '../theme/theme'; // must import after custom styles
 import { GALLERY_TYPE } from 'wix-rich-content-plugin-gallery';
 import { mockImageUploadFunc, mockImageNativeUploadFunc } from '../utils/fileUploadUtil';
 import { TOOLBARS } from 'wix-rich-content-editor-common';
@@ -128,7 +127,7 @@ export default class Editor extends PureComponent<ExampleEditorProps> {
     if (ExternalToolbar && this.editor) {
       return (
         <div className="toolbar">
-          <ExternalToolbar {...this.editor.getToolbarProps(externalToolbarToShow)} theme={theme} />
+          <ExternalToolbar {...this.editor.getToolbarProps(externalToolbarToShow)}  />
         </div>
       );
     }
@@ -160,7 +159,6 @@ export default class Editor extends PureComponent<ExampleEditorProps> {
             injectedContent={injectedContent}
             linkSettings={{ anchorTarget, rel }}
             locale={locale}
-            cssOverride={theme}
             toolbarSettings={{
               useStaticTextToolbar: useStaticTextToolbar,
               textToolbarContainer: useStaticTextToolbar && this.staticToolbarContainer,

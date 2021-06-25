@@ -1,7 +1,4 @@
 module.exports = {
-  future: {
-    webpack5: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -12,6 +9,8 @@ module.exports = {
     );
     tsRule.include = undefined;
     tsRule.exclude = /node_modules/;
+    // Unset client-side javascript that only works server-side
+    config.resolve.fallback = { fs: false, module: false };
 
     return config;
   },

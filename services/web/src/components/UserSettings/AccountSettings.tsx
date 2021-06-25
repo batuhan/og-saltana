@@ -20,7 +20,7 @@ import { FieldGroup } from './FieldGroup'
 import { HeadingGroup } from './HeadingGroup'
 
 export const AccountSettings = (props: StackProps) => {
-  const user = useCurrentUser()
+
 
   return (
     <Stack as="section" spacing="6" {...props}>

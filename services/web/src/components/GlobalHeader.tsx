@@ -21,7 +21,6 @@ import { useSession } from 'next-auth/client'
 import NextLink from 'next/link'
 import { GlobalTopBar } from './DashboardShell/GlobalTopBar'
 
-
 const NavLink = ({ children }: { children: ReactNode }) => (
   <Link
     px={2}
@@ -40,22 +39,38 @@ const NavLink = ({ children }: { children: ReactNode }) => (
 export default function GlobalHeader() {
   const [session] = useSession()
   return (
-    <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+    <Box px={4}>
       <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
         <HStack spacing={8} alignItems={'center'}>
           <GlobalTopBar />
         </HStack>
         <Flex alignItems={'center'}>
           {!session && (
-            <NextLink href="/login" passHref>
-              <Button variant={'solid'} colorScheme={'teal'} size={'sm'} mr={4}>
-                Login
-              </Button>
-            </NextLink>
+            <>
+              <NextLink href="/request-invite" passHref>
+                <Button
+                  variant={'outline'}
+                  colorScheme={'teal'}
+                  size={'sm'}
+                  mr={4}
+                >
+                  Request an invite
+                </Button>
+              </NextLink>
+              <NextLink href="/login" passHref>
+                <Button
+                  variant={'link'}
+                  colorScheme={'teal'}
+                  size={'sm'}
+                  mr={4}
+                >
+                  Login
+                </Button>
+              </NextLink>
+            </>
           )}
         </Flex>
       </Flex>
-
     </Box>
   )
 }

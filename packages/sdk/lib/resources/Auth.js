@@ -21,6 +21,7 @@ Auth.prototype.loginMagic = method({
   path: '/auth/login/magic',
   method: 'POST',
   afterRequest: (res, self) => {
+    console.error({res, self})
     const tokenStore = self._saltana.getApiField('tokenStore')
 
     tokenStore.setTokens(res)

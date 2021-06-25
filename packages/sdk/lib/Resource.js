@@ -23,6 +23,8 @@ export default class Resource {
       timeout: this._saltana.getApiField('timeout'),
     }
 
+    console.log({requestParams})
+
     if (queryParams && Object.keys(queryParams).length) {
       requestParams.params = queryParams
     }
@@ -30,12 +32,15 @@ export default class Resource {
       requestParams.data = data
     }
 
+    console.log({requestParams2: requestParams})
+
     return axios(requestParams)
       .then(this._responseHandler)
       .catch(this._errorHandler)
   }
 
   _responseHandler (res) {
+    console.log({res})
     const response = clone(res.data)
     const headers = res.headers || {}
 
@@ -52,6 +57,7 @@ export default class Resource {
   _errorHandler (err) {
     if (!err.response) throw err
 
+    console.log({err})
     const rawResponse = Object.assign({}, err.response)
     const error = Object.assign({}, rawResponse.data) // useful for tests (cannot add multiple times `lastResponse`)
     const headers = rawResponse.headers || {}
@@ -61,6 +67,7 @@ export default class Resource {
       statusCode: rawResponse.status,
     }
 
+    console.error(lastResponse, err)
     addReadOnlyProperty(error, 'lastResponse', lastResponse)
 
     throw error
@@ -104,10 +111,11 @@ export default class Resource {
     const protocol = this._saltana.getApiField('protocol')
     const host = this._saltana.getApiField('host')
     const port = this._saltana.getApiField('port')
+    const path = this._saltana.getApiField('path')
 
-    return (
-      protocol + '://' + host + ([80, 443].includes(port) ? '' : `:${port}`)
-    )
+    const baseURL = protocol + '://' + host + ([80, 443].includes(port) ? '' : `:${port}`) + path
+    console.error(baseURL)
+    return baseURL
   }
 
   static addBasicMethods (resource, { path, includeBasic = [] }) {

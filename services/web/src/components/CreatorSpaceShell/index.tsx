@@ -2,8 +2,10 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useCurrentUser, useApi } from '../../modules/api'
 import Shell from './Shell'
-import OwnerShell from './OwnerShell'
 import { NextSeo } from 'next-seo'
+import dynamic from 'next/dynamic'
+
+const OwnerShell = dynamic(() => import('./OwnerShell'), { ssr: false })
 
 const CreatorSpaceShell = ({ children, creatorId }) => {
   const { data = {}, isLoading } = useApi('users', 'read', creatorId)
@@ -41,11 +43,12 @@ const CreatorSpaceShell = ({ children, creatorId }) => {
     </Shell>
   )
 
-  return (<>
-    <NextSeo
-      title={data.displayName}
-    />
-  {shell}</>)
+  return (
+    <>
+      <NextSeo title={data.displayName} />
+      {shell}
+    </>
+  )
 }
 
 export default CreatorSpaceShell

@@ -1,20 +1,18 @@
 import { useSession } from 'next-auth/client'
 import React from 'react'
+import { useCurrentUser } from '../api'
 import { LoginPage } from './Login'
 
 export default function Authenticated({ children }) {
-  const [session, loading] = useSession()
-  const isUser = !!session?.user
-  React.useEffect(() => {
-    if (loading) return // Do nothing while loading
-    //if (!isUser) signIn() // If not authenticated, force log in
-  }, [isUser, loading])
+  const { data, isLoading, session } = useCurrentUser()
 
-  if (isUser) {
+  const isUser = !!session?.user
+
+  if (!isLoading && data?.id) {
     return children
   }
 
-  if (!loading && !isUser) {
+  if (session && !isUser) {
     return <LoginPage />
   }
 

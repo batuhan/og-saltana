@@ -27,15 +27,19 @@ import ProductPage from '../../../modules/assets/ProductPage'
 import ProductEdit from '../../../modules/assets/ProductEdit'
 import ProductEditMode from '../../../modules/assets/ProductEditMode'
 import CheckoutModal from '../../../modules/checkout/CheckoutModal'
+import { useRouter } from 'next/router'
 
 const OrganizationAssetPage = ({ assetId, creatorId }) => {
   const { data } = useApi('assets', 'read', assetId, {})
-
+  const {
+    query: { mode },
+  } = useRouter()
+  const comp = mode === 'edit' ?  <ProductEditMode {...data} /> : <ProductPage {...data} />
   return (
     <CreatorSpaceShell creatorId={creatorId} assetId={assetId}>
       <Container maxW="container.lg">
           <CheckoutModal />
-         <ProductEditMode {...data} />
+         {comp}
       </Container>
     </CreatorSpaceShell>
   )

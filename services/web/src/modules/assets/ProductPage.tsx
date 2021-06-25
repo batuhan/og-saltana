@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Box, Link, chakra, Image, useColorModeValue } from '@chakra-ui/react'
 
-export default function ProductPage(props) {
+export default function sProductPage(props) {
   return (
     <>
       <Box>
