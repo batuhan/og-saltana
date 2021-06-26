@@ -1,9 +1,10 @@
 import { Container, Heading, VStack, Text } from '@chakra-ui/react'
 import tw, { styled } from 'twin.macro'
+import MarketingShell from '../components/MarketingShell/MarketingShell'
 
 function Home() {
   return (
-    <Container>
+    <MarketingShell>
       <section tw="relative pb-20">
         <div tw="relative container pt-12 px-4 mx-auto text-center">
           <span tw="text-blue-400 font-semibold">
@@ -25,7 +26,7 @@ function Home() {
             Get early access
           </a>
         </div>
-      </section>
+      </section>  
 
       <section tw="relative py-20 overflow-x-hidden">
         <div tw="container px-4 mx-auto">
@@ -505,10 +506,8 @@ function Home() {
           </div>
         </div>
       </section>
-    </Container>
+    </MarketingShell>
   )
 }
-
-Home.useGlobalHeader = true
 
 export default Home

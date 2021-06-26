@@ -68,9 +68,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(loginMutation.onSubmit)}>
       <Stack spacing="6">
-        {loginMutation.isError ? (
-          <div>An error occurred: {loginMutation.error.message}</div>
-        ) : null}
+
 
         <FormControl id="email">
           <FormLabel>Email address</FormLabel>
@@ -97,19 +95,3 @@ export function LoginForm() {
     </form>
   )
 }
-
-export const LoginPage = () => (
-  <>
-    <NextSeo title="Login" />
-    <Box minH="100vh" py="12" px={{ base: '4', lg: '8' }}>
-      <Box maxW="md" mx="auto">
-        <Heading textAlign="center" size="xl" fontWeight="extrabold">
-          Sign in to your account
-        </Heading>
-        <Card>
-          <LoginForm />
-        </Card>
-      </Box>
-    </Box>
-  </>
-)
