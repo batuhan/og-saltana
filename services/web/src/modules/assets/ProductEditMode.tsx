@@ -1,13 +1,11 @@
 import React from 'react'
 import { useQuery, useQueryClient } from 'react-query'
-import { useApiInstance } from '../api/useApi'
 import { useMutation } from 'react-query'
 import { Text } from '@chakra-ui/react'
-
+import { getSaltanaInstance } from '../api'
 export default function ProductEditMode(props) {
-  const { instance } = useApiInstance()
-  const saveAsset = useMutation((data) =>
-    instance.assets.update(props.id, data)
+  const saveAsset = useMutation(async (data) =>
+    (await getSaltanaInstance()).assets.update(props.id, data)
   )
   const queryClient = useQueryClient()
 

@@ -44,54 +44,5 @@ export function useLogin({ redirect = false }) {
     loginMutation.mutate({ email })
   }
 
-
   return { ...loginMutation, onSubmit, session }
-}
-
-export function LoginForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm()
-
-  const router = useRouter()
-  const loginMutation = useLogin({ redirect: true })
-
-  useEffect(() => {
-    if (loginMutation.session) {
-      router.push('/')
-    }
-    return () => {}
-  }, [loginMutation.session])
-
-  return (
-    <form onSubmit={handleSubmit(loginMutation.onSubmit)}>
-      <Stack spacing="6">
-
-
-        <FormControl id="email">
-          <FormLabel>Email address</FormLabel>
-          <Input
-            type="email"
-            autoComplete="email"
-            {...register('email', {
-              required: true,
-              pattern: /^\S+@\S+$/i,
-            })}
-            isReadOnly={loginMutation.isLoading}
-          />
-        </FormControl>
-        <Button
-          type="submit"
-          colorScheme="blue"
-          size="lg"
-          fontSize="md"
-          isLoading={loginMutation.isLoading}
-        >
-          Sign in
-        </Button>
-      </Stack>
-    </form>
-  )
 }

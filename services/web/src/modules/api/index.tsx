@@ -1,47 +1,76 @@
-import { useSession } from 'next-auth/client'
+import { getSession, useSession, signOut } from 'next-auth/client'
 import { QueryClient, useQuery, useMutation } from 'react-query'
-import { useApiInstance, sharedInstance } from './useApi'
+import { createInstance } from '@saltana/sdk'
 
-const sharedQueryClient = new QueryClient()
+export const sharedSaltanaInstance = createInstance({
+  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
+})
 
-export function getSharedQueryClient() {
-  return sharedQueryClient
+export async function getSaltanaInstance(_session = undefined) {
+  const session = _session || (await getSession())
+
+  if (!session) {
+    return sharedSaltanaInstance
+  }
+
+  const newInstance = createInstance({
+    apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+    apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
+  })
+
+  const info = newInstance.auth.setTokens({
+    accessToken: session.coreAccessToken,
+    refreshToken: session.refreshToken,
+    tokenType: 'Bearer',
+    userId: session.user.id,
+  })
+
+  newInstance.onError('userSessionExpired', function () {
+    signOut()
+  })
+
+  return newInstance
 }
+
+const defaultQueryFn = async ({ queryKey }) => {
+  const [resourceType, method, data] = queryKey
+  const saltanaInstance = await getSaltanaInstance()
+
+  const sdkResponse = await saltanaInstance[resourceType][method](data)
+  return sdkResponse
+}
+
+export const queryClientSettings = {
+  defaultOptions: {
+    queries: {
+      queryFn: defaultQueryFn,
+    },
+  },
+}
+
+export const sharedQueryClient = new QueryClient(queryClientSettings)
 
 export function useApi(resourceType, method, data, opts = {}) {
-  const instance = opts.apiInstance || sharedInstance
-  return useQuery(
-    [resourceType, method, data],
-    () => instance[resourceType][method](data),
-    {
-      ...opts,
-    }
-  )
-}
-
-export function useAuthenticatedApi(resourceType, method, data, opts = {}) {
-  const { instance, ready } = useApiInstance()
-  return useApi(resourceType, method, data, {
-    apiInstance: instance,
-    enabled: ready,
+  return useQuery([resourceType, method, data], {
     ...opts,
   })
 }
 
 export function useApiMutation(resourceType, method, opts) {
-  const { instance } = useApiInstance()
-  return useMutation((data) => instance[resourceType][method](data), opts)
+  return useMutation(async (data) => {
+    const saltanaInstance = await getSaltanaInstance()
+    return saltanaInstance[resourceType][method](data)
+  }, opts)
 }
 
 export async function prefetchQuery(
   resourceType,
   method,
   data,
-  queryClient = getSharedQueryClient()
+  queryClient = sharedQueryClient
 ) {
-  await queryClient.prefetchQuery([resourceType, method, data], () =>
-    sharedInstance[resourceType][method](data)
-  )
+  await queryClient.prefetchQuery([resourceType, method, data])
 }
 
 // Organizations/Users/Creators
@@ -58,7 +87,7 @@ export function useAssetTypes({ nbResultsPerPage = 100 }) {
 }
 
 export function prefetchAssetTypes({ nbResultsPerPage = 100 }) {
-  return prefetchSharedQuery('assetTypes', 'list', {
+  return prefetchQuery('assetTypes', 'list', {
     nbResultsPerPage,
   })
 }
@@ -72,7 +101,7 @@ export function useAssets({ ownerId, nbResultsPerPage = 100 }) {
 }
 
 export function prefetchAssets({ ownerId, nbResultsPerPage = 100 }) {
-  return prefetchSharedQuery('assets', 'list', {
+  return prefetchQuery('assets', 'list', {
     ownerId,
     nbResultsPerPage,
   })
@@ -81,14 +110,12 @@ export function prefetchAssets({ ownerId, nbResultsPerPage = 100 }) {
 // Authenticated
 export function useCurrentUser() {
   const [session, loading] = useSession()
-  const _api = useAuthenticatedApi(
-    'users',
-    'read',
-    session ? session.user.id : null,
-    {
-      enabled: !!session,
-    }
-  )
+  const _api = useApi('users', 'read', session ? session.user.id : null, {
+    enabled: !!session,
+    initialData: {
+      roles: [],
+    },
+  })
   const is = (usernameOrUserId) => {
     if (!session) {
       return false

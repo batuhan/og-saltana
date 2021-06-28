@@ -3,10 +3,11 @@ import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
 import { createInstance } from '@saltana/sdk'
 
-const api = () => createInstance({
-  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
-  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST
-})
+const api = () =>
+  createInstance({
+    apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+    apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
+  })
 
 /*
 async function getUserById(userId) {
@@ -39,22 +40,25 @@ export default NextAuth({
       return true
     },
     async session(session, token) {
-      console.log('session', session, token)
       const newSession = { ...session }
 
       newSession.coreAccessToken = token.coreAccessToken
       newSession.refreshToken = token.refreshToken
       newSession.user.id = token.sub
+      newSession.user.role = token?.role
 
       return newSession
     },
     async jwt(token, user, account, profile) {
-      console.log('jwt', token, user, account, profile)
       token.coreAccessToken = token.coreAccessToken || profile.accessToken
       token.refreshToken = token.refreshToken || profile.refreshToken
       token.sub = token.sub || profile.userId
+      token.role = token?.role || profile?.role
       return token
     },
+  },
+  pages: {
+    signIn: '/login',
   },
   providers: [
     Providers.Credentials({
@@ -68,10 +72,10 @@ export default NextAuth({
       },
       async authorize({ token }) {
         try {
-          console.log(process.env.NEXT_PUBLIC_CORE_API_HOST, { token })
-          return await api().auth.loginMagic({
+          const user = await api().auth.loginMagic({
             token,
           })
+          return user
         } catch (err) {
           console.warn('Unable to get or create user via Magic.link', err)
           throw Error('Unknown failure')

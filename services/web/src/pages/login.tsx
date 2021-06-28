@@ -1,4 +1,4 @@
-import { LoginPage, useLogin } from '../modules/auth/Login'
+import { useLogin } from '../modules/auth/Login'
 
 import tw, { styled } from 'twin.macro'
 
@@ -8,6 +8,7 @@ import React, { useEffect } from 'react'
 import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
 import { useForm } from 'react-hook-form'
+import { getSession } from 'next-auth/client'
 
 export default function Login() {
   const {
@@ -21,10 +22,10 @@ export default function Login() {
 
   useEffect(() => {
     if (loginMutation.session) {
-      router.push('/')
+      router.push(router.query.callbackUrl as string)
     }
     return () => {}
-  }, [loginMutation.session])
+  }, [loginMutation.session, router])
 
   return (
     <div tw="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -95,4 +96,22 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+Login.auth = false
+
+export const getServerSideProps = async (context) => {
+  const session = await getSession(context)
+  if (session) {
+    return {
+      redirect: {
+        destination: context.req.query?.callbackUrl || '/my/purchases',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: {},
+  }
 }

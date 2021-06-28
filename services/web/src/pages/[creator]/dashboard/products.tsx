@@ -1,157 +1,135 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Flex,
-  Heading,
-  HStack,
-  Stack,
-  Link,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Text,
-  useColorModeValue as mode,
-  Popover,
-  PopoverTrigger,
-  Portal,
-  PopoverContent,
-  Table,
-  TableCaption,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
-  Tfoot,
-} from '@chakra-ui/react'
 import * as React from 'react'
 import { HiChartBar, HiDownload, HiPlus } from 'react-icons/hi'
-import DashboardShell from '../../../components/DashboardShell'
+import DashboardShell from '../../../components/DashboardShell/DashboardShell'
 import CreateProductButton from '../../../components/CreateProductButton'
-import { useAuthenticatedApi } from '../../../modules/api'
+import { useApi } from '../../../modules/api'
 import { useSession } from 'next-auth/client'
+import tw, { styled } from 'twin.macro'
+import { NextSeo } from 'next-seo'
+import AssetForm from '../../../containers/CreatorDashboard/AssetForm'
+
+export function Title() {
+  return (
+    <div tw="md:flex md:items-center md:justify-between">
+      <div tw="flex-1 min-w-0">
+        <h2 tw="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          Products
+        </h2>
+      </div>
+      <div tw="mt-4 flex md:mt-0 md:ml-4">
+        <button
+          type="button"
+          tw="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Add Product
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const stats = [
+  { name: 'Total Subscribers', stat: '71,897' },
+  { name: 'Avg. Open Rate', stat: '58.16%' },
+  { name: 'Avg. Click Rate', stat: '24.57%' },
+]
+
+export function Stats() {
+  return (
+    <div tw="px-4 mt-6 sm:px-6 lg:px-8">
+      <h3 tw="text-lg leading-6 font-medium text-gray-900">Last 30 days</h3>
+      <dl tw="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        {stats.map((item) => (
+          <div
+            key={item.name}
+            tw="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6"
+          >
+            <dt tw="text-sm font-medium text-gray-500 truncate">{item.name}</dt>
+            <dd tw="mt-1 text-3xl font-semibold text-gray-900">{item.stat}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  )
+}
+/* This example requires Tailwind CSS v2.0+ */
+import { CalendarIcon, ChevronRightIcon } from '@heroicons/react/solid'
+
+export function List({ assets }) {
+  return (
+    <div tw="px-4 mt-6 sm:px-6 lg:px-8">
+      <h3 tw="text-lg leading-6 font-medium text-gray-900">
+        All products ({assets.length} products)
+      </h3>
+
+      <div tw="shadow overflow-hidden sm:rounded-md mt-5">
+        <ul tw="divide-y divide-gray-200">
+          {assets.map(({ id, name, description, ownerId, createdDate }) => (
+            <li key={id}>
+              <a href="#" tw="block hover:bg-gray-50">
+                <div tw="px-4 py-4 flex items-center sm:px-6">
+                  <div tw="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div tw="truncate">
+                      <div tw="flex text-sm">
+                        <p tw="font-medium text-indigo-600 truncate">{name}</p>
+                        <p tw="ml-1 flex-shrink-0 font-normal text-gray-500">
+                          {description}
+                        </p>
+                      </div>
+                      <div tw="mt-2 flex">
+                        <div tw="flex items-center text-sm text-gray-500">
+                          <CalendarIcon
+                            tw="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+                            aria-hidden="true"
+                          />
+                          <p>
+                            Published on{' '}
+                            <time dateTime={createdDate}>{createdDate}</time>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div tw="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                      <div tw="flex overflow-hidden -space-x-1">A</div>
+                    </div>
+                  </div>
+                  <div tw="ml-5 flex-shrink-0">
+                    <ChevronRightIcon
+                      tw="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
 
 export const CreatorProducts = () => {
   const [session] = useSession()
-  const assetsQuery = useAuthenticatedApi('assets', 'list', {
-    ownerId: session.user.id,
-    nbResultsPerPage: 100,
-  }, { initialData: []})
+  const assetsQuery = useApi(
+    'assets',
+    'list',
+    {
+      ownerId: session.user.id,
+      nbResultsPerPage: 100,
+    },
+    { initialData: [] }
+  )
   return (
     <DashboardShell>
-      <Tabs isFitted>
-        <Flex direction="column" align="stretch" minH="100vh">
-          <Box bg={mode('gray.50', 'gray.800')} px="8" pt="8">
-            <Box maxW="7xl" mx="auto">
-              <Flex
-                direction={{ base: 'column', md: 'row' }}
-                justify="space-between"
-                align="flex-start"
-                mb="10"
-              >
-                <HStack mb={{ base: '4', md: '0' }}>
-                  <Heading size="lg">Products</Heading>
-                  <Text color={mode('gray.500', 'gray.300')} fontSize="sm">
-                    ({assetsQuery.data.length} products)
-                  </Text>
-                </HStack>
-
-                <HStack spacing={{ base: '2', md: '4' }}>
-                  <Button
-                    bg={mode('white', 'inherit')}
-                    variant="outline"
-                    leftIcon={<HiDownload />}
-                    fontSize="sm"
-                  >
-                    Import
-                  </Button>
-                  <CreateProductButton />
-                </HStack>
-              </Flex>
-
-              <Flex justify="space-between" align="center">
-                <TabList
-                  border="0"
-                  position="relative"
-                  zIndex={1}
-                  w={{ base: '100%', md: 'auto' }}
-                >
-                  <Tab fontWeight="semibold">Manage</Tab>
-                  <Tab fontWeight="semibold">New</Tab>
-                </TabList>
-                <Link
-                  href="#"
-                  fontWeight="semibold"
-                  color={mode('blue.600', 'blue.300')}
-                  fontSize="sm"
-                  display={{ base: 'none', md: 'block' }}
-                >
-                  <Box
-                    as={HiChartBar}
-                    fontSize="sm"
-                    display="inline-block"
-                    marginEnd="2"
-                  />
-                  View form analytics
-                </Link>
-              </Flex>
-            </Box>
-          </Box>
-          <Box pos="relative" zIndex={0}>
-            <Divider
-              borderBottomWidth="2px"
-              opacity={1}
-              borderColor={mode('gray.100', 'gray.700')}
-            />
-          </Box>
-          <Box px="8" flex="1">
-            <Box maxW="7xl" mx="auto">
-              <TabPanels mt="5" h="full">
-                <TabPanel>
-                  <Table variant="simple">
-                    <TableCaption>
-                      Products
-                    </TableCaption>
-                    <Thead>
-                      <Tr>
-                        <Th>Name</Th>
-                        <Th>Description</Th>
-                        <Th>Updated At</Th>
-                        <Th>Created At</Th>
-                        <Th isNumeric>Price</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {assetsQuery.data.map((asset) => (
-                        <Tr key={asset.id}>
-                          <Td>
-                            <Link
-                              href={`/${asset.ownerId}/${asset.id}?mode=edit`}
-                            >
-                              {asset.name}
-                            </Link>
-                          </Td>
-                          <Td>{asset.description}</Td>
-                          <Td>{asset.createdDate}</Td>
-                          <Td>{asset.updatedDate}</Td>
-                          <Td isNumeric>{asset.price}</Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </TabPanel>
-                <TabPanel>sdfds</TabPanel>
-              </TabPanels>
-            </Box>
-          </Box>
-        </Flex>
-      </Tabs>
+      <NextSeo title="Products" />
+      <Title />
+      <Stats />
+      <List assets={assetsQuery.data} />
     </DashboardShell>
   )
 }
+
 CreatorProducts.auth = {
   role: 'creator',
   loading: 'Loading', //direct to this url

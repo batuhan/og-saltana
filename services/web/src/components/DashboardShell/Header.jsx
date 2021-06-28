@@ -16,9 +16,10 @@ import {
 } from '@heroicons/react/outline'
 import { Logo } from '../Logo'
 import { Avatar } from '@chakra-ui/react'
-
+import { useRouter } from 'next/router'
 import { signOut, useSession } from 'next-auth/client'
 import { useCurrentUser } from '../../modules/api'
+import Link from 'next/link'
 
 const user = {
   name: 'Chelsea Hagon',
@@ -27,7 +28,7 @@ const user = {
   imageUrl:
     'https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
 }
-const navigation = [
+const _creatorNavigation = [
   { name: 'Dashboard', href: '/dashboard', creatorScoped: true, current: true },
   {
     name: 'Links',
@@ -70,49 +71,66 @@ const navigation = [
 const userNavigation = [
   { name: 'My Purchases', href: '/my/purchases' },
   { name: 'Account Settings', href: '/my/settings' },
-  { name: 'Sign out', href: '#' },
 ]
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
 
 export default function Header() {
   const user = useCurrentUser()
+  const router = useRouter()
+  const isRegularUserPath = router.pathname.startsWith('/my/')
+  const currentHref = router.pathname.replace('[creator]', user.data.id)
+  const creatorNavigation = _creatorNavigation.map((navItem) => {
+    const newItem = {...navItem}
+    if (newItem.creatorScoped) {
+      newItem.href = `/${user.data.id}${newItem.href}`
+    }
+
+    newItem.current = newItem.href === currentHref
+    return newItem
+  })
+  const navigation = isRegularUserPath ? userNavigation : creatorNavigation
+  const isCreator = user.data.roles.includes('provider')
+  const miniNavigation = isCreator ? creatorNavigation : [{ name: 'Apply for an invite', href: '/request-invite', creatorScoped: false, current: true }]
 
   return (
-    <Popover tw="pb-24 pt-3">
+    <Popover tw="py-5 ">
       {({ open }) => (
-        <>
-          <div tw="max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+        <div tw="bg-black text-white">
+          <div tw="max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-5xl lg:px-8">
             <div tw="relative flex flex-wrap items-center justify-center lg:justify-between">
               {/* Logo */}
               <div tw="absolute left-0 py-5 flex-shrink-0 lg:static">
-                <a href="#">
-                  <span tw="sr-only">Saltana</span>
-                  <Logo h="5" fill="#ffffff" />
-                </a>
+                <Link href="/">
+                  <a>
+                    <span tw="sr-only">Saltana</span>
+                    <Logo h="5" fill="#ffffff" />
+                  </a>
+                </Link>
               </div>
 
               {/* Right section on desktop */}
               <div tw="hidden lg:ml-4 lg:flex lg:items-center lg:py-5 lg:pr-0.5">
                 <div tw="ml-4 relative flex-shrink-0">
-                  <a
-                    href="#"
-                    tw="text-sm font-medium text-white hover:underline "
-                  >
-                    Give Feedback
-                  </a>
+                  <Link href="/give-feedback">
+                    <a tw="text-sm font-medium text-white hover:underline ">
+                      Give Feedback
+                    </a>
+                  </Link>
                 </div>
                 <div tw="ml-4 relative flex-shrink-0">
-                  <button
-                    type="button"
-                    tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <PlusIcon tw="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                    <span>New Job</span>
-                  </button>
+                  {!user.data.roles.includes('provider') && (
+                    <Link href="/request-invite">
+                      <a tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <span>Apply for an invite</span>
+                      </a>
+                    </Link>
+                  )}
+                  {isRegularUserPath && (
+                    <Link href={`/${user.data.id}/dashboard`}>
+                      <a tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <span>Creator Dashboard</span>
+                      </a>
+                    </Link>
+                  )}
                 </div>
                 {/* Profile dropdown */}
                 <div tw="ml-4 relative flex-shrink-0">
@@ -126,7 +144,7 @@ export default function Header() {
                             <div tw="h-8 w-8 rounded-full">
                               <Avatar
                                 size="sm"
-                                name={user.name}
+                                name={user.data.displayName}
                                 src={user.imageUrl}
                               />
                             </div>
@@ -148,11 +166,7 @@ export default function Header() {
                                 {({ active }) => (
                                   <a
                                     href={item.href}
-                                    tw="block px-4 py-2 text-sm text-gray-700"
-                                    className={classNames(
-                                      active ? 'bg-gray-100' : '',
-                                      'block px-4 py-2 text-sm text-gray-700'
-                                    )}
+                                    css={[tw`block px-4 py-2 text-sm text-gray-700`, active && 'bg-gray-100']}
                                   >
                                     {item.name}
                                   </a>
@@ -176,11 +190,7 @@ export default function Header() {
                         <a
                           key={item.name}
                           href={item.href}
-                          tw="text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10"
-                          className={classNames(
-                            item.current ? 'text-white' : 'text-cyan-100',
-                            'text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10'
-                          )}
+                          css={[tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`, item.current ? tw`bg-gray-400` : tw`text-cyan-100`]}
                           aria-current={item.current ? 'page' : undefined}
                         >
                           {item.name}
@@ -252,7 +262,7 @@ export default function Header() {
                         </div>
                       </div>
                       <div tw="mt-3 px-2 space-y-1">
-                        {navigation.map((item) => (
+                        {miniNavigation.map((item) => (
                           <a
                             key={item.name}
                             href={item.href}
@@ -269,17 +279,17 @@ export default function Header() {
                           <div tw="h-10 w-10 rounded-full">
                             <Avatar
                               size="md"
-                              name={user.name}
+                              name={user.data.displayName}
                               src={user.imageUrl}
                             />
                           </div>
                         </div>
                         <div tw="ml-3 min-w-0 flex-1">
                           <div tw="text-base font-medium text-gray-800 truncate">
-                            {user.name}
+                            {user.data.displayName}
                           </div>
                           <div tw="text-sm font-medium text-gray-500 truncate">
-                            {user.email}
+                          {user.data.email}
                           </div>
                         </div>
                         <button tw="ml-auto flex-shrink-0 bg-white p-1 text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
@@ -304,7 +314,7 @@ export default function Header() {
               </Transition.Child>
             </div>
           </Transition.Root>
-        </>
+        </div>
       )}
     </Popover>
   )

@@ -122,16 +122,13 @@ const customColors = {
     800: '#3e252c',
     900: '#24161a',
   },
-  sky: colors.sky,
-  teal: colors.teal,
-  cyan: colors.cyan,
-  rose: colors.rose,
+  ...colors,
 }
 
 module.exports = {
   mode: 'jit',
   purge: ['./src/**/**.{js,ts,jsx,tsx}'],
-  darkMode: 'class',
+  //darkMode: 'class',
   theme: {
     fontFamily: {
       sans: ['Inter', ...fontFamily.sans],

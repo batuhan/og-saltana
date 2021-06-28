@@ -35,7 +35,7 @@ export default function Header() {
           </div>
           <div tw="ml-10 space-x-4">
             {session ? (
-              <Link href="/my/settings" passHref>
+              <Link href="/dashboard" passHref>
                 <a tw="inline-block bg-white py-2 px-4 border border-transparent rounded-md text-base font-medium text-indigo-600 hover:bg-indigo-50">
                   Dashboard
                 </a>

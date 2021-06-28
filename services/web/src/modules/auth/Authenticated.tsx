@@ -1,24 +1,21 @@
 import React from 'react'
-import { useCurrentUser } from '../api'
 import { useRouter } from 'next/router'
+import { signIn, useSession } from 'next-auth/client'
 
 export default function Authenticated({ children }) {
+  const [session, loading] = useSession()
   const router = useRouter()
-
-  const { data, isLoading, session } = useCurrentUser()
-
-  console.log(data, isLoading, session)
   const isUser = !!session?.user
+  React.useEffect(() => {
+    if (loading) return // Do nothing while loading
+    if (!isUser) signIn()
+  }, [isUser, loading])
 
-  if (!isLoading && data?.id) {
+  if (isUser) {
     return children
-  }
-
-  if (session && !isUser) {
-    return <LoginPage />
   }
 
   // Session is being fetched, or no user.
   // If no user, useEffect() will redirect.
-  return <div>Loadingtest...</div>
+  return <div>Loading...</div>
 }

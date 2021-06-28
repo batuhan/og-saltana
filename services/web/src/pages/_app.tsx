@@ -8,7 +8,7 @@ import customTheme from '../chakra-ui/customTheme'
 import { CartProvider } from 'react-use-cart'
 import { Provider } from 'next-auth/client'
 import Authenticated from '../modules/auth/Authenticated'
-import ApiProvider from '../modules/api/useApi'
+import { queryClientSettings } from '../modules/api'
 import { ReactQueryDevtools } from 'react-query/devtools'
 import { DefaultSeo } from 'next-seo'
 
@@ -16,10 +16,9 @@ import { DefaultSeo } from 'next-seo'
 import SEO from '../../next-seo.config'
 
 function App({ Component, pageProps }: AppProps) {
-  const queryClientRef = React.useRef()
-  if (!queryClientRef.current) {
-    queryClientRef.current = new QueryClient()
-  }
+  const [queryClient] = React.useState(
+    () => new QueryClient(queryClientSettings)
+  )
 
   return (
     <>
@@ -29,25 +28,23 @@ function App({ Component, pageProps }: AppProps) {
       </Head>
       <ColorModeScript initialColorMode={customTheme.config.initialColorMode} />
       <Provider session={pageProps.session}>
-        <ApiProvider>
-          <QueryClientProvider client={queryClientRef.current}>
-            <Hydrate state={pageProps.dehydratedState}>
-              <ChakraProvider theme={customTheme}>
-                <CartProvider>
-                  <DefaultSeo {...SEO} />
-                  {Component.auth ? (
-                    <Authenticated>
-                      <Component {...pageProps} />
-                    </Authenticated>
-                  ) : (
+        <QueryClientProvider client={queryClient}>
+          <Hydrate state={pageProps.dehydratedState}>
+            <ChakraProvider theme={customTheme}>
+              <CartProvider>
+                <DefaultSeo {...SEO} />
+                {Component.auth ? (
+                  <Authenticated>
                     <Component {...pageProps} />
-                  )}
-                </CartProvider>
-              </ChakraProvider>
-              <ReactQueryDevtools initialIsOpen={false} />
-            </Hydrate>
-          </QueryClientProvider>
-        </ApiProvider>
+                  </Authenticated>
+                ) : (
+                  <Component {...pageProps} />
+                )}
+              </CartProvider>
+            </ChakraProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </Hydrate>
+        </QueryClientProvider>
       </Provider>
     </>
   )

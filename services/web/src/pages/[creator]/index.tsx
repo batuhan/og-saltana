@@ -1,8 +1,12 @@
 import { SimpleGrid, Container } from '@chakra-ui/react'
 import * as React from 'react'
 import CreatorSpaceShell from '../../components/CreatorSpaceShell'
-import { getSharedQueryClient, useApi, prefetchQuery } from '../../modules/api'
-import { sharedInstance } from '../../modules/api/useApi'
+import {
+  sharedQueryClient,
+  useApi,
+  prefetchQuery,
+  sharedSaltanaInstance,
+} from '../../modules/api'
 import { dehydrate } from 'react-query/hydration'
 import AssetBox from '../../modules/assets/AssetBox'
 
@@ -25,17 +29,19 @@ const CreatorProfile = ({ creatorId }) => {
 
 export async function getServerSideProps({ params: { creator } }) {
   try {
-    const user = await sharedInstance.users.read(creator)
+    const user = await sharedSaltanaInstance.users.read(creator)
     if (!user) {
       throw new Error('NO_USER')
     }
 
-    const queryClient = getSharedQueryClient()
-    queryClient.setQueryData(['users', 'read', user.id], user)
+    sharedQueryClient.setQueryData(['users', 'read', user.id], user)
     await prefetchQuery('assets', 'list', { ownerId: user.id })
 
     return {
-      props: { dehydratedState: dehydrate(queryClient), creatorId: user.id },
+      props: {
+        dehydratedState: dehydrate(sharedQueryClient),
+        creatorId: user.id,
+      },
     }
   } catch (err) {
     return {

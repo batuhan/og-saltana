@@ -1,8 +1,7 @@
 import React from 'react'
 import Shell from './Shell'
-import { useApiInstance } from '../../modules/api/useApi'
 import { useMutation, useQueryClient } from 'react-query'
-
+import {getSaltanaInstance} from '../../modules/api'
 const ShellEditWrapper = ({
   creatorId,
   displayName,
@@ -10,9 +9,8 @@ const ShellEditWrapper = ({
   description,
 }) => {
   //const cms = useCMS()
-  const { instance } = useApiInstance()
-  const saveCreator = useMutation((data) =>
-    instance.users.update(creatorId, data)
+  const saveCreator = useMutation(async (data) =>
+    (await getSaltanaInstance()).users.update(creatorId, data)
   )
   const queryClient = useQueryClient()
 
