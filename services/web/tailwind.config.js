@@ -1,3 +1,6 @@
+const colors = require('tailwindcss/colors')
+const { fontFamily } = require('tailwindcss/defaultTheme')
+
 const customColors = {
   pine: {
     50: '#f6f8f7',
@@ -119,13 +122,20 @@ const customColors = {
     800: '#3e252c',
     900: '#24161a',
   },
+  sky: colors.sky,
+  teal: colors.teal,
+  cyan: colors.cyan,
+  rose: colors.rose,
 }
 
 module.exports = {
-  //mode: 'jit',
+  mode: 'jit',
   purge: ['./src/**/**.{js,ts,jsx,tsx}'],
-  //darkMode: 'class',
+  darkMode: 'class',
   theme: {
+    fontFamily: {
+      sans: ['Inter', ...fontFamily.sans],
+    },
     extend: {
       colors: customColors,
     },
@@ -133,5 +143,10 @@ module.exports = {
   variants: {
     extend: {},
   },
-  plugins: ['@tailwindcss/forms'],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/line-clamp'),
+    require('tailwindcss-debug-screens'),
+  ],
 }

@@ -15,7 +15,7 @@ export default function Header() {
   return (
     <header tw="bg-black">
       <nav tw="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div tw="w-full py-6 flex items-center justify-between border-b border-indigo-500 lg:border-none">
+        <div tw="w-full py-6 flex items-center justify-between border-b border-white lg:border-none">
           <div tw="flex items-center">
           <Link href="/" passHref>
             <a>

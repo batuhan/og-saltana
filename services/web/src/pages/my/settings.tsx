@@ -173,7 +173,3 @@ export default function DashboardUserSettings() {
     </DashboardShell>
   )
 }
-DashboardUserSettings.auth = {
-  role: 'user',
-  loading: 'Loading', //direct to this url
-}

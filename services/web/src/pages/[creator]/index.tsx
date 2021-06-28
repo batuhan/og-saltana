@@ -1,11 +1,7 @@
 import { SimpleGrid, Container } from '@chakra-ui/react'
 import * as React from 'react'
 import CreatorSpaceShell from '../../components/CreatorSpaceShell'
-import {
-  getSharedQueryClient,
-  useApi,
-  prefetchQuery,
-} from '../../modules/api'
+import { getSharedQueryClient, useApi, prefetchQuery } from '../../modules/api'
 import { sharedInstance } from '../../modules/api/useApi'
 import { dehydrate } from 'react-query/hydration'
 import AssetBox from '../../modules/assets/AssetBox'

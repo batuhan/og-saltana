@@ -10,7 +10,6 @@ import { Provider } from 'next-auth/client'
 import Authenticated from '../modules/auth/Authenticated'
 import ApiProvider from '../modules/api/useApi'
 import { ReactQueryDevtools } from 'react-query/devtools'
-import GlobalHeader from '../components/GlobalHeader'
 import { DefaultSeo } from 'next-seo'
 
 // import your default seo configuration
@@ -36,7 +35,6 @@ function App({ Component, pageProps }: AppProps) {
               <ChakraProvider theme={customTheme}>
                 <CartProvider>
                   <DefaultSeo {...SEO} />
-                  {Component.useGlobalHeader && <GlobalHeader />}
                   {Component.auth ? (
                     <Authenticated>
                       <Component {...pageProps} />

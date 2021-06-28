@@ -1,25 +1,24 @@
 import { ChevronDownIcon } from '@heroicons/react/solid'
 import tw, { styled } from 'twin.macro'
-
+import { Logo } from '../Logo'
 const navigation = {
   solutions: [
-    { name: 'Marketing', href: '#' },
+    { name: 'Smart Links', href: '#' },
+    { name: 'Sell Products', href: '#' },
     { name: 'Analytics', href: '#' },
-    { name: 'Commerce', href: '#' },
-    { name: 'Insights', href: '#' },
+    { name: 'Workflows & Integrations', href: '#' },
   ],
   support: [
-    { name: 'Pricing', href: '#' },
-    { name: 'Documentation', href: '#' },
-    { name: 'Guides', href: '#' },
-    { name: 'API Status', href: '#' },
+    { name: 'Videomakers', href: '#' },
+    { name: 'Authors', href: '#' },
+    { name: 'Digital artists', href: '#' },
+    { name: 'Educators', href: '#' },
   ],
   company: [
     { name: 'About', href: '#' },
     { name: 'Blog', href: '#' },
     { name: 'Jobs', href: '#' },
-    { name: 'Press', href: '#' },
-    { name: 'Partners', href: '#' },
+    { name: 'Support', href: '#' },
   ],
   legal: [
     { name: 'Claim', href: '#' },
@@ -91,26 +90,34 @@ const navigation = {
   ],
 }
 
-function listItem({name, href}) {
+function listItem({ name, href }) {
   return (
-    <li key={name}>
-      <a href={href} tw="text-base text-gray-300 hover:text-white">
+    <div key={name} tw="px-5 py-2">
+      <a href={href} tw="text-base text-gray-500 hover:text-gray-900">
         {name}
       </a>
-    </li>
+    </div>
   )
 }
 
 export default function Footer() {
-  const navSolutions = navigation.solutions.map(({name, href}) => listItem({name, href}));
+  const navSolutions = navigation.solutions.map(({ name, href }) =>
+    listItem({ name, href })
+  )
 
-  const navSupport = navigation.support.map(({name, href}) => listItem({name, href}));
+  const navSupport = navigation.support.map(({ name, href }) =>
+    listItem({ name, href })
+  )
 
-  const navCompany = navigation.company.map(({name, href}) => listItem({name, href}));
+  const navCompany = navigation.company.map(({ name, href }) =>
+    listItem({ name, href })
+  )
 
-  const navLegal = navigation.legal.map(({name, href}) => listItem({name, href}));
+  const navLegal = navigation.legal.map(({ name, href }) =>
+    listItem({ name, href })
+  )
 
-  const navSocial = navigation.social.map(({name, href, icon}) => (
+  const navSocial = navigation.social.map(({ name, href, icon }) => (
     <a key={name} href={href} tw="text-gray-400 hover:text-gray-300">
       <span tw="sr-only">{name}</span>
       <icon tw="h-6 w-6" aria-hidden="true" />
@@ -118,143 +125,33 @@ export default function Footer() {
   ))
 
   return (
-    <footer tw="bg-black" aria-labelledby="footerHeading">
-      <h2 id="footerHeading" tw="sr-only">
-        Footer
-      </h2>
-      <div tw="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
-        <div tw="pb-8 xl:grid xl:grid-cols-5 xl:gap-8">
-          <div tw="grid grid-cols-2 gap-8 xl:col-span-4">
-            <div tw="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 tw="text-sm font-semibold text-gray-400 tracking-wider uppercase">
-                  Solutions
-                </h3>
-                <ul tw="mt-4 space-y-4">{navSolutions}</ul>
-              </div>
-              <div tw="mt-12 md:mt-0">
-                <h3 tw="text-sm font-semibold text-gray-400 tracking-wider uppercase">
-                  Support
-                </h3>
-                <ul tw="mt-4 space-y-4">{navSupport}</ul>
-              </div>
-            </div>
-            <div tw="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 tw="text-sm font-semibold text-gray-400 tracking-wider uppercase">
-                  Company
-                </h3>
-                <ul tw="mt-4 space-y-4">{navCompany}</ul>
-              </div>
-              <div tw="mt-12 md:mt-0">
-                <h3 tw="text-sm font-semibold text-gray-400 tracking-wider uppercase">
-                  Legal
-                </h3>
-                <ul tw="mt-4 space-y-4">{navLegal}</ul>
-              </div>
-            </div>
-          </div>
-          <div tw="mt-12 xl:mt-0">
-            <h3 tw="text-sm font-semibold text-gray-400 tracking-wider uppercase">
-              Language &amp; Currency
-            </h3>
-            <form tw="mt-4 sm:max-w-xs">
-              <fieldset tw="w-full">
-                <label htmlFor="language" tw="sr-only">
-                  Language
-                </label>
-                <div tw="relative">
-                  <select
-                    id="language"
-                    name="language"
-                    tw="appearance-none block w-full bg-none bg-gray-700 border border-transparent rounded-md py-2 pl-3 pr-10 text-base text-white focus:outline-none focus:ring-white focus:border-white sm:text-sm"
-                    defaultValue="English"
+    <>
+      <footer tw="bg-black">
+
+        <div tw="max-w-7xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
+
+            <h2 tw="-mx-5 -my-2 flex flex-wrap justify-center text-2xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl">
+                Swiss Army knife of creators.
+              </h2>
+      {/* We've used 3xl here, but feel free to try other max-widths based on your needs */}
+      <div tw="flex flex-wrap justify-center my-6 text-white">
+              <a
+                    tw="h-9 w-1/5 text-center border border-white   text-lg "
                   >
-                    <option>English</option>
-                    <option>French</option>
-                    <option>German</option>
-                    <option>Japanese</option>
-                    <option>Spanish</option>
-                  </select>
-                  <div tw="pointer-events-none absolute inset-y-0 right-0 px-2 flex items-center">
-                    <ChevronDownIcon
-                      tw="h-4 w-4 text-white"
-                      aria-hidden="true"
-                    />
+                    Apply for an invite
+                  </a>
                   </div>
-                </div>
-              </fieldset>
-              <fieldset tw="mt-4 w-full">
-                <label htmlFor="currency" tw="sr-only">
-                  Currency
-                </label>
-                <div tw="mt-1.5 relative">
-                  <select
-                    id="currency"
-                    name="currency"
-                    tw="appearance-none w-full bg-none bg-gray-700 border border-transparent rounded-md block py-2 pl-3 pr-10 text-base text-white focus:outline-none focus:ring-white focus:border-white sm:text-sm"
-                    defaultValue="AUD"
-                  >
-                    <option>ARS</option>
-                    <option>AUD</option>
-                    <option>CAD</option>
-                    <option>CHF</option>
-                    <option>EUR</option>
-                    <option>GBP</option>
-                    <option>JPY</option>
-                    <option>USD</option>
-                  </select>
-                  <div tw="pointer-events-none absolute inset-y-0 right-0 px-2 flex items-center">
-                    <ChevronDownIcon
-                      tw="h-4 w-4 text-white"
-                      aria-hidden="true"
-                    />
-                  </div>
-                </div>
-              </fieldset>
-            </form>
-          </div>
-        </div>
-        <div tw="border-t border-gray-700 pt-8 lg:flex lg:items-center lg:justify-between xl:mt-0">
-          <div>
-            <h3 tw="text-sm font-semibold text-gray-400 tracking-wider uppercase">
-              Subscribe to our newsletter
-            </h3>
-            <p tw="mt-2 text-base text-gray-300">
-              The latest news, articles, and resources, sent to your inbox
-              weekly.
-            </p>
-          </div>
-          <form tw="mt-4 sm:flex sm:max-w-md lg:mt-0">
-            <label htmlFor="emailAddress" tw="sr-only">
-              Email address
-            </label>
-            <input
-              type="email"
-              name="emailAddress"
-              id="emailAddress"
-              autoComplete="email"
-              required
-              tw="appearance-none min-w-0 w-full bg-white border border-transparent rounded-md py-2 px-4 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white focus:border-white focus:placeholder-gray-400 sm:max-w-xs"
-              placeholder="Enter your email"
-            />
-            <div tw="mt-3 rounded-md sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-              <button
-                type="submit"
-                tw="w-full bg-indigo-500 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500"
-              >
-                Subscribe
-              </button>
-            </div>
-          </form>
-        </div>
-        <div tw="mt-8 border-t border-gray-700 pt-8 md:flex md:items-center md:justify-between">
-          <div tw="flex space-x-6 md:order-2">{navSocial}</div>
-          <p tw="mt-8 text-base text-gray-400 md:mt-0 md:order-1">
-            &copy; 2021 Saltana, Inc. All rights reserved.
+          <nav
+            tw="-mx-5 -my-2 flex flex-wrap justify-center"
+            aria-label="Footer"
+          >
+            {navCompany}
+          </nav>
+          <p tw="mt-8 text-center text-base text-gray-400">
+          &copy; 2021 Saltana, Inc. All rights reserved.
           </p>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   )
 }
