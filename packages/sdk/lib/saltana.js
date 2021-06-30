@@ -29,6 +29,7 @@ import Tokens from './resources/Tokens'
 import Transactions from './resources/Transactions'
 import Users from './resources/Users'
 import Webhooks from './resources/Webhooks'
+import Links from './resources/Links'
 import Workflows from './resources/Workflows'
 
 const resources = {
@@ -60,6 +61,7 @@ const resources = {
   Transactions,
   Users,
   Webhooks,
+  Links,
   Workflows,
 }
 

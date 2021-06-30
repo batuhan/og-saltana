@@ -1,3 +1,4 @@
+const _ = require('lodash')
 module.exports = (Base) => class Link extends Base {
   static get idPrefix () {
     return 'lnk'
@@ -7,16 +8,17 @@ module.exports = (Base) => class Link extends Base {
     const accessFields = {
       api: [
         'id',
+        'ownerId', // resolves to authorId on the docs
+        'slug',
+        'linkType', // resolves to type
+        'label',
+        'destination', // resolves to data.destination
+        'content', // resolves to data.pageContent
+        'assetId',
+
+        // common elements
         'createdDate',
         'updatedDate',
-        'slug',
-        'linkType',
-        'redirectTo',
-        'pageContent',
-        'targetId',
-        'assetId',
-        'transactionId',
-        'label',
         'metadata',
         'platformData',
 
@@ -30,11 +32,8 @@ module.exports = (Base) => class Link extends Base {
   static isSelf (link, userId) {
     const selfUsersIds = []
 
-    if (link.authorId) {
-      selfUsersIds.push(link.authorId)
-    }
-    if (link.targetId) {
-      selfUsersIds.push(link.targetId)
+    if (link.ownerId) {
+      selfUsersIds.push(link.ownerId)
     }
 
     return selfUsersIds.includes(userId)
@@ -42,32 +41,15 @@ module.exports = (Base) => class Link extends Base {
 
   static convertLinkToDoc (link, { withModelMeta = false } = {}) {
     const doc = {
-      authorId: link.authorId,
-      targetId: link.targetId,
+      authorId: link.ownerId,
+      // targetId: link.targetId,
       type: 'link',
       label: link.label,
       data: {
-        slug: link.slug,
-        linkType: link.linkType,
-        transactionId: link.transactionId
+        ..._.pick(link, ['linkType', 'destination', 'content', 'slug'])
       },
       metadata: link.metadata,
       platformData: link.platformData
-    }
-
-    switch (link.type) {
-      case 'redirect-301':
-      case 'redirect-302':
-        doc.data.redirectTo = link.redirectTo
-        break
-      case 'page':
-        doc.data.pageContent = link.pageContent
-        break
-      case 'asset':
-        doc.data.assetId = link.assetId
-        break
-      default:
-        break
     }
 
     if (withModelMeta) {
@@ -84,15 +66,14 @@ module.exports = (Base) => class Link extends Base {
       id: doc.id,
       createdDate: doc.createdDate,
       updatedDate: doc.updatedDate,
-      slug: doc.slug,
-      authorId: setNullIfUndefined(doc.authorId),
-      targetId: setNullIfUndefined(doc.targetId),
+      slug: doc.data.slug,
+      ownerId: setNullIfUndefined(doc.authorId),
       label: setNullIfUndefined(doc.label),
       linkType: setNullIfUndefined(doc.data.linkType),
-      redirectTo: setNullIfUndefined(doc.data.redirectTo),
-      pageContent: setNullIfUndefined(doc.data.pageContent),
-      assetId: setNullIfUndefined(doc.data.assetId),
-      transactionId: setNullIfUndefined(doc.data.transactionId),
+      destination: setNullIfUndefined(doc.data.destination),
+      content: setNullIfUndefined(doc.data.content),
+      accessType: setNullIfUndefined(doc.data.accessType),
+      assetId: setNullIfUndefined(doc.assetId),
       metadata: doc.metadata,
       platformData: doc.platformData
     }

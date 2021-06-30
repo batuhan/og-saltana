@@ -1,23 +1,44 @@
 const { utils } = require('../../../serverTooling')
-const { validation: { Joi } } = utils
+const {
+  validation: { Joi },
+} = utils
 
-const groupSchema = Joi.string().valid('authorId', 'targetId', 'assetId', 'transactionId')
+const groupSchema = Joi.string().valid(
+  'authorId',
+  'targetId',
+  'assetId',
+  'transactionId'
+)
 
 const labelSchema = Joi.string().regex(/^\w+(:\w+)*$/)
 const labelWithWildcardSchema = Joi.string().regex(/^(\*|(\w+)(:(\w+|\*))*)$/)
-const multipleLabelsWithWildcardSchema = Joi.string().regex(/^(\*|(\w+)(:(\w+|\*))*)(,(\*|(\w+)(:(\w+|\*))*))*$/)
+const multipleLabelsWithWildcardSchema = Joi.string().regex(
+  /^(\*|(\w+)(:(\w+|\*))*)(,(\*|(\w+)(:(\w+|\*))*))*$/
+)
 
-const orderByFields = [
-  'createdDate',
-  'updatedDate'
-]
+const orderByFields = ['createdDate', 'updatedDate']
 
-module.exports = function createValidation (deps) {
+const destinationSchema = Joi.string().uri({
+  scheme: ['http', 'https'],
+  allowQuerySquareBrackets: true,
+})
+
+const slugSchema = Joi.string().alphanum().min(3).max(30).required()
+
+const linkTypeSchema = Joi.valid(
+  'asset',
+  'embed',
+  'link-list',
+  'content',
+  'redirect'
+)
+
+module.exports = function createValidation(deps) {
   const {
     utils: {
       validation: { objectIdParamsSchema, replaceOffsetWithCursorPagination },
-      pagination: { DEFAULT_NB_RESULTS_PER_PAGE }
-    }
+      pagination: { DEFAULT_NB_RESULTS_PER_PAGE },
+    },
   } = deps
 
   const schemas = {}
@@ -27,7 +48,7 @@ module.exports = function createValidation (deps) {
   // ////////// //
   schemas['2020-08-10'] = {}
   schemas['2020-08-10'].list = () => ({
-    query: replaceOffsetWithCursorPagination(schemas['2019-05-20'].list.query)
+    query: replaceOffsetWithCursorPagination(schemas['2019-05-20'].list.query),
   })
 
   // ////////// //
@@ -37,12 +58,18 @@ module.exports = function createValidation (deps) {
   schemas['2019-05-20'].list = {
     query: Joi.object().keys({
       // order
-      orderBy: Joi.string().valid(...orderByFields).default('createdDate'),
+      orderBy: Joi.string()
+        .valid(...orderByFields)
+        .default('createdDate'),
       order: Joi.string().valid('asc', 'desc').default('desc'),
 
       // pagination
       page: Joi.number().integer().min(1).default(1),
-      nbResultsPerPage: Joi.number().integer().min(1).max(100).default(DEFAULT_NB_RESULTS_PER_PAGE),
+      nbResultsPerPage: Joi.number()
+        .integer()
+        .min(1)
+        .max(100)
+        .default(DEFAULT_NB_RESULTS_PER_PAGE),
 
       // filters
       id: [Joi.string(), Joi.array().unique().items(Joi.string())],
@@ -50,65 +77,71 @@ module.exports = function createValidation (deps) {
       targetId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       assetId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       transactionId: [Joi.string(), Joi.array().unique().items(Joi.string())],
-      label: [multipleLabelsWithWildcardSchema, Joi.array().unique().items(labelWithWildcardSchema)]
-    })
+      label: [
+        multipleLabelsWithWildcardSchema,
+        Joi.array().unique().items(labelWithWildcardSchema),
+      ],
+    }),
   }
   schemas['2019-05-20'].read = {
-    params: objectIdParamsSchema
+    params: objectIdParamsSchema,
   }
   schemas['2019-05-20'].create = {
-    body: Joi.object().keys({
-      score: Joi.number().integer().min(0).max(100).required(),
-      comment: Joi.string().max(3000).allow(null, ''),
-      authorId: Joi.string(),
-      targetId: Joi.string().required(),
-      assetId: Joi.string(),
-      transactionId: Joi.string(),
-      label: labelSchema,
-      metadata: Joi.object().unknown(),
-      platformData: Joi.object().unknown()
-    }).required()
+    body: Joi.object()
+      .keys({
+        ownerId: Joi.string(),
+        slug: slugSchema,
+        linkType: linkTypeSchema,
+        destination: destinationSchema,
+        assetId: Joi.string(),
+        content: Joi.object().unknown(),
+        metadata: Joi.object().unknown(),
+        platformData: Joi.object().unknown(),
+      })
+      .required(),
   }
   schemas['2019-05-20'].update = {
     params: objectIdParamsSchema,
     body: schemas['2019-05-20'].create.body
-      .fork(['authorId', 'targetId', 'assetId', 'transactionId'], schema => schema.forbidden())
-      .fork('score', schema => schema.optional())
+      .fork(['linkType', 'assetId'], (schema) =>
+        schema.forbidden()
+      )
+      //.fork('score', (schema) => schema.optional()),
   }
   schemas['2019-05-20'].remove = {
-    params: objectIdParamsSchema
+    params: objectIdParamsSchema,
   }
 
   const validationVersions = {
     '2020-08-10': [
       {
         target: 'link.list',
-        schema: schemas['2020-08-10'].list
+        schema: schemas['2020-08-10'].list,
       },
     ],
 
     '2019-05-20': [
       {
         target: 'link.list',
-        schema: schemas['2019-05-20'].list
+        schema: schemas['2019-05-20'].list,
       },
       {
         target: 'link.read',
-        schema: schemas['2019-05-20'].read
+        schema: schemas['2019-05-20'].read,
       },
       {
         target: 'link.create',
-        schema: schemas['2019-05-20'].create
+        schema: schemas['2019-05-20'].create,
       },
       {
         target: 'link.update',
-        schema: schemas['2019-05-20'].update
+        schema: schemas['2019-05-20'].update,
       },
       {
         target: 'link.remove',
-        schema: schemas['2019-05-20'].remove
-      }
-    ]
+        schema: schemas['2019-05-20'].remove,
+      },
+    ],
   }
 
   return validationVersions

@@ -1,6 +1,6 @@
 import { useLogin } from '../modules/auth/Login'
 
-import tw, { styled } from 'twin.macro'
+import tw, { styled, css } from 'twin.macro'
 
 import { LockClosedIcon } from '@heroicons/react/solid'
 import { Logo } from '../components/Logo'
@@ -9,12 +9,13 @@ import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
 import { useForm } from 'react-hook-form'
 import { getSession } from 'next-auth/client'
+import { Link } from '@chakra-ui/react'
 
 export default function Login() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm()
 
   const router = useRouter()
@@ -52,11 +53,14 @@ export default function Login() {
                   pattern: /^\S+@\S+$/i,
                 })}
                 id="email-address"
-                name="email"
                 type="email"
                 autoComplete="email"
                 required
-                tw="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                disabled={isSubmitting}
+                css={[
+                  /*tw``,*/
+                  tw`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`,
+                ]}
                 placeholder="Email address"
               />
             </div>
@@ -68,12 +72,14 @@ export default function Login() {
                 <div>An error occurred: {loginMutation.error.message}</div>
               ) : null}
               By entering your e-mail, you agree to our{' '}
-              <a
-                href="#"
-                tw="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                terms of service
-              </a>
+              <Link href="/terms">
+                <a
+                  href="#"
+                  tw="font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  terms of service
+                </a>
+              </Link>
             </p>
           </div>
 

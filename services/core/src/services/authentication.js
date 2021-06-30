@@ -6,6 +6,7 @@ const bluebird = require('bluebird')
 
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')
+const { nanoid } = require('nanoid')
 
 const { getPlatformEnvData, setPlatformEnvData } = require('../redis')
 const {
@@ -96,7 +97,7 @@ function start ({ communication, serverPort, isSystem }) {
         env,
         _matchedPermissions: req._matchedPermissions,
         userType: 'user',
-        username: metadata.email,
+        username: `${metadata.email.split('@')[0]}-${nanoid(5)}`,
         email: metadata.email,
         password:
           'F)bqjH<h+deMk>UPr$d%6OPq@+S>(,K_nr+&z8y/3SXrP7-=tk[J2@2YZT^|@>Hb',

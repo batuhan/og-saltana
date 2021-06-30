@@ -11,9 +11,8 @@ import Authenticated from '../modules/auth/Authenticated'
 import { queryClientSettings } from '../modules/api'
 import { ReactQueryDevtools } from 'react-query/devtools'
 import { DefaultSeo } from 'next-seo'
-
-// import your default seo configuration
 import SEO from '../../next-seo.config'
+import GlobalStyles from '../components/GlobalStyles'
 
 function App({ Component, pageProps }: AppProps) {
   const [queryClient] = React.useState(
@@ -22,11 +21,13 @@ function App({ Component, pageProps }: AppProps) {
 
   return (
     <>
+      <GlobalStyles />
       <Head>
         <meta content="IE=edge" httpEquiv="X-UA-Compatible" />
         <meta content="width=device-width, initial-scale=1" name="viewport" />
       </Head>
       <ColorModeScript initialColorMode={customTheme.config.initialColorMode} />
+
       <Provider session={pageProps.session}>
         <QueryClientProvider client={queryClient}>
           <Hydrate state={pageProps.dehydratedState}>

@@ -1,17 +1,23 @@
-import tw, { GlobalStyles } from 'twin.macro';
-import { createGlobalStyle } from 'styled-components';
+import { createGlobalStyle } from 'styled-components'
+import tw, { theme, GlobalStyles as BaseStyles } from 'twin.macro'
 
-const BaseStyle = createGlobalStyle`
-  a {
-    ${tw`text-blue-400 hover:underline`}
+const CustomStyles = createGlobalStyle`
+  body {
+    -webkit-tap-highlight-color: ${theme`colors.purple.500`};
+    ${tw`antialiased`}
   }
-`;
 
-export default function GlobalStylesComponent() {
-  return (
-    <>
-      <BaseStyle />
-      <GlobalStyles />
-    </>
-  )
-}
+  a {
+    cursor: pointer;
+  }
+
+`
+
+const GlobalStyles = () => (
+  <>
+    <BaseStyles />
+    <CustomStyles />
+  </>
+)
+
+export default GlobalStyles

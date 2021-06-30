@@ -23,13 +23,7 @@ export async function login(email, { redirect = false }) {
   })
   const res = await signIn('credentials', { redirect, token })
 
-  if (!res.ok) {
-    console.error(
-      `Failed to login to Saltana Core API :( [Step 1] Here's the response:`,
-      res
-    )
-    throw new Error('Failed')
-  }
+  console.log('debug response from login', res)
 }
 
 export function useLogin({ redirect = false }) {
@@ -40,8 +34,8 @@ export function useLogin({ redirect = false }) {
     },
   })
 
-  function onSubmit({ email }) {
-    loginMutation.mutate({ email })
+  async function onSubmit({ email }) {
+    await loginMutation.mutate({ email })
   }
 
   return { ...loginMutation, onSubmit, session }

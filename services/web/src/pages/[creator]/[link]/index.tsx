@@ -1,16 +1,3 @@
-import {
-  Box,
-  Button,
-  Heading,
-  Icon,
-  chakra,
-  Image,
-  Flex,
-  Text,
-  useColorModeValue,
-  SimpleGrid,
-  Container,
-} from '@chakra-ui/react'
 import Link from 'next/link'
 import * as React from 'react'
 import { dehydrate } from 'react-query/hydration'
@@ -37,10 +24,10 @@ const OrganizationAssetPage = ({ assetId, creatorId }) => {
     mode === 'edit' ? <ProductEditMode {...data} /> : <ProductPage {...data} />
   return (
     <CreatorSpaceShell creatorId={creatorId} assetId={assetId}>
-      <Container maxW="container.lg">
+                <div>
         <CheckoutModal />
         {comp}
-      </Container>
+      </div>
     </CreatorSpaceShell>
   )
 }

@@ -1,4 +1,3 @@
-import { SimpleGrid, Container } from '@chakra-ui/react'
 import * as React from 'react'
 import CreatorSpaceShell from '../../components/CreatorSpaceShell'
 import {
@@ -18,11 +17,9 @@ const CreatorAssets = ({ creatorId: ownerId }) => {
 const CreatorProfile = ({ creatorId }) => {
   return (
     <CreatorSpaceShell creatorId={creatorId}>
-      <Container maxW="container.xl">
-        <SimpleGrid columns={2} spacingX="40px" spacingY="20px">
-          <CreatorAssets creatorId={creatorId} />
-        </SimpleGrid>
-      </Container>
+      <div>
+        <CreatorAssets creatorId={creatorId} />
+      </div>
     </CreatorSpaceShell>
   )
 }

@@ -37,10 +37,10 @@ function init (server, { middlewares, helpers } = {}) {
       'endingBefore',
 
       'id',
-      'authorId',
+      'ownerId',
       'linkType',
       'slug',
-      'redirectTo',
+      'destination',
       'targetId',
       'assetId',
       'transactionId',
@@ -83,9 +83,9 @@ function init (server, { middlewares, helpers } = {}) {
     const fields = [
       'slug',
       'linkType',
-      'redirectTo',
-      'pageContent',
-      'authorId',
+      'destination',
+      'content',
+      'ownerId',
       'targetId',
       'assetId',
       'transactionId',
@@ -115,8 +115,8 @@ function init (server, { middlewares, helpers } = {}) {
     const fields = [
       'slug',
       'linkType',
-      'redirectTo',
-      'pageContent',
+      'destination',
+      'content',
       'metadata',
       'platformData'
     ]

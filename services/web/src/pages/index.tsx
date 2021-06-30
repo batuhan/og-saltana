@@ -1,4 +1,3 @@
-import { Container, Heading, VStack, Text } from '@chakra-ui/react'
 import tw, { styled } from 'twin.macro'
 import MarketingShell from '../components/MarketingShell/MarketingShell'
 
@@ -26,7 +25,7 @@ function Home() {
             Get early access
           </a>
         </div>
-      </section>  
+      </section>
 
       <section tw="relative py-20 overflow-x-hidden">
         <div tw="container px-4 mx-auto">

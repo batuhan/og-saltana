@@ -2,5 +2,8 @@
   "name": "@saltana/fil",
   "description": "internal tooling for Saltana team",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@saltana/sdk": "*"
+  }
 }

@@ -1,72 +1,36 @@
 import DashboardShell from '../../components/DashboardShell/DashboardShell'
-import { getSaltanaInstance } from '../../modules/api'
 import {
-  Avatar,
-  Box,
-  Button,
-  Checkbox,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  HStack,
-  Input,
-  Stack,
-  StackDivider,
-  Text,
-  Textarea,
-  useColorModeValue,
-  VStack,
-  ButtonGroup,
-  Radio,
-} from '@chakra-ui/react'
-import { HiCloudUpload } from 'react-icons/hi'
-import { FaGithub, FaGoogle } from 'react-icons/fa'
-import { FieldGroup } from '../../components/FieldGroup'
-import { CurrencySelect } from '../../components/CurrencySelect'
+  getSaltanaInstance,
+  prefetchQuery,
+  sharedQueryClient,
+  useApi,
+  useUpdateCurrentUser,
+} from '../../modules/api'
+import tw, { styled, css } from 'twin.macro'
+import _ from 'lodash'
+
 import { useForm } from 'react-hook-form'
 import { useMutation } from 'react-query'
 import React, { useEffect } from 'react'
-import { Formik } from 'formik'
 import { NextSeo } from 'next-seo'
 
-import {
-  CheckboxContainer,
-  CheckboxControl,
-  CheckboxSingleControl,
-  InputControl,
-  NumberInputControl,
-  PercentComplete,
-  RadioGroupControl,
-  ResetButton,
-  SelectControl,
-  SliderControl,
-  SubmitButton,
-  SwitchControl,
-  TextareaControl,
-} from 'formik-chakra-ui'
-import * as Yup from 'yup'
 import { getSession, useSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
+import { dehydrate } from 'react-query/hydration'
+import { useQuery, useQueryClient } from 'react-query'
+export default function DashboardUserSettings({ userId }) {
+  const queryClient = useQueryClient()
+  const { data, isLoading } = useApi('users', 'read', userId)
 
-const validationSchema = Yup.object({
-  displayName: Yup.string().required(),
-  email: Yup.string().email().required(),
-  metadata: Yup.object({
-    instant: Yup.object({
-      bio: Yup.string(),
-    }),
-    _private: Yup.object({
-      notification_WHEN_PURCHASED_CONTENT_UPDATED: Yup.boolean().default(true),
-      notification_WEEKLY_UPDATES: Yup.boolean().default(true),
-    }),
-  }),
-}).noUnknown(false)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: _.pick(data, ['firstname', 'lastname', 'email', 'metadata']),
+  })
 
-export default function DashboardUserSettings({ session, userData }) {
-  const updateUserSettings = useMutation(async (data) =>
-    (await getSaltanaInstance()).users.update(session.user.id, data)
-  )
+  const updateUserSettings = useUpdateCurrentUser()
 
   function onSubmit(data) {
     return updateUserSettings.mutateAsync(data)
@@ -75,93 +39,334 @@ export default function DashboardUserSettings({ session, userData }) {
   return (
     <DashboardShell>
       <NextSeo title="Account Settings" />
-      <Box px={{ base: '4' }} maxWidth="3xl" mx="auto">
-        <Formik
-          initialValues={validationSchema.cast(
-            { ...userData },
-            { stripUnknown: true }
-          )}
-          onSubmit={onSubmit}
-          validationSchema={validationSchema}
-        >
-          {({ handleSubmit, values, errors }) => (
-            <form onSubmit={handleSubmit}>
-              <Stack spacing="4" divider={<StackDivider />}>
-                <Heading size="lg" as="h1" paddingBottom="4">
-                  Account Settings
-                </Heading>
-                <FieldGroup title="Personal Info">
-                  <VStack width="full" spacing="6">
-                    <FormControl id="name">
-                      <InputControl name="displayName" label="Name" />
-                    </FormControl>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        tw="space-y-8 divide-y divide-gray-200 max-w-2xl mx-auto px-4 sm:px-6 lg:max-w-2xl lg:px-8"
+      >
+        <div tw="space-y-8 divide-y divide-gray-200">
+          <div tw="pt-8">
+            <div>
+              <h3 tw="text-lg leading-6 font-medium text-gray-900">
+                Personal Information
+              </h3>
+              <p tw="mt-1 text-sm text-gray-500">
+                Use a permanent address where you can receive mail.
+              </p>
+            </div>
+            <div tw="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div tw="sm:col-span-3">
+                <label
+                  htmlFor="firstname"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  First name
+                </label>
+                <div tw="mt-1">
+                  <input
+                    type="text"
+                    name="firstname"
+                    id="firstname"
+                    autoComplete="given-name"
+                    {...register('firstname', {
+                      required: true,
+                    })}
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+                {errors.firstname && (
+                  <p tw="text-red-500 text-sm mt-2">
+                    First name is required :(
+                  </p>
+                )}
+              </div>
 
-                    <FormControl id="email">
-                      <InputControl name="email" label="E-mail" />
-                    </FormControl>
+              <div tw="sm:col-span-3">
+                <label
+                  htmlFor="lastname"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  Last name
+                </label>
+                <div tw="mt-1">
+                  <input
+                    type="text"
+                    name="lastname"
+                    id="lastname"
+                    {...register('lastname', {
+                      required: true,
+                    })}
+                    autoComplete="family-name"
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
 
-                    <FormControl id="bio">
-                      <TextareaControl
-                        name="metadata.instant.bio"
-                        label="Bio"
-                      />
-                    </FormControl>
-                  </VStack>
-                </FieldGroup>
-                <FieldGroup title="Profile Photo">
-                  <Stack
-                    direction="row"
-                    spacing="6"
-                    align="center"
-                    width="full"
+              <div tw="sm:col-span-4">
+                <label
+                  htmlFor="email"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  Email address
+                </label>
+                <div tw="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    disabled
+                    autoComplete="email"
+                    {...register('email', {
+                      required: true,
+                      pattern: /^\S+@\S+$/i,
+                    })}
+                    placeholder="E-mail address"
+                    tw="disabled:opacity-50 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div tw="sm:col-span-3">
+                <label
+                  htmlFor="country"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  Country / Region
+                </label>
+                <div tw="mt-1">
+                  <select
+                    id="country"
+                    name="country"
+                    {...register('metadata._private.address_country', {
+                      required: true,
+                    })}
+                    autoComplete="country"
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                   >
-                    <Avatar
-                      size="xl"
-                      name="Alyssa Mall"
-                      src="https://images.unsplash.com/photo-1488282396544-0212eea56a21?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-                    />
-                    <Box>
-                      <HStack spacing="5">
-                        <Button leftIcon={<HiCloudUpload />}>
-                          Change photo
-                        </Button>
-                        <Button variant="ghost" colorScheme="red">
-                          Delete
-                        </Button>
-                      </HStack>
-                      <Text
-                        fontSize="sm"
-                        mt="3"
-                        color={useColorModeValue('gray.500', 'whiteAlpha.600')}
-                      >
-                        .jpg, .gif, or .png. Max file size 700K.
-                      </Text>
-                    </Box>
-                  </Stack>
-                </FieldGroup>
-                <FieldGroup title="Notifications">
-                  <Stack width="full" spacing="4">
-                    <SwitchControl
-                      name="metadata._private.notification_WHEN_PURCHASED_CONTENT_UPDATED"
-                      label="Get updates when a content you purchased is updated"
-                    />
+                    <option>United States</option>
+                    <option>Canada</option>
+                    <option>Mexico</option>
+                  </select>
+                </div>
+              </div>
 
-                    <SwitchControl
-                      name="metadata._private.notification_WEEKLY_UPDATE"
-                      label="Get updates when a content you purchased is updated"
+              <div tw="sm:col-span-6">
+                <label
+                  htmlFor="street_address"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  Street address
+                </label>
+                <div tw="mt-1">
+                  <input
+                    type="text"
+                    name="street_address"
+                    id="street_address"
+                    autoComplete="street-address"
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div tw="sm:col-span-2">
+                <label
+                  htmlFor="city"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  City
+                </label>
+                <div tw="mt-1">
+                  <input
+                    type="text"
+                    name="city"
+                    id="city"
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div tw="sm:col-span-2">
+                <label
+                  htmlFor="state"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  State / Province
+                </label>
+                <div tw="mt-1">
+                  <input
+                    type="text"
+                    name="state"
+                    id="state"
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div tw="sm:col-span-2">
+                <label
+                  htmlFor="zip"
+                  tw="block text-sm font-medium text-gray-700"
+                >
+                  ZIP / Postal
+                </label>
+                <div tw="mt-1">
+                  <input
+                    type="text"
+                    name="zip"
+                    id="zip"
+                    autoComplete="postal-code"
+                    tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div tw="pt-8">
+            <div>
+              <h3 tw="text-lg leading-6 font-medium text-gray-900">
+                Notifications
+              </h3>
+              <p tw="mt-1 text-sm text-gray-500">
+                We'll always let you know about important changes, but you pick
+                what else you want to hear about.
+              </p>
+            </div>
+            <div tw="mt-6">
+              <fieldset>
+                <legend tw="text-base font-medium text-gray-900">
+                  By Email
+                </legend>
+                <div tw="mt-4 space-y-4">
+                  <div tw="relative flex items-start">
+                    <div tw="flex items-center h-5">
+                      <input
+                        id="comments"
+                        name="comments"
+                        type="checkbox"
+                        tw="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div tw="ml-3 text-sm">
+                      <label htmlFor="comments" tw="font-medium text-gray-700">
+                        Comments
+                      </label>
+                      <p tw="text-gray-500">
+                        Get notified when someones posts a comment on a posting.
+                      </p>
+                    </div>
+                  </div>
+                  <div tw="relative flex items-start">
+                    <div tw="flex items-center h-5">
+                      <input
+                        id="candidates"
+                        name="candidates"
+                        type="checkbox"
+                        tw="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div tw="ml-3 text-sm">
+                      <label
+                        htmlFor="candidates"
+                        tw="font-medium text-gray-700"
+                      >
+                        Candidates
+                      </label>
+                      <p tw="text-gray-500">
+                        Get notified when a candidate applies for a job.
+                      </p>
+                    </div>
+                  </div>
+                  <div tw="relative flex items-start">
+                    <div tw="flex items-center h-5">
+                      <input
+                        id="offers"
+                        name="offers"
+                        type="checkbox"
+                        tw="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div tw="ml-3 text-sm">
+                      <label htmlFor="offers" tw="font-medium text-gray-700">
+                        Offers
+                      </label>
+                      <p tw="text-gray-500">
+                        Get notified when a candidate accepts or rejects an
+                        offer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset tw="mt-6">
+                <div>
+                  <legend tw="text-base font-medium text-gray-900">
+                    Push Notifications
+                  </legend>
+                  <p tw="text-sm text-gray-500">
+                    These are delivered via SMS to your mobile phone.
+                  </p>
+                </div>
+                <div tw="mt-4 space-y-4">
+                  <div tw="flex items-center">
+                    <input
+                      id="push_everything"
+                      name="push_notifications"
+                      type="radio"
+                      tw="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
                     />
-                  </Stack>
-                </FieldGroup>
-              </Stack>
-              <FieldGroup mt="8">
-                <HStack width="full">
-                  <SubmitButton>Submit</SubmitButton>
-                </HStack>
-              </FieldGroup>
-            </form>
-          )}
-        </Formik>
-      </Box>
+                    <label
+                      htmlFor="push_everything"
+                      tw="ml-3 block text-sm font-medium text-gray-700"
+                    >
+                      Everything
+                    </label>
+                  </div>
+                  <div tw="flex items-center">
+                    <input
+                      id="push_email"
+                      name="push_notifications"
+                      type="radio"
+                      tw="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <label
+                      htmlFor="push_email"
+                      tw="ml-3 block text-sm font-medium text-gray-700"
+                    >
+                      Same as email
+                    </label>
+                  </div>
+                  <div tw="flex items-center">
+                    <input
+                      id="push_nothing"
+                      name="push_notifications"
+                      type="radio"
+                      tw="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <label
+                      htmlFor="push_nothing"
+                      tw="ml-3 block text-sm font-medium text-gray-700"
+                    >
+                      No push notifications
+                    </label>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+
+        <div tw="pt-5 fixed bottom-0 inset-x-0 pb-2 sm:pb-5 bg-white">
+          <div tw="flex justify-end max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <button
+              type="submit"
+              disabled={updateUserSettings.isLoading}
+              tw="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </form>
     </DashboardShell>
   )
 }
@@ -179,10 +384,13 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 
   const userData = await instance.users.read(session.user.id)
 
+  sharedQueryClient.setQueryData(['users', 'read', session.user.id], userData)
+  //await prefetchQuery('assets', 'list', { ownerId: user.id })
+
   return {
     props: {
-      session,
-      userData,
+      dehydratedState: dehydrate(sharedQueryClient),
+      userId: userData.id,
     },
   }
 }

@@ -21,13 +21,6 @@ import { signOut, useSession } from 'next-auth/client'
 import { useCurrentUser } from '../../modules/api'
 import Link from 'next/link'
 
-const user = {
-  name: 'Chelsea Hagon',
-  email: 'chelseahagon@example.com',
-  role: 'Human Resources Manager',
-  imageUrl:
-    'https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-}
 const _creatorNavigation = [
   { name: 'Dashboard', href: '/dashboard', creatorScoped: true, current: true },
   {
@@ -37,7 +30,7 @@ const _creatorNavigation = [
     current: false,
   },
   {
-    name: 'Products',
+    name: 'Assets',
     href: '/dashboard/products',
     creatorScoped: true,
     current: false,
@@ -45,18 +38,6 @@ const _creatorNavigation = [
   {
     name: 'Analytics',
     href: '/dashboard/analytics',
-    creatorScoped: true,
-    current: false,
-  },
-  {
-    name: 'Workflows',
-    href: '/dashboard/workflows',
-    creatorScoped: true,
-    current: false,
-  },
-  {
-    name: 'Payouts',
-    href: '/dashboard/payouts',
     creatorScoped: true,
     current: false,
   },
@@ -79,7 +60,7 @@ export default function Header() {
   const isRegularUserPath = router.pathname.startsWith('/my/')
   const currentHref = router.pathname.replace('[creator]', user.data.id)
   const creatorNavigation = _creatorNavigation.map((navItem) => {
-    const newItem = {...navItem}
+    const newItem = { ...navItem }
     if (newItem.creatorScoped) {
       newItem.href = `/${user.data.id}${newItem.href}`
     }
@@ -89,7 +70,20 @@ export default function Header() {
   })
   const navigation = isRegularUserPath ? userNavigation : creatorNavigation
   const isCreator = user.data.roles.includes('provider')
-  const miniNavigation = isCreator ? creatorNavigation : [{ name: 'Apply for an invite', href: '/request-invite', creatorScoped: false, current: true }]
+  const miniNavigation = isCreator
+    ? creatorNavigation
+    : [
+        {
+          name: 'Apply for a creator account',
+          href: '/request-invite',
+          creatorScoped: false,
+          current: true,
+        },
+      ]
+
+  const name = user.data.firstname
+    ? `${user.data.firstname} ${user.data.lastname} (${user.data.displayName})`
+    : user.data.displayName
 
   return (
     <Popover tw="py-5 ">
@@ -106,12 +100,34 @@ export default function Header() {
                   </a>
                 </Link>
               </div>
-
+              {/* test */}
+              {/* Left nav */}
+              <div tw="hidden lg:flex lg:items-start lg:py-5">
+                <nav tw="flex space-x-4">
+                  {navigation.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      css={[
+                        tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`,
+                        item.current ? tw`bg-gray-400` : tw`text-cyan-100`,
+                      ]}
+                      aria-current={item.current ? 'page' : undefined}
+                    >
+                      {item.name}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+              {/* dd */}
               {/* Right section on desktop */}
               <div tw="hidden lg:ml-4 lg:flex lg:items-center lg:py-5 lg:pr-0.5">
                 <div tw="ml-4 relative flex-shrink-0">
                   <Link href="/give-feedback">
-                    <a tw="text-sm font-medium text-white hover:underline ">
+                    <a
+                      href=""
+                      tw="text-sm font-medium text-white hover:underline "
+                    >
                       Give Feedback
                     </a>
                   </Link>
@@ -119,14 +135,20 @@ export default function Header() {
                 <div tw="ml-4 relative flex-shrink-0">
                   {!user.data.roles.includes('provider') && (
                     <Link href="/request-invite">
-                      <a tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        <span>Apply for an invite</span>
+                      <a
+                        href=""
+                        tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        <span>Apply for a creator account</span>
                       </a>
                     </Link>
                   )}
-                  {isRegularUserPath && (
+                  {isRegularUserPath && user.data.roles.includes('provider') && (
                     <Link href={`/${user.data.id}/dashboard`}>
-                      <a tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      <a
+                        href=""
+                        tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
                         <span>Creator Dashboard</span>
                       </a>
                     </Link>
@@ -161,18 +183,44 @@ export default function Header() {
                             static
                             tw="origin-top-right z-40 absolute -right-2 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
                           >
+                            <Menu.Item>
+                              {({ active }) => (
+                                <div tw="px-4 py-3 text-black">
+                                  <p tw="text-sm">Signed in as</p>
+                                  <p tw="text-sm font-medium  truncate">
+                                    {name}
+                                  </p>
+                                </div>
+                              )}
+                            </Menu.Item>
                             {userNavigation.map((item) => (
                               <Menu.Item key={item.name}>
                                 {({ active }) => (
                                   <a
                                     href={item.href}
-                                    css={[tw`block px-4 py-2 text-sm text-gray-700`, active && 'bg-gray-100']}
+                                    css={[
+                                      tw`block px-4 py-2 text-sm text-gray-700`,
+                                      active && 'bg-gray-100',
+                                    ]}
                                   >
                                     {item.name}
                                   </a>
                                 )}
                               </Menu.Item>
                             ))}
+                            <Menu.Item>
+                              {({ active }) => (
+                                <a
+                                  onClick={() => signOut()}
+                                  css={[
+                                    tw`block px-4 py-2 text-sm text-gray-700`,
+                                    active && 'bg-gray-100',
+                                  ]}
+                                >
+                                  Logout
+                                </a>
+                              )}
+                            </Menu.Item>
                           </Menu.Items>
                         </Transition>
                       </>
@@ -181,26 +229,6 @@ export default function Header() {
                 </div>
               </div>
 
-              <div tw="w-full py-5 lg:border-t lg:border-white lg:border-opacity-20">
-                <div tw="lg:grid lg:grid-cols-3 lg:gap-8 lg:items-center">
-                  {/* Left nav */}
-                  <div tw="hidden lg:block lg:col-span-2">
-                    <nav tw="flex space-x-4">
-                      {navigation.map((item) => (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          css={[tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`, item.current ? tw`bg-gray-400` : tw`text-cyan-100`]}
-                          aria-current={item.current ? 'page' : undefined}
-                        >
-                          {item.name}
-                        </a>
-                      ))}
-                    </nav>
-                  </div>
-                  <div tw="px-12 lg:px-0">{/* Search */}</div>
-                </div>
-              </div>
 
               {/* Menu button */}
               <div tw="absolute right-0 flex-shrink-0 lg:hidden">
@@ -286,10 +314,10 @@ export default function Header() {
                         </div>
                         <div tw="ml-3 min-w-0 flex-1">
                           <div tw="text-base font-medium text-gray-800 truncate">
-                            {user.data.displayName}
+                            {name}
                           </div>
                           <div tw="text-sm font-medium text-gray-500 truncate">
-                          {user.data.email}
+                            {user.data.email}
                           </div>
                         </div>
                         <button tw="ml-auto flex-shrink-0 bg-white p-1 text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">

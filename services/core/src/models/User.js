@@ -141,7 +141,7 @@ class User extends Base {
   }
 
   static get defaultRoles () {
-    return ['user', 'provider']
+    return ['user']
   }
 }
 

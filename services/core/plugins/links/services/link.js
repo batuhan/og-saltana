@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const { getObjectId } = require('@saltana/util-keys')
 
-module.exports = function createService (deps) {
+module.exports = function createService(deps) {
   const {
     assetRequester,
     documentRequester,
@@ -11,7 +11,7 @@ module.exports = function createService (deps) {
 
     getCurrentUserId,
     createError,
-    handleRemoteNotFoundError
+    handleRemoteNotFoundError,
   } = deps
 
   return {
@@ -19,10 +19,10 @@ module.exports = function createService (deps) {
     read,
     create,
     update,
-    remove
+    remove,
   }
 
-  async function list (req) {
+  async function list(req) {
     const {
       id,
       orderBy,
@@ -41,7 +41,7 @@ module.exports = function createService (deps) {
       assetId,
       transactionId,
 
-      label
+      label,
     } = req
 
     const documentParams = {
@@ -79,11 +79,13 @@ module.exports = function createService (deps) {
       documentParams.data = data
     }
 
-    const paginationResult = await documentRequester.communicate(req)(documentParams)
+    const paginationResult = await documentRequester.communicate(req)(
+      documentParams
+    )
 
     const currentUserId = getCurrentUserId(req)
 
-    paginationResult.results = paginationResult.results.map(doc => {
+    paginationResult.results = paginationResult.results.map((doc) => {
       const link = Link.convertDocToLink(doc)
 
       if (!req._matchedPermissions['link:list:all']) {
@@ -99,13 +101,15 @@ module.exports = function createService (deps) {
     return paginationResult
   }
 
-  async function read (req) {
+  async function read(req) {
     const linkId = req.linkId
 
-    const doc = await documentRequester.communicate(req)({
-      type: 'read',
-      documentId: linkId
-    }).catch(handleRemoteNotFoundError)
+    const doc = await documentRequester
+      .communicate(req)({
+        type: 'read',
+        documentId: linkId,
+      })
+      .catch(handleRemoteNotFoundError)
     if (!doc || doc.type !== 'link') {
       throw createError(404)
     }
@@ -122,22 +126,19 @@ module.exports = function createService (deps) {
     return Link.expose(link, { req })
   }
 
-  async function create (req) {
+  async function create(req) {
     const platformId = req.platformId
     const env = req.env
 
     const fields = [
       'linkType',
       'slug',
-      'pageContent',
-      'redirectTo',
-      'authorId',
-      'targetId',
-      'assetId',
-      'transactionId',
+      'content',
+      'destination',
+      'ownerId',
       'label',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
@@ -147,80 +148,84 @@ module.exports = function createService (deps) {
     const currentUserId = getCurrentUserId(req)
 
     // cannot create as another user
-    if (!req._matchedPermissions['link:create:all'] && createAttrs.authorId && createAttrs.authorId !== currentUserId) {
+    if (
+      !req._matchedPermissions['link:create:all'] &&
+      createAttrs.ownerId &&
+      createAttrs.ownerId !== currentUserId
+    ) {
       throw createError(403)
     }
 
-    // automatically set the current user as author if there is no specified author
-    if (!createAttrs.authorId && currentUserId) {
-      createAttrs.authorId = currentUserId
+    // if the link is for an asset, create the asset here
+
+    // automatically set the current user as owner if there is no specified owner
+    if (!createAttrs.ownerId && currentUserId) {
+      createAttrs.ownerId = currentUserId
     }
 
-    const isSelf = currentUserId && currentUserId === createAttrs.authorId
+    const isSelf = currentUserId && currentUserId === createAttrs.ownerId
     if (!req._matchedPermissions['link:create:all'] && !isSelf) {
       throw createError(403)
     }
 
-    const getAsset = async () => {
-      if (!createAttrs.assetId) return
+    // @todo check slug
 
-      const asset = await assetRequester.communicate(req)({
-        type: 'read',
-        assetId: createAttrs.assetId,
-        _matchedPermissions: {
-          'asset:read:all': true
+    switch (createAttrs.linkType) {
+      case 'asset':
+        const createAsset = async ({
+          name,
+          description,
+          categoryId,
+          active,
+          assetTypeId,
+          quantity,
+          price,
+        }) => {
+          if (!createAttrs.assetId) return
+
+          const asset = await assetRequester
+            .communicate(req)({
+              type: 'read',
+              assetId: createAttrs.assetId,
+              _matchedPermissions: {
+                'asset:read:all': true,
+              },
+            })
+            .catch(handleRemoteNotFoundError)
+
+          if (!asset) {
+            throw createError(
+              422,
+              `Asset ID ${createAttrs.assetId} doesn't exist`
+            )
+          }
+
+          return asset
         }
-      }).catch(handleRemoteNotFoundError)
 
-      if (!asset) {
-        throw createError(422, `Asset ID ${createAttrs.assetId} doesn't exist`)
-      }
+        break
+      case 'embed':
+        break
+      case 'link-list':
+        break
+      case 'content':
+        break
 
-      return asset
-    }
-
-    const getTransaction = async () => {
-      if (!createAttrs.transactionId) return
-
-      const transaction = await transactionRequester.communicate(req)({
-        type: 'read',
-        transactionId: createAttrs.transactionId,
-        _matchedPermissions: {
-          'transaction:read:all': true
-        }
-      }).catch(handleRemoteNotFoundError)
-
-      if (!transaction) {
-        throw createError(422, `Transaction ID ${createAttrs.transactionId} doesn't exist`)
-      }
-
-      return transaction
-    }
-
-    const [
-      asset,
-      transaction
-    ] = await Promise.all([
-      getAsset(),
-      getTransaction()
-    ])
-
-    // automatically set the assetId if the information is available in transaction
-    if (!createAttrs.assetId && transaction.assetId) {
-      createAttrs.assetId = transaction.assetId
-    }
-
-    if (asset && transaction && asset.id !== transaction.assetId) {
-      throw createError(422, `The transaction ${transaction.id} isn't associated with the asset ${asset.id}`)
+      case 'redirect':
+        break
     }
 
     const docCreateAttrs = Link.convertLinkToDoc(createAttrs)
 
-    docCreateAttrs.documentId = await getObjectId({ prefix: Link.idPrefix, platformId, env })
+    docCreateAttrs.documentId = await getObjectId({
+      prefix: Link.idPrefix,
+      platformId,
+      env,
+    })
     docCreateAttrs.documentType = 'link'
 
     const docCreateParams = Object.assign({}, docCreateAttrs, {
-      type: 'create'
+      type: 'create',
     })
 
     const document = await documentRequester.communicate(req)(docCreateParams)
@@ -229,22 +234,19 @@ module.exports = function createService (deps) {
     return Link.expose(link, { req })
   }
 
-  async function update (req) {
+  async function update(req) {
     const linkId = req.linkId
 
-    const fields = [
-      'score',
-      'comment',
-      'metadata',
-      'platformData'
-    ]
+    const fields = ['score', 'comment', 'metadata', 'platformData']
 
     const payload = _.pick(req, fields)
 
-    const doc = await documentRequester.communicate(req)({
-      type: 'read',
-      documentId: linkId
-    }).catch(handleRemoteNotFoundError)
+    const doc = await documentRequester
+      .communicate(req)({
+        type: 'read',
+        documentId: linkId,
+      })
+      .catch(handleRemoteNotFoundError)
     if (!doc || doc.type !== 'link') {
       throw createError(404)
     }
@@ -264,7 +266,7 @@ module.exports = function createService (deps) {
 
     const docUpdateParams = Object.assign({}, docUpdateAttrs, {
       type: 'update',
-      documentId: linkId
+      documentId: linkId,
     })
 
     const document = await documentRequester.communicate(req)(docUpdateParams)
@@ -273,13 +275,15 @@ module.exports = function createService (deps) {
     return Link.expose(newLink, { req })
   }
 
-  async function remove (req) {
+  async function remove(req) {
     const linkId = req.linkId
 
-    const doc = await documentRequester.communicate(req)({
-      type: 'read',
-      documentId: linkId
-    }).catch(handleRemoteNotFoundError)
+    const doc = await documentRequester
+      .communicate(req)({
+        type: 'read',
+        documentId: linkId,
+      })
+      .catch(handleRemoteNotFoundError)
     if (!doc || doc.type !== 'link') {
       return { id: linkId }
     }
@@ -296,7 +300,7 @@ module.exports = function createService (deps) {
 
     await documentRequester.communicate(req)({
       type: 'remove',
-      documentId: linkId
+      documentId: linkId,
     })
 
     return { id: linkId }

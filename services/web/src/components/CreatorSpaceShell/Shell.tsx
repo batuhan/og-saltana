@@ -1,19 +1,7 @@
-import {
-  Box,
-  Grid,
-  Flex,
-  Text,
-  Stack,
-  Button,
-  Heading,
-  useColorModeValue,
-  Link,
-} from '@chakra-ui/react'
+
 import * as React from 'react'
 import { CardWithAvatar } from './CardWithAvatar'
 import { HiPencilAlt } from 'react-icons/hi'
-import { UserInfo } from './UserInfo'
-/* This example requires Tailwind CSS v2.0+ */
 import { SpeakerphoneIcon, XIcon } from '@heroicons/react/outline'
 import tw, { styled } from 'twin.macro'
 import { Logo } from '../Logo'

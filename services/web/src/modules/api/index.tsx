@@ -1,5 +1,5 @@
 import { getSession, useSession, signOut } from 'next-auth/client'
-import { QueryClient, useQuery, useMutation } from 'react-query'
+import { QueryClient, useQuery, useMutation, useQueryClient } from 'react-query'
 import { createInstance } from '@saltana/sdk'
 
 export const sharedSaltanaInstance = createInstance({
@@ -50,6 +50,7 @@ export const queryClientSettings = {
 }
 
 export const sharedQueryClient = new QueryClient(queryClientSettings)
+export const createQueryClient = () => new QueryClient(queryClientSettings)
 
 export function useApi(resourceType, method, data, opts = {}) {
   return useQuery([resourceType, method, data], {
@@ -113,6 +114,9 @@ export function useCurrentUser() {
   const _api = useApi('users', 'read', session ? session.user.id : null, {
     enabled: !!session,
     initialData: {
+      username: null,
+      email: null,
+      id: null,
       roles: [],
     },
   })
@@ -132,5 +136,25 @@ export function useCurrentUser() {
 
     return false
   }
-  return { ..._api, data: _api.data || {}, is, session }
+  return { ..._api, is, session }
+}
+
+// Update current user
+export function useUpdateCurrentUser({ onSuccess }) {
+  const user = useCurrentUser()
+  const queryClient = useQueryClient()
+  const updateUserSettings = useMutation(
+    async (data) =>
+      (await getSaltanaInstance()).users.update(user.data.id, data),
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries('users')
+        if (typeof onSuccess !== undefined) {
+          await onSuccess()
+        }
+      },
+    }
+  )
+
+  return updateUserSettings
 }
