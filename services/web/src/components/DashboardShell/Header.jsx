@@ -31,7 +31,7 @@ const _creatorNavigation = [
   },
   {
     name: 'Assets',
-    href: '/dashboard/products',
+    href: '/dashboard/assets',
     creatorScoped: true,
     current: false,
   },

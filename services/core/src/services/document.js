@@ -1,5 +1,5 @@
 const createError = require('http-errors')
-const { transaction } = require('@saltana/objection')
+const { transaction, ref } = require('@saltana/objection')
 
 const { getModels } = require('../models')
 
@@ -19,14 +19,12 @@ const { parseArrayValues } = require('../util/list')
 
 let responder
 
-function start ({ communication }) {
-  const {
-    getResponder
-  } = communication
+function start({ communication }) {
+  const { getResponder } = communication
 
   responder = getResponder({
     name: 'Document Responder',
-    key: 'document'
+    key: 'document',
   })
 
   responder.on('getStats', async (req) => {
@@ -54,11 +52,9 @@ function start ({ communication }) {
       authorId,
       targetId,
       data,
-      avgPrecision
+      avgPrecision,
     } = req
-    let {
-      computeRanking
-    } = req
+    let { computeRanking } = req
 
     const useOffsetPagination = req._useOffsetPagination
 
@@ -69,16 +65,15 @@ function start ({ communication }) {
     let statsDataField
 
     if (field === groupBy) {
-      throw createError(422, `${field} cannot be field and groupBy at the same time`)
+      throw createError(
+        422,
+        `${field} cannot be field and groupBy at the same time`
+      )
     }
 
     // Prepare SQL expressions for below build queries
     if (field) {
-      const {
-        valid,
-        sqlFieldExpression,
-        dataField
-      } = parseDataField(field)
+      const { valid, sqlFieldExpression, dataField } = parseDataField(field)
       if (!valid) {
         throw createError(400, `The field value ${field} is invalid`)
       }
@@ -91,11 +86,7 @@ function start ({ communication }) {
       sqlGroupByExpression = `"${groupBy}"`
       isDataGroupByExpression = false
     } else {
-      const {
-        valid,
-        sqlFieldExpression,
-        dataField
-      } = parseDataField(groupBy)
+      const { valid, sqlFieldExpression, dataField } = parseDataField(groupBy)
       if (!valid) {
         throw createError(400, `The field value ${groupBy} is invalid`)
       }
@@ -121,7 +112,7 @@ function start ({ communication }) {
     // http://sqlfiddle.com/#!17/f717b/1
     const filtersPreRanking = {
       attributes: [],
-      dataAttributes: []
+      dataAttributes: [],
     }
     let filterPostRanking
 
@@ -130,7 +121,7 @@ function start ({ communication }) {
 
       const filter = {
         key: 'authorId',
-        value: parsedAuthorIds
+        value: parsedAuthorIds,
       }
 
       if (groupBy === 'authorId') {
@@ -144,7 +135,7 @@ function start ({ communication }) {
 
       const filter = {
         key: 'targetId',
-        value: parsedTargetIds
+        value: parsedTargetIds,
       }
 
       if (groupBy === 'targetId') {
@@ -154,7 +145,7 @@ function start ({ communication }) {
       }
     }
     if (data) {
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         const isValidKey = key.indexOf(':') === -1
         if (!isValidKey) {
           throw createError(400, `Invalid format for data key: ${key}`)
@@ -164,7 +155,7 @@ function start ({ communication }) {
 
         const filter = {
           key,
-          value: parsedIds
+          value: parsedIds,
         }
 
         if (groupByDataField === key) {
@@ -178,10 +169,14 @@ function start ({ communication }) {
     const parsedLabels = !label ? [] : parseArrayValues(label)
 
     const multipleLabels = parsedLabels.length >= 2
-    const uniqueGroupByResult = filterPostRanking && filterPostRanking.value.length === 1
+    const uniqueGroupByResult =
+      filterPostRanking && filterPostRanking.value.length === 1
 
     if (multipleLabels && !uniqueGroupByResult) {
-      throw createError(422, `Multiple labels can be applied if the groupBy ${groupBy} is filtered with one value`)
+      throw createError(
+        422,
+        `Multiple labels can be applied if the groupBy ${groupBy} is filtered with one value`
+      )
     }
     if (multipleLabels && uniqueGroupByResult) {
       computeRanking = false
@@ -191,9 +186,9 @@ function start ({ communication }) {
       const knex = Document.knex()
       let queryBuilder = knex
 
-      queryBuilder = queryBuilder.with('aggregations', qb => {
+      queryBuilder = queryBuilder.with('aggregations', (qb) => {
         let selectExpressions = [
-          knex.raw(`${sqlGroupByExpression} as "groupByField"`)
+          knex.raw(`${sqlGroupByExpression} as "groupByField"`),
         ]
 
         // No ranking possible if stats field isn't provided (we cannot know which field to aggregate)
@@ -211,13 +206,14 @@ function start ({ communication }) {
           }
 
           selectExpressions = selectExpressions.concat([
-            knex.raw(`ROW_NUMBER() OVER (ORDER BY ${orderBy}((${sqlStatsFieldExpression})::REAL) ${order}) AS "ranking"`),
-            knex.raw('COUNT(*) OVER () as "lowestRanking"')
+            knex.raw(
+              `ROW_NUMBER() OVER (ORDER BY ${orderBy}((${sqlStatsFieldExpression})::REAL) ${order}) AS "ranking"`
+            ),
+            knex.raw('COUNT(*) OVER () as "lowestRanking"'),
           ])
         }
 
-        qb
-          .from(`${Document.defaultSchema}.document`)
+        qb.from(`${Document.defaultSchema}.document`)
           .select(selectExpressions)
           .count()
           .where('type', type)
@@ -230,19 +226,23 @@ function start ({ communication }) {
         }
 
         // If any pre-ranking filters are provided, apply them
-        filtersPreRanking.attributes.forEach(filter => {
+        filtersPreRanking.attributes.forEach((filter) => {
           qb.whereIn(filter.key, filter.value)
         })
-        filtersPreRanking.dataAttributes.forEach(filter => {
+        filtersPreRanking.dataAttributes.forEach((filter) => {
           // TODO: make it work if numbers are provided
           // Currently, numbers are converted into string due to the query params
-          qb.whereRaw(`to_jsonb(data->>'${filter.key}') <@ ?::jsonb`, [JSON.stringify(filter.value)])
+          qb.whereRaw(`to_jsonb(data->>'${filter.key}') <@ ?::jsonb`, [
+            JSON.stringify(filter.value),
+          ])
         })
 
         // filter the post-ranking filter here (to reduce results set) if there is no ranking
         if (filterPostRanking && !computeRanking) {
           if (isDataGroupByExpression) {
-            qb.whereRaw(`to_jsonb(${sqlGroupByExpression}) <@ ?::jsonb`, [JSON.stringify(filterPostRanking.value)])
+            qb.whereRaw(`to_jsonb(${sqlGroupByExpression}) <@ ?::jsonb`, [
+              JSON.stringify(filterPostRanking.value),
+            ])
           } else {
             qb.whereIn(groupBy, filterPostRanking.value)
           }
@@ -257,8 +257,7 @@ function start ({ communication }) {
           // Convert the stats field into real (PostgreSQL decimal number)
           // from default json text value
           // Aggregation operations can only work with numbers
-          qb
-            .avg({ avg: knex.raw(`(${sqlStatsFieldExpression})::REAL`) })
+          qb.avg({ avg: knex.raw(`(${sqlStatsFieldExpression})::REAL`) })
             .sum({ sum: knex.raw(`(${sqlStatsFieldExpression})::REAL`) })
             .min({ min: knex.raw(`(${sqlStatsFieldExpression})::REAL`) })
             .max({ max: knex.raw(`(${sqlStatsFieldExpression})::REAL`) })
@@ -267,9 +266,7 @@ function start ({ communication }) {
         return qb
       })
 
-      queryBuilder
-        .select()
-        .from('aggregations')
+      queryBuilder.select().from('aggregations')
 
       if (filterPostRanking && computeRanking) {
         queryBuilder.whereIn('groupByField', filterPostRanking.value)
@@ -283,16 +280,22 @@ function start ({ communication }) {
     const handleNumberConversionError = (err) => {
       // PostgreSQL error codes
       // https://www.postgresql.org/docs/10/errcodes-appendix.html
-      if (err.code === '22P02') { // invalid_text_representation
+      if (err.code === '22P02') {
+        // invalid_text_representation
         // fail to convert a non-number to real in the aggregation query
-        throw createError(422, `Non-number value was found for field "${field}"`)
+        throw createError(
+          422,
+          `Non-number value was found for field "${field}"`
+        )
       } else {
         throw err
       }
     }
 
     if (multipleLabels && uniqueGroupByResult) {
-      const labelPromises = parsedLabels.map(label => getQueryBuilderByLabel(label))
+      const labelPromises = parsedLabels.map((label) =>
+        getQueryBuilderByLabel(label)
+      )
       let statsByLabel
 
       try {
@@ -310,7 +313,7 @@ function start ({ communication }) {
           aggregatedStats[label] = transformDocStats(aggregatedStats[label], {
             computeRanking,
             groupBy,
-            avgPrecision
+            avgPrecision,
           })
         } else {
           // if there is no result for a specific label, set it to a default object
@@ -321,7 +324,7 @@ function start ({ communication }) {
             avg: null,
             sum: null,
             min: null,
-            max: null
+            max: null,
           }
         }
       })
@@ -332,7 +335,7 @@ function start ({ communication }) {
         paginationMeta = getOffsetPaginationMeta({
           nbResults: 1,
           nbResultsPerPage,
-          page
+          page,
         })
       } else {
         paginationMeta = getCursorPaginationMeta({
@@ -373,11 +376,11 @@ function start ({ communication }) {
           })
         }
 
-        paginationMeta.results = paginationMeta.results.map(doc => {
+        paginationMeta.results = paginationMeta.results.map((doc) => {
           return transformDocStats(doc, {
             computeRanking,
             groupBy,
-            avgPrecision
+            avgPrecision,
           })
         })
       } catch (err) {
@@ -411,7 +414,7 @@ function start ({ communication }) {
       label,
       authorId,
       targetId,
-      data
+      data,
     } = req
 
     const queryBuilder = Document.query()
@@ -423,11 +426,11 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         type: {
           dbField: 'type',
-          value: type
+          value: type,
         },
         labels: {
           value: label,
@@ -435,7 +438,7 @@ function start ({ communication }) {
           query: (queryBuilder, labels) => {
             const includeAllLabels = labels.includes('*')
             if (!includeAllLabels) {
-              queryBuilder.where(qb => {
+              queryBuilder.where((qb) => {
                 labels.forEach((label, index) => {
                   const sqlLikeValue = label.replace(/\*/gi, '%')
                   if (index === 0) {
@@ -448,25 +451,25 @@ function start ({ communication }) {
                 return qb
               })
             }
-          }
+          },
         },
         authorIds: {
           dbField: 'authorId',
           value: authorId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         targetId: {
           dbField: 'targetId',
           value: targetId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         data: {
           value: data,
           dbField: 'data',
-          query: 'jsonSupersetOf'
-        }
+          query: 'jsonSupersetOf',
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -481,7 +484,7 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
@@ -497,14 +500,22 @@ function start ({ communication }) {
     const { Document } = await getModels({ platformId, env })
 
     const documentId = req.documentId
+    const authorId = req.authorId
 
-    const document = await Document.query()
-      .where('id', documentId)
-    //  .orWhere('username', documentId)
-    //  .orWhere('email', documentId) // @TODO: this is ugly
-      .first()
+    const documentQuery = Document.query().where('id', documentId)
 
-      if (!document) {
+    if (authorId) {
+      documentQuery.orWhere(function () {
+        this.where(ref('data:slug').castText(), documentId).andWhere(
+          'authorId',
+          authorId
+        )
+      })
+    }
+
+    const document = await documentQuery.first()
+
+    if (!document) {
       throw createError(404)
     }
 
@@ -524,18 +535,20 @@ function start ({ communication }) {
       label,
       data,
       metadata,
-      platformData
+      platformData,
     } = req
 
     const createAttrs = {
-      id: documentId || await getObjectId({ prefix: Document.idPrefix, platformId, env }),
+      id:
+        documentId ||
+        (await getObjectId({ prefix: Document.idPrefix, platformId, env })),
       authorId,
       targetId,
       type,
       label,
       data,
       metadata,
-      platformData
+      platformData,
     }
 
     const document = await Document.query().insert(createAttrs)
@@ -548,23 +561,23 @@ function start ({ communication }) {
     const env = req.env
     const { Document } = await getModels({ platformId, env })
 
-    const {
-      documents
-    } = req
+    const { documents } = req
 
     const documentsAttrs = []
     for (let i = 0; i < documents.length; i++) {
       const doc = documents[i]
       documentsAttrs.push({
         // can be provided if custom prefix is needed (like rating with rtg_id)
-        id: doc.id || await getObjectId({ prefix: Document.idPrefix, platformId, env }),
+        id:
+          doc.id ||
+          (await getObjectId({ prefix: Document.idPrefix, platformId, env })),
         authorId: doc.authorId,
         targetId: doc.targetId,
         type: doc.type,
         label: doc.label,
         data: doc.data,
         metadata: doc.metadata,
-        platformData: doc.platformData
+        platformData: doc.platformData,
       })
     }
 
@@ -585,7 +598,7 @@ function start ({ communication }) {
       metadata,
       platformData,
 
-      replaceDataProperties
+      replaceDataProperties,
     } = req
 
     const document = await Document.query().findById(documentId)
@@ -594,14 +607,17 @@ function start ({ communication }) {
     }
 
     const updateAttrs = {
-      label
+      label,
     }
 
     if (metadata) {
       updateAttrs.metadata = Document.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Document.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Document.rawJsonbMerge(
+        'platformData',
+        platformData
+      )
     }
 
     let newDocument
@@ -609,7 +625,10 @@ function start ({ communication }) {
     const knex = Document.knex()
 
     await transaction(knex, async (trx) => {
-      newDocument = await Document.query(trx).patchAndFetchById(documentId, updateAttrs)
+      newDocument = await Document.query(trx).patchAndFetchById(
+        documentId,
+        updateAttrs
+      )
 
       // JSONB column `data` may have properties `replaceDataProperties` that should be replaced
       // instead of being merged via `rawJsonbMerge`
@@ -619,7 +638,7 @@ function start ({ communication }) {
           baseObjectName: 'data',
           changesObject: data,
           replacingProperties: replaceDataProperties,
-          trx
+          trx,
         })
       }
     })
@@ -632,9 +651,7 @@ function start ({ communication }) {
     const env = req.env
     const { Document } = await getModels({ platformId, env })
 
-    const {
-      documentId
-    } = req
+    const { documentId } = req
 
     const document = await Document.query().findById(documentId)
     if (!document) {
@@ -647,15 +664,15 @@ function start ({ communication }) {
   })
 }
 
-function getSqlDataFieldExpression (field) {
+function getSqlDataFieldExpression(field) {
   return `data->>'${field}'`
 }
 
-function parseDataField (str) {
+function parseDataField(str) {
   const result = {
     valid: false,
     sqlFieldExpression: null,
-    dataField: null
+    dataField: null,
   }
 
   const parts = str.split('.')
@@ -671,11 +688,11 @@ function parseDataField (str) {
   return result
 }
 
-function getFloatWithPrecision (number, precision) {
+function getFloatWithPrecision(number, precision) {
   return parseFloat(number.toFixed(precision))
 }
 
-function transformDocStats (stat, { computeRanking, groupBy, avgPrecision }) {
+function transformDocStats(stat, { computeRanking, groupBy, avgPrecision }) {
   stat = _.cloneDeep(stat)
 
   stat.groupBy = groupBy
@@ -711,12 +728,12 @@ function transformDocStats (stat, { computeRanking, groupBy, avgPrecision }) {
   return stat
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

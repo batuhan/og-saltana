@@ -5,7 +5,7 @@ const categories = [
   {
     name: 'E-book',
   },
-  {\
+  {
     name: 'Digital Artwork',
   },
   {
@@ -14,4 +14,4 @@ const categories = [
 ]
 
 
-module.exports = categories =
+module.exports = categories

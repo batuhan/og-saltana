@@ -5,9 +5,17 @@ import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
 
 const getServerSideProps =
-  (extendPropsFn = ({ session, instance }) => Promise.resolve({})) =>
-  async ({ req, res }) => {
-    const session = await getSession({ req })
+  (
+    extendPropsFn = ({
+      commonProps,
+      session,
+      instance,
+      queryClient,
+      context,
+    }) => Promise.resolve({})
+  ) =>
+  async (context) => {
+    const session = await getSession(context)
     if (!session) {
       return {
         redirect: {
@@ -43,14 +51,26 @@ const getServerSideProps =
     }
 
     const queryClient = createQueryClient()
-    queryClient.setQueryData(['users', 'read', session.user.id], userData)
+    queryClient.setQueryData(['users', 'read', userData.id], userData)
+    queryClient.setQueryData(['users', 'read', userData.username], userData)
 
-    const props = await extendPropsFn({ session, instance, queryClient })
+    const commonProps = {
+      currentUserId: session.user.id,
+      creator: { ...userData },
+    }
+
+    const props = await extendPropsFn({
+      commonProps,
+      session,
+      instance,
+      queryClient,
+      context,
+    })
 
     return {
       props: {
+        ...commonProps,
         ...props,
-        currentUserId: session.user.id,
         dehydratedState: dehydrate(queryClient),
       },
     }

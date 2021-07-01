@@ -6,23 +6,23 @@
 - `ownerId` -> `authorId`
 - `slug` -> `data.slug`
 - `linkType` -> `data.linkType`
-- `label` -> `label`
+- `name` -> `label`
 - `destination` -> `data.destination`
 - `content` -> `data.content`
 - `assetId`
 - `createdData`
 - `updatedDate`
-- `metadata`
+- `metadata` 
 - `platformData`
 
 ### when adding
 
 ### asset
+
 - assetType
 - asset
 - price
 
- ˝˚˝˝˚˚˝˝˛
 ## Link types
 
 - `asset`

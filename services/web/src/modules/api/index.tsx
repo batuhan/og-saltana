@@ -65,15 +65,6 @@ export function useApiMutation(resourceType, method, opts) {
   }, opts)
 }
 
-export async function prefetchQuery(
-  resourceType,
-  method,
-  data,
-  queryClient = sharedQueryClient
-) {
-  await queryClient.prefetchQuery([resourceType, method, data])
-}
-
 // Organizations/Users/Creators
 export function useUser(username) {
   return useApi('users', 'read', username)
@@ -87,22 +78,9 @@ export function useAssetTypes({ nbResultsPerPage = 100 }) {
   })
 }
 
-export function prefetchAssetTypes({ nbResultsPerPage = 100 }) {
-  return prefetchQuery('assetTypes', 'list', {
-    nbResultsPerPage,
-  })
-}
-
 // Assets
 export function useAssets({ ownerId, nbResultsPerPage = 100 }) {
   return useApi('assets', 'list', {
-    ownerId,
-    nbResultsPerPage,
-  })
-}
-
-export function prefetchAssets({ ownerId, nbResultsPerPage = 100 }) {
-  return prefetchQuery('assets', 'list', {
     ownerId,
     nbResultsPerPage,
   })
@@ -140,7 +118,7 @@ export function useCurrentUser() {
 }
 
 // Update current user
-export function useUpdateCurrentUser({ onSuccess }) {
+export function useUpdateCurrentUser(opts = {}) {
   const user = useCurrentUser()
   const queryClient = useQueryClient()
   const updateUserSettings = useMutation(
@@ -149,8 +127,8 @@ export function useUpdateCurrentUser({ onSuccess }) {
     {
       onSuccess: async () => {
         await queryClient.invalidateQueries('users')
-        if (typeof onSuccess !== undefined) {
-          await onSuccess()
+        if (typeof opts.onSuccess !== undefined) {
+          await opts.onSuccess()
         }
       },
     }

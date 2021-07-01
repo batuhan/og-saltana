@@ -102,12 +102,19 @@ module.exports = function createService(deps) {
   }
 
   async function read(req) {
-    const linkId = req.linkId
+    let linkId = req.linkId
+    let ownerId
+    if (linkId.startsWith('usr_')) {
+      const [_ownerId, _linkId] = linkId.split(':')
+      linkId = _linkId
+      ownerId = _ownerId
+    }
 
     const doc = await documentRequester
       .communicate(req)({
         type: 'read',
         documentId: linkId,
+        authorId: ownerId,
       })
       .catch(handleRemoteNotFoundError)
     if (!doc || doc.type !== 'link') {
@@ -136,7 +143,7 @@ module.exports = function createService(deps) {
       'content',
       'destination',
       'ownerId',
-      'label',
+      'name',
       'metadata',
       'platformData',
     ]
@@ -170,38 +177,20 @@ module.exports = function createService(deps) {
 
     // @todo check slug
 
+    let asset
     switch (createAttrs.linkType) {
       case 'asset':
-        const createAsset = async ({
-          name,
-          description,
-          categoryId,
-          active,
-          assetTypeId,
-          quantity,
-          price,
-        }) => {
-          if (!createAttrs.assetId) return
+        asset = await assetRequester.communicate(req)({
+          ...req.asset,
+          ownerId: createAttrs.ownerId,
+          validated: false,
+          type: 'create',
+          _matchedPermissions: {
+            'asset:create:all': true,
+          },
+        })
 
-          const asset = await assetRequester
-            .communicate(req)({
-              type: 'read',
-              assetId: createAttrs.assetId,
-              _matchedPermissions: {
-                'asset:read:all': true,
-              },
-            })
-            .catch(handleRemoteNotFoundError)
-
-          if (!asset) {
-            throw createError(
-              422,
-              `Asset ID ${createAttrs.assetId} doesn't exist`
-            )
-          }
-
-          return asset
-        }
+        createAttrs.assetId = asset.id
 
         break
       case 'embed':
@@ -230,6 +219,16 @@ module.exports = function createService(deps) {
 
     const document = await documentRequester.communicate(req)(docCreateParams)
     const link = Link.convertDocToLink(document)
+
+    if (createAttrs.linkType === 'asset' && createAttrs.assetId) {
+      await assetRequester.communicate(req)({
+        type: 'update',
+        platformData: {
+          linkId: link.id,
+        },
+        assetId: createAttrs.assetId,
+      })
+    }
 
     return Link.expose(link, { req })
   }

@@ -86,10 +86,8 @@ function init (server, { middlewares, helpers } = {}) {
       'destination',
       'content',
       'ownerId',
-      'targetId',
-      'assetId',
-      'transactionId',
-      'label',
+      'asset',
+      'name',
       'metadata',
       'platformData'
     ]

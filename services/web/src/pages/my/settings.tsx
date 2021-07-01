@@ -1,7 +1,6 @@
 import DashboardShell from '../../components/DashboardShell/DashboardShell'
 import {
   getSaltanaInstance,
-  prefetchQuery,
   sharedQueryClient,
   useApi,
   useUpdateCurrentUser,

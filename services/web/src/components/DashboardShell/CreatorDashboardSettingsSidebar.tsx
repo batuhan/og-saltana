@@ -15,7 +15,7 @@ import { CreatorDashboardLink } from './DashboardLink'
 
 const navigation = [
   { name: 'Profile', href: '/customize', current: true },
-  { name: 'Embeds', href: '/embeds', current: true },
+  { name: 'Embeds', href: '/embeds', current: false },
   { name: 'Integrations', href: '/integrations', current: false },
   { name: 'Workflows', href: '/workflows', current: false },
   { name: 'Privacy', href: '/privacy', current: false },

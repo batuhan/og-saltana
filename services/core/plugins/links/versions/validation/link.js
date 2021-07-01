@@ -23,8 +23,7 @@ const destinationSchema = Joi.string().uri({
   allowQuerySquareBrackets: true,
 })
 
-const slugSchema = Joi.string().alphanum().min(3).max(30).required()
-
+const slugSchema = Joi.string().min(3).max(30).regex(/^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/).required()
 const linkTypeSchema = Joi.valid(
   'asset',
   'embed',
@@ -73,7 +72,7 @@ module.exports = function createValidation(deps) {
 
       // filters
       id: [Joi.string(), Joi.array().unique().items(Joi.string())],
-      authorId: [Joi.string(), Joi.array().unique().items(Joi.string())],
+      ownerId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       targetId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       assetId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       transactionId: [Joi.string(), Joi.array().unique().items(Joi.string())],
@@ -89,6 +88,7 @@ module.exports = function createValidation(deps) {
   schemas['2019-05-20'].create = {
     body: Joi.object()
       .keys({
+        name: Joi.string().max(255),
         ownerId: Joi.string(),
         slug: slugSchema,
         linkType: linkTypeSchema,
@@ -97,6 +97,15 @@ module.exports = function createValidation(deps) {
         content: Joi.object().unknown(),
         metadata: Joi.object().unknown(),
         platformData: Joi.object().unknown(),
+        asset: Joi.object().keys({
+          description: Joi.string().max(3000).allow('', null),
+          categoryId: Joi.string().allow(null),
+          assetTypeId: Joi.string(),
+          quantity: Joi.number().integer().min(0),
+          price: Joi.number().min(0),
+          currency: Joi.string(),
+          customAttributes: Joi.object().unknown(),
+        })
       })
       .required(),
   }

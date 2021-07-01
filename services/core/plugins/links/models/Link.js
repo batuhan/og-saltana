@@ -11,7 +11,7 @@ module.exports = (Base) => class Link extends Base {
         'ownerId', // resolves to authorId on the docs
         'slug',
         'linkType', // resolves to type
-        'label',
+        'name',
         'destination', // resolves to data.destination
         'content', // resolves to data.pageContent
         'assetId',
@@ -44,9 +44,9 @@ module.exports = (Base) => class Link extends Base {
       authorId: link.ownerId,
       // targetId: link.targetId,
       type: 'link',
-      label: link.label,
+      name: link.label,
       data: {
-        ..._.pick(link, ['linkType', 'destination', 'content', 'slug'])
+        ..._.pick(link, ['linkType', 'destination', 'content', 'slug', 'assetId'])
       },
       metadata: link.metadata,
       platformData: link.platformData
@@ -68,12 +68,12 @@ module.exports = (Base) => class Link extends Base {
       updatedDate: doc.updatedDate,
       slug: doc.data.slug,
       ownerId: setNullIfUndefined(doc.authorId),
-      label: setNullIfUndefined(doc.label),
+      name: setNullIfUndefined(doc.label),
       linkType: setNullIfUndefined(doc.data.linkType),
       destination: setNullIfUndefined(doc.data.destination),
       content: setNullIfUndefined(doc.data.content),
       accessType: setNullIfUndefined(doc.data.accessType),
-      assetId: setNullIfUndefined(doc.assetId),
+      assetId: setNullIfUndefined(doc.data.assetId),
       metadata: doc.metadata,
       platformData: doc.platformData
     }

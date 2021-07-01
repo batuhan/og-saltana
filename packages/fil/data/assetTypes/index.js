@@ -35,10 +35,6 @@ const assetTypes = [
       minDuration: { m: 15 },
     },
   },
-  {
-    ...defaults,
-    name: 'Single Payment - Assets with Deliverables',
-  },
 ]
 
 
