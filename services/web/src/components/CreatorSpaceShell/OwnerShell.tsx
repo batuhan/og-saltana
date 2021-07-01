@@ -1,7 +1,7 @@
 import React from 'react'
 import Shell from './Shell'
 import { useMutation, useQueryClient } from 'react-query'
-import {getSaltanaInstance} from '../../modules/api'
+import { getSaltanaInstance } from '../../modules/api'
 const ShellEditWrapper = ({
   creatorId,
   displayName,
@@ -47,8 +47,6 @@ const ShellEditWrapper = ({
   return <Shell {...{}} editModeEnabled={editModeEnabled} />
 }
 const OwnerShell = (props) => {
-  const cms = React.useMemo(() => {}, [props.editModeEnabled])
-
   return <ShellEditWrapper {...props} />
 }
 

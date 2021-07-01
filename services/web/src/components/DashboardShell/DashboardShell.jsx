@@ -7,22 +7,6 @@ import { useCurrentUser } from '../../modules/api'
 import { useRouter } from 'next/router'
 
 export default function DashboardShell({ children }) {
-  const user = useCurrentUser()
-
-  const router = useRouter()
-
-  useEffect(() => {
-
-    console.log(user)
-
-    const { data: {platformData, roles}}  = user
-    console.log([user.data.platformData, user.data.roles])
-
-    if (roles.includes('provider') && platformData?._private?.finishedOnboarding !== true) {
-      router.push("/welcome/creator")
-    }
-
-  }, [])
   return (
     <div tw="min-h-screen flex flex-col h-screen justify-between">
       <div tw="bg-black text-white">

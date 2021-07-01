@@ -20,7 +20,7 @@ const CreatorSpaceShell = ({ children, creatorId }) => {
     const isOwner = is(creatorId)
     setCanEdit(isOwner)
     setEditModeEnabled(isOwner && mode === 'edit')
-  }, [session, mode])
+  }, [session, mode, creatorId, is])
 
   const shell = editModeEnabled ? (
     <OwnerShell

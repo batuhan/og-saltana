@@ -6,8 +6,8 @@ import Dropbox from '@uppy/dropbox'
 import GoogleDrive from '@uppy/google-drive'
 import Facebook from '@uppy/facebook'
 import Zoom from '@uppy/zoom'
-import Instagram from '@uppy/image-editor'
-import Instagram from '@uppy/image-editor'
+
+import ImageEditor from '@uppy/image-editor'
 import Transloadit from '@uppy/transloadit'
 import '@uppy/core/dist/style.css'
 import '@uppy/dashboard/dist/style.css'
@@ -21,7 +21,7 @@ export default function Uploader(props) {
         .use(Transloadit, {
           params: {
             auth: {
-              key: YOUR_TRANSLOADIT_API_KEY,
+              key: process.env.NEXT_PUBLIC_TRANSLOADIT_AUTH_KEY,
             },
             // It’s more secure to use a template_id and enable
             // Signature Authentication

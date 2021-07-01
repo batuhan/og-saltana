@@ -1,19 +1,18 @@
-# Links
+# Profile
 
 ## fields
-
-- `id`
-- `ownerId` -> `authorId`
-- `slug` -> `data.slug`
-- `linkType` -> `data.linkType`
-- `label` -> `label`
-- `destination` -> `data.destination`
-- `content` -> `data.content`
-- `assetId`
-- `createdData`
-- `updatedDate`
-- `metadata`
-- `platformData`
+- display name
+- description
+- links
+- avatar
+- profile video
+- font
+- layout
+- showSaltanaBanner
+- custom domain
+- content
+- is verified
+- 
 
 ### when adding
 
@@ -22,7 +21,7 @@
 - asset
 - price
 
- ˝˚˝˝˚˚˝˝˛
+ 
 ## Link types
 
 - `asset`

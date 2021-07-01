@@ -11,11 +11,7 @@ import { getSession, signIn, signOut, useSession } from 'next-auth/client'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation } from 'react-query'
-import { Card } from '../../components/Card'
 import { magic } from './magic'
-import { useEffect } from 'react'
-import { NextSeo } from 'next-seo'
-import { useRouter } from 'next/router'
 
 export async function login(email, { redirect = false }) {
   const token = await magic.auth.loginWithMagicLink({

@@ -227,8 +227,8 @@ export default function DashboardUserSettings({ userId }) {
                 Notifications
               </h3>
               <p tw="mt-1 text-sm text-gray-500">
-                We'll always let you know about important changes, but you pick
-                what else you want to hear about.
+                We&apos;ll always let you know about important changes, but you
+                pick what else you want to hear about.
               </p>
             </div>
             <div tw="mt-6">

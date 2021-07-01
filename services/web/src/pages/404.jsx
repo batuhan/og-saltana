@@ -10,8 +10,9 @@ export default function Custom404() {
         <div tw="max-w-7xl mx-auto text-center py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
           <h2 tw="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
             <span tw="block">four-oh-four :/</span>
-            <span tw="block">There's nothing here, yet.</span>
+            <span tw="block">There&quot;s nothing here, yet.</span>
           </h2>
+
           <div tw="mt-8 flex justify-center">
             <div tw="inline-flex rounded-md shadow">
               <a
