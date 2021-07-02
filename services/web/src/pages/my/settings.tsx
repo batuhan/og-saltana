@@ -1,10 +1,10 @@
-import DashboardShell from '../../components/DashboardShell/DashboardShell'
+import DashboardShell from '../../components/DashboardShell/Shell'
 import {
   getSaltanaInstance,
   sharedQueryClient,
   useApi,
   useUpdateCurrentUser,
-} from '../../modules/api'
+} from '../../modules/client/api'
 import tw, { styled, css } from 'twin.macro'
 import _ from 'lodash'
 

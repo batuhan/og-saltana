@@ -1,5 +1,5 @@
 import tw, { styled } from 'twin.macro'
-import MarketingShell from '../components/MarketingShell/MarketingShell'
+import MarketingShell from '../components/MarketingShell/Shell'
 
 function Home() {
   return (

@@ -4,14 +4,15 @@ import {
   sharedQueryClient,
   useApi,
   sharedSaltanaInstance,
-} from '../../../modules/api'
+} from '../../../modules/client/api'
 import { dehydrate } from 'react-query/hydration'
-import getServerSidePropsForCreatorSpaces from '../../../modules/server/getServerSidePropsForCreatorSpaces'
+import getServerSidePropsForCreatorSpaces from '../../../modules/server/getServerSidePropsForCreatorSpacePages'
 import { useRouter } from 'next/router'
+import NotionBox from '../../../components/CreatorSpaceShell/LinkContentBoxes/NotionBox'
 
-const CreatorLink = () => {
+const CreatorLink = ({ embed }) => {
   const router = useRouter()
-  const isLinkPage = !!router.query.link
+  const isLinkPage = router.query.link && router.query.link.length > 0
   const creator = useApi('users', 'read', router.query.creator, {
     initialData: {
       id: null,
@@ -20,15 +21,22 @@ const CreatorLink = () => {
   const link = useApi(
     'links',
     'read',
-    `${router.query.creator}:${router.query.link}`,
+    `${creator.data.id}:${router.query.link}`,
     {
-      enabled: isLinkPage && creator.data.id,
+      enabled:
+        isLinkPage && creator.data.id && creator.data.id.length > 0
+          ? true
+          : false,
     }
   )
 
   return (
     <CreatorSpaceShell>
-      <div>test h</div>
+      <div>
+        {embed.provider === 'notion' && (
+          <NotionBox recordMap={embed.recordMap} />
+        )}
+      </div>
     </CreatorSpaceShell>
   )
 }

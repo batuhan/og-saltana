@@ -1,6 +1,6 @@
-import getServerSidePropsForCreatorDashboardPages from './getServerSidePropsForCreatorDashboardPages'
+import getServerSidePropsForCreatorSpaces from './getServerSidePropsForCreatorSpaces'
 
-export const getServerSideProps = getServerSidePropsForCreatorDashboardPages(
+export const getServerSideProps = getServerSidePropsForCreatorSpaces(
   async ({ session, instance, queryClient }) => {
     const links = await instance.links.list({
       ownerId: session.user.id,

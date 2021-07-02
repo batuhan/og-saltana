@@ -4,7 +4,7 @@ import { getSession } from 'next-auth/client'
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
 
-const getServerSideProps =
+const getServerSidePropsForAdminDashboardPages =
   (
     extendPropsFn = ({
       commonProps,
@@ -18,45 +18,25 @@ const getServerSideProps =
     const session = await getSession(context)
     if (!session) {
       return {
-        redirect: {
-          destination: `/login`,
-          permanent: false,
-        },
+        notFound: true,
       }
     }
 
     const instance = await getSaltanaInstance(session)
+    const user = await instance.users.read(session.user.id)
 
-    const userData = await instance.users.read(session.user.id)
-
-    if (!userData.roles.includes('provider')) {
+    if (!user.roles.includes('admin')) {
       return {
-        redirect: {
-          destination: `/request-invite`,
-          permanent: false,
-        },
-      }
-    }
-
-    if (
-      _.get(userData.platformData, '_private.finishedOnboarding', false) !==
-      true
-    ) {
-      return {
-        redirect: {
-          destination: `/welcome/creator`,
-          permanent: false,
-        },
+        notFound: true,
       }
     }
 
     const queryClient = createQueryClient()
-    queryClient.setQueryData(['users', 'read', userData.id], userData)
-    queryClient.setQueryData(['users', 'read', userData.username], userData)
+    queryClient.setQueryData(['users', 'read', user.id], user)
+    queryClient.setQueryData(['users', 'read', user.username], user)
 
     const commonProps = {
-      currentUserId: userData.id,
-      creator: { ...userData },
+      currentUserId: session.user.id,
     }
 
     const props = await extendPropsFn({
@@ -76,4 +56,4 @@ const getServerSideProps =
     }
   }
 
-export default getServerSideProps
+export default getServerSidePropsForAdminDashboardPages

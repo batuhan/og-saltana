@@ -117,9 +117,9 @@ class User extends Base {
     const hasPrivate = !!_.intersection(namespaces, ['*', 'private']).length
 
     switch (field) {
-      case 'username':
-        if (!hasPrivate) delete element.username
-        break
+      //case 'username':
+      //  if (!hasPrivate) delete element.username
+      //  break
 
       case 'firstname':
         if (!hasPrivate) delete element.firstname
