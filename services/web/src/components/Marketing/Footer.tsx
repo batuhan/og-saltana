@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from '@heroicons/react/solid'
+import Link from 'next/link'
 import tw, { styled } from 'twin.macro'
-import { Logo } from '../Logo'
+
 const navigation = {
   solutions: [
     { name: 'Smart Links', href: '#' },
@@ -15,10 +16,10 @@ const navigation = {
     { name: 'Educators', href: '#' },
   ],
   company: [
-    { name: 'About', href: '#' },
-    { name: 'Blog', href: '#' },
-    { name: 'Jobs', href: '#' },
-    { name: 'Support', href: '#' },
+    { name: 'About', href: '/about' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Jobs', href: '/jobs' },
+    { name: 'Support', href: '/help' },
   ],
   legal: [
     { name: 'Claim', href: '#' },
@@ -106,9 +107,11 @@ const navigation = {
 function listItem({ name, href }) {
   return (
     <div key={name} tw="px-5 py-2">
-      <a href={href} tw="text-base text-gray-500 hover:text-gray-900">
-        {name}
-      </a>
+      <Link href={href}>
+        <a tw="text-base text-white hover:text-gray-900">
+          {name}
+        </a>
+      </Link>
     </div>
   )
 }
@@ -146,9 +149,10 @@ export default function Footer() {
           </h2>
           {/* We've used 3xl here, but feel free to try other max-widths based on your needs */}
           <div tw="flex flex-wrap justify-center my-6 text-white">
-            <a tw="h-9 w-1/5 text-center border border-white   text-lg ">
-              Apply for an invite
-            </a>
+            <Link href="/request-invite">
+              <a tw="h-9 w-1/5 text-center border border-white   text-lg ">
+                Apply for an invite
+              </a></Link>
           </div>
           <nav
             tw="-mx-5 -my-2 flex flex-wrap justify-center"

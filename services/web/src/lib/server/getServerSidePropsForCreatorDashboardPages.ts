@@ -84,6 +84,7 @@ const getServerSidePropsForCreatorDashboardPages =
       const commonProps = {
         currentUserId: currentUser.id,
         creator: { ...currentUser },
+        session
       }
 
       const props = await extendPropsFn({

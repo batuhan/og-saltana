@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import useApi from 'hooks/useApi'
 import useCurrentUser from 'hooks/useCurrentUser'
+import useCreatorSpace from 'hooks/useCreatorSpace'
 
 const getCreatorDashboardLink = (basePath = '') =>
   function _DashboardLink({ children, href = '' }) {
@@ -22,8 +21,7 @@ export function UserDashboardLink({ children, href = '/assets' }) {
 }
 
 export function CurrentCreatorSpaceLink({ children, href = '' }) {
-  const { query } = useRouter()
-  const creator = useApi('users', 'read', query.creator)
+  const { creator } = useCreatorSpace()
   return <Link href={`/${creator.data.username}/${href}`}>{children}</Link>
 }
 

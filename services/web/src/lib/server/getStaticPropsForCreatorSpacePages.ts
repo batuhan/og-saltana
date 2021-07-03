@@ -1,4 +1,4 @@
-import { getSaltanaInstance, sharedQueryClient, setUserData, setCreatorLinkData } from '../client/api'
+import { getSaltanaInstance, sharedQueryClient, setUserData, setCreatorLinkData } from '@/client/api'
 
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'

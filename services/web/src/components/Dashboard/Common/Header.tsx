@@ -62,6 +62,7 @@ export default function Header() {
         current: true,
       },
     ]
+  const MiniNavigationLink = isCreator ? CreatorDashboardLink : UserDashboardLink
 
   const name = user.data.firstname
     ? `${user.data.firstname} ${user.data.lastname} (${user.data.displayName})`
@@ -86,8 +87,8 @@ export default function Header() {
               {/* Left nav */}
               <div tw="hidden lg:flex lg:py-5">
                 <nav tw="flex space-x-4">
-                  {navigation.map((item) => (
-                    <NavigationLink>
+                  {navigation.map((item, itemId) => (
+                    <NavigationLink key={itemId}>
                       <a
                         css={[
                           tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`,
@@ -268,13 +269,14 @@ export default function Header() {
                       </div>
                       <div tw="mt-3 px-2 space-y-1">
                         {miniNavigation.map((item) => (
-                          <a
-                            key={item.name}
-                            href={item.href}
-                            tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800"
-                          >
-                            {item.name}
-                          </a>
+                          <MiniNavigationLink href={item.href} key={item.name}>
+                            <a
+
+
+                              tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800"
+                            >
+                              {item.name}
+                            </a></MiniNavigationLink>
                         ))}
                       </div>
                     </div>

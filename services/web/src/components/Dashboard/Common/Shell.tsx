@@ -1,6 +1,6 @@
 import tw from 'twin.macro'
 import { useEffect } from 'react'
-import useCurrentUser from '../../../hooks/useCurrentUser'
+import useCurrentUser from 'hooks/useCurrentUser'
 import Footer from './Footer'
 import Header from './Header'
 import { useRouter } from 'next/router'

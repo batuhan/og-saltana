@@ -1,20 +1,15 @@
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import * as React from 'react'
-import { QueryClient, QueryClientProvider } from 'react-query'
 import { Hydrate } from 'react-query/hydration'
 import { Provider } from 'next-auth/client'
-import { queryClientSettings } from '../lib/client/api'
 import { ReactQueryDevtools } from 'react-query/devtools'
 import { DefaultSeo } from 'next-seo'
 import SEO from '../../next-seo.config'
-import GlobalStyles from '../components/GlobalStyles'
+import GlobalStyles from 'components/GlobalStyles'
+import { SaltanaCoreProvider } from '@/client/SaltanaCoreProvider'
 
 function App({ Component, pageProps }: AppProps) {
-  const [queryClient] = React.useState(
-    () => new QueryClient(queryClientSettings)
-  )
-
   return (
     <>
       <GlobalStyles />
@@ -23,14 +18,15 @@ function App({ Component, pageProps }: AppProps) {
         <meta content="width=device-width, initial-scale=1" name="viewport" />
       </Head>
 
+      <DefaultSeo {...SEO} />
+
       <Provider session={pageProps.session}>
-        <QueryClientProvider client={queryClient}>
+        <SaltanaCoreProvider>
           <Hydrate state={pageProps.dehydratedState}>
-            <DefaultSeo {...SEO} />
             <Component {...pageProps} />
-            <ReactQueryDevtools initialIsOpen={false} />
+            {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
           </Hydrate>
-        </QueryClientProvider>
+        </SaltanaCoreProvider>
       </Provider>
     </>
   )

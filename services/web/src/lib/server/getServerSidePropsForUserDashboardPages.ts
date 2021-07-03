@@ -42,6 +42,7 @@ const getServerSidePropsForUserDashboardPages =
 
       const commonProps = {
         currentUser,
+        session
       }
 
       const props = await extendPropsFn({

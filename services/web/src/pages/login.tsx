@@ -3,7 +3,7 @@ import useLogin from 'hooks/useLogin'
 import tw, { styled, css } from 'twin.macro'
 
 import { LockClosedIcon } from '@heroicons/react/solid'
-import { Logo } from '../components/Logo'
+import { Logo } from 'components/Logo'
 import React, { useEffect } from 'react'
 import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
@@ -102,8 +102,6 @@ export default function Login() {
     </div>
   )
 }
-
-Login.auth = false
 
 export const getServerSideProps = async (context) => {
   const session = await getSession(context)

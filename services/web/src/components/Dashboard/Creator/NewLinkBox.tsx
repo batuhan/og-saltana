@@ -2,7 +2,7 @@ import React from 'react'
 import tw from 'twin.macro'
 
 import _ from 'lodash'
-import { CreatorDashboardLinksLink } from '../../Links'
+import { CreatorDashboardLinksLink } from 'components/Links'
 
 const actions = [
   {

@@ -1,6 +1,6 @@
 import React from 'react'
 import tw, { styled, css } from 'twin.macro'
-import { CreatorDashboardLink } from '../../Links'
+import { CreatorDashboardLink } from 'components/Links'
 
 const navigation = [
   { name: 'Profile', href: '/customize', current: true },

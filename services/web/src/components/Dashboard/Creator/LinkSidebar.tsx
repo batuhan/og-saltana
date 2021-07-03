@@ -1,9 +1,8 @@
 import React from 'react'
 import tw, { styled, css } from 'twin.macro'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { CreatorDashboardLink, CreatorDashboardLinksLink } from '../../Links'
-import { useApi } from '../../../hooks/useApi'
+import { CreatorDashboardLink, CreatorDashboardLinksLink } from 'components/Links'
+import useCreatorSpace from 'hooks/useCreatorSpace'
 
 const navigation = [
   { name: 'Basic', href: '/', current: true, onLinkTypes: ['*'] },
@@ -25,10 +24,7 @@ const secondaryNavigation = []
 
 export default function CreatorDashboardLinkSidebar() {
   const router = useRouter()
-  const isDetail = !!router.query.link
-  const link = useApi('links', 'read', router.query.link, {
-    enabled: isDetail,
-  })
+  const { creator, link, isLink } = useCreatorSpace()
   return (
     <nav aria-label="Sidebar">
       <div tw="space-y-1">
