@@ -1,20 +1,9 @@
-import { useEffect } from 'react'
-import { Menu, Popover, Transition } from '@headlessui/react'
-import tw, { styled } from 'twin.macro'
-import DashboardShell from '../Common/Shell'
-import CreatorDashboardLinkSidebar from './LinkSidebar'
-import Breadcrumb from './Breadcrumb'
-import { useApi, useCurrentUser } from '../../modules/client/api'
-import { useRouter } from 'next/router'
+import 'twin.macro'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid'
+import useCreatorSpace from 'hooks/useCreatorSpace'
 
 export default function SubHeader() {
-  const router = useRouter()
-  const isDetail = !!router.query.link
-  const link = useApi('links', 'read', router.query.link, {
-    enabled: isDetail,
-  })
-
+  const { link, isLink } = useCreatorSpace() 
   return (
     <div tw="bg-black text-white">
       <div tw="max-w-3xl mx-auto px-4 pb-5 sm:px-6 lg:max-w-5xl lg:px-8">
@@ -48,7 +37,7 @@ export default function SubHeader() {
                     </a>
                   </div>
                 </li>
-                {isDetail && (
+                {isLink && (
                   <li>
                     <div tw="flex items-center">
                       <ChevronRightIcon
@@ -68,7 +57,7 @@ export default function SubHeader() {
               </ol>
             </nav>
           </div>
-          {isDetail && (
+          {isLink && (
             <div tw="mt-2 md:flex md:items-center md:justify-between">
               <div tw="flex-1 min-w-0">
                 <h2 tw="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
@@ -87,6 +76,12 @@ export default function SubHeader() {
                   tw="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500"
                 >
                   Publish
+                </button>
+                <button
+                  type="button"
+                  tw="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500"
+                >
+                  See live
                 </button>
               </div>
             </div>

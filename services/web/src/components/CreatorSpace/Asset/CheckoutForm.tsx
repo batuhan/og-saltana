@@ -7,7 +7,7 @@ import getStripe from '../stripe'
 import { HiTrash } from 'react-icons/hi'
 import { AiOutlineShoppingCart } from 'react-icons/ai'
 import ElementsForm from '../stripe/components/ElementsForm'
-import { Card } from './components/Card'
+import { Card } from 'components/Card'
 import { Logo } from '../../components/Logo'
 
 interface ProductLineProps {

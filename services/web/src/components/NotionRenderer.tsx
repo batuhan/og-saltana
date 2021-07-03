@@ -1,6 +1,6 @@
-// https://www.notion.so/saltana/Terms-of-Service-586d665b14914a1e88f3f076fbd4626d
-import { NotionRenderer } from 'react-notion-x'
+import 'twin.macro'
 
+import { NotionRenderer as OriginalNotionRenderer } from 'react-notion-x'
 // core styles shared by all of react-notion-x (required)
 import 'react-notion-x/src/styles.css'
 
@@ -13,8 +13,8 @@ import 'rc-dropdown/assets/index.css'
 // used for rendering equations (optional)
 import 'katex/dist/katex.min.css'
 
-export default function NotionBox({ recordMap }) {
-  return (
-    <NotionRenderer recordMap={recordMap} fullPage={true} darkMode={false} />
-  )
+export default function NotionRenderer({ pageTitle, contentRecordMap, ...passProps }) {
+    return (
+        <OriginalNotionRenderer recordMap={contentRecordMap} fullPage={true} darkMode={false} {...passProps} />
+    )
 }

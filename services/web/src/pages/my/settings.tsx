@@ -1,25 +1,19 @@
-import DashboardShell from '../../components/DashboardShell/Shell'
-import {
-  getSaltanaInstance,
-  sharedQueryClient,
-  useApi,
-  useUpdateCurrentUser,
-} from '../../modules/client/api'
-import tw, { styled, css } from 'twin.macro'
-import _ from 'lodash'
+import DashboardShell from 'components/Dashboard/Common/Shell'
+import tw from 'twin.macro'
 
 import { useForm } from 'react-hook-form'
 import { useMutation } from 'react-query'
 import React, { useEffect } from 'react'
 import { NextSeo } from 'next-seo'
 
-import { getSession, useSession } from 'next-auth/client'
-import { GetServerSideProps } from 'next'
-import { dehydrate } from 'react-query/hydration'
-import { useQuery, useQueryClient } from 'react-query'
+import _ from 'lodash'
+import getServerSidePropsForUserDashboardPages from '@/server/getServerSidePropsForUserDashboardPages'
+import useUpdateCurrentUser from 'hooks/useUpdateCurrentUser'
+import useCurrentUser from 'hooks/useCurrentUser'
+
 export default function DashboardUserSettings({ userId }) {
-  const queryClient = useQueryClient()
-  const { data, isLoading } = useApi('users', 'read', userId)
+
+  const { data, isLoading } = useCurrentUser()
 
   const {
     register,
@@ -370,26 +364,4 @@ export default function DashboardUserSettings({ userId }) {
   )
 }
 
-DashboardUserSettings.auth = true
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const session = await getSession({ req })
-  if (!session) {
-    res.statusCode = 403
-    return { props: {} }
-  }
-
-  const instance = await getSaltanaInstance(session)
-
-  const userData = await instance.users.read(session.user.id)
-
-  sharedQueryClient.setQueryData(['users', 'read', session.user.id], userData)
-  //await prefetchQuery('assets', 'list', { ownerId: user.id })
-
-  return {
-    props: {
-      dehydratedState: dehydrate(sharedQueryClient),
-      userId: userData.id,
-    },
-  }
-}
+export const getServerSideProps = getServerSidePropsForUserDashboardPages()

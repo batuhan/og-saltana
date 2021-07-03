@@ -1,7 +1,7 @@
 import { CheckIcon } from '@heroicons/react/outline'
 import tw, { styled } from 'twin.macro'
 import { NextSeo } from 'next-seo'
-import MarketingShell from '../../components/MarketingShell/Shell'
+import MarketingShell from 'components/Marketing/Shell'
 const features = [
   'Vitae in pulvinar odio id utobortis in inter.',
   'Sed sed id viverra viverra augue eget massa.',

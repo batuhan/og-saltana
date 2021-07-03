@@ -1,17 +1,9 @@
-import { useEffect } from 'react'
-import { Menu, Popover, Transition } from '@headlessui/react'
-import tw, { styled } from 'twin.macro'
+import tw from 'twin.macro'
 import DashboardShell from '../Common/Shell'
 import CreatorDashboardLinkSidebar from './LinkSidebar'
 import CreatorDashboardLinkSubHeader from './LinkSubHeader'
-import Breadcrumb from './Breadcrumb'
-import { useApi, useCurrentUser } from '../../../modules/client/api'
-import { useRouter } from 'next/router'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid'
 
 export default function CreatorDashboardLinkShell({ children }) {
-  const user = useCurrentUser()
-
   return (
     <DashboardShell subHeader={<CreatorDashboardLinkSubHeader />}>
       <div tw="py-6">

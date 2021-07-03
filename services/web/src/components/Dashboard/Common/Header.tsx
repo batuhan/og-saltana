@@ -1,85 +1,67 @@
 import { Fragment } from 'react'
 import { Menu, Popover, Transition } from '@headlessui/react'
-import tw, { styled } from 'twin.macro'
+import tw from 'twin.macro'
 import {
-  AcademicCapIcon,
-  BadgeCheckIcon,
   BellIcon,
-  CashIcon,
-  ClockIcon,
   MenuIcon,
-  ReceiptRefundIcon,
-  UsersIcon,
   XIcon,
-  PlusIcon,
-  SearchIcon,
 } from '@heroicons/react/outline'
-import { Logo } from '../../Logo'
-import Avatar from '../../Avatar'
+import { Logo } from 'components/Logo'
+import Avatar from 'components/Avatar'
+import { DefaultLink, CreatorDashboardLink, UserDashboardLink } from 'components/Links'
 import { useRouter } from 'next/router'
-import { signOut, useSession } from 'next-auth/client'
-import useCurrentUser from '../../../hooks/useCurrentUser'
+import { signOut } from 'next-auth/client'
+import useCurrentUser from 'hooks/useCurrentUser'
 import Link from 'next/link'
 
-const _creatorNavigation = [
-  { name: 'Dashboard', href: '/dashboard', creatorScoped: true, current: true },
+const creatorNavigation = [
+  { name: 'Dashboard', href: '/', current: true },
   {
     name: 'Links',
-    href: '/dashboard/links',
-    creatorScoped: true,
+    href: '/links',
     current: false,
   },
   {
     name: 'Assets',
-    href: '/dashboard/assets',
-    creatorScoped: true,
+    href: '/assets',
     current: false,
   },
   {
     name: 'Analytics',
-    href: '/dashboard/analytics',
-    creatorScoped: true,
+    href: '/analytics',
     current: false,
   },
   {
     name: 'Customize',
-    href: '/dashboard/customize',
-    creatorScoped: true,
+    href: '/customize',
     current: false,
   },
 ]
 
 const userNavigation = [
-  { name: 'My Purchases', href: '/my/purchases' },
-  { name: 'Account Settings', href: '/my/settings' },
+  { name: 'My Assets', href: '/assets' },
+  { name: 'Payments', href: '/payments' },
+  { name: 'Account Settings', href: '/settings' },
 ]
+
 // md:mr-auto md:ml-4 md:py-1 md:pl-4 md:border-l md:border-gray-400	flex flex-wrap items-center text-base justify-center
 export default function Header() {
   const user = useCurrentUser()
   const router = useRouter()
   const isRegularUserPath = router.pathname.startsWith('/my/')
-  const currentHref = router.pathname.replace('[creator]', user.data.id)
-  const creatorNavigation = _creatorNavigation.map((navItem) => {
-    const newItem = { ...navItem }
-    if (newItem.creatorScoped) {
-      newItem.href = `/${user.data.id}${newItem.href}`
-    }
-
-    newItem.current = newItem.href === currentHref
-    return newItem
-  })
   const navigation = isRegularUserPath ? userNavigation : creatorNavigation
+  const NavigationLink = isRegularUserPath ? UserDashboardLink : CreatorDashboardLink
   const isCreator = user.data.roles.includes('provider')
   const miniNavigation = isCreator
     ? creatorNavigation
     : [
-        {
-          name: 'Apply for a creator account',
-          href: '/request-invite',
-          creatorScoped: false,
-          current: true,
-        },
-      ]
+      {
+        name: 'Apply for a creator account',
+        href: '/request-invite',
+        creatorScoped: false,
+        current: true,
+      },
+    ]
 
   const name = user.data.firstname
     ? `${user.data.firstname} ${user.data.lastname} (${user.data.displayName})`
@@ -93,29 +75,28 @@ export default function Header() {
             <div tw="relative flex flex-wrap items-center justify-center lg:justify-between">
               {/* Logo */}
               <div tw="absolute left-0 py-5 flex-shrink-0 lg:static">
-                <Link href="/">
+                <DefaultLink>
                   <a>
                     <span tw="sr-only">Saltana</span>
                     <Logo h="5" fill="#ffffff" />
                   </a>
-                </Link>
+                </DefaultLink>
               </div>
               {/* test */}
               {/* Left nav */}
-              <div tw="hidden lg:flex lg:items-start lg:py-5">
+              <div tw="hidden lg:flex lg:py-5">
                 <nav tw="flex space-x-4">
                   {navigation.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      css={[
-                        tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`,
-                        item.current ? tw`bg-gray-400` : tw`text-cyan-100`,
-                      ]}
-                      aria-current={item.current ? 'page' : undefined}
-                    >
-                      {item.name}
-                    </a>
+                    <NavigationLink>
+                      <a
+                        css={[
+                          tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`,
+                          item.current ? tw`bg-gray-400` : tw`text-cyan-100`,
+                        ]}
+                        aria-current={item.current ? 'page' : undefined}
+                      >
+                        {item.name}
+                      </a></NavigationLink>
                   ))}
                 </nav>
               </div>
@@ -125,7 +106,6 @@ export default function Header() {
                 <div tw="ml-4 relative flex-shrink-0">
                   <Link href="/give-feedback">
                     <a
-                      href=""
                       tw="text-sm font-medium text-white hover:underline "
                     >
                       Give Feedback
@@ -136,7 +116,6 @@ export default function Header() {
                   {!user.data.roles.includes('provider') && (
                     <Link href="/request-invite">
                       <a
-                        href=""
                         tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         <span>Apply for a creator account</span>
@@ -144,14 +123,13 @@ export default function Header() {
                     </Link>
                   )}
                   {isRegularUserPath && user.data.roles.includes('provider') && (
-                    <Link href={`/${user.data.id}/dashboard`}>
+                    <CreatorDashboardLink>
                       <a
-                        href=""
                         tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         <span>Creator Dashboard</span>
                       </a>
-                    </Link>
+                    </CreatorDashboardLink>
                   )}
                 </div>
                 {/* Profile dropdown */}
@@ -196,15 +174,15 @@ export default function Header() {
                             {userNavigation.map((item) => (
                               <Menu.Item key={item.name}>
                                 {({ active }) => (
-                                  <a
-                                    href={item.href}
-                                    css={[
-                                      tw`block px-4 py-2 text-sm text-gray-700`,
-                                      active && 'bg-gray-100',
-                                    ]}
-                                  >
-                                    {item.name}
-                                  </a>
+                                  <UserDashboardLink href={item.href}>
+                                    <a
+                                      css={[
+                                        tw`block px-4 py-2 text-sm text-gray-700`,
+                                        active && 'bg-gray-100',
+                                      ]}
+                                    >
+                                      {item.name}
+                                    </a></UserDashboardLink>
                                 )}
                               </Menu.Item>
                             ))}
@@ -326,13 +304,15 @@ export default function Header() {
                       </div>
                       <div tw="mt-3 px-2 space-y-1">
                         {userNavigation.map((item) => (
-                          <a
+                          <UserDashboardLink
                             key={item.name}
-                            href={item.href}
-                            tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800"
-                          >
-                            {item.name}
-                          </a>
+                            href={item.href}>
+                            <a
+                              tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800"
+                            >
+                              {item.name}
+                            </a>
+                          </UserDashboardLink>
                         ))}
                       </div>
                     </div>

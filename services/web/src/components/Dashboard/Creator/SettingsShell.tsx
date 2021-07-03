@@ -1,4 +1,4 @@
-import tw from 'twin.macro'
+import 'twin.macro'
 import DashboardShell from '../Common/Shell'
 import CreatorDashboardSettingsSidebar from './SettingsSidebar'
 

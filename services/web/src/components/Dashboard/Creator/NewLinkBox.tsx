@@ -1,20 +1,11 @@
-import React, { useEffect } from 'react'
-import Link from 'next/link'
-import {
-  AcademicCapIcon,
-  BadgeCheckIcon,
-  BellIcon,
-  CashIcon,
-  ClockIcon,
-} from '@heroicons/react/outline'
-import tw, { styled, css } from 'twin.macro'
+import React from 'react'
+import tw from 'twin.macro'
 
 import _ from 'lodash'
-import { useCurrentUser } from '../../modules/client/api'
+import { CreatorDashboardLinksLink } from '../../Links'
 
 const actions = [
   {
-    icon: ClockIcon,
     name: 'Smart Link',
     description: 'Create a custom link to redirect to dynamic locations',
     type: 'redirection',
@@ -22,7 +13,6 @@ const actions = [
     iconBackground: 'bg-teal-50',
   },
   {
-    icon: ClockIcon,
     name: 'Digital Asset',
     description: 'Sell documents, downloadable files and more',
     type: 'asset',
@@ -30,7 +20,11 @@ const actions = [
     iconBackground: 'bg-teal-50',
   },
   {
-    icon: BadgeCheckIcon,
+    name: 'Asset Bundle',
+    description: 'Sell multiple assets with a single payment',
+    type: 'asset-bundle',
+  },
+  {
     name: 'Notion page',
     description: 'Embed your Notion documents within your Saltana space',
     type: 'embed?type=notion',
@@ -38,7 +32,13 @@ const actions = [
     iconBackground: 'bg-purple-50',
   },
   {
-    icon: BadgeCheckIcon,
+    name: 'Notion collection',
+    description: 'Embed your Notion documents within your Saltana space',
+    type: 'embed?type=notion',
+    iconForeground: 'text-purple-700',
+    iconBackground: 'bg-purple-50',
+  },
+  {
     name: 'Typeform page',
     type: 'embed?type=typeorm',
     description: 'Embed your Typeform forms within your Saltana space',
@@ -46,7 +46,6 @@ const actions = [
     iconBackground: 'bg-purple-50',
   },
   {
-    icon: ClockIcon,
     name: 'Form',
     description:
       'Ask your audience questions (Requires Airtable or Notion integration)',
@@ -55,17 +54,22 @@ const actions = [
     iconBackground: 'bg-teal-50',
   },
   {
-    icon: ClockIcon,
     name: 'Poll',
     description: 'Poll your audience',
     type: 'embed?type=form',
     iconForeground: 'text-teal-700',
     iconBackground: 'bg-teal-50',
   },
+  {
+    name: 'Resume',
+    description: 'Poll your audience',
+    type: 'resume',
+    iconForeground: 'text-teal-700',
+    iconBackground: 'bg-teal-50',
+  },
 ]
 
 export default function CreatorDashboardNewLinkBox() {
-  const user = useCurrentUser()
   const actionsMap = actions.map(
     (
       { name, description, iconBackground, type, iconForeground },
@@ -89,16 +93,13 @@ export default function CreatorDashboardNewLinkBox() {
       >
         <div tw="mt-8">
           <h3 tw="text-lg font-medium">
-            <Link
-              href={`/${user.data.username}/dashboard/links/create/${type}`}
-              passHref
-            >
+            <CreatorDashboardLinksLink href={`/create/${type}`}>
               <a tw="focus:outline-none">
                 {/* Extend touch target to entire panel */}
                 <span tw="absolute inset-0" aria-hidden="true" />
                 {name}
               </a>
-            </Link>
+            </CreatorDashboardLinksLink>
           </h3>
           <p tw="mt-2 text-sm text-gray-500">{description}</p>
         </div>

@@ -1,4 +1,4 @@
-import { useLogin } from '../modules/client/auth/login'
+import useLogin from 'hooks/useLogin'
 
 import tw, { styled, css } from 'twin.macro'
 
@@ -9,7 +9,7 @@ import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
 import { useForm } from 'react-hook-form'
 import { getSession } from 'next-auth/client'
-import { Link } from '@chakra-ui/react'
+import Link from 'next/link'
 
 export default function Login() {
   const {
@@ -25,7 +25,7 @@ export default function Login() {
     if (loginMutation.session) {
       router.push(router.query.callbackUrl as string)
     }
-    return () => {}
+    return () => { }
   }, [loginMutation.session, router])
 
   return (
@@ -74,7 +74,6 @@ export default function Login() {
               By entering your e-mail, you agree to our{' '}
               <Link href="/terms">
                 <a
-                  href="#"
                   tw="font-medium text-indigo-600 hover:text-indigo-500"
                 >
                   terms of service
@@ -111,7 +110,7 @@ export const getServerSideProps = async (context) => {
   if (session) {
     return {
       redirect: {
-        destination: context.req.query?.callbackUrl || '/my/purchases',
+        destination: context.req.query?.callbackUrl || '/dashboard',
         permanent: false,
       },
     }

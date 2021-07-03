@@ -1,9 +1,8 @@
+import tw from 'twin.macro'
 import { useEffect } from 'react'
-import { Menu, Popover, Transition } from '@headlessui/react'
-import tw, { styled } from 'twin.macro'
+import useCurrentUser from '../../../hooks/useCurrentUser'
 import Footer from './Footer'
 import Header from './Header'
-import { useCurrentUser } from '../../modules/client/api'
 import { useRouter } from 'next/router'
 
 export default function DashboardShell({
@@ -11,6 +10,15 @@ export default function DashboardShell({
   container = true,
   subHeader = null,
 }) {
+  const router = useRouter()
+  const { isLoading, isLoggedIn } = useCurrentUser()
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      router.push(`/login?callbackUrl=fsdfs`)
+    }
+  }, [isLoading, isLoggedIn, router])
+
   return (
     <div tw="min-h-screen flex flex-col h-screen justify-between">
       <div tw="bg-black text-white">

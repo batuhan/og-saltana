@@ -1,5 +1,5 @@
+import { useApi } from 'hooks/useApi'
 import * as React from 'react'
-import { useApi } from '../../modules/client/api'
 import { useCart } from 'react-use-cart'
 
 /**

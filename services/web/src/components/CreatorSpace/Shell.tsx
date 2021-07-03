@@ -1,24 +1,12 @@
-import { useRouter } from 'next/router'
 import * as React from 'react'
-import { useCurrentUser, useApi } from '../../modules/client/api'
 import { NextSeo } from 'next-seo'
-import tw, { styled } from 'twin.macro'
+import 'twin.macro'
 import { Logo } from '../Logo'
+import useCreatorSpace from 'hooks/useCreatorSpace'
 
 const CreatorSpaceShell = ({ children }) => {
-  const router = useRouter()
-  const isLinkPage = !!router.query.link
-  const creator = useApi('users', 'read', router.query.creator)
-  const link = useApi(
-    'links',
-    'read',
-    `${creator.data.id}:${router.query.link}`,
-    {
-      enabled: isLinkPage && creator.data.id && creator.data.id.length > 0,
-    }
-  )
-
-  const title = isLinkPage ? link.data?.label : creator.data?.displayName
+  const { creator, link, isLink } = useCreatorSpace()
+  const title = isLink ? link.data?.label : creator.data?.displayName
   return (
     <>
       <NextSeo title={title} />

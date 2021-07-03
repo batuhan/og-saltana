@@ -1,6 +1,6 @@
 import * as React from 'react'
-import CreatorSpaceShell from '../../components/CreatorSpaceShell'
-import getServerSidePropsForCreatorSpaces from '../../modules/server/getServerSidePropsForCreatorSpacePages'
+import CreatorSpaceShell from 'components/CreatorSpace/Shell'
+import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreatorSpacePages'
 
 const CreatorProfile = ({ creatorId }) => {
   return (
@@ -10,8 +10,13 @@ const CreatorProfile = ({ creatorId }) => {
   )
 }
 
-export const getServerSideProps = getServerSidePropsForCreatorSpaces()
+export const getStaticProps = getStaticPropsForCreatorSpacePages()
 
-CreatorProfile.useGlobalHeader = true
+export async function getStaticPaths() {
+  return {
+    paths: [],
+    fallback: true,
+  }
+}
 
 export default CreatorProfile

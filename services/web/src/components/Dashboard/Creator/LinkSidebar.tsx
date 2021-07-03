@@ -1,21 +1,9 @@
-/* This example requires Tailwind CSS v2.0+ */
-import {
-  CalendarIcon,
-  ChartBarIcon,
-  FolderIcon,
-  HomeIcon,
-  InboxIcon,
-  UsersIcon,
-} from '@heroicons/react/outline'
 import React from 'react'
 import tw, { styled, css } from 'twin.macro'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import {
-  CreatorDashboardCustomizeLink,
-  CreatorDashboardLinksLink,
-} from '../Links'
-import { useApi } from '../../modules/client/api'
+import { CreatorDashboardLink, CreatorDashboardLinksLink } from '../../Links'
+import { useApi } from '../../../hooks/useApi'
 
 const navigation = [
   { name: 'Basic', href: '/', current: true, onLinkTypes: ['*'] },
@@ -28,9 +16,11 @@ const navigation = [
     onLinkTypes: ['asset'],
   },
   { name: 'Orders', href: '/orders', current: false, onLinkTypes: ['asset'] },
+  { name: 'Access', href: '/access', current: false, onLinkTypes: ['asset'] },
   { name: 'Customize', href: '/customize', current: false, onLinkTypes: ['*'] },
   { name: 'Advanced', href: '/advanced', current: false, onLinkTypes: ['*'] },
 ]
+
 const secondaryNavigation = []
 
 export default function CreatorDashboardLinkSidebar() {

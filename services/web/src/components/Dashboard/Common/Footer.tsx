@@ -1,4 +1,5 @@
-import tw, { styled } from 'twin.macro'
+import Link from 'next/link'
+import 'twin.macro'
 
 const navigationFooter = [
   { name: 'Product Updates', href: '/product-updates' },
@@ -14,9 +15,11 @@ export default function Footer() {
         <nav tw="-mx-5 -my-2 flex flex-wrap justify-center" aria-label="Footer">
           {navigationFooter.map(({ name, href }) => (
             <div key={name} tw="px-5 py-2">
-              <a href={href} tw="text-base text-black hover:text-gray-500">
-                {name}
-              </a>
+              <Link href={href}>
+                <a tw="text-base text-black hover:text-gray-500">
+                  {name}
+                </a>
+              </Link>
             </div>
           ))}
         </nav>
