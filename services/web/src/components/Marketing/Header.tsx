@@ -1,4 +1,4 @@
-import tw, { styled } from 'twin.macro'
+import 'twin.macro'
 import { Logo } from '../Logo'
 import { useSession } from 'next-auth/client'
 import Link from 'next/link'
@@ -17,10 +17,10 @@ export default function Header() {
       <nav tw="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div tw="w-full py-6 flex items-center justify-between border-b border-white lg:border-none">
           <div tw="flex items-center">
-          <Link href="/" passHref>
-            <a>
-              <span tw="sr-only">Saltana</span>
-              <Logo tw="h-10 w-auto" h="6" fill="#ffffff" />
+            <Link href="/" passHref>
+              <a>
+                <span tw="sr-only">Saltana</span>
+                <Logo tw="h-10 w-auto" h="6" fill="#ffffff" />
               </a>
             </Link>
             <div tw="hidden ml-10 space-x-8 lg:block">
@@ -58,13 +58,11 @@ export default function Header() {
         </div>
         <div tw="py-4 flex flex-wrap justify-center space-x-6 lg:hidden">
           {navigation.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              tw="text-base font-medium text-white hover:text-indigo-50"
-            >
-              {link.name}
-            </a>
+            <Link key={link.name} href={link.href} passHref>
+              <a tw="text-base font-medium text-white hover:text-indigo-50">
+                {link.name}
+              </a>
+            </Link>
           ))}
         </div>
       </nav>

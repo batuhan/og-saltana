@@ -1,14 +1,14 @@
 import { Fragment } from 'react'
 import { Menu, Popover, Transition } from '@headlessui/react'
 import tw from 'twin.macro'
-import {
-  BellIcon,
-  MenuIcon,
-  XIcon,
-} from '@heroicons/react/outline'
+import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
 import { Logo } from 'components/Logo'
 import Avatar from 'components/Avatar'
-import { DefaultLink, CreatorDashboardLink, UserDashboardLink } from 'components/Links'
+import {
+  DefaultLink,
+  CreatorDashboardLink,
+  UserDashboardLink,
+} from 'components/Links'
 import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/client'
 import useCurrentUser from 'hooks/useCurrentUser'
@@ -50,19 +50,23 @@ export default function Header() {
   const router = useRouter()
   const isRegularUserPath = router.pathname.startsWith('/my/')
   const navigation = isRegularUserPath ? userNavigation : creatorNavigation
-  const NavigationLink = isRegularUserPath ? UserDashboardLink : CreatorDashboardLink
+  const NavigationLink = isRegularUserPath
+    ? UserDashboardLink
+    : CreatorDashboardLink
   const isCreator = user.data.roles.includes('provider')
   const miniNavigation = isCreator
     ? creatorNavigation
     : [
-      {
-        name: 'Apply for a creator account',
-        href: '/request-invite',
-        creatorScoped: false,
-        current: true,
-      },
-    ]
-  const MiniNavigationLink = isCreator ? CreatorDashboardLink : UserDashboardLink
+        {
+          name: 'Apply for a creator account',
+          href: '/request-invite',
+          creatorScoped: false,
+          current: true,
+        },
+      ]
+  const MiniNavigationLink = isCreator
+    ? CreatorDashboardLink
+    : UserDashboardLink
 
   const name = user.data.firstname
     ? `${user.data.firstname} ${user.data.lastname} (${user.data.displayName})`
@@ -83,12 +87,10 @@ export default function Header() {
                   </a>
                 </DefaultLink>
               </div>
-              {/* test */}
-              {/* Left nav */}
-              <div tw="hidden lg:flex lg:py-5">
+              <div tw="hidden lg:flex lg:py-5 flex-shrink-0">
                 <nav tw="flex space-x-4">
                   {navigation.map((item, itemId) => (
-                    <NavigationLink key={itemId}>
+                    <NavigationLink href={item.href} key={itemId}>
                       <a
                         css={[
                           tw`text-sm font-medium rounded-md bg-white bg-opacity-0 px-3 py-2 hover:bg-opacity-10`,
@@ -97,18 +99,15 @@ export default function Header() {
                         aria-current={item.current ? 'page' : undefined}
                       >
                         {item.name}
-                      </a></NavigationLink>
+                      </a>
+                    </NavigationLink>
                   ))}
                 </nav>
               </div>
-              {/* dd */}
-              {/* Right section on desktop */}
               <div tw="hidden lg:ml-4 lg:flex lg:items-center lg:py-5 lg:pr-0.5">
                 <div tw="ml-4 relative flex-shrink-0">
                   <Link href="/give-feedback">
-                    <a
-                      tw="text-sm font-medium text-white hover:underline "
-                    >
+                    <a tw="text-sm font-medium text-white hover:underline ">
                       Give Feedback
                     </a>
                   </Link>
@@ -116,18 +115,14 @@ export default function Header() {
                 <div tw="ml-4 relative flex-shrink-0">
                   {!user.data.roles.includes('provider') && (
                     <Link href="/request-invite">
-                      <a
-                        tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
+                      <a tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         <span>Apply for a creator account</span>
                       </a>
                     </Link>
                   )}
                   {isRegularUserPath && user.data.roles.includes('provider') && (
                     <CreatorDashboardLink>
-                      <a
-                        tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
+                      <a tw="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         <span>Creator Dashboard</span>
                       </a>
                     </CreatorDashboardLink>
@@ -183,7 +178,8 @@ export default function Header() {
                                       ]}
                                     >
                                       {item.name}
-                                    </a></UserDashboardLink>
+                                    </a>
+                                  </UserDashboardLink>
                                 )}
                               </Menu.Item>
                             ))}
@@ -270,13 +266,10 @@ export default function Header() {
                       <div tw="mt-3 px-2 space-y-1">
                         {miniNavigation.map((item) => (
                           <MiniNavigationLink href={item.href} key={item.name}>
-                            <a
-
-
-                              tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800"
-                            >
+                            <a tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800">
                               {item.name}
-                            </a></MiniNavigationLink>
+                            </a>
+                          </MiniNavigationLink>
                         ))}
                       </div>
                     </div>
@@ -306,12 +299,8 @@ export default function Header() {
                       </div>
                       <div tw="mt-3 px-2 space-y-1">
                         {userNavigation.map((item) => (
-                          <UserDashboardLink
-                            key={item.name}
-                            href={item.href}>
-                            <a
-                              tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800"
-                            >
+                          <UserDashboardLink key={item.name} href={item.href}>
+                            <a tw="block rounded-md px-3 py-2 text-base text-gray-900 font-medium hover:bg-gray-100 hover:text-gray-800">
                               {item.name}
                             </a>
                           </UserDashboardLink>

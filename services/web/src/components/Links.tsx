@@ -13,7 +13,7 @@ const getCreatorDashboardLink = (basePath = '') =>
     )
   }
 
-export const CreatorDashboardLink = getCreatorDashboardLink('/')
+export const CreatorDashboardLink = getCreatorDashboardLink()
 export const CreatorDashboardLinksLink = getCreatorDashboardLink('/links')
 
 export function UserDashboardLink({ children, href = '/assets' }) {

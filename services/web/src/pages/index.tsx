@@ -31,34 +31,6 @@ function Home() {
       <section tw="relative py-20 overflow-x-hidden">
         <div tw="container px-4 mx-auto">
           <div tw="relative max-w-2xl mx-auto">
-            <div tw="absolute top-0 left-0 lg:-ml-20">
-              <svg
-                width="552"
-                height="414"
-                viewbox="0 0 552 414"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M299 269.675C299 151.65 388.187 28.1937 528.224 0.154258C528.676 0.0636969 529.136 0.294669 529.33 0.713275L551.18 47.9217C551.424 48.449 551.174 49.0702 550.633 49.2812C500.445 68.8437 456.451 134.368 450.998 180.121C450.935 180.651 451.309 181.121 451.836 181.208C508.665 190.617 552 239.966 552 299.483C552 372.669 492.568 414 432.423 414C363.078 414 299 360.985 299 269.675ZM0 269.675C0 151.65 89.1865 28.1937 229.224 0.154258C229.676 0.0636969 230.136 0.294669 230.33 0.713274L252.18 47.9217C252.424 48.449 252.174 49.0702 251.633 49.2812C201.445 68.8437 157.451 134.368 151.998 180.121C151.935 180.651 152.309 181.121 152.836 181.208C209.665 190.617 253 239.966 253 299.483C253 372.669 193.568 414 133.423 414C64.078 414 0 360.985 0 269.675Z"
-                  fill="url(#paint0_linear)"
-                ></path>
-                <defs>
-                  <lineargradient
-                    id="paint0_linear"
-                    x1="648"
-                    y1="-418.5"
-                    x2="107.461"
-                    y2="354.11"
-                    gradientunits="userSpaceOnUse"
-                  >
-                    <stop stopColor="white" stopOpacity="0">
-                      <stop offset="1" stopColor="#F2F5FA"></stop>
-                    </stop>
-                  </lineargradient>
-                </defs>
-              </svg>
-            </div>
             <div tw="relative z-10 lg:py-10">
               <p tw="mb-10 text-2xl leading-loose">
                 Saltana helps you create branded checkout experiences just for
@@ -98,7 +70,7 @@ function Home() {
                       tw="mr-4 mt-1"
                       width="20"
                       height="20"
-                      viewbox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -116,7 +88,7 @@ function Home() {
                       tw="mr-4 mt-1"
                       width="20"
                       height="20"
-                      viewbox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -134,7 +106,7 @@ function Home() {
                       tw="mr-4 mt-1"
                       width="20"
                       height="20"
-                      viewbox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -171,7 +143,7 @@ function Home() {
                       tw="mr-4 mt-1"
                       width="20"
                       height="20"
-                      viewbox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -189,7 +161,7 @@ function Home() {
                       tw="mr-4 mt-1"
                       width="20"
                       height="20"
-                      viewbox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -207,7 +179,7 @@ function Home() {
                       tw="mr-4 mt-1"
                       width="20"
                       height="20"
-                      viewbox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -471,7 +443,7 @@ function Home() {
                     tw="text-gray-500"
                     width="13"
                     height="11"
-                    viewbox="0 0 13 11"
+                    viewBox="0 0 13 11"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >
@@ -493,7 +465,7 @@ function Home() {
                     tw="text-gray-500"
                     width="14"
                     height="14"
-                    viewbox="0 0 14 14"
+                    viewBox="0 0 14 14"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >

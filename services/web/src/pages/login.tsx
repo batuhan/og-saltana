@@ -1,32 +1,20 @@
-import useLogin from 'hooks/useLogin'
+import { useLoginForm } from 'hooks/useLogin'
 
-import tw, { styled, css } from 'twin.macro'
+import tw from 'twin.macro'
 
 import { LockClosedIcon } from '@heroicons/react/solid'
 import { Logo } from 'components/Logo'
 import React, { useEffect } from 'react'
 import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
-import { useForm } from 'react-hook-form'
 import { getSession } from 'next-auth/client'
 import Link from 'next/link'
 
 export default function Login() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm()
-
   const router = useRouter()
-  const loginMutation = useLogin({ redirect: true })
-
-  useEffect(() => {
-    if (loginMutation.session) {
-      router.push(router.query.callbackUrl as string)
-    }
-    return () => { }
-  }, [loginMutation.session, router])
+  const { onSubmit, isSubmitting, registerEmail, errors } = useLoginForm({
+    callbackUrl: (router.query?.callbackUrl as string) || '/dashboard',
+  })
 
   return (
     <div tw="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -38,27 +26,21 @@ export default function Login() {
             Sign in to your account
           </h2>
         </div>
-        <form
-          tw="mt-8 space-y-6"
-          onSubmit={handleSubmit(loginMutation.onSubmit)}
-        >
+        <form tw="mt-8 space-y-6" onSubmit={onSubmit}>
           <div tw="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" tw="sr-only">
                 Email address
               </label>
               <input
-                {...register('email', {
-                  required: true,
-                  pattern: /^\S+@\S+$/i,
-                })}
+                {...registerEmail}
                 id="email-address"
                 type="email"
                 autoComplete="email"
                 required
                 disabled={isSubmitting}
                 css={[
-                  /*tw``,*/
+                  isSubmitting && tw`disabled:opacity-50`,
                   tw`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`,
                 ]}
                 placeholder="Email address"
@@ -68,14 +50,12 @@ export default function Login() {
 
           <div tw="flex items-center justify-between">
             <p tw="mt-2 text-center text-sm text-gray-600">
-              {loginMutation.isError ? (
-                <div>An error occurred: {loginMutation.error.message}</div>
-              ) : null}
+              {errors.email && (
+                <div>An error occurred: {JSON.stringify(errors.email)}</div>
+              )}
               By entering your e-mail, you agree to our{' '}
               <Link href="/terms">
-                <a
-                  tw="font-medium text-indigo-600 hover:text-indigo-500"
-                >
+                <a tw="font-medium text-indigo-600 hover:text-indigo-500">
                   terms of service
                 </a>
               </Link>
@@ -94,7 +74,7 @@ export default function Login() {
                   aria-hidden="true"
                 />
               </span>
-              {loginMutation.isLoading ? 'Logging you in...' : 'Login'}
+              {isSubmitting ? 'Logging you in...' : 'Login'}
             </button>
           </div>
         </form>

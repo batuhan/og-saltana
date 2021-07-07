@@ -128,7 +128,7 @@ const customColors = {
 module.exports = {
   mode: 'jit',
   purge: ['./src/**/**.{js,ts,jsx,tsx}'],
-  //darkMode: 'class',
+  darkMode: 'class',
   theme: {
     fontFamily: {
       sans: ['Inter', ...fontFamily.sans],
@@ -138,7 +138,9 @@ module.exports = {
     },
   },
   variants: {
-    extend: {},
+    extend: {
+      opacity: ['disabled'],
+    },
   },
   plugins: [
     require('@tailwindcss/forms'),

@@ -1,35 +1,18 @@
-import dynamic from 'next/dynamic'
-import React from 'react'
-import { EDITOR_JS_TOOLS_PROFILE } from './tools'
-import EditorJs from 'react-editor-js'
+import { RicosEditor } from 'ricos-editor'
+import 'ricos-editor/dist/styles.min.css'
+import 'wix-rich-content-plugin-commons/dist/styles.min.css'
 
-const Editor = ({}) => {
-  const instanceRef = React.useRef(null)
+import { pluginVideo } from 'wix-rich-content-plugin-video'
+import 'wix-rich-content-plugin-video/dist/styles.min.css'
 
-  async function handleSave() {
-    const savedData = await instanceRef.current.save()
+import { pluginDivider } from 'wix-rich-content-plugin-divider'
+import 'wix-rich-content-plugin-divider/dist/styles.min.css'
 
-    console.log('savedData', savedData)
-    // const edjsParser = EditorHtml();
-    // const html = edjsParser.parse(savedData);
-    // console.log("ini html", html);
-  }
-
+export default function Editor({ placeholder = 'Type here!' }) {
   return (
-    <EditorJs
-      instanceRef={(instance) => (instanceRef.current = instance)}
-      tools={EDITOR_JS_TOOLS_PROFILE}
-      defaultBlock="linkTool"
-      i18n={{
-        messages: {},
-      }}
-      data={{
-        time: 1556098174501,
-        blocks: [],
-        version: '2.12.4',
-      }}
+    <RicosEditor
+      placeholder={placeholder}
+      plugins={[pluginDivider(), pluginVideo()]}
     />
   )
 }
-
-export default Editor

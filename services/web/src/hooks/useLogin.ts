@@ -1,18 +1,36 @@
-import { useSession } from 'next-auth/client'
 import { useMutation } from 'react-query'
-import { login } from '../lib/client/api'
+import { login } from '@/client/api'
+import { useForm } from 'react-hook-form'
 
-export default function useLogin({ redirect = false }) {
-  const [session] = useSession()
-  const loginMutation = useMutation(({ email }) => login(email, { redirect }), {
-    onError: (err) => {
-      //signOut()
-    },
+export function useLoginForm({ callbackUrl }) {
+  const login = useLogin({ callbackUrl })
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError
+  } = useForm()
+
+  const registerEmail = register('email', {
+    required: true,
+    pattern: /^\S+@\S+$/i,
   })
 
   async function onSubmit({ email }) {
-    await loginMutation.mutate({ email })
+
+    try {
+      const loginResponse = await login.mutateAsync({ email })
+      console.log("loginResponse ", { loginResponse })
+    } catch (error) {
+      setError('email', { type: 'from-core', message: JSON.stringify(error) }, { shouldFocus: true })
+    }
   }
 
-  return { ...loginMutation, onSubmit, session }
+  return { registerEmail, onSubmit: handleSubmit(onSubmit), errors, isSubmitting }
+}
+
+export default function useLogin({ callbackUrl = undefined }) {
+  const { mutateAsync, isLoading, error, isError } = useMutation(({ email }) => login(email, { callbackUrl }))
+  return { mutateAsync, isLoading, error, isError }
 }

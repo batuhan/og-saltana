@@ -1,4 +1,4 @@
-import { useApi } from 'hooks/useApi'
+import useApi from 'hooks/useApi'
 import * as React from 'react'
 import { useCart } from 'react-use-cart'
 
@@ -28,7 +28,6 @@ import { useCart } from 'react-use-cart'
  */
 const AssetInfoBox = ({ assetId }) => {
   const { addItem } = useCart()
-  const { data, isLoading } = useApi('assets', 'read', assetId)
 
   return (
     <section tw="text-blueGray-700 ">

@@ -5,35 +5,26 @@ export default function useCreatorSpace() {
     const { query } = useRouter()
     const isLink = query.link && query.link.length > 0
     const creator = useApi('users', 'read', query.creator, {
-        initialData: {
-            id: null,
-        },
+        enabled: !!query.creator,
     })
 
     const link = useApi(
         'links',
         'read',
-        `${creator.data.id}:${query.link}`,
+        `${creator.data?.id}:${query.link}`,
         {
             enabled:
                 isLink && creator.data.id && creator.data.id.length > 0
                     ? true
                     : false,
-            initialData: {
-                id: null,
-                linkType: 'not-asset',
-                assetId: null
-            }
         }
     )
 
-    const isAssetLink = (isLink && link.data.linkType === 'asset' && link.data.assetId) ? true : false
-    const asset = useApi('assets', 'read', link, {
-        enabled: isAssetLink,
-        initialData: {
-            id: null
-        }
+    const isAssetLink = (isLink && link.data?.linkType === 'asset' && link.data?.assetId) ? true : false
+    const asset = useApi('assets', 'read', link.data?.assetId, {
+        enabled: !!link.data?.assetId
     })
 
-    return { link, creator, asset, isLink, isAssetLink }
+    const isLoading = creator.isLoading || (isLink ? link.isLoading : false) || (isAssetLink ? asset.isLoading : false)
+    return { link, creator, asset, isLink, isAssetLink, isLoading }
 }

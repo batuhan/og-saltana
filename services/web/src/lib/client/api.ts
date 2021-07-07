@@ -8,14 +8,11 @@ export const magic =
     ? undefined
     : new Magic(process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY)
 
-export async function login(email, { redirect = false }) {
+export async function login(email, { callbackUrl = '/dashboard' }) {
   const token = await magic.auth.loginWithMagicLink({
     email,
   })
-  const res = await signIn('credentials', { redirect, token })
-
-  console.log('debug response from login', res)
-  return res
+  await signIn('credentials', { callbackUrl, redirect: true, token })
 }
 
 export const sharedSaltanaInstance = createInstance({

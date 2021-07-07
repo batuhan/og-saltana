@@ -1,5 +1,5 @@
 
 
-export default function buildLoginLink(context) {
-    return '/login?callbackUrl=test'
+export default function buildLoginLink({ resolvedUrl }) {
+    return `/login?callbackUrl=${resolvedUrl}`
 }
