@@ -1,6 +1,8 @@
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import * as React from 'react'
+import { CartProvider, useCart } from 'react-use-cart'
+
 import { Hydrate } from 'react-query/hydration'
 import { Provider } from 'next-auth/client'
 import { ReactQueryDevtools } from 'react-query/devtools'
@@ -23,7 +25,9 @@ function App({ Component, pageProps }: AppProps) {
       <Provider session={pageProps.session}>
         <SaltanaCoreProvider>
           <Hydrate state={pageProps.dehydratedState}>
-            <Component {...pageProps} />
+            <CartProvider>
+              <Component {...pageProps} />
+            </CartProvider>
             {process.env.NODE_ENV === 'development' && (
               <ReactQueryDevtools initialIsOpen={false} />
             )}

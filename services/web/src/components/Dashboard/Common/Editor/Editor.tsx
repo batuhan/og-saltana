@@ -16,7 +16,6 @@ import {
 import { RicosEditor, RicosEditorProps, RicosEditorType } from 'ricos-editor'
 import { testVideos } from './_/utils/mock'
 import * as Plugins from './EditorPlugins'
-import theme from './theme/theme' // must import after custom styles
 import {
   mockImageUploadFunc,
   mockImageNativeUploadFunc,
@@ -171,7 +170,6 @@ export default class Editor extends PureComponent<ExampleEditorProps> {
         <div className="toolbar">
           <ExternalToolbar
             {...this.editor.getToolbarProps(externalToolbarToShow)}
-            theme={theme}
           />
         </div>
       )
@@ -206,7 +204,6 @@ export default class Editor extends PureComponent<ExampleEditorProps> {
             injectedContent={injectedContent}
             linkSettings={{ anchorTarget, rel }}
             locale={locale}
-            cssOverride={theme}
             toolbarSettings={{
               useStaticTextToolbar,
               textToolbarContainer:

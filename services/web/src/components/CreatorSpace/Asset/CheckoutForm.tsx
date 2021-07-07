@@ -1,116 +1,177 @@
-import * as React from 'react'
-import { useCart } from 'react-use-cart'
+import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import React, { useState } from 'react'
+import { formatAmountForDisplay } from '@/client/stripe'
+import { useMutation } from 'react-query'
+import axios from 'axios'
 
-import { Elements } from '@stripe/react-stripe-js'
+import { useForm } from 'react-hook-form'
+import useLogin from 'hooks/useLogin'
 
-import { HiTrash } from 'react-icons/hi'
-import { AiOutlineShoppingCart } from 'react-icons/ai'
-import { Card } from 'components/Card'
-import ElementsForm from '../stripe/components/ElementsForm'
-import getStripe from '../stripe'
-import { Logo } from '../../components/Logo'
-
-interface ProductLineProps {
-  name?: string
-  price: number
-  children?: React.ReactNode
-  id: string
+const CARD_OPTIONS = {
+  iconStyle: 'solid' as const,
+  style: {
+    base: {
+      iconColor: '#6772e5',
+      color: '#6772e5',
+      fontWeight: '500',
+      fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
+      fontSize: '16px',
+      fontSmoothing: 'antialiased',
+      ':-webkit-autofill': {
+        color: '#fce883',
+      },
+      '::placeholder': {
+        color: '#6772e5',
+      },
+    },
+    invalid: {
+      iconColor: '#ef2961',
+      color: '#ef2961',
+    },
+  },
 }
 
-export const ProductLine = (props: ProductLineProps) => {
-  const { name, id, price, quantity } = props
-  const { removeItem } = useCart()
+const PaymentStatus = ({
+  status,
+  errorMessage,
+}: {
+  status: string
+  errorMessage: string
+}) => {
+  switch (status) {
+    case 'waiting_email_verification':
+      return <h2>Verifying your e-mail</h2>
+    case 'processing':
+    case 'requires_payment_method':
+    case 'requires_confirmation':
+      return <h2>Processing...</h2>
+
+    case 'requires_action':
+      return <h2>Authenticating...</h2>
+
+    case 'succeeded':
+      return <h2>Payment Succeeded 🥳</h2>
+
+    case 'error':
+      return (
+        <>
+          <h2>Error 😭</h2>
+          <p className="error-message">{errorMessage}</p>
+        </>
+      )
+
+    default:
+      return null
+  }
+}
+
+const ElementsForm = ({ cartTotal, items }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm()
+  const [paymentStatus, setPaymentStatus] = useState('initial')
+  const [errorMessage, setErrorMessage] = useState('')
+  const stripe = useStripe()
+  const elements = useElements()
+  const assets = items.map(({ id, quantity }) => ({ id, quantity }))
+  const loginMutation = useLogin({ redirect: true })
+
+  const onSubmit = async ({ email, cardholderName }) => {
+    setPaymentStatus('processing')
+
+    const paymentIntentResponse = await axios.post(
+      '/api/methods/checkout-intent',
+      {
+        assets,
+        email,
+        cardholderName,
+      }
+    )
+
+    console.log({ paymentIntentResponse })
+
+    if (paymentIntentResponse.status === 500) {
+      setPaymentStatus('error')
+      setErrorMessage(JSON.stringify(paymentIntentResponse.data))
+      return
+    }
+
+    const cardElement = elements.getElement(CardElement)
+
+    const { error, paymentIntent } = await stripe.confirmCardPayment(
+      paymentIntentResponse.data.paymentIntent.client_secret,
+      {
+        payment_method: {
+          card: cardElement,
+          billing_details: { name: cardholderName, email },
+        },
+      }
+    )
+
+    if (error) {
+      setPaymentStatus('error')
+      setErrorMessage(error.message ?? 'An unknown error occurred')
+      return
+    }
+
+    if (paymentIntent) {
+      setPaymentStatus('waiting_email_verification')
+      await loginMutation.mutateAsync({ email })
+
+      console.log(paymentIntent)
+      setPaymentStatus('succeeded')
+    }
+  }
 
   return (
-    <HStack spacing="3">
-      <Box flex="1">
-        <Text fontWeight="bold">
-          {name} ({quantity})
-        </Text>
-        <Text fontSize="sm">Delivered digitally</Text>
-      </Box>
-      <Box fontWeight="bold" color={mode('blue.600', 'blue.400')}>
-        ${price}
-      </Box>
-
-      <Box fontSize="2xl" color={mode('gray.300', 'whiteAlpha.400')}>
-        <IconButton
-          aria-label="Delete"
-          icon={<HiTrash />}
-          rounded="full"
-          size="sm"
-          onClick={() => removeItem(id)}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div>
+        <input
+          type="email"
+          autoComplete="email"
+          {...register('email', {
+            required: true,
+            pattern: /^\S+@\S+$/i,
+          })}
+          placeholder="E-mail address"
         />
-      </Box>
-    </HStack>
+        <input
+          type="text"
+          {...register('name', {
+            required: true,
+          })}
+          placeholder="Cardholder Name"
+        />
+        <CardElement
+          options={CARD_OPTIONS}
+          onChange={(e) => {
+            if (e.error) {
+              setPaymentStatus('error')
+              setErrorMessage(e.error.message ?? 'An unknown error occurred')
+            }
+          }}
+        />
+      </div>
+
+      <button
+        type="submit"
+        mt="3"
+        isFullWidth
+        fontSize="sm"
+        fontWeight="bold"
+        colorScheme="gray"
+        disabled={
+          !['initial', 'succeeded', 'error'].includes(paymentStatus) || !stripe
+        }
+      >
+        Pay {formatAmountForDisplay(cartTotal, 'usd')}
+      </button>
+
+      <PaymentStatus status={paymentStatus} errorMessage={errorMessage} />
+    </form>
   )
 }
 
-export function CheckoutToDeliveryModal() {
-  return (
-    <Popover>
-      <PopoverTrigger>
-        <chakra.a
-          p={3}
-          color={useColorModeValue('gray.800', 'inherit')}
-          rounded="sm"
-          _hover={{ color: useColorModeValue('gray.800', 'gray.600') }}
-        >
-          <AiOutlineShoppingCart />
-          <VisuallyHidden>Cart</VisuallyHidden>
-        </chakra.a>
-      </PopoverTrigger>
-      <Portal>
-        <PopoverContent>
-          <PopoverArrow />
-          <PopoverCloseButton />
-          <PopoverBody>
-            <CheckoutToDelivery />
-          </PopoverBody>
-        </PopoverContent>
-      </Portal>
-    </Popover>
-  )
-}
-
-export function CheckoutToDelivery() {
-  const { isEmpty, totalUniqueItems, items, cartTotal } = useCart()
-
-  if (isEmpty) return <p>Your cart is empty</p>
-
-  return (
-    <>
-      <Card maxW="2xl" mx="auto" textAlign="center">
-        <Stack maxW="xs" mx="auto" spacing="8">
-          <Logo />
-          <Stack spacing="3">
-            <Heading size="lg" mb="8" fontWeight="extrabold">
-              Cart ({totalUniqueItems})
-            </Heading>
-          </Stack>
-
-          <Stack>
-            {items.map((item) => (
-              <ProductLine key={item.id} {...item} />
-            ))}
-          </Stack>
-
-          <Elements stripe={getStripe()}>
-            <ElementsForm cartTotal={cartTotal} items={items} />
-          </Elements>
-
-          <Text
-            mt="16"
-            fontSize="xs"
-            mx="auto"
-            maxW="md"
-            color={useColorModeValue('gray.600', 'gray.400')}
-          >
-            By continuing, you acknowledge that you have read, understood, and
-            agree to our terms and condition
-          </Text>
-        </Stack>
-      </Card>
-    </>
-  )
-}
+export default ElementsForm

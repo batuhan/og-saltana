@@ -4,11 +4,10 @@ import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
 
+import { useMutation } from 'react-query'
+import { getSaltanaInstance } from '@/client/api'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import CreatorDashboardLinkSubHeader from './Header'
-import CreatorDashboardLinkSidebar from './Sidebar'
-import DashboardShell from '../../Common/Shell'
 
 const schema = yup.object().shape({
   firstName: yup.string().required(),
@@ -23,14 +22,22 @@ export default function UpdateCreatorLinkProvider({
 }) {
   console.log('got link', link)
   const methods = useForm({
-    defaultValues: _.pick(link.data, [
-      'destination',
-      'linkType',
-      'assetId',
-      'slug',
-      'content',
-      // 'username',
-    ]),
+    defaultValues: {
+      link: _.pick(link.data, [
+        'destination',
+        'linkType',
+        'assetId',
+        'slug',
+        'content',
+        // 'username',
+      ]),
+      asset: _.pick(asset.data || {}, [
+        'name',
+        'price',
+        'categoryId',
+        'assetTypeId',
+      ]),
+    },
     resolver: yupResolver(schema),
   })
   const {
@@ -39,12 +46,18 @@ export default function UpdateCreatorLinkProvider({
     formState: { errors },
   } = methods
 
-  const updateLink = useApiMutation('links', 'update', link.data.id, {
-    onSuccess: ({ id }) => {},
-  })
+  const updateLink = useMutation(async (data) => {
+    const saltanaInstance = await getSaltanaInstance()
+    const [linkResult, assetResult] = await Promise.all([
+      saltanaInstance.links.update(data.link),
+      saltanaInstance.assets.update(data.asset),
+    ])
 
-  async function onSubmit({ linkType, assetId, slug, content }) {
-    await updateLink.mutateAsync({ linkType, assetId, slug, content })
+    return { link: linkResult, asset: assetResult }
+  }, {})
+
+  async function onSubmit(data) {
+    await updateLink.mutateAsync(data)
   }
 
   return (

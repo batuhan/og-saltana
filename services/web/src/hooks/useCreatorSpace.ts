@@ -9,7 +9,7 @@ export default function useCreatorSpace() {
   })
 
   const link = useApi('links', 'read', `${creator.data?.id}:${query.link}`, {
-    enabled: !!(isLink && creator.data.id && creator.data.id.length > 0),
+    enabled: !!(isLink && creator.data?.id && creator.data?.id.length > 0),
   })
 
   const isAssetLink = !!(

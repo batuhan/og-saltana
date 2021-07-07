@@ -6,7 +6,7 @@ import 'twin.macro'
 
 import { useFormContext } from 'react-hook-form'
 import RichContentField from 'components/Dashboard/Common/Fields/RichContentField'
-import PricePickerField from 'components/Dashboard/Common/Fields/PricePickerField'
+import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
 
 export default function CreatorDashboardLinkBasicScreen() {
   const { register } = useFormContext()
@@ -15,7 +15,7 @@ export default function CreatorDashboardLinkBasicScreen() {
 
   return (
     <main>
-      <PricePickerField register={register} />
+      <AssetPriceField register={register} />
       <div tw="space-y-6">
         <div>
           <label

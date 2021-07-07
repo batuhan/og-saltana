@@ -1,6 +1,6 @@
 import 'twin.macro'
 
-export default function PricePickerField({ register }) {
+export default function AssetPriceField({ register }) {
   return (
     <div>
       <label htmlFor="asset.price" tw="block text-sm font-medium text-gray-700">

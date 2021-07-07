@@ -9,7 +9,11 @@ const Editor = dynamic(() => import('../Editor/Editor'), {
 export default function RichContentField({ register }) {
   return (
     <div tw="w-5/6">
-      <Editor />
+      <Editor
+        onRicosEditorChange={(e) => {
+          console.log('onRicosEditorChange', e)
+        }}
+      />
     </div>
   )
 }
