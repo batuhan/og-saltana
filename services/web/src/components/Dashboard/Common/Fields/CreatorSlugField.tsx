@@ -3,7 +3,7 @@ import 'twin.macro'
 export default function CreatorSlugField({ register, username }) {
   return (
     <>
-      <label htmlFor="slug" tw="block text-sm font-medium text-gray-700">
+      <label htmlFor="link.slug" tw="block text-sm font-medium text-gray-700">
         Link
       </label>
       <div tw="mt-1 sm:mt-0 sm:col-span-2">
@@ -13,8 +13,8 @@ export default function CreatorSlugField({ register, username }) {
           </span>
           <input
             type="text"
-            id="slug"
-            {...register('slug', {
+            id="link.slug"
+            {...register('link.slug', {
               required: true,
             })}
             autoComplete="slug"

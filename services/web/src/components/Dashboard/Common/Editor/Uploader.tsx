@@ -13,6 +13,7 @@ import ImageEditor from '@uppy/image-editor'
 import Transloadit from '@uppy/transloadit'
 import '@uppy/core/dist/style.css'
 import '@uppy/dashboard/dist/style.css'
+import '@uppy/webcam/dist/style.css'
 
 import { DashboardModal } from '@uppy/react'
 import React from 'react'
@@ -21,6 +22,7 @@ const defOpts = {
   companionUrl: Transloadit.COMPANION,
   companionAllowedHosts: Transloadit.COMPANION_PATTERN,
 }
+
 export default function Uploader(props) {
   const uppy = React.useMemo(
     () =>
@@ -63,19 +65,12 @@ export default function Uploader(props) {
         .use(Facebook, defOpts)
         .use(Zoom, defOpts)
         .use(Url, defOpts)
+        .use(ImageEditor, defOpts)
         .on('transloadit:result', (stepName, result) => {
-          const file = uppy.getFile(result.localId)
-          const resultContainer = document.createElement('div')
-          resultContainer.innerHTML = `
-      <div>
-        <h3>Name: ${file.name}</h3>
-        <img src="${result.ssl_url}" /> <br />
-        <a href="${result.ssl_url}">View</a>
-      </div>
-    `
-          document
-            .getElementById('uppy-transloadit-result')
-            .appendChild(resultContainer)
+          console.log(result, uppy.getFile(result.localId))
+          if (props.onTransloaditResult) {
+            props.onTransloaditResult(uppy.getFile(result.localId))
+          }
         }),
     []
   )
@@ -95,6 +90,7 @@ export default function Uploader(props) {
         'Facebook',
         'Zoom',
         'Url',
+        'ImageEditor',
         'GoogleDrive',
       ]}
       {...props}

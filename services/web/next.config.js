@@ -15,7 +15,12 @@ module.exports = {
     return config
   },
   images: {
-    domains: ['images.unsplash.com', 'pbs.twimg.com'],
+    domains: [
+      'images.unsplash.com',
+      'api2-nak.transloadit.com',
+      'pbs.twimg.com',
+      'transloadit.com',
+    ],
   },
   poweredByHeader: false,
   reactStrictMode: true,

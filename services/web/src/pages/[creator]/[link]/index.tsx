@@ -6,10 +6,13 @@ import NotionBox from 'components/CreatorSpace/LinkContentBoxes/NotionBox'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 
 const CreatorLink = ({ embed }) => {
-  const { isLink } = useCreatorSpace()
+  const { isLink, link, asset, creator } = useCreatorSpace()
   return (
     <CreatorSpaceShell>
       <div>
+        {link.data && <pre>{JSON.stringify(link.data)}</pre>}
+        {asset.data && <pre>{JSON.stringify(asset.data)}</pre>}
+        {creator.data && <pre>{JSON.stringify(creator.data)}</pre>}
         {isLink && embed?.provider === 'notion' && (
           <NotionBox recordMap={embed.recordMap} />
         )}

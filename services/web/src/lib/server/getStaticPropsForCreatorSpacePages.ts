@@ -3,6 +3,7 @@ import {
   sharedQueryClient,
   setUserData,
   setCreatorLinkData,
+  sharedSaltanaInstance,
 } from '@/client/api'
 
 import { dehydrate } from 'react-query/hydration'
@@ -28,91 +29,95 @@ const getStaticPropsForCreatorSpacePages =
     extendPropsFn = ({ commonProps, instance, sharedQueryClient, context }) =>
       Promise.resolve({})
   ) =>
-  async (context) => {
-    const { params } = context
-    const instance = await getSaltanaInstance() // get the shared instance since data here is cached for everyone
+    async (context) => {
+      const { params } = context
 
-    const creator = await instance.users.read(params.creator)
-    if (!creator) {
-      return {
-        notFound: true,
-        permanent: false,
-      }
-    }
+      const creator = await sharedSaltanaInstance.users.read(params.creator)
+      if (!creator) {
 
-    setUserData(sharedQueryClient, creator)
-
-    const commonProps = {
-      creator,
-      embed: {
-        provider: 'generic',
-        pageId: null,
-        recordMap: [],
-      },
-    }
-
-    if (params.link) {
-      const linkId = `${creator.id}:${params.link}`
-      const link = await instance.links.read(linkId)
-
-      if (!link) {
         return {
-          redirectTo: `/${creator.username}/404`,
-          permanent: false,
+          notFound: true
         }
       }
 
-      setCreatorLinkData(sharedQueryClient, link)
+      setUserData(sharedQueryClient, creator)
 
-      commonProps.link = { ...link }
+      const commonProps = {
+        creator,
+        embed: {
+          provider: 'generic',
+          pageId: null,
+          recordMap: [],
+        },
+      }
 
-      switch (link.linkType) {
-        case 'asset':
-          const asset = await instance.assets.read(link.assetId)
-          sharedQueryClient.setQueryData(
-            ['assets', 'read', link.assetId],
-            asset
-          )
-          commonProps.asset = { ...asset }
-          break
-        case 'embed':
-          const embed = parseEmbedDestination(link.destination)
-          if (embed.provider === 'notion') {
-            const recordMap = await notion.getPage(embed.pageId)
-            commonProps.embed = { ...embed, recordMap }
-          } else {
-            commonProps.embed.pageId = link.destination
-          }
-          break
-        case 'link-list':
-          break
-        case 'content':
-          break
+      if (params.link) {
+        const linkId = `${creator.id}:${params.link}`
+        const link = await sharedSaltanaInstance.links.read(linkId)
 
-        case 'redirect':
+        if (!link) {
+
           return {
-            redirectTo: link.destination,
-            permanent: false,
+            redirect: {
+              destination: `/${creator.username}/404`,
+              permanent: false,
+            },
           }
-          break
+        }
+
+        setCreatorLinkData(sharedQueryClient, link)
+
+        commonProps.link = { ...link }
+
+        switch (link.linkType) {
+          case 'asset':
+            const asset = await sharedSaltanaInstance.assets.read(link.assetId)
+            sharedQueryClient.setQueryData(
+              ['assets', 'read', link.assetId],
+              asset
+            )
+            commonProps.asset = { ...asset }
+            break
+          case 'embed':
+            const embed = parseEmbedDestination(link.destination)
+            if (embed.provider === 'notion') {
+              const recordMap = await notion.getPage(embed.pageId)
+              commonProps.embed = { ...embed, recordMap }
+            } else {
+              commonProps.embed.pageId = link.destination
+            }
+            break
+          case 'link-list':
+            break
+          case 'content':
+            break
+
+          case 'redirect':
+            return {
+              redirect: {
+                destination: link.destination,
+                permanent: false,
+              },
+            }
+            break
+        }
+      }
+
+      const props = await extendPropsFn({
+        commonProps,
+        instance: sharedSaltanaInstance,
+        sharedQueryClient,
+        context,
+      })
+
+      return {
+        props: {
+          ...commonProps,
+          ...props,
+          dehydratedState: dehydrate(sharedQueryClient),
+        },
+        revalidate: 50,
       }
     }
-
-    const props = await extendPropsFn({
-      commonProps,
-      instance,
-      sharedQueryClient,
-      context,
-    })
-
-    return {
-      props: {
-        ...commonProps,
-        ...props,
-        dehydratedState: dehydrate(sharedQueryClient),
-      },
-      revalidate: 50,
-    }
-  }
 
 export default getStaticPropsForCreatorSpacePages

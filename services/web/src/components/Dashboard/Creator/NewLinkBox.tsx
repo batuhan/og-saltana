@@ -8,7 +8,7 @@ const actions = [
   {
     name: 'Smart Link',
     description: 'Create a custom link to redirect to dynamic locations',
-    type: 'redirection',
+    type: 'redirect',
     iconForeground: 'text-teal-700',
     iconBackground: 'bg-teal-50',
   },
