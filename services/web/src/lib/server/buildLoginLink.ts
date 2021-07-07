@@ -1,5 +1,3 @@
-
-
 export default function buildLoginLink({ resolvedUrl }) {
-    return `/login?callbackUrl=${resolvedUrl}`
+  return `/login?callbackUrl=${resolvedUrl}`
 }

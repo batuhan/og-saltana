@@ -9,7 +9,7 @@ export function useLoginForm({ callbackUrl }) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setError
+    setError,
   } = useForm()
 
   const registerEmail = register('email', {
@@ -18,19 +18,29 @@ export function useLoginForm({ callbackUrl }) {
   })
 
   async function onSubmit({ email }) {
-
     try {
       const loginResponse = await login.mutateAsync({ email })
-      console.log("loginResponse ", { loginResponse })
+      console.log('loginResponse ', { loginResponse })
     } catch (error) {
-      setError('email', { type: 'from-core', message: JSON.stringify(error) }, { shouldFocus: true })
+      setError(
+        'email',
+        { type: 'from-core', message: JSON.stringify(error) },
+        { shouldFocus: true }
+      )
     }
   }
 
-  return { registerEmail, onSubmit: handleSubmit(onSubmit), errors, isSubmitting }
+  return {
+    registerEmail,
+    onSubmit: handleSubmit(onSubmit),
+    errors,
+    isSubmitting,
+  }
 }
 
 export default function useLogin({ callbackUrl = undefined }) {
-  const { mutateAsync, isLoading, error, isError } = useMutation(({ email }) => login(email, { callbackUrl }))
+  const { mutateAsync, isLoading, error, isError } = useMutation(({ email }) =>
+    login(email, { callbackUrl })
+  )
   return { mutateAsync, isLoading, error, isError }
 }

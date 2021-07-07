@@ -1,0 +1,53 @@
+@mixin inheritedFont {
+  font-weight: 300;
+  font-style: normal;
+}
+
+@mixin themeFont {
+  font-weight: 400;
+  font-style: normal;
+}
+
+.regularText {
+  @include inheritedFont;
+}
+
+.headerText {
+  @include themeFont;
+}
+
+.fontElementMap {
+  @extend .regularText !optional;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @extend .headerText !optional;
+  }
+}
+
+:global {
+  .glob_regularText {
+    @include inheritedFont;
+  }
+
+  .glob_headerText {
+    @include themeFont;
+  }
+
+  .glob_fontElementMap {
+    @extend .glob_regularText !optional;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      @extend .glob_headerText !optional;
+    }
+  }
+}

@@ -1,16 +1,18 @@
 import createError from 'http-errors'
 import { get } from 'lodash'
+import Joi from '@hapi/joi'
 import { getHandler } from '../utils/handler'
 import { loadSdks } from '../utils/sdk'
 import { isAuthenticated, isUser } from '../utils/auth'
 import { sendJSON, sendError } from '../utils/http'
 import { getCurrencyDecimal } from '../utils/currency'
-import Joi from '@hapi/joi'
 
 const schema = {
-  body: Joi.object().keys({
-    transactionId: Joi.string().required()
-  }).required()
+  body: Joi.object()
+    .keys({
+      transactionId: Joi.string().required(),
+    })
+    .required(),
 }
 
 if (!process.env.SALTANA_INSTANT_WEBSITE_URL) {
@@ -34,22 +36,19 @@ const createStripeCheckoutSession = async (event, context, callback) => {
     if (!ownerId) throw createError(422, 'Missing owner for this transaction')
     if (!isUser(context, takerId)) throw createError(403)
 
-    const [
-      asset,
-      taker,
-      owner
-    ] = await Promise.all([
+    const [asset, taker, owner] = await Promise.all([
       saltana.assets.read(assetId),
       saltana.users.read(takerId),
-      saltana.users.read(ownerId)
+      saltana.users.read(ownerId),
     ])
 
     const stripeCustomer = get(taker, 'platformData._private.stripeCustomer')
     const ownerStripeAccount = get(owner, 'platformData._private.stripeAccount')
 
-    if (!ownerStripeAccount) throw createError(422, 'Owner has not linked their Stripe account')
+    if (!ownerStripeAccount)
+      throw createError(422, 'Owner has not linked their Stripe account')
 
-    const websiteUrl = context.urls.websiteUrl
+    const { websiteUrl } = context.urls
 
     // most of currencies work with 2 decimals
     let currencyDecimal = 2
@@ -59,7 +58,8 @@ const createStripeCheckoutSession = async (event, context, callback) => {
       // do nothing
     }
 
-    const applicationFeeAmount = transaction.platformAmount * Math.pow(10, currencyDecimal)
+    const applicationFeeAmount =
+      transaction.platformAmount * Math.pow(10, currencyDecimal)
 
     const checkoutSession = await stripe.checkout.sessions.create({
       client_reference_id: taker.id,
@@ -73,27 +73,27 @@ const createStripeCheckoutSession = async (event, context, callback) => {
           description: asset.description,
           amount: transaction.takerAmount * Math.pow(10, currencyDecimal),
           currency: transaction.currency,
-          quantity: 1
+          quantity: 1,
         },
       ],
       payment_intent_data: {
         setup_future_usage: 'off_session',
         metadata: {
-          transactionId: transactionId
+          transactionId,
         },
         application_fee_amount: applicationFeeAmount || undefined, // application fee cannot be 0
         capture_method: 'manual',
         transfer_data: {
-          destination: owner.platformData._private.stripeAccount.id
-        }
-      }
+          destination: owner.platformData._private.stripeAccount.id,
+        },
+      },
     })
 
     await saltana.transactions.update(transactionId, {
       platformData: {
         stripePaymentIntentId: checkoutSession.payment_intent,
-        currencyDecimal // will be used in workflows
-      }
+        currencyDecimal, // will be used in workflows
+      },
     })
 
     sendJSON(callback, { id: checkoutSession.id })
@@ -102,4 +102,7 @@ const createStripeCheckoutSession = async (event, context, callback) => {
   }
 }
 
-export const handler = getHandler(createStripeCheckoutSession, { schema, allow: 'POST' })
+export const handler = getHandler(createStripeCheckoutSession, {
+  schema,
+  allow: 'POST',
+})

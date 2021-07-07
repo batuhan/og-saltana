@@ -13,8 +13,17 @@ import 'rc-dropdown/assets/index.css'
 // used for rendering equations (optional)
 import 'katex/dist/katex.min.css'
 
-export default function NotionRenderer({ pageTitle, contentRecordMap, ...passProps }) {
-    return (
-        <OriginalNotionRenderer recordMap={contentRecordMap} fullPage={true} darkMode={false} {...passProps} />
-    )
+export default function NotionRenderer({
+  pageTitle,
+  contentRecordMap,
+  ...passProps
+}) {
+  return (
+    <OriginalNotionRenderer
+      recordMap={contentRecordMap}
+      fullPage
+      darkMode={false}
+      {...passProps}
+    />
+  )
 }

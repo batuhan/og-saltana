@@ -1,26 +1,26 @@
-import * as React from "react";
-import Image from "components/Image";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Image from 'components/Image'
+import Frame from './components/Frame'
 
 const URL_REGEX = new RegExp(
-  "^https://docs.google.com/drawings/d/(.*)/(edit|preview)(.*)$"
-);
+  '^https://docs.google.com/drawings/d/(.*)/(edit|preview)(.*)$'
+)
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class GoogleDrawings extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     return (
       <Frame
         {...this.props}
-        src={this.props.attrs.href.replace("/edit", "/preview")}
+        src={this.props.attrs.href.replace('/edit', '/preview')}
         icon={
           <Image
             src="/images/google-drawings.png"
@@ -29,10 +29,10 @@ export default class GoogleDrawings extends React.Component<Props> {
             height={16}
           />
         }
-        canonicalUrl={this.props.attrs.href.replace("/preview", "/edit")}
+        canonicalUrl={this.props.attrs.href.replace('/preview', '/edit')}
         title="Google Drawings"
         border
       />
-    );
+    )
   }
 }

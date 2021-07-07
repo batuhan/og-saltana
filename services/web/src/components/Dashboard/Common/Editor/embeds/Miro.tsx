@@ -1,23 +1,23 @@
-import * as React from "react";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Frame from './components/Frame'
 
-const URL_REGEX = /^https:\/\/(realtimeboard|miro).com\/app\/board\/(.*)$/;
+const URL_REGEX = /^https:\/\/(realtimeboard|miro).com\/app\/board\/(.*)$/
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class RealtimeBoard extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
-    const { matches } = this.props.attrs;
-    const domain = matches[1];
-    const boardId = matches[2];
-    const titleName = domain === "realtimeboard" ? "RealtimeBoard" : "Miro";
+    const { matches } = this.props.attrs
+    const domain = matches[1]
+    const boardId = matches[2]
+    const titleName = domain === 'realtimeboard' ? 'RealtimeBoard' : 'Miro'
 
     return (
       <Frame
@@ -25,6 +25,6 @@ export default class RealtimeBoard extends React.Component<Props> {
         src={`https://${domain}.com/app/embed/${boardId}`}
         title={`${titleName} (${boardId})`}
       />
-    );
+    )
   }
 }

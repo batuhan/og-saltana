@@ -65,7 +65,7 @@ export default function Uploader(props) {
         .use(Url, defOpts)
         .on('transloadit:result', (stepName, result) => {
           const file = uppy.getFile(result.localId)
-          var resultContainer = document.createElement('div')
+          const resultContainer = document.createElement('div')
           resultContainer.innerHTML = `
       <div>
         <h3>Name: ${file.name}</h3>
@@ -84,7 +84,7 @@ export default function Uploader(props) {
   return (
     <DashboardModal
       uppy={uppy}
-      open={true}
+      open
       theme="dark"
       proudlyDisplayPoweredByUppy={false}
       plugins={[

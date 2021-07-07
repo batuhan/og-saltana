@@ -1,25 +1,25 @@
-import * as React from "react";
-import Image from "components/Image";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Image from 'components/Image'
+import Frame from './components/Frame'
 
 const URL_REGEX = new RegExp(
-  "^https?://drive.google.com/file/d/(.*)/(preview|view).?usp=sharing$"
-);
+  '^https?://drive.google.com/file/d/(.*)/(preview|view).?usp=sharing$'
+)
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class GoogleDrive extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     return (
       <Frame
-        src={this.props.attrs.href.replace("/view", "/preview")}
+        src={this.props.attrs.href.replace('/view', '/preview')}
         icon={
           <Image
             src="/images/google-drive.png"
@@ -32,6 +32,6 @@ export default class GoogleDrive extends React.Component<Props> {
         canonicalUrl={this.props.attrs.href}
         border
       />
-    );
+    )
   }
 }

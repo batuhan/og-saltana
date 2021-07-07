@@ -5,9 +5,9 @@ import { Hydrate } from 'react-query/hydration'
 import { Provider } from 'next-auth/client'
 import { ReactQueryDevtools } from 'react-query/devtools'
 import { DefaultSeo } from 'next-seo'
-import SEO from '../../next-seo.config'
 import GlobalStyles from 'components/GlobalStyles'
 import { SaltanaCoreProvider } from '@/client/SaltanaCoreProvider'
+import SEO from '../../next-seo.config'
 
 function App({ Component, pageProps }: AppProps) {
   return (
@@ -24,7 +24,9 @@ function App({ Component, pageProps }: AppProps) {
         <SaltanaCoreProvider>
           <Hydrate state={pageProps.dehydratedState}>
             <Component {...pageProps} />
-            {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+            {process.env.NODE_ENV === 'development' && (
+              <ReactQueryDevtools initialIsOpen={false} />
+            )}
           </Hydrate>
         </SaltanaCoreProvider>
       </Provider>

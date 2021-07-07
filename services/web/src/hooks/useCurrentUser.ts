@@ -35,8 +35,8 @@ export default function useCurrentUser() {
   return {
     isLoading: api.isLoading,
     is,
-    isLoggedIn: !api.isLoading && api.data.id ? true : false,
+    isLoggedIn: !!(!api.isLoading && api.data.id),
     data: api.data,
-    session
+    session,
   }
 }

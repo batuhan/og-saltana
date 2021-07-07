@@ -1,19 +1,19 @@
-import * as React from "react";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Frame from './components/Frame'
 
 const URL_REGEX = new RegExp(
-  "https://([w.-]+.)?figma.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
-);
+  'https://([w.-]+.)?figma.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$'
+)
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class Figma extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     return (
@@ -23,6 +23,6 @@ export default class Figma extends React.Component<Props> {
         title="Figma Embed"
         border
       />
-    );
+    )
   }
 }

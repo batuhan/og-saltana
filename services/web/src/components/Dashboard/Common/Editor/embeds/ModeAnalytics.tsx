@@ -1,23 +1,23 @@
-import * as React from "react";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Frame from './components/Frame'
 
 const URL_REGEX = new RegExp(
-  "^https://([w.-]+.)?modeanalytics.com/(.*)/reports/(.*)$"
-);
+  '^https://([w.-]+.)?modeanalytics.com/(.*)/reports/(.*)$'
+)
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class ModeAnalytics extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     // Allow users to paste embed or standard urls and handle them the same
-    const normalizedUrl = this.props.attrs.href.replace(/\/embed$/, "");
+    const normalizedUrl = this.props.attrs.href.replace(/\/embed$/, '')
 
     return (
       <Frame
@@ -25,6 +25,6 @@ export default class ModeAnalytics extends React.Component<Props> {
         src={`${normalizedUrl}/embed`}
         title="Mode Analytics Embed"
       />
-    );
+    )
   }
 }

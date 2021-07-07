@@ -1,7 +1,7 @@
 import 'twin.macro'
-import { Logo } from '../Logo'
 import { useSession } from 'next-auth/client'
 import Link from 'next/link'
+import { Logo } from '../Logo'
 
 const navigation = [
   { name: 'Features', href: '/features' },

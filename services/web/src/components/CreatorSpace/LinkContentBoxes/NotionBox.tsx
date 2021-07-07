@@ -14,7 +14,5 @@ import 'rc-dropdown/assets/index.css'
 import 'katex/dist/katex.min.css'
 
 export default function NotionBox({ recordMap }) {
-  return (
-    <NotionRenderer recordMap={recordMap} fullPage={true} darkMode={false} />
-  )
+  return <NotionRenderer recordMap={recordMap} fullPage darkMode={false} />
 }

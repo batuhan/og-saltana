@@ -1,38 +1,38 @@
-import * as React from "react";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Frame from './components/Frame'
 
-const URL_REGEX = new RegExp("https?://open.spotify.com/(.*)$");
+const URL_REGEX = new RegExp('https?://open.spotify.com/(.*)$')
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class Spotify extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   get pathname() {
     try {
-      const parsed = new URL(this.props.attrs.href);
-      return parsed.pathname;
+      const parsed = new URL(this.props.attrs.href)
+      return parsed.pathname
     } catch (err) {
-      return "";
+      return ''
     }
   }
 
   render() {
-    const normalizedPath = this.pathname.replace(/^\/embed/, "/");
+    const normalizedPath = this.pathname.replace(/^\/embed/, '/')
 
-    var height;
+    let height
 
-    if (normalizedPath.includes("episode") || normalizedPath.includes("show")) {
-      height = 232;
-    } else if (normalizedPath.includes("track")) {
-      height = 80;
+    if (normalizedPath.includes('episode') || normalizedPath.includes('show')) {
+      height = 232
+    } else if (normalizedPath.includes('track')) {
+      height = 80
     } else {
-      height = 380;
+      height = 380
     }
 
     return (
@@ -44,6 +44,6 @@ export default class Spotify extends React.Component<Props> {
         title="Spotify Embed"
         allow="encrypted-media"
       />
-    );
+    )
   }
 }

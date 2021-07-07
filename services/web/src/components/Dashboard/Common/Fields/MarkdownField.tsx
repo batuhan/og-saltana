@@ -1,10 +1,10 @@
-import 'twin.macro'
 import tw, { styled } from 'twin.macro'
 
 import { lighten } from 'polished'
 import dynamic from 'next/dynamic'
 import embeds from '../Editor/embeds'
 import theme from '../Editor/theme'
+
 const RichMarkdownEditor = dynamic(() => import('rich-markdown-editor'), {
   ssr: false,
 })

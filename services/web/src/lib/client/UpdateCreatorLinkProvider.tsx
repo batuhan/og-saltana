@@ -1,7 +1,4 @@
 import 'twin.macro'
-import DashboardShell from '../../Common/Shell'
-import CreatorDashboardLinkSidebar from './Sidebar'
-import CreatorDashboardLinkSubHeader from './Header'
 import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
@@ -9,6 +6,9 @@ import _ from 'lodash'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import CreatorDashboardLinkSubHeader from './Header'
+import CreatorDashboardLinkSidebar from './Sidebar'
+import DashboardShell from '../../Common/Shell'
 
 const schema = yup.object().shape({
   firstName: yup.string().required(),

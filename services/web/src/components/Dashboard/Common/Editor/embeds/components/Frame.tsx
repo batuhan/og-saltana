@@ -29,7 +29,8 @@ type PropsWithRef = Props & {
 
 class Frame extends React.Component<PropsWithRef> {
   mounted: boolean
-  isLoaded: boolean = false
+
+  isLoaded = false
 
   componentDidMount() {
     this.mounted = true

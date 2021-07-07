@@ -48,13 +48,13 @@ export async function getSaltanaInstance(_session = undefined) {
 
 const defaultQueryFn =
   (session = undefined) =>
-    async ({ queryKey }) => {
-      const [resourceType, method, data] = queryKey
-      const saltanaInstance = await getSaltanaInstance(session)
+  async ({ queryKey }) => {
+    const [resourceType, method, data] = queryKey
+    const saltanaInstance = await getSaltanaInstance(session)
 
-      const sdkResponse = await saltanaInstance[resourceType][method](data)
-      return sdkResponse
-    }
+    const sdkResponse = await saltanaInstance[resourceType][method](data)
+    return sdkResponse
+  }
 
 export const getQueryClientSettings = (session = undefined) => ({
   defaultOptions: {
@@ -77,6 +77,9 @@ export const setUserData = (queryClient, user) => {
 }
 
 export const setCreatorLinkData = (queryClient, link) => {
-  queryClient.setQueryData(['links', 'read', `${link.ownerId}:${link.slug}`], link)
+  queryClient.setQueryData(
+    ['links', 'read', `${link.ownerId}:${link.slug}`],
+    link
+  )
   queryClient.setQueryData(['links', 'read', link.id], link)
 }

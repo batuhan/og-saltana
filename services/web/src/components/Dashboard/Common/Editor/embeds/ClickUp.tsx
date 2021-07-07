@@ -1,19 +1,19 @@
-import * as React from "react";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Frame from './components/Frame'
 
 const URL_REGEX = new RegExp(
-  "^https?://share.clickup.com/[a-z]/[a-z]/(.*)/(.*)$"
-);
+  '^https?://share.clickup.com/[a-z]/[a-z]/(.*)/(.*)$'
+)
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class ClickUp extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     return (
@@ -22,6 +22,6 @@ export default class ClickUp extends React.Component<Props> {
         src={this.props.attrs.href}
         title="ClickUp Embed"
       />
-    );
+    )
   }
 }

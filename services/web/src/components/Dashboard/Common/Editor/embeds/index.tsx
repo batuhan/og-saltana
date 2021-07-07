@@ -29,18 +29,6 @@ import Typeform from './Typeform'
 import Vimeo from './Vimeo'
 import YouTube from './YouTube'
 
-function matcher(Component) {
-  return (url: string) => {
-    const regexes = Component.ENABLED
-    for (const regex of regexes) {
-      const result = url.match(regex)
-      if (result) {
-        return result
-      }
-    }
-  }
-}
-
 import abstractIcon from '../../../../../../public/assets/embed-provider-logos/abstract.png'
 import airtableIcon from '../../../../../../public/assets/embed-provider-logos/airtable.png'
 import cawemoIcon from '../../../../../../public/assets/embed-provider-logos/cawemo.png'
@@ -68,6 +56,18 @@ import trelloIcon from '../../../../../../public/assets/embed-provider-logos/tre
 import typeformIcon from '../../../../../../public/assets/embed-provider-logos/typeform.png'
 import vimeoIcon from '../../../../../../public/assets/embed-provider-logos/vimeo.png'
 import youtubeIcon from '../../../../../../public/assets/embed-provider-logos/youtube.png'
+
+function matcher(Component) {
+  return (url: string) => {
+    const regexes = Component.ENABLED
+    for (const regex of regexes) {
+      const result = url.match(regex)
+      if (result) {
+        return result
+      }
+    }
+  }
+}
 export default [
   {
     title: 'Abstract',

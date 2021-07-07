@@ -5,7 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {})
 
 const adminApi = createInstance({
   apiKey: process.env.SALTANA_CORE_SECRET_API_KEY,
-  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST
+  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
 })
 
 async function getOrCreateUserFromEmail(
@@ -22,7 +22,7 @@ async function getOrCreateUserFromEmail(
     const newUser = await adminApi.users.create({
       type: 'user',
       username: email,
-      email: email,
+      email,
       password:
         'F)bqjH<h+deMk>UPr$d%6OPq@+S>(,K_nr+&z8y/3SXrP7-=tk[J2@2YZT^|@>Hb',
       displayName: data.displayName,

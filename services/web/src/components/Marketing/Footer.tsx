@@ -108,9 +108,7 @@ function listItem({ name, href }) {
   return (
     <div key={name} tw="px-5 py-2">
       <Link href={href}>
-        <a tw="text-base text-white hover:text-gray-900">
-          {name}
-        </a>
+        <a tw="text-base text-white hover:text-gray-900">{name}</a>
       </Link>
     </div>
   )
@@ -152,7 +150,8 @@ export default function Footer() {
             <Link href="/request-invite">
               <a tw="h-9 w-1/5 text-center border border-white   text-lg ">
                 Apply for an invite
-              </a></Link>
+              </a>
+            </Link>
           </div>
           <nav
             tw="-mx-5 -my-2 flex flex-wrap justify-center"

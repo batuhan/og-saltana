@@ -1,21 +1,21 @@
-import * as React from "react";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Frame from './components/Frame'
 
-const URL_REGEX = new RegExp("https://airtable.com/(?:embed/)?(shr.*)$");
+const URL_REGEX = new RegExp('https://airtable.com/(?:embed/)?(shr.*)$')
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class Airtable extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
-    const { matches } = this.props.attrs;
-    const shareId = matches[1];
+    const { matches } = this.props.attrs
+    const shareId = matches[1]
 
     return (
       <Frame
@@ -24,6 +24,6 @@ export default class Airtable extends React.Component<Props> {
         title={`Airtable (${shareId})`}
         border
       />
-    );
+    )
   }
 }

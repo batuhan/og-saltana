@@ -1,24 +1,24 @@
-import * as React from "react";
-import Image from "components/Image";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Image from 'components/Image'
+import Frame from './components/Frame'
 
-const URL_REGEX = new RegExp("^https?://docs.google.com/document/(.*)$");
+const URL_REGEX = new RegExp('^https?://docs.google.com/document/(.*)$')
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class GoogleDocs extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     return (
       <Frame
         {...this.props}
-        src={this.props.attrs.href.replace("/edit", "/preview")}
+        src={this.props.attrs.href.replace('/edit', '/preview')}
         icon={
           <Image
             src="/images/google-docs.png"
@@ -31,6 +31,6 @@ export default class GoogleDocs extends React.Component<Props> {
         title="Google Docs"
         border
       />
-    );
+    )
   }
 }

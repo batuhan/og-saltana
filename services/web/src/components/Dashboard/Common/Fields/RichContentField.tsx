@@ -1,5 +1,5 @@
-import 'twin.macro'
 import tw, { styled } from 'twin.macro'
+
 import dynamic from 'next/dynamic'
 
 const Editor = dynamic(() => import('../Editor/Editor'), {

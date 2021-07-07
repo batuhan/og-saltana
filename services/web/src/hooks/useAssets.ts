@@ -1,4 +1,4 @@
-import useApi from "./useApi";
+import useApi from './useApi'
 
 // Assets
 export function useAssets({ ownerId, nbResultsPerPage = 100 }) {

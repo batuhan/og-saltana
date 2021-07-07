@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { NextSeo } from 'next-seo'
 import 'twin.macro'
-import { Logo } from '../Logo'
 import useCreatorSpace from 'hooks/useCreatorSpace'
+import { Logo } from '../Logo'
 
 const CreatorSpaceShell = ({ children }) => {
   const { creator, link, isLink } = useCreatorSpace()
@@ -10,7 +10,7 @@ const CreatorSpaceShell = ({ children }) => {
   return (
     <>
       <NextSeo title={title} />
-      {/*<main tw=" grid place-items-center min-h-screen bg-gradient-to-t from-blue-200 to-indigo-900 p-5">
+      {/* <main tw=" grid place-items-center min-h-screen bg-gradient-to-t from-blue-200 to-indigo-900 p-5">
           <div>
             <h1 tw="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-200 mb-5">
               {creator.data?.displayName}
@@ -100,7 +100,7 @@ const CreatorSpaceShell = ({ children }) => {
               </div>
             </section>
           </div>
-  </main>*/}
+  </main> */}
       <section tw="text-black ">
         <div tw="container items-center px-5 py-8 mx-auto">
           <div tw="flex flex-col mb-12 text-left">

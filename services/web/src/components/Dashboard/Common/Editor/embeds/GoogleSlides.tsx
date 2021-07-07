@@ -1,26 +1,26 @@
-import * as React from "react";
-import Image from "components/Image";
-import Frame from "./components/Frame";
+import * as React from 'react'
+import Image from 'components/Image'
+import Frame from './components/Frame'
 
-const URL_REGEX = new RegExp("^https?://docs.google.com/presentation/d/(.*)$");
+const URL_REGEX = new RegExp('^https?://docs.google.com/presentation/d/(.*)$')
 
 type Props = {
   attrs: {
-    href: string,
+    href: string
     matches: string[]
   }
-};
+}
 
 export default class GoogleSlides extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [URL_REGEX]
 
   render() {
     return (
       <Frame
         {...this.props}
         src={this.props.attrs.href
-          .replace("/edit", "/preview")
-          .replace("/pub", "/embed")}
+          .replace('/edit', '/preview')
+          .replace('/pub', '/embed')}
         icon={
           <Image
             src="/images/google-slides.png"
@@ -33,6 +33,6 @@ export default class GoogleSlides extends React.Component<Props> {
         title="Google Slides"
         border
       />
-    );
+    )
   }
 }

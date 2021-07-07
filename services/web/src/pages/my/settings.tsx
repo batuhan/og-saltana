@@ -12,7 +12,6 @@ import useUpdateCurrentUser from 'hooks/useUpdateCurrentUser'
 import useCurrentUser from 'hooks/useCurrentUser'
 
 export default function DashboardUserSettings({ userId }) {
-
   const { data, isLoading } = useCurrentUser()
 
   const {

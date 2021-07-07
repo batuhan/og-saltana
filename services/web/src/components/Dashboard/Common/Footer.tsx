@@ -16,9 +16,7 @@ export default function Footer() {
           {navigationFooter.map(({ name, href }) => (
             <div key={name} tw="px-5 py-2">
               <Link href={href}>
-                <a tw="text-base text-black hover:text-gray-500">
-                  {name}
-                </a>
+                <a tw="text-base text-black hover:text-gray-500">{name}</a>
               </Link>
             </div>
           ))}

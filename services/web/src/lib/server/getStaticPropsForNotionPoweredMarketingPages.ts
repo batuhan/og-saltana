@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { NotionAPI } from 'notion-client'
+
 const notion = new NotionAPI()
 
 const getStaticPropsForNotionPoweredMarketingPages =
@@ -15,7 +16,13 @@ const getStaticPropsForNotionPoweredMarketingPages =
   ) =>
     async (context) => {
       const { type, pageId } = pageInfo
-      const commonProps = { type, pageId, collection: [], contentRecordMap: [], pageTitle: 'Page Title' }
+      const commonProps = {
+        type,
+        pageId,
+        collection: [],
+        contentRecordMap: [],
+        pageTitle: 'Page Title',
+      }
       switch (type) {
         case 'notion-collection':
           break

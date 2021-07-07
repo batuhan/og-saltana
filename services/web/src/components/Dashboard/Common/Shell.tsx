@@ -1,9 +1,9 @@
 import tw from 'twin.macro'
 import { useEffect } from 'react'
 import useCurrentUser from 'hooks/useCurrentUser'
+import { useRouter } from 'next/router'
 import Footer from './Footer'
 import Header from './Header'
-import { useRouter } from 'next/router'
 
 export default function DashboardShell({
   children,

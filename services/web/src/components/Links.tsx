@@ -30,7 +30,7 @@ export function DefaultLink({ children }) {
 
   if (!user) {
     // if a guest, go to homepage
-    return <Link href={`/`}>{children}</Link>
+    return <Link href="/">{children}</Link>
   }
 
   if (user.data.roles.includes('provider')) {

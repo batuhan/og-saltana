@@ -49,7 +49,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 adsfsdfsd
@@ -65,8 +65,8 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </span>
                 1 Newsletter Issue.
@@ -82,7 +82,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1.6k+ Readers.
@@ -102,7 +102,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 Newsletterasdass Top.
@@ -118,7 +118,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1 Newsletter Issue.
@@ -134,7 +134,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1.6k+ Readers.
@@ -154,7 +154,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 Newsletterasfds Top.
@@ -170,7 +170,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1 Newsletter Issue.
@@ -186,7 +186,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1.6k+ Readers.
@@ -228,7 +228,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 Newsletterasfds Top.
@@ -244,7 +244,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1 Newsletter Issue.
@@ -260,7 +260,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1.6k+ Readers.
@@ -280,7 +280,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 Newsletterasfds Top.
@@ -296,7 +296,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1 Newsletter Issue.
@@ -312,7 +312,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1.6k+ Readers.
@@ -332,7 +332,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 Newsletterasfds Top.
@@ -348,7 +348,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1 Newsletter Issue.
@@ -364,7 +364,7 @@ const AssetInfoBox = ({ assetId }) => {
                     tw="w-3 h-3"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20 6L9 17l-5-5"></path>
+                    <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
                 1.6k+ Readers.
