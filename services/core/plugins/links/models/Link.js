@@ -35,6 +35,10 @@ module.exports = (Base) => class Link extends Base {
     if (link.ownerId) {
       selfUsersIds.push(link.ownerId)
     }
+    
+    if (link.authorId) {
+      selfUsersIds.push(link.authorId)
+    }
 
     return selfUsersIds.includes(userId)
   }

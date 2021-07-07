@@ -36,7 +36,7 @@ module.exports = function createService(deps) {
       startingAfter,
       endingBefore,
 
-      authorId,
+      ownerId,
       targetId,
       assetId,
       transactionId,
@@ -59,7 +59,7 @@ module.exports = function createService(deps) {
       endingBefore,
 
       page,
-      authorId,
+      authorId: ownerId,
       targetId,
       label,
 
