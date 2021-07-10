@@ -149,7 +149,7 @@ export function ExampleOther() {
 export default function CreatorDashboardCustomize() {
   return (
     <CreatorDashboardSettingsShell>
-      <NextSeo title="Customize Creator Space" />
+      <NextSeo title="Billing" />
       <ExampleOther />
     </CreatorDashboardSettingsShell>
   )

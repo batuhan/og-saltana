@@ -3,30 +3,33 @@ import tw, { styled, css } from 'twin.macro'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 
-import { Switch } from '@headlessui/react'
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
 import DashboardShell from 'components/Dashboard/Common/Shell'
 import useApiMutation from 'hooks/useApiMutation'
-import useCurrentUser from 'hooks/useCurrentUser'
+import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+import useCreatorSpace from 'hooks/useCreatorSpace'
 
 export default function CreatorDashboardCreateSmartLink(props) {
+  const { creator } = useCreatorSpace()
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm()
 
-  const router = useRouter()
-  const { type } = router.query
-  const user = useCurrentUser()
-  const addLink = useApiMutation('links', 'create', {
+  const {
+    query: { type },
+    push,
+  } = useRouter()
+
+  const { mutateAsync } = useApiMutation('links', 'create', {
     onSuccess: ({ id }) => {
-      router.push(`/${user.data.username}/dashboard/links/${id}`)
+      push(`/${creator.data.username}/dashboard/links/${id}`)
     },
   })
 
-  function onSubmit({ destination, slug }) {
-    return addLink.mutate({ destination, slug, linkType: type })
+  async function onSubmit({ destination, slug }) {
+    await mutateAsync({ destination, slug, linkType: type })
   }
 
   return (
@@ -40,7 +43,7 @@ export default function CreatorDashboardCreateSmartLink(props) {
               </h1>
               <p tw="mt-1 text-sm text-gray-500">
                 Let’s get started by filling in the information below to create
-                your new project.
+                your new link.
               </p>
             </div>
 
@@ -57,46 +60,38 @@ export default function CreatorDashboardCreateSmartLink(props) {
                   {...register('destination', {
                     required: true,
                   })}
+                  disabled={isSubmitting}
                   id="destination"
-                  tw="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
-                  defaultValue="https://notion.so/test-change-this"
+                  css={[
+                    isSubmitting && tw`disabled:opacity-50`,
+                    tw`block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md`,
+                  ]}
+                  placeholder="https://notion.so/test-change-this"
                 />
               </div>
+              {errors.destination && (
+                <div>{JSON.stringify(errors.destination)}</div>
+              )}
             </div>
 
-            <div>
-              <label
-                htmlFor="slug"
-                tw="block text-sm font-medium text-gray-700"
-              >
-                Link
-              </label>
-              <div tw="mt-1 sm:mt-0 sm:col-span-2">
-                <div tw="max-w-lg flex rounded-md shadow-sm">
-                  <span tw="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                    saltana.com/batuhan/
-                  </span>
-                  <input
-                    type="text"
-                    name="slug"
-                    id="slug"
-                    {...register('slug', {
-                      required: true,
-                    })}
-                    autoComplete="slug"
-                    tw="flex-1 block w-full focus:ring-indigo-500 focus:border-indigo-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                  />
-                </div>
-              </div>
-            </div>
+            <CreatorSlugField
+              register={register}
+              username={creator.data.username}
+              isSubmitting={isSubmitting}
+              name="slug"
+              errors={errors}
+            />
 
             <div tw="flex justify-end">
               <button
                 type="submit"
-                disabled={addLink.isLoading}
-                tw="ml-3 inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                disabled={isSubmitting}
+                css={[
+                  isSubmitting && tw`disabled:opacity-50`,
+                  tw`ml-3 inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500`,
+                ]}
               >
-                Create the link
+                {isSubmitting ? 'Creating your new link' : 'Create my link'}
               </button>
             </div>
           </div>

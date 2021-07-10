@@ -1,13 +1,9 @@
-import { PlusIcon } from '@heroicons/react/outline'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import React from 'react'
-import 'twin.macro'
-
 import { useFormContext } from 'react-hook-form'
 import { useState } from 'react'
 import { RadioGroup } from '@headlessui/react'
 import tw from 'twin.macro'
+import { NextSeo } from 'next-seo'
 
 const settings = [
   {
@@ -30,9 +26,6 @@ const settings = [
   },
 ]
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
 const RadioGroupOption =
   (settingIdx) =>
   ({ checked, children }) =>
@@ -106,11 +99,14 @@ export default function CreatorDashboardLinkAccessScreen() {
   const [selected, setSelected] = useState(settings[0])
 
   return (
-    <RadioGroup value={selected} onChange={setSelected}>
-      <RadioGroup.Label tw="sr-only">Privacy setting</RadioGroup.Label>
-      <div tw="bg-white rounded-md -space-y-px">
-        <List settings={settings} />
-      </div>
-    </RadioGroup>
+    <>
+      <NextSeo title="Access" />
+      <RadioGroup value={selected} onChange={setSelected}>
+        <RadioGroup.Label tw="sr-only">Privacy setting</RadioGroup.Label>
+        <div tw="bg-white rounded-md -space-y-px">
+          <List settings={settings} />
+        </div>
+      </RadioGroup>
+    </>
   )
 }

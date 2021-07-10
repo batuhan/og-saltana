@@ -14,26 +14,27 @@ import useCurrentUser from 'hooks/useCurrentUser'
 import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
 import AssetCategoryField from 'components/Dashboard/Creator/Fields/AssetCategoryField'
 import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
+import useCreatorSpace from 'hooks/useCreatorSpace'
 
 export default function CreatorDashboardCreateSmartLink(props) {
+  const { creator } = useCreatorSpace()
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm()
 
-  const router = useRouter()
-  const assetTypes = useApi('assetTypes', 'list', {})
+  const { push } = useRouter()
 
   const user = useCurrentUser()
-  const addLink = useApiMutation('links', 'create', {
+  const { mutateAsync } = useApiMutation('links', 'create', {
     onSuccess: ({ id }) => {
-      router.push(`/${user.data.username}/dashboard/links/${id}`)
+      push(`/${creator.data.username}/dashboard/links/${id}`)
     },
   })
 
-  function onSubmit(data) {
-    return addLink.mutate({ ...data, linkType: 'asset' })
+  async function onSubmit(data) {
+    await mutateAsync({ ...data, linkType: 'asset' })
   }
 
   return (

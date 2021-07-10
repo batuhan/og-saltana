@@ -1,7 +1,5 @@
-import { PlusIcon } from '@heroicons/react/outline'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import React from 'react'
+import { NextSeo } from 'next-seo'
 import 'twin.macro'
 
 import { useFormContext } from 'react-hook-form'
@@ -15,6 +13,8 @@ export default function CreatorDashboardLinkDeliverablesScreen() {
 
   return (
     <main>
+      <NextSeo title="Deliverables" />
+
       <RichContentField {...methods} />
     </main>
   )

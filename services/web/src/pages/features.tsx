@@ -10,6 +10,7 @@ import {
   TrashIcon,
   UsersIcon,
 } from '@heroicons/react/outline'
+import { NextSeo } from 'next-seo'
 
 const features = [
   {
@@ -65,6 +66,8 @@ const features = [
 export default function Features() {
   return (
     <MarketingShell>
+      <NextSeo title="Features" />
+
       <div tw="bg-black">
         <div tw="max-w-4xl mx-auto px-4 py-16 sm:px-6 sm:pt-20 sm:pb-24 lg:max-w-7xl lg:pt-24 lg:px-8">
           <h2 tw="text-3xl font-extrabold text-white tracking-tight">

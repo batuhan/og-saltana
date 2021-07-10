@@ -25,5 +25,6 @@ export default function useCreatorSpace() {
     creator.isLoading ||
     (isLink ? link.isLoading : false) ||
     (isAssetLink ? asset.isLoading : false)
+
   return { link, creator, asset, isLink, isAssetLink, isLoading }
 }

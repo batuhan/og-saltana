@@ -1,9 +1,16 @@
 import 'twin.macro'
+import tw from 'twin.macro'
 
-export default function CreatorSlugField({ register, username }) {
+export default function CreatorSlugField({
+  register,
+  name = 'link.slug',
+  isSubmitting = false,
+  username = 'username',
+  errors = {},
+}) {
   return (
     <>
-      <label htmlFor="link.slug" tw="block text-sm font-medium text-gray-700">
+      <label htmlFor={name} tw="block text-sm font-medium text-gray-700">
         Link
       </label>
       <div tw="mt-1 sm:mt-0 sm:col-span-2">
@@ -13,15 +20,23 @@ export default function CreatorSlugField({ register, username }) {
           </span>
           <input
             type="text"
-            id="link.slug"
-            {...register('link.slug', {
-              required: true,
-            })}
+            id={name}
+            {...register(
+              { name },
+              {
+                required: true,
+              }
+            )}
+            disabled={isSubmitting}
             autoComplete="slug"
-            tw="flex-1 block w-full focus:ring-indigo-500 focus:border-indigo-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+            css={[
+              isSubmitting && tw`disabled:opacity-50`,
+              tw`flex-1 block w-full focus:ring-indigo-500 focus:border-indigo-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300`,
+            ]}
           />
         </div>
       </div>
+      {errors[name] && <div>{JSON.stringify(errors[name])}</div>}
     </>
   )
 }

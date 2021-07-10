@@ -3,7 +3,7 @@ import CreatorSpaceShell from 'components/CreatorSpace/Shell'
 import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreatorSpacePages'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 
-const CreatorProfile = ({ creatorId }) => {
+const CreatorProfile = () => {
   const { creator, link, asset } = useCreatorSpace()
   return (
     <CreatorSpaceShell>

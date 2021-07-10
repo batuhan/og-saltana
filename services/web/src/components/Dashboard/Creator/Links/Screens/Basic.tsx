@@ -7,6 +7,7 @@ import 'twin.macro'
 import { useFormContext } from 'react-hook-form'
 import RichContentField from 'components/Dashboard/Common/Fields/RichContentField'
 import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
+import { NextSeo } from 'next-seo'
 
 export default function CreatorDashboardLinkBasicScreen() {
   const { register } = useFormContext()
@@ -15,6 +16,8 @@ export default function CreatorDashboardLinkBasicScreen() {
 
   return (
     <main>
+      <NextSeo title="Basic" />
+
       {link.data?.linkType === 'asset' && (
         <AssetPriceField register={register} />
       )}
