@@ -2,20 +2,21 @@ import memoryLocalStorage from 'localstorage-memory'
 
 const generateKey = (namespace) => `${namespace}-authtoken`
 
-export const createDefaultTokenStore = () => {
+export const createDefaultTokenStoreLegacy = () => {
   const namespace = 'stl'
 
-  const localStorage = (typeof window === 'object' && window.localStorage) || memoryLocalStorage
+  const localStorage =
+    (typeof window === 'object' && window.localStorage) || memoryLocalStorage
 
   return {
-    getTokens () {
+    getTokens() {
       const key = generateKey(namespace)
 
       const rawValue = localStorage.getItem(key)
       return JSON.parse(rawValue)
     },
 
-    setTokens (tokens) {
+    setTokens(tokens) {
       if (!tokens || typeof tokens !== 'object') {
         throw new Error('Expected object as tokens value')
       }
@@ -24,9 +25,30 @@ export const createDefaultTokenStore = () => {
       localStorage.setItem(key, JSON.stringify(tokens))
     },
 
-    removeTokens () {
+    removeTokens() {
       const key = generateKey(namespace)
       localStorage.removeItem(key)
-    }
+    },
+  }
+}
+
+export const createDefaultTokenStore = () => {
+  let storage = undefined
+  return {
+    getTokens() {
+      return storage
+    },
+
+    setTokens(tokens) {
+      if (!tokens || typeof tokens !== 'object') {
+        throw new Error('Expected object as tokens value')
+      }
+
+      storage = tokens
+    },
+
+    removeTokens() {
+      storage = undefined
+    },
   }
 }

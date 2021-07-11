@@ -1,6 +1,6 @@
 const { utils } = require('../../../serverTooling')
 const {
-  validation: { Joi },
+  validation: { Joi, slugSchema },
 } = utils
 
 const groupSchema = Joi.string().valid(
@@ -23,7 +23,6 @@ const destinationSchema = Joi.string().uri({
   allowQuerySquareBrackets: true,
 })
 
-const slugSchema = Joi.string().min(3).max(30).regex(/^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/).required()
 const linkTypeSchema = Joi.valid(
   'asset',
   'embed',
@@ -105,17 +104,17 @@ module.exports = function createValidation(deps) {
           price: Joi.number().min(0),
           currency: Joi.string(),
           customAttributes: Joi.object().unknown(),
-        })
+        }),
       })
       .required(),
   }
   schemas['2019-05-20'].update = {
     params: objectIdParamsSchema,
-    body: schemas['2019-05-20'].create.body
-      .fork(['linkType', 'assetId'], (schema) =>
-        schema.forbidden()
-      )
-      //.fork('score', (schema) => schema.optional()),
+    body: schemas['2019-05-20'].create.body.fork(
+      ['linkType', 'assetId'],
+      (schema) => schema.forbidden()
+    ),
+    //.fork('score', (schema) => schema.optional()),
   }
   schemas['2019-05-20'].remove = {
     params: objectIdParamsSchema,

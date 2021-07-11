@@ -39,6 +39,16 @@ export default NextAuth({
     async signIn() {
       return true
     },
+    /**
+     * @param  {string} url      URL provided as callback URL by the client
+     * @param  {string} baseUrl  Default base URL of site (can be used as fallback)
+     * @return {string}          URL the client will be redirect to
+     */
+    async redirect(url, baseUrl) {
+      return url.startsWith(baseUrl)
+        ? url
+        : baseUrl
+    },
     async session(session, token) {
       const newSession = { ...session }
 
@@ -52,8 +62,8 @@ export default NextAuth({
     async jwt(token, user, account, profile) {
       token.coreAccessToken = token.coreAccessToken || profile.accessToken
       token.refreshToken = token.refreshToken || profile.refreshToken
-      token.sub = token.sub || profile.userId
-      token.role = token?.role || profile?.role
+      token.sub = token.sub || (profile.userId as string)
+      token.roles = token?.roles || profile?.roles
       return token
     },
   },

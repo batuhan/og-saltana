@@ -21,12 +21,6 @@ export default function CreatorSlugField({
           <input
             type="text"
             id={name}
-            {...register(
-              { name },
-              {
-                required: true,
-              }
-            )}
             disabled={isSubmitting}
             autoComplete="slug"
             css={[

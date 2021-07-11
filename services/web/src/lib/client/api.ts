@@ -32,7 +32,7 @@ export async function getSaltanaInstance(_session = undefined) {
     apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
   })
 
-  const info = newInstance.auth.setTokens({
+  newInstance.auth.setTokens({
     accessToken: session.coreAccessToken,
     refreshToken: session.refreshToken,
     tokenType: 'Bearer',
@@ -48,13 +48,13 @@ export async function getSaltanaInstance(_session = undefined) {
 
 const defaultQueryFn =
   (session = undefined) =>
-  async ({ queryKey }) => {
-    const [resourceType, method, data] = queryKey
-    const saltanaInstance = await getSaltanaInstance(session)
+    async ({ queryKey }) => {
+      const [resourceType, method, data] = queryKey
+      const saltanaInstance = await getSaltanaInstance(session)
 
-    const sdkResponse = await saltanaInstance[resourceType][method](data)
-    return sdkResponse
-  }
+      const sdkResponse = await saltanaInstance[resourceType][method](data)
+      return sdkResponse
+    }
 
 export const getQueryClientSettings = (session = undefined) => ({
   defaultOptions: {

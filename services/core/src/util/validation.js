@@ -7,12 +7,14 @@ const {
   getRandomStringRegex,
   objectIdLength,
   extractDataFromObjectId,
-  platformZones
+  platformZones,
 } = require('@saltana/util-keys')
+const blockedUsernames = require('../data/blocked-usernames.json')
 
-const UUID_V4_REGEX = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i
+const UUID_V4_REGEX =
+  /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i
 
-function isUUIDV4 (value) {
+function isUUIDV4(value) {
   return typeof value === 'string' && UUID_V4_REGEX.test(value)
 }
 
@@ -27,30 +29,30 @@ const customJoi = Joi.extend(
     base: Joi.object(),
     coerce: {
       from: 'string',
-      method (value, helpers) {
+      method(value, helpers) {
         if (typeof value !== 'string') return
         if (value[0] !== '{' && !/^\s*\{/.test(value)) return
 
         try {
           return { value: Bourne.parse(value) }
-        } catch (ignoreErr) { }
-      }
-    }
+        } catch (ignoreErr) {}
+      },
+    },
   },
   {
     type: 'array',
     base: Joi.array(),
     coerce: {
       from: 'string',
-      method (value, helpers) {
+      method(value, helpers) {
         if (typeof value !== 'string') return
         if (value[0] !== '[' && !/^\s*\[/.test(value)) return
 
         try {
           return { value: Bourne.parse(value) }
-        } catch (ignoreErr) { }
-      }
-    }
+        } catch (ignoreErr) {}
+      },
+    },
   }
 )
 
@@ -63,7 +65,13 @@ const customJoi = Joi.extend(
  * @param {String} [params.env='test'] - 'live' can change the format
  * @return {Boolean}
  */
-function isValidObjectId ({ id, prefix = '', env = 'test', platformId, unitTest }) {
+function isValidObjectId({
+  id,
+  prefix = '',
+  env = 'test',
+  platformId,
+  unitTest,
+}) {
   let hasValidFormat
   let validPlatformId
   let hasValidTimestamp
@@ -79,13 +87,17 @@ function isValidObjectId ({ id, prefix = '', env = 'test', platformId, unitTest 
     // All test objects (except for some assets) have ids ending in 'Qps1I3a1gJYz2I3a'
     // whose encoded platformId is '1'.
     // Ignore this exception for unit tests so that we can also check real behavior.
-    const realPlatformId = (process.env.NODE_ENV === 'test' && !unitTest) ? '1' : platformId
+    const realPlatformId =
+      process.env.NODE_ENV === 'test' && !unitTest ? '1' : platformId
 
     validPlatformId = platformId ? realPlatformId === decodedPlatformId : true
-    hasValidFormat = objectIdRegex.test(id) && typeof decodedPlatformId === 'string'
-    hasValidTimestamp = decodedDate.getFullYear() >= 2018 &&
+    hasValidFormat =
+      objectIdRegex.test(id) && typeof decodedPlatformId === 'string'
+    hasValidTimestamp =
+      decodedDate.getFullYear() >= 2018 &&
       decodedDate.getTime() < Date.now() + 1000 // (before next second due to timestamp rounding)
-    hasValidZone = typeof extractedData.zone === 'string' &&
+    hasValidZone =
+      typeof extractedData.zone === 'string' &&
       platformZones.includes(extractedData.zone.toLowerCase())
   } catch (e) {
     return false
@@ -94,41 +106,49 @@ function isValidObjectId ({ id, prefix = '', env = 'test', platformId, unitTest 
   return hasValidFormat && hasValidTimestamp && hasValidZone && validPlatformId
 }
 
-const objectIdParamsSchema = customJoi.object().keys({
-  id: customJoi.string().required()
-}).required()
+const objectIdParamsSchema = customJoi
+  .object()
+  .keys({
+    id: customJoi.string().required(),
+  })
+  .required()
 
-function getRangeFilter (joiType) {
-  const rangeSchema = customJoi.object().pattern(
-    customJoi.string().valid('lt', 'lte', 'gt', 'gte'),
-    joiType
-  )
+function getRangeFilter(joiType) {
+  const rangeSchema = customJoi
+    .object()
+    .pattern(customJoi.string().valid('lt', 'lte', 'gt', 'gte'), joiType)
 
-  return customJoi.alternatives().try(
-    joiType,
-    rangeSchema
-      .oxor('lt', 'lte')
-      .oxor('gt', 'gte')
-  )
+  return customJoi
+    .alternatives()
+    .try(joiType, rangeSchema.oxor('lt', 'lte').oxor('gt', 'gte'))
 }
 
 const idsSchema = customJoi.array().unique().items(customJoi.string()).single()
 
-const locationSchema = customJoi.object().unknown().keys({
-  latitude: customJoi.number().min(-90).max(90).required(),
-  longitude: customJoi.number().min(-180).max(180).required()
-})
+const locationSchema = customJoi
+  .object()
+  .unknown()
+  .keys({
+    latitude: customJoi.number().min(-90).max(90).required(),
+    longitude: customJoi.number().min(-180).max(180).required(),
+  })
 
-const sortSchema = customJoi.array().items(
-  customJoi.object().length(1).pattern(/.*/, customJoi.string().allow('desc', 'asc'))
-).single() // converts unique {sortStep} to [{sortStep}]
+const sortSchema = customJoi
+  .array()
+  .items(
+    customJoi
+      .object()
+      .length(1)
+      .pattern(/.*/, customJoi.string().allow('desc', 'asc'))
+  )
+  .single() // converts unique {sortStep} to [{sortStep}]
 
 const availabilityFilterSchema = customJoi.object().keys({
   enabled: customJoi.boolean(),
   fullPeriod: customJoi.boolean(),
   unavailableWhen: [
     customJoi.string().allow(null),
-    customJoi.array().items(customJoi.string()).allow(null)
+    customJoi.array().items(customJoi.string()).allow(null),
   ],
 })
 
@@ -155,12 +175,30 @@ const searchSchema = customJoi.object().keys({
   availabilityFilter: availabilityFilterSchema,
 
   createdBefore: customJoi.string().isoDate().allow(null),
-  createdAfter: customJoi.string().isoDate().allow(null)
+  createdAfter: customJoi.string().isoDate().allow(null),
 })
 
-function replaceOffsetWithCursorPagination (schema) {
+const USERNAME_OR_SLUG_REGEX = /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/
+
+const usernameSchema = customJoi
+  .string()
+  .min(3)
+  .max(30)
+  .regex(USERNAME_OR_SLUG_REGEX)
+  .invalid(...blockedUsernames)
+  .required()
+
+const slugSchema = customJoi
+  .string()
+  .min(1)
+  .max(30)
+  .regex(USERNAME_OR_SLUG_REGEX)
+  .invalid('my', 'me', 'settings', 'login', 'dashboard')
+  .required()
+
+function replaceOffsetWithCursorPagination(schema) {
   return schema
-    .fork('page', schema => schema.forbidden())
+    .fork('page', (schema) => schema.forbidden())
     .keys({
       startingAfter: customJoi.string(),
       endingBefore: customJoi.string(),
@@ -177,4 +215,7 @@ module.exports = {
   searchSchema,
   getRangeFilter,
   replaceOffsetWithCursorPagination,
+
+  usernameSchema,
+  slugSchema,
 }
