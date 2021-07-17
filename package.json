@@ -9,8 +9,7 @@
     "packages/fil",
     "packages/sdk",
     "packages/util-keys",
-    "packages/vendor-objection",
-    "packages/react-hook-form-chakra-fields"
+    "packages/vendor-objection"
   ],
   "scripts": {
     "docs": "doctoc --title '**Table of content**' README.md",

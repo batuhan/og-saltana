@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "name": "@saltana/edge",
+  "version": "1.0.0",
+  "description": "🚀 The template to kickstart rocket-booster workers.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --fix src/* --ext .js"
+  },
+  "author": "Xiaoyang Liu <siujoeng.lau@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^7.30.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4"
+  },
+  "dependencies": {
+    "rocket-booster": "^1.2.1"
+  }
+}
