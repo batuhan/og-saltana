@@ -1,12 +1,11 @@
 import tw from 'twin.macro'
 import { NextSeo } from 'next-seo'
-import MarketingShell from 'components/Marketing/Shell'
 import { DefaultLink } from 'components/Links'
 import Link from 'next/link'
 
 export default function Custom404() {
   return (
-    <MarketingShell>
+    <>
       <NextSeo title="404 Not Found :(" />
       <div tw="bg-white">
         <div tw="max-w-7xl mx-auto text-center py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
@@ -43,6 +42,6 @@ export default function Custom404() {
           </div>
         </div>
       </div>
-    </MarketingShell>
+    </>
   )
 }

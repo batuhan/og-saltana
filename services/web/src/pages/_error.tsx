@@ -1,12 +1,11 @@
 import tw from 'twin.macro'
 import { NextSeo } from 'next-seo'
-import MarketingShell from 'components/Marketing/Shell'
 import { DefaultLink } from 'components/Links'
 import Link from 'next/link'
 
 function Error({ statusCode }) {
   return (
-    <MarketingShell>
+    <>
       <NextSeo title="Oh no an error!" />
       <div tw="bg-white">
         <div tw="max-w-7xl mx-auto text-center py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
@@ -39,7 +38,7 @@ function Error({ statusCode }) {
           </div>
         </div>
       </div>
-    </MarketingShell>
+    </>
   )
 }
 
