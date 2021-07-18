@@ -1,15 +1,14 @@
-const {
-  testTools: { factory },
-} = require('../../serverTooling')
+const { testTools: { factory } } = require('../../serverTooling')
 
 const { createModel } = factory
 
 const now = new Date().toISOString()
 
 module.exports = {
+
   document: [
     createModel({
-      id: 'lnk_2l7fQps1I3a1gJYz2I3a',
+      id: 'rtg_2l7fQps1I3a1gJYz2I3a',
       createdDate: now,
       updatedDate: now,
       authorId: 'user-external-id',
@@ -20,14 +19,14 @@ module.exports = {
         score: 80,
         comment: 'Wonderful',
         assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
-        transactionId: 'trn_a3BfQps1I3a1gJYz2I3a',
+        transactionId: 'trn_a3BfQps1I3a1gJYz2I3a'
       },
       metadata: { existingData: [true] },
-      platformData: {},
+      platformData: {}
     }),
 
     createModel({
-      id: 'lnk_emdfQps1I3a1gJYz2I3a',
+      id: 'rtg_emdfQps1I3a1gJYz2I3a',
       createdDate: now,
       updatedDate: now,
       authorId: 'user-external-id',
@@ -37,14 +36,14 @@ module.exports = {
       data: {
         score: 70,
         comment: 'Good',
-        assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
+        assetId: 'ast_0TYM7rs1OwP1gQRuCOwP'
       },
       metadata: { existingData: [true] },
-      platformData: {},
+      platformData: {}
     }),
 
     createModel({
-      id: 'lnk_eusfwHs1m001gvOa5m00',
+      id: 'rtg_eusfwHs1m001gvOa5m00',
       createdDate: now,
       updatedDate: now,
       authorId: 'usr_WHlfQps1I3a1gJYz2I3a',
@@ -55,14 +54,14 @@ module.exports = {
         score: 100,
         comment: 'Bad',
         assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
-        transactionId: 'trn_UG1fQps1I3a1gJYz2I3a',
+        transactionId: 'trn_UG1fQps1I3a1gJYz2I3a'
       },
       metadata: { existingData: [true] },
-      platformData: {},
+      platformData: {}
     }),
 
     createModel({
-      id: 'lnk_Hu470ws1Jzt1gTOT5Jzt',
+      id: 'rtg_Hu470ws1Jzt1gTOT5Jzt',
       createdDate: now,
       updatedDate: now,
       authorId: 'usr_WHlfQps1I3a1gJYz2I3a',
@@ -72,14 +71,14 @@ module.exports = {
       data: {
         score: 0,
         assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
-        transactionId: 'trn_UG1fQps1I3a1gJYz2I3a',
+        transactionId: 'trn_UG1fQps1I3a1gJYz2I3a'
       },
       metadata: { existingData: [true] },
-      platformData: {},
+      platformData: {}
     }),
 
     createModel({
-      id: 'lnk_IO2L2Ts1S0Q1gbP05S0Q',
+      id: 'rtg_IO2L2Ts1S0Q1gbP05S0Q',
       createdDate: now,
       updatedDate: now,
       authorId: 'usr_WHlfQps1I3a1gJYz2I3a',
@@ -89,10 +88,11 @@ module.exports = {
       data: {
         score: 60,
         assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
-        transactionId: 'trn_UG1fQps1I3a1gJYz2I3a',
+        transactionId: 'trn_UG1fQps1I3a1gJYz2I3a'
       },
       metadata: { existingData: [true] },
-      platformData: {},
-    }),
-  ],
+      platformData: {}
+    })
+  ]
+
 }

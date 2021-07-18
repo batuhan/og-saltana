@@ -1,6 +1,15 @@
 {
   "configurations": [
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug AVA test file in core",
+      "runtimeExecutable": "${workspaceFolder}/services/core/node_modules/.bin/ava",
+      "runtimeArgs": ["${file}"],
+      "outputCapture": "std",
+      "skipFiles": ["<node_internals>/**/*.js"]
+    },
+    {
       "type": "vscode-edge-devtools.debug",
       "request": "launch",
       "name": "Launch Microsoft Edge and open the Edge DevTools",
