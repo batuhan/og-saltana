@@ -1,10 +1,10 @@
-const log = require('roarr').default
+const { Roarr: log } = require('roarr')
 const { serializeError } = require('serialize-error')
 const apm = require('elastic-apm-node')
 const _ = require('lodash')
 
 const params = {
-  application: 'saltana-core'
+  application: 'saltana-core',
 }
 
 if (process.env.INSTANCE_ID) {
@@ -27,7 +27,7 @@ const RoarrLogger = log.child(params)
  * This function won't log into APM server (unlike logError)
  * because APM request transactions are more precise than manually metrics build
  */
-function logTrace (...args) {
+function logTrace(...args) {
   RoarrLogger.trace(...args)
 }
 
@@ -59,16 +59,19 @@ function logTrace (...args) {
  * @param {Boolean} [options.enableApmLog = true] - can be useful to disable APM logs
  * @param {Boolean} [options.enableRoarr = true] - can be useful to disable Roarr logger
  */
-function logError (error, {
-  user,
-  custom,
-  labels,
-  message,
-  platformId,
-  env,
-  enableApmLog = true,
-  enableRoarr = true
-} = {}) {
+function logError(
+  error,
+  {
+    user,
+    custom,
+    labels,
+    message,
+    platformId,
+    env,
+    enableApmLog = true,
+    enableRoarr = true,
+  } = {}
+) {
   let defaultUser
   let defaultCustom
   let defaultLabels
@@ -85,18 +88,28 @@ function logError (error, {
     defaultLabels.env = env
   }
 
-  const newUser = defaultUser || user ? Object.assign({}, defaultUser, user) : undefined
-  const newCustom = defaultCustom || custom ? Object.assign({}, defaultCustom, custom) : undefined
-  const newLabels = defaultLabels || labels ? Object.assign({}, defaultLabels, labels) : undefined
+  const newUser =
+    defaultUser || user ? Object.assign({}, defaultUser, user) : undefined
+  const newCustom =
+    defaultCustom || custom
+      ? Object.assign({}, defaultCustom, custom)
+      : undefined
+  const newLabels =
+    defaultLabels || labels
+      ? Object.assign({}, defaultLabels, labels)
+      : undefined
 
   // TODO: remove the comment only once we align APM error logs with Logstash's
   if (/* !PROD && */ enableRoarr) {
-    RoarrLogger.error({
-      err: serializeError(error),
-      user: newUser,
-      custom: newCustom,
-      labels: newLabels
-    }, message || error.message) // message required for Roarr
+    RoarrLogger.error(
+      {
+        err: serializeError(error),
+        user: newUser,
+        custom: newCustom,
+        labels: newLabels,
+      },
+      message || error.message
+    ) // message required for Roarr
   }
 
   if (enableApmLog) {
@@ -105,13 +118,11 @@ function logError (error, {
     // Without errorData, we lose `assetTypeId` information, because `apm.captureError()` won't store it
     let errorData
     if (error instanceof Error) {
-      const omittedErrorFields = [
-        'message',
-        'stack',
-        'statusCode',
-        'expose'
-      ]
-      errorData = _.pick(error, _.difference(Object.keys(error), omittedErrorFields))
+      const omittedErrorFields = ['message', 'stack', 'statusCode', 'expose']
+      errorData = _.pick(
+        error,
+        _.difference(Object.keys(error), omittedErrorFields)
+      )
     }
 
     // passed context overrides default context properties
@@ -119,16 +130,16 @@ function logError (error, {
       user: removeUndefinedValues(newUser),
       custom: removeUndefinedValues(Object.assign({ errorData }, newCustom)),
       labels: removeUndefinedValues(newLabels),
-      message
+      message,
     })
   }
 }
 
-function removeUndefinedValues (json) {
-  return _.pickBy(json, value => !_.isUndefined(value))
+function removeUndefinedValues(json) {
+  return _.pickBy(json, (value) => !_.isUndefined(value))
 }
 
 module.exports = {
   logTrace,
-  logError
+  logError,
 }
