@@ -10,6 +10,8 @@ const MAIN_SITE_HAS_RULES = [
   },
 ]
 
+console.log('loaded conifg', process.env)
+
 const CREATOR_SPACE_HAS_RULES = [
   // Match only one item
   //  /^(https?:\/\/)?(www\.)?(saltana|vercel)\.com$/,
@@ -93,6 +95,8 @@ module.exports = {
     return [...CREATOR_SPACE_REDIRECTS]
   },
   async rewrites() {
+    console.log('loaded conifg', process.env)
+
     return {
       beforeFiles: [
         ...CREATOR_SPACE_REWRITES.beforeFiles,
