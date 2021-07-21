@@ -1,67 +1,110 @@
-const CREATOR_SPACE_HAS = [
+const BASE_DOMAIN = process.env.VERCEL_URL || 'dev.saltana.com'
+const MARKETING_DOMAIN =
+  process.env.MARKETING_DOMAIN || 'landing-g6g19yr3n-saltana.vercel.app'
+
+const CORE_API_URL = process.env.CORE_API_URL || 'http://localhost:4100'
+const MAIN_SITE_HAS_RULES = [
   {
-    type: 'header',
-    key: 'x-saltana-domain',
-    value: '(?<domain>.*)',
+    type: 'host',
+    value: BASE_DOMAIN,
   },
 ]
 
-const BASE_DOMAIN = 'https://www.saltana.com'
+const CREATOR_SPACE_HAS_RULES = [
+  // Match only one item
+  //  /^(https?:\/\/)?(www\.)?(saltana|vercel)\.com$/,
+  [
+    {
+      type: 'host',
+      value: `(?<domain>.*).${BASE_DOMAIN}`,
+    },
+  ],
+  [
+    {
+      type: 'header',
+      key: 'x-saltana-domain',
+      value: '(?<domain>.*)',
+    },
+  ],
+]
+
+function addCreatorSpaceMatchers(rule) {
+  return CREATOR_SPACE_HAS_RULES.map((has) => ({ ...rule, has }))
+}
+
+function addMainSiteMatchers(rule) {
+  return MAIN_SITE_HAS_RULES.map((has) => ({ ...rule, has }))
+}
+
+const CREATOR_SPACE_REDIRECTS = [
+  ...addCreatorSpaceMatchers({
+    source: '/dashboard',
+    destination: `${BASE_DOMAIN}/dashboard`,
+    permanent: true,
+  }),
+  ...addCreatorSpaceMatchers({
+    source: '/spaces',
+    destination: BASE_DOMAIN,
+    permanent: false,
+  }),
+]
+
+const CREATOR_SPACE_REWRITES = {
+  beforeFiles: [
+    ...addCreatorSpaceMatchers({
+      source: '/uploads/:path*',
+      destination: '/api/methods/get-uploaded-object/:domain/:path*',
+    }),
+    ...addCreatorSpaceMatchers({
+      source: '/sitemap.xml',
+      destination: '/api/methods/get-sitemap/:domain',
+    }),
+    ...addCreatorSpaceMatchers({
+      source: '/robots.txt',
+      destination: '/api/methods/get-robots/:domain',
+    }),
+  ],
+  afterFiles: [
+    // These rewrites are checked after pages/public files
+    // are checked but before dynamic routes
+    ...addCreatorSpaceMatchers({
+      source: '/',
+      destination: '/spaces/:domain',
+    }),
+    ...addCreatorSpaceMatchers({
+      source: '/:slug*',
+      destination: '/spaces/:domain/:slug*',
+    }),
+  ],
+}
 
 module.exports = {
   typescript: {
     ignoreBuildErrors: true,
   },
   async redirects() {
-    return [
-      {
-        source: '/dashboard',
-        has: [...CREATOR_SPACE_HAS],
-        destination: `${BASE_DOMAIN}/dashboard`,
-        permanent: true,
-      },
-      {
-        source: '/spaces',
-        has: [...CREATOR_SPACE_HAS],
-        destination: BASE_DOMAIN,
-        permanent: false,
-      },
-    ]
+    return [...CREATOR_SPACE_REDIRECTS]
   },
   async rewrites() {
     return {
       beforeFiles: [
+        ...CREATOR_SPACE_REWRITES.beforeFiles,
         {
-          source: '/uploads/:path*',
-          has: [...CREATOR_SPACE_HAS],
-          destination: '/api/methods/get-uploaded-object/:domain/:path*',
-        },
-        {
-          source: '/sitemap.xml',
-          has: [...CREATOR_SPACE_HAS],
-          destination: '/api/methods/get-sitemap/:domain',
-        },
-        {
-          source: '/robots.txt',
-          has: [...CREATOR_SPACE_HAS],
-          destination: '/api/methods/get-robots/:domain',
+          source: `/api/v1/:path*`,
+          destination: `${CORE_API_URL}/:path*`,
         },
       ],
       afterFiles: [
         // These rewrites are checked after pages/public files
         // are checked but before dynamic routes
-        {
-          has: [...CREATOR_SPACE_HAS],
-          source: '/:slug*',
-          destination: '/domains/:domain/:slug*',
-        },
+        ...CREATOR_SPACE_REWRITES.afterFiles,
       ],
       fallback: [
         // These rewrites are checked after both pages/public files
         // and dynamic routes are checked
         {
           source: '/:path*',
-          destination: `https://landing-g6g19yr3n-saltana.vercel.app/:path*`,
+          destination: `https://${MARKETING_DOMAIN}/:path*`,
         },
       ],
     }
