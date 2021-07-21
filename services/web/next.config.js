@@ -88,6 +88,10 @@ module.exports = {
   async rewrites() {
     return {
       beforeFiles: [
+        {
+          source: '/',
+          destination: `https://${MARKETING_DOMAIN}/`,
+        },
         ...CREATOR_SPACE_REWRITES.beforeFiles,
         {
           source: `/api/v1/:path*`,
@@ -102,6 +106,7 @@ module.exports = {
       fallback: [
         // These rewrites are checked after both pages/public files
         // and dynamic routes are checked
+
         {
           source: '/:path*',
           destination: `https://${MARKETING_DOMAIN}/:path*`,
