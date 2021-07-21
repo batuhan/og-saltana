@@ -39,13 +39,8 @@ function addMainSiteMatchers(rule) {
 const CREATOR_SPACE_REDIRECTS = [
   ...addCreatorSpaceMatchers({
     source: '/dashboard',
-    destination: `${BASE_DOMAIN}/dashboard`,
+    destination: `https://${BASE_DOMAIN}/dashboard`,
     permanent: true,
-  }),
-  ...addCreatorSpaceMatchers({
-    source: '/spaces',
-    destination: BASE_DOMAIN,
-    permanent: false,
   }),
 ]
 
@@ -63,17 +58,29 @@ const CREATOR_SPACE_REWRITES = {
       source: '/robots.txt',
       destination: '/api/methods/get-robots/:domain',
     }),
+    ...addCreatorSpaceMatchers({
+      source: '/',
+      destination: '/spaces/:domain/',
+    }),
   ],
   afterFiles: [
     // These rewrites are checked after pages/public files
     // are checked but before dynamic routes
     ...addCreatorSpaceMatchers({
-      source: '/',
-      destination: '/spaces/:domain',
+      source: '/:link/:orderId',
+      destination: '/spaces/:domain/:link/:orderId',
     }),
     ...addCreatorSpaceMatchers({
-      source: '/:slug*',
-      destination: '/spaces/:domain/:slug*',
+      source: '/:link/checkout',
+      destination: '/spaces/:domain/:link/checkout',
+    }),
+    ...addCreatorSpaceMatchers({
+      source: '/:link/embed',
+      destination: '/spaces/:domain/:link/embed',
+    }),
+    ...addCreatorSpaceMatchers({
+      source: '/:link',
+      destination: '/spaces/:domain/:link',
     }),
   ],
 }
@@ -88,14 +95,15 @@ module.exports = {
   async rewrites() {
     return {
       beforeFiles: [
-        {
-          source: '/',
-          destination: `https://${MARKETING_DOMAIN}/`,
-        },
         ...CREATOR_SPACE_REWRITES.beforeFiles,
         {
           source: `/api/v1/:path*`,
           destination: `${CORE_API_URL}/:path*`,
+        },
+        {
+          source: '/',
+          has: MAIN_SITE_HAS_RULES,
+          destination: `https://${MARKETING_DOMAIN}/`,
         },
       ],
       afterFiles: [
