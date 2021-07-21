@@ -1,4 +1,5 @@
-const BASE_DOMAIN = process.env.VERCEL_URL || 'dev.saltana.com'
+const BASE_DOMAIN =
+  process.env.BASE_DOMAIN || process.env.VERCEL_URL || 'dev.saltana.com'
 const MARKETING_DOMAIN =
   process.env.MARKETING_DOMAIN || 'landing-g6g19yr3n-saltana.vercel.app'
 
@@ -9,8 +10,6 @@ const MAIN_SITE_HAS_RULES = [
     value: BASE_DOMAIN,
   },
 ]
-
-console.log('loaded conifg', process.env)
 
 const CREATOR_SPACE_HAS_RULES = [
   // Match only one item
@@ -95,8 +94,6 @@ module.exports = {
     return [...CREATOR_SPACE_REDIRECTS]
   },
   async rewrites() {
-    console.log('loaded conifg', process.env)
-
     return {
       beforeFiles: [
         ...CREATOR_SPACE_REWRITES.beforeFiles,
