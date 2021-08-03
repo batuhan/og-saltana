@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Config
+clusters:
+- name: "quickstart-aws-custom"
+  cluster:
+    server: "https://rancher.34.244.121.57.nip.io/k8s/clusters/c-svmsg"
+    certificate-authority-data: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJoekNDQ\
+      VM2Z0F3SUJBZ0lCQURBS0JnZ3Foa2pPUFFRREFqQTdNUnd3R2dZRFZRUUtFeE5rZVc1aGJXbGoKY\
+      kdsemRHVnVaWEl0YjNKbk1Sc3dHUVlEVlFRREV4SmtlVzVoYldsamJHbHpkR1Z1WlhJdFkyRXdIa\
+      GNOTWpFdwpOekk0TURrME5EUXdXaGNOTXpFd056STJNRGswTkRRd1dqQTdNUnd3R2dZRFZRUUtFe\
+      E5rZVc1aGJXbGpiR2x6CmRHVnVaWEl0YjNKbk1Sc3dHUVlEVlFRREV4SmtlVzVoYldsamJHbHpkR\
+      1Z1WlhJdFkyRXdXVEFUQmdjcWhrak8KUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVJvOTArbDh6bkU2c\
+      mJ3ckdrSitneVYyTHZoMVhhZTQ1K0NRQ3lmeGQyTgphZUdzNlNJcjNBcGZ4amdZZFJmbjhabGM0e\
+      W9xNTh0eEFPWnVydXd2b3BpSm95TXdJVEFPQmdOVkhROEJBZjhFCkJBTUNBcVF3RHdZRFZSMFRBU\
+      UgvQkFVd0F3RUIvekFLQmdncWhrak9QUVFEQWdOSEFEQkVBaUJEWEh5OXREelgKdDhKa2VnRmRwV\
+      3pRaTNCV1ZkOW1iNVk2WUVuOTlaOVVZd0lnTEJKeXB4QXhGTC9lVTI0QlRtMXNLYWFzU0VkdwpjW\
+      FVNcFdSZU0zMVBYNEE9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0="
+
+users:
+- name: "quickstart-aws-custom"
+  user:
+    token: "kubeconfig-user-d7c8r:t9bs2l58kp2zcdzgbs4k9vmb985sktv77jq6lknx8ddn2f5w5996pr"
+
+
+contexts:
+- name: "quickstart-aws-custom"
+  context:
+    user: "quickstart-aws-custom"
+    cluster: "quickstart-aws-custom"
+
+current-context: "quickstart-aws-custom"

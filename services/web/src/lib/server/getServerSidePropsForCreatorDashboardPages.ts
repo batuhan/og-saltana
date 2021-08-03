@@ -47,7 +47,7 @@ const getServerSidePropsForCreatorDashboardPages =
     if (context.params.creator !== currentUser.username) {
       return {
         redirect: {
-          destination: `/dashboard`,
+          destination: `/dashboard/${currentUser.username}`,
           permanent: false,
         },
       }

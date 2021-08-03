@@ -55,7 +55,7 @@ export default function CreatorDashboardLinkBasicScreen() {
               Description
             </label>
             <div tw="mt-1">
-              <RichContentField register={register} />
+              <RichContentField fieldName="description" />
             </div>
           </div>
         </div>

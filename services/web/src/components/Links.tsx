@@ -7,7 +7,7 @@ const getCreatorDashboardLink = (basePath = '') =>
     const user = useCurrentUser()
 
     return (
-      <Link href={`/${user.data.username}/dashboard${basePath}${href}`}>
+      <Link href={`/dashboard/${user.data.username}${basePath}${href}`}>
         {children}
       </Link>
     )

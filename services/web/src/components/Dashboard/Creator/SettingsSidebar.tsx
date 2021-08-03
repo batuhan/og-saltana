@@ -8,7 +8,7 @@ const navigation = [
   { name: 'Integrations', href: '/integrations', current: false },
   { name: 'Workflows', href: '/workflows', current: false },
   { name: 'Privacy', href: '/privacy', current: false },
-  { name: 'Custom Domain', href: '/custom-domain', current: false },
+  { name: 'Custom Domain', href: '/domains', current: false },
 ]
 const secondaryNavigation = []
 

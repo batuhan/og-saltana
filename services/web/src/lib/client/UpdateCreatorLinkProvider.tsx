@@ -3,7 +3,7 @@ import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
-
+import { DevTool } from '@hookform/devtools'
 import { useMutation } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -63,6 +63,7 @@ export default function UpdateCreatorLinkProvider({
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)}>{children}</form>
+      <DevTool control={methods.control} />
     </FormProvider>
   )
 }

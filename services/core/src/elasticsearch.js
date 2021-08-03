@@ -1,5 +1,4 @@
 module.exports = {
-
   getClient,
   isReady,
 
@@ -13,8 +12,7 @@ module.exports = {
   getMapping,
   updateMapping,
 
-  getErrorType
-
+  getErrorType,
 }
 
 // Elasticsearch Node.js API: https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html
@@ -26,56 +24,45 @@ const { getPlatformEnvData } = require('./redis')
 const {
   autoExpandReplicas,
   getNewIndexProperties,
-  getIndexMappingTemplate
+  getIndexMappingTemplate,
 } = require('./elasticsearch-templates')
 
 const connectionClients = {}
 const cacheClients = {}
 
-function getClientCacheKey (connection) {
-  const {
-    host,
-    protocol,
-    port,
-    user,
-    password
-  } = connection
+function getClientCacheKey(connection) {
+  const { host, protocol, port, user, password } = connection
 
   return JSON.stringify({
     host,
     protocol,
     port,
     user,
-    password
+    password,
   })
 }
 
-function getConnectionClient (connection = {}) {
+function getConnectionClient(connection = {}) {
   const key = getClientCacheKey(connection)
   if (connectionClients[key]) return connectionClients[key]
 
-  const {
-    host,
-    protocol,
-    port,
-    user,
-    password
-  } = connection
+  const { host, protocol, port, user, password } = connection
 
   const useAuth = user && password
 
-  const hidePort = (port === '80' && protocol === 'http') ||
+  const hidePort =
+    (port === '80' && protocol === 'http') ||
     (port === '443' && protocol === 'https')
 
   // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/client-configuration.html
   const params = {
-    node: `${protocol}://${host}${hidePort ? '' : ':' + port}`
+    node: `${protocol}://${host}${hidePort ? '' : ':' + port}`,
   }
 
   if (useAuth) {
     params.auth = {
       username: user,
-      password
+      password,
     }
   }
 
@@ -85,7 +72,7 @@ function getConnectionClient (connection = {}) {
   return client
 }
 
-async function getClient ({ platformId, env } = {}) {
+async function getClient({ platformId, env } = {}) {
   if (!platformId) {
     throw new Error('Missing platformId when creating an Elasticsearch client')
   }
@@ -97,6 +84,7 @@ async function getClient ({ platformId, env } = {}) {
 
   if (cacheClients[cacheKey]) return cacheClients[cacheKey]
 
+  /*
   const useRemoteStore = process.env.REMOTE_STORE === 'true'
 
   let connection
@@ -115,13 +103,14 @@ async function getClient ({ platformId, env } = {}) {
       password: elasticsearchData.password
     }
   } else {
-    connection = {
-      host: process.env.ELASTIC_SEARCH_HOST,
-      protocol: process.env.ELASTIC_SEARCH_PROTOCOL,
-      port: process.env.ELASTIC_SEARCH_PORT,
-      user: process.env.ELASTIC_SEARCH_USER,
-      password: process.env.ELASTIC_SEARCH_PASSWORD
-    }
+  }
+  */
+  const connection = {
+    host: process.env.ELASTIC_SEARCH_HOST,
+    protocol: process.env.ELASTIC_SEARCH_PROTOCOL,
+    port: process.env.ELASTIC_SEARCH_PORT,
+    user: process.env.ELASTIC_SEARCH_USER,
+    password: process.env.ELASTIC_SEARCH_PASSWORD,
   }
 
   const client = getConnectionClient(connection)
@@ -130,7 +119,12 @@ async function getClient ({ platformId, env } = {}) {
   return client
 }
 
-async function isReady ({ platformId, env, nbAttempts = 3, attemptsInterval = 2000 }) {
+async function isReady({
+  platformId,
+  env,
+  nbAttempts = 3,
+  attemptsInterval = 2000,
+}) {
   const client = await getClient({ platformId, env })
 
   for (let i = 1; i <= nbAttempts; i++) {
@@ -138,7 +132,7 @@ async function isReady ({ platformId, env, nbAttempts = 3, attemptsInterval = 20
       await client.info()
       return true
     } catch (err) {
-      await new Promise(resolve => setTimeout(resolve, attemptsInterval))
+      await new Promise((resolve) => setTimeout(resolve, attemptsInterval))
     }
   }
 
@@ -156,32 +150,34 @@ async function isReady ({ platformId, env, nbAttempts = 3, attemptsInterval = 20
  * @param {String}  [tag] - index tag (e.g. 'new')
  * @return {String} - Index name/alias
  */
-function getIndex ({ platformId, env, type = 'asset', tag } = {}) {
+function getIndex({ platformId, env, type = 'asset', tag } = {}) {
   let index = `index_${type}`
 
   if (!env) throw new Error('Missing environment')
 
+  /*
   if (process.env.REMOTE_STORE === 'true') {
     index += `_${platformId ? `${platformId}_${env}` : ''}`
   }
+  */
 
   index += `${tag ? `__${tag}` : ''}`
 
   return index
 }
 
-async function getListIndices ({ platformId, env, type }) {
+async function getListIndices({ platformId, env, type }) {
   const client = await getClient({ platformId, env })
   const indexPattern = getIndex({ platformId, env, type }) + '*'
 
   const { body: result } = await client.indices.getAlias({
-    index: indexPattern
+    index: indexPattern,
   })
 
   return result
 }
 
-async function isIndexExisting ({ platformId, env, type, tag } = {}) {
+async function isIndexExisting({ platformId, env, type, tag } = {}) {
   const client = await getClient({ platformId, env })
   const index = getIndex({ platformId, env, type, tag })
 
@@ -203,12 +199,23 @@ async function isIndexExisting ({ platformId, env, type, tag } = {}) {
  * @param {Function}  [customBodyFn] - must return the customized body (custom mappings, settings...)
  * @return {String} - Index
  */
-async function createIndex ({ platformId, env, type, customAttributes, useAlias = false, aliasTag, customBodyFn } = {}) {
+async function createIndex({
+  platformId,
+  env,
+  type,
+  customAttributes,
+  useAlias = false,
+  aliasTag,
+  customBodyFn,
+} = {}) {
   const client = await getClient({ platformId, env })
 
   // YYYY-MM-DDTHH:MM:SS.sssZ is converted into YYYY_MM_DD_HH_MM_SS_sssz
   // create a date tag so it is easy to identify them, must be lowercase
-  const tag = new Date().toISOString().replace(/[T.:-]/gi, '_').toLowerCase()
+  const tag = new Date()
+    .toISOString()
+    .replace(/[T.:-]/gi, '_')
+    .toLowerCase()
   const index = getIndex({ platformId, env, tag })
 
   const { body } = getNewIndexProperties({
@@ -223,7 +230,7 @@ async function createIndex ({ platformId, env, type, customAttributes, useAlias 
       return body
     },
     addMapping: true,
-    customAttributes
+    customAttributes,
   })
 
   if (useAlias) {
@@ -236,20 +243,20 @@ async function createIndex ({ platformId, env, type, customAttributes, useAlias 
   return index
 }
 
-async function deleteIndex ({ platformId, env, type, tag } = {}) {
+async function deleteIndex({ platformId, env, type, tag } = {}) {
   const client = await getClient({ platformId, env })
   const index = getIndex({ platformId, env, type, tag })
 
   await client.indices.delete({ index })
 }
 
-async function getCurrentIndex ({ platformId, env, type }) {
+async function getCurrentIndex({ platformId, env, type }) {
   const indices = await getListIndices({ platformId, env, type })
   const currentIndexAlias = getIndex({ platformId, env, type })
 
   let currentIndex
 
-  Object.keys(indices).forEach(index => {
+  Object.keys(indices).forEach((index) => {
     if (currentIndex) return
 
     if (indices[index].aliases[currentIndexAlias]) {
@@ -260,12 +267,12 @@ async function getCurrentIndex ({ platformId, env, type }) {
   return currentIndex
 }
 
-async function getMapping ({ platformId, env, type, tag }) {
+async function getMapping({ platformId, env, type, tag }) {
   const client = await getClient({ platformId, env })
   const index = getIndex({ platformId, env, type, tag })
 
   const { body: result } = await client.indices.getMapping({
-    index
+    index,
   })
 
   if (!result) return result
@@ -276,7 +283,13 @@ async function getMapping ({ platformId, env, type, tag }) {
   return result[indexName].mappings
 }
 
-async function updateMapping ({ platformId, env, type = 'asset', customAttributes, tag } = {}) {
+async function updateMapping({
+  platformId,
+  env,
+  type = 'asset',
+  customAttributes,
+  tag,
+} = {}) {
   const mapping = getIndexMappingTemplate({ type, customAttributes })
 
   const client = await getClient({ platformId, env })
@@ -284,7 +297,7 @@ async function updateMapping ({ platformId, env, type = 'asset', customAttribute
 
   await client.indices.putMapping({
     index,
-    body: mapping
+    body: mapping,
   })
 }
 
@@ -295,7 +308,7 @@ const REGEX_MAPPING_TYPE_ERROR = /mapper \[.*\] of different type/
  * @param {String} message
  * @return {String} errorType
  */
-function getErrorType (message) {
+function getErrorType(message) {
   if (REGEX_MAPPING_TYPE_ERROR.test(message)) {
     return 'MAPPING_TYPE_ERROR'
   } else {

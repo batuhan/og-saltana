@@ -8,23 +8,7 @@
     "url": "https://github.com/saltanahq/saltana.git"
   },
   "main": "index.js",
-  "author": "Stelace (https://stelace.com)",
-  "homepage": "https://github.com/stelace/stelace",
   "license": "GPL-3.0",
-  "keywords": [
-    "API",
-    "server",
-    "nodejs",
-    "platform",
-    "marketplace",
-    "stelace",
-    "backend",
-    "search",
-    "automation",
-    "serverless",
-    "authentication",
-    "headless-cms"
-  ],
   "scripts": {
     "start": "node server/start.js",
     "dev": "ROARR_LOG=true yarn run start",
@@ -45,7 +29,8 @@
     "knex": "knex",
     "docker:db": "docker-compose up -d postgresql redis elasticsearch",
     "docker:db:reset": "docker-compose down && docker volume prune -f",
-    "docker:apm": "COMPOSE_PROJECT_NAME=stelace_monitoring docker-compose -f docker-compose.monitoring.yml",
+    "docker:build:prod": "docker-compose -f docker-compose.prod.yml build",
+    "docker:apm": "COMPOSE_PROJECT_NAME=saltana_monitoring docker-compose -f docker-compose.monitoring.yml",
     "release": "standard-version"
   },
   "dependencies": {

@@ -10,14 +10,6 @@
       "skipFiles": ["<node_internals>/**/*.js"]
     },
     {
-      "type": "vscode-edge-devtools.debug",
-      "request": "launch",
-      "name": "Launch Microsoft Edge and open the Edge DevTools",
-      "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}",
-      "headless": true
-    },
-    {
       "name": "Launch App",
       "request": "launch",
       "runtimeArgs": ["run", "dev"],
@@ -26,29 +18,15 @@
       "skipFiles": ["<node_internals>/**"],
       "type": "pwa-node"
     },
-
     {
       "name": "Launch Core",
       "request": "launch",
       "runtimeArgs": ["run", "dev"],
       "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/packages/core",
+      "cwd": "${workspaceFolder}/services/core",
       "skipFiles": ["<node_internals>/**"],
       "type": "node"
     },
-
-    {
-      "type": "browse-lite",
-      "request": "attach",
-      "name": "Browse Lite: Attach"
-    },
-    {
-      "type": "browse-lite",
-      "request": "launch",
-      "name": "Browse Lite: Launch",
-      "url": "http://localhost:3000"
-    },
-
     {
       "type": "node",
       "name": "vscode-jest-tests",
