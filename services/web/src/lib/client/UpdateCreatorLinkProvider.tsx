@@ -14,34 +14,31 @@ const schema = yup.object().shape({
   age: yup.number().positive().integer().required(),
 })
 
+const validFields = {
+  link: [
+    'destination',
+    'slug',
+    'content',
+    // 'username',
+  ],
+  asset: ['name', 'price', 'categoryId', 'assetTypeId'],
+}
 export default function UpdateCreatorLinkProvider({
   children,
   creator,
   asset,
   link,
 }) {
-  console.log('got link', link)
   const methods = useForm({
     defaultValues: {
-      link: _.pick(link.data, [
-        'destination',
-        'linkType',
-        'assetId',
-        'slug',
-        'content',
-        // 'username',
-      ]),
-      asset: _.pick(asset.data || {}, [
-        'name',
-        'price',
-        'categoryId',
-        'assetTypeId',
-      ]),
+      link: _.pick(link.data, [...validFields.link, 'assetId', 'linkType']),
+      asset: _.pick(asset.data || {}, validFields.asset),
     },
-    resolver: yupResolver(schema),
+    //resolver: yupResolver(schema),
   })
+
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
   } = methods
@@ -49,8 +46,14 @@ export default function UpdateCreatorLinkProvider({
   const updateLink = useMutation(async (data) => {
     const saltanaInstance = await getSaltanaInstance()
     const [linkResult, assetResult] = await Promise.all([
-      saltanaInstance.links.update(data.link),
-      saltanaInstance.assets.update(data.asset),
+      saltanaInstance.links.update(
+        link.data.id,
+        _.pick(data.link, validFields.link)
+      ),
+      saltanaInstance.assets.update(
+        asset.data.id,
+        _.pick(data.asset, validFields.asset)
+      ),
     ])
 
     return { link: linkResult, asset: assetResult }
@@ -62,8 +65,8 @@ export default function UpdateCreatorLinkProvider({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)}>{children}</form>
-      <DevTool control={methods.control} />
+      <form onSubmit={handleSubmit(onSubmit)}>{children}</form>
+      {process.env.NODE_ENV === 'development' && <DevTool control={control} />}
     </FormProvider>
   )
 }

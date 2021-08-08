@@ -194,7 +194,6 @@ export default class Editor extends PureComponent<ExampleEditorProps> {
 
     return (
       <div style={{ height: '100%' }}>
-        {this.renderExternalToolbar()}
         <div ref={(ref) => (this.staticToolbarContainer = ref)} />
         <div className="editor">
           <RicosEditor

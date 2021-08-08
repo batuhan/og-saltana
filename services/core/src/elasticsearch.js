@@ -84,15 +84,21 @@ async function getClient({ platformId, env } = {}) {
 
   if (cacheClients[cacheKey]) return cacheClients[cacheKey]
 
-  /*
   const useRemoteStore = process.env.REMOTE_STORE === 'true'
 
   let connection
 
   if (useRemoteStore) {
-    const elasticsearchData = await getPlatformEnvData(platformId, env, 'elasticsearch')
+    const elasticsearchData = await getPlatformEnvData(
+      platformId,
+      env,
+      'elasticsearch'
+    )
     if (!elasticsearchData) {
-      throw createError(500, 'ElasticSearch missing environment variables', { platformId, env })
+      throw createError(500, 'ElasticSearch missing environment variables', {
+        platformId,
+        env,
+      })
     }
 
     connection = {
@@ -100,17 +106,16 @@ async function getClient({ platformId, env } = {}) {
       protocol: elasticsearchData.protocol,
       port: elasticsearchData.port,
       user: elasticsearchData.user,
-      password: elasticsearchData.password
+      password: elasticsearchData.password,
     }
   } else {
-  }
-  */
-  const connection = {
-    host: process.env.ELASTIC_SEARCH_HOST,
-    protocol: process.env.ELASTIC_SEARCH_PROTOCOL,
-    port: process.env.ELASTIC_SEARCH_PORT,
-    user: process.env.ELASTIC_SEARCH_USER,
-    password: process.env.ELASTIC_SEARCH_PASSWORD,
+    connection = {
+      host: process.env.ELASTIC_SEARCH_HOST,
+      protocol: process.env.ELASTIC_SEARCH_PROTOCOL,
+      port: process.env.ELASTIC_SEARCH_PORT,
+      user: process.env.ELASTIC_SEARCH_USER,
+      password: process.env.ELASTIC_SEARCH_PASSWORD,
+    }
   }
 
   const client = getConnectionClient(connection)
@@ -155,11 +160,9 @@ function getIndex({ platformId, env, type = 'asset', tag } = {}) {
 
   if (!env) throw new Error('Missing environment')
 
-  /*
   if (process.env.REMOTE_STORE === 'true') {
     index += `_${platformId ? `${platformId}_${env}` : ''}`
   }
-  */
 
   index += `${tag ? `__${tag}` : ''}`
 

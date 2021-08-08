@@ -36,11 +36,11 @@ const screens = [
     onLinkTypes: ['*'],
   },
   {
-    name: 'Stats',
-    path: 'stats',
-    Component: Stats,
+    name: 'Deliverables',
+    path: 'deliverables',
+    Component: Deliverables,
     current: false,
-    onLinkTypes: ['*'],
+    onLinkTypes: ['asset'],
   },
   {
     name: 'Workflows',
@@ -50,13 +50,6 @@ const screens = [
     onLinkTypes: ['*'],
   },
   {
-    name: 'Deliverables',
-    path: 'deliverables',
-    Component: Deliverables,
-    current: false,
-    onLinkTypes: ['asset'],
-  },
-  {
     name: 'Discounts & Vouchers',
     path: 'deliverables',
     Component: Discounts,
@@ -64,30 +57,9 @@ const screens = [
     onLinkTypes: ['asset'],
   },
   {
-    name: 'Orders',
-    path: 'orders',
-    Component: Orders,
-    current: false,
-    onLinkTypes: ['asset'],
-  },
-  {
-    name: 'Access',
-    path: 'access',
-    Component: Access,
-    current: false,
-    onLinkTypes: ['*'],
-  },
-  {
     name: 'Customize',
     path: 'customize',
     Component: Customize,
-    current: false,
-    onLinkTypes: ['embed', 'asset'],
-  },
-  {
-    name: 'Advanced',
-    path: 'advanced',
-    Component: Advanced,
     current: false,
     onLinkTypes: ['embed', 'asset'],
   },
@@ -141,24 +113,15 @@ export default function CreatorDashboardLinkScreen() {
           <CreatorDashboardLinkSubHeader link={link} isLink={isLink} />
         }
       >
-        <div tw="py-6">
-          <div tw="max-w-3xl mx-auto sm:px-6 lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-12 lg:gap-8">
-            <div tw="hidden lg:block lg:col-span-3 xl:col-span-2">
-              <nav
-                aria-label="Sidebar"
-                tw="sticky top-6 divide-y divide-gray-300"
-              >
-                <CreatorDashboardLinkSidebar
-                  screens={filteredScreens}
-                  linkId={link.data.id}
-                />
-              </nav>
-            </div>
-            <main tw="lg:col-span-9 xl:col-span-10">
-              <CurrentScreen.Component link={link} />
-            </main>
+       <main tw="max-w-4xl mx-auto pt-0 pb-12 px-4 lg:pb-10">
+          <CreatorDashboardLinkSidebar
+            screens={filteredScreens}
+            linkId={link.data.id}
+          />
+          <div tw="pt-5">
+          <CurrentScreen.Component link={link} />
           </div>
-        </div>
+        </main>
       </DashboardShell>
     </UpdateCreatorLinkProvider>
   )

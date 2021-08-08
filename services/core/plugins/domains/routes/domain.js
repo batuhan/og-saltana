@@ -14,6 +14,28 @@ function init(server, { middlewares, helpers } = {}) {
 
   server.get(
     {
+      name: 'domain.checkAvailability',
+      path: '/domains/check-availability',
+    },
+    checkPermissions(['domain:list:all']),
+    wrapAction(async (req, res) => {
+      const fields = ['domain']
+
+      const payload = _.pick(req.query, fields)
+
+      let params = populateRequesterParams(req)({
+        type: 'checkAvailability',
+      })
+
+      params = Object.assign({}, params, payload)
+
+      const result = await requester.send(params)
+      return result
+    })
+  )
+
+  server.get(
+    {
       name: 'domain.list',
       path: '/domains',
     },

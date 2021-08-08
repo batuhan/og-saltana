@@ -111,18 +111,25 @@ async function getConnection({ platformId, env } = {}) {
   if (!env) {
     throw new Error('Missing environment when retrieving PostgreSQL connection')
   }
-  /*
+
   let connection
   let schema
 
- const useRemoteStore = process.env.REMOTE_STORE === 'true'
+  const useRemoteStore = process.env.REMOTE_STORE === 'true'
 
   let sslOptions
 
   if (useRemoteStore) {
-    const postgresqlData = await getPlatformEnvData(platformId, env, 'postgresql')
+    const postgresqlData = await getPlatformEnvData(
+      platformId,
+      env,
+      'postgresql'
+    )
     if (!postgresqlData) {
-      throw createError(500, 'PostgreSQL missing environment variables', { platformId, env })
+      throw createError(500, 'PostgreSQL missing environment variables', {
+        platformId,
+        env,
+      })
     }
 
     connection = {
@@ -131,32 +138,31 @@ async function getConnection({ platformId, env } = {}) {
       password: postgresqlData.password,
       database: postgresqlData.database,
       port: postgresqlData.port,
-      schema: postgresqlData.schema
+      schema: postgresqlData.schema,
     }
 
     sslOptions = getSSLOptions(postgresqlData)
 
     schema = postgresqlData.schema
-  } else {}
-*/
+  } else {
+    connection = {
+      host: process.env.POSTGRES_HOST,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+      port: process.env.POSTGRES_PORT,
+      schema: 'public',
+    }
 
-  const connection = {
-    host: process.env.POSTGRES_HOST,
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DB,
-    port: process.env.POSTGRES_PORT,
-    schema: 'public',
+    sslOptions = getSSLOptions({
+      ssl: process.env.POSTGRES_SSL,
+      sslcert: process.env.POSTGRES_SSL_CERT,
+      sslkey: process.env.POSTGRES_SSL_KEY,
+      sslca: process.env.POSTGRES_SSL_CA,
+    })
+
+    schema = 'public'
   }
-
-  const sslOptions = getSSLOptions({
-    ssl: process.env.POSTGRES_SSL,
-    sslcert: process.env.POSTGRES_SSL_CERT,
-    sslkey: process.env.POSTGRES_SSL_KEY,
-    sslca: process.env.POSTGRES_SSL_CA,
-  })
-
-  const schema = 'public'
 
   if (sslOptions) connection.ssl = sslOptions
 

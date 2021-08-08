@@ -16,7 +16,7 @@ export default function AssetPriceField({ register }) {
             required: true,
           })}
           id="asset.price"
-          tw="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
+          tw="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md"
           placeholder="0.00"
         />
         <div tw="absolute inset-y-0 right-0 flex items-center">

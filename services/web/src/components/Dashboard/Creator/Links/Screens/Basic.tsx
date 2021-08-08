@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { PlusIcon } from '@heroicons/react/outline'
 import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
 import useCreatorSpace from 'hooks/useCreatorSpace'
@@ -8,6 +9,7 @@ import { useFormContext } from 'react-hook-form'
 import RichContentField from 'components/Dashboard/Common/Fields/RichContentField'
 import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
 import { NextSeo } from 'next-seo'
+import { Card, CardSection, InputField } from '@kiwicom/orbit-components'
 
 export default function CreatorDashboardLinkBasicScreen() {
   const { register } = useFormContext()
@@ -17,11 +19,42 @@ export default function CreatorDashboardLinkBasicScreen() {
   return (
     <main>
       <NextSeo title="Basic" />
-
-      {link.data?.linkType === 'asset' && (
-        <AssetPriceField register={register} />
-      )}
-
+      <div tw="grid grid-cols-1 gap-y-6 sm:grid-cols-6 sm:gap-x-6">
+        {link.data?.linkType === 'asset' && (
+          <>
+            <div tw="sm:col-span-3">
+              <label htmlFor="asset.name" tw="block text-sm font-medium">
+                Name
+              </label>
+              <input
+                type="text"
+                {...register('asset.name', {
+                  required: true,
+                })}
+                tw="mt-1 block w-full rounded-md shadow-sm  sm:text-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div tw="sm:col-span-3">
+              <AssetPriceField register={register} />
+            </div>
+          </>
+        )}
+      </div>
+      <div tw="space-y-6 sm:col-span-6">
+        <div tw="px-10 py-5">
+          <h3 tw="text-lg leading-6 font-medium text-gray-900">Description</h3>
+          <p tw="mt-1 text-sm text-gray-500">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit quam
+            corrupti consectetur.
+          </p>
+          <div tw=" ">
+            <RichContentField
+              fieldName="link.content"
+              content={link.data?.content}
+            />
+          </div>
+        </div>
+      </div>
       {link.data?.linkType !== 'asset' && link.data?.destination && (
         <div tw="space-y-6">
           <div>
@@ -44,29 +77,6 @@ export default function CreatorDashboardLinkBasicScreen() {
           </div>
         </div>
       )}
-
-      {link.data?.linkType === 'asset' && (
-        <div tw="space-y-10">
-          <div>
-            <label
-              htmlFor="description"
-              tw="block text-sm font-medium text-gray-700"
-            >
-              Description
-            </label>
-            <div tw="mt-1">
-              <RichContentField fieldName="description" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div tw="space-y-10">
-        <CreatorSlugField
-          username={creator.data.username}
-          register={register}
-        />
-      </div>
     </main>
   )
 }
