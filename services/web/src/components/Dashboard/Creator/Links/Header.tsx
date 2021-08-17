@@ -19,6 +19,7 @@ export default function SubHeader({ link, isLink }) {
     formState: { isDirty, isSubmitting, isValid },
   } = useFormContext()
 
+  const { creator } = useCreatorSpace()
   return (
     <div tw="bg-black text-white">
       <div tw="max-w-3xl mx-auto px-4 pb-5 sm:px-6 lg:max-w-5xl lg:px-8">
@@ -97,8 +98,9 @@ export default function SubHeader({ link, isLink }) {
                   />
                   Analytics
                 </button>
-                <button
-                  type="button"
+                <a
+                  href={`https://${creator.data.username}.dev.saltana.com/${link.data.slug}`}
+                  target="_blank"
                   tw="ml-1 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 hover:bg-gray-800 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500"
                 >
                   <ExternalLinkIcon
@@ -106,7 +108,7 @@ export default function SubHeader({ link, isLink }) {
                     aria-hidden="true"
                   />
                   See live
-                </button>
+                </a>
                 <button
                   type="submit"
                   disabled={!isDirty || isSubmitting}
@@ -115,7 +117,7 @@ export default function SubHeader({ link, isLink }) {
                     tw`ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500`,
                   ]}
                 >
-                  Publish changes {!isValid && "SOMETHING IS WRONG"}
+                  Publish changes {!isValid && 'SOMETHING IS WRONG'}
                 </button>
               </div>
             </div>

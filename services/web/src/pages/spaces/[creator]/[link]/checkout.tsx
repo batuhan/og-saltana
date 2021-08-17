@@ -5,25 +5,14 @@ import { useCart } from 'react-use-cart'
 import { Elements } from '@stripe/react-stripe-js'
 import getStripe from '@/client/stripe'
 import React, { useEffect } from 'react'
-import CheckoutForm from 'components/CreatorSpace/Asset/CheckoutForm'
+import CheckoutForm from 'components/Checkout/CheckoutForm'
+import tw from 'twin.macro'
 
 interface ProductLineProps {
   name?: string
   price: number
   children?: React.ReactNode
   id: string
-}
-
-export const ProductLine = (props: ProductLineProps) => {
-  const { name, id, price, quantity } = props
-  const { removeItem } = useCart()
-
-  return (
-    <div>
-      {name} ({quantity}) ${price}
-      <span onClick={() => removeItem(id)}>remove</span>
-    </div>
-  )
 }
 
 const CreatorSpaceCheckout = ({ embed }) => {
@@ -34,7 +23,8 @@ const CreatorSpaceCheckout = ({ embed }) => {
     if (isEmpty && asset.data) {
       addItem({
         id: asset.data.id,
-        price: asset.data.amount,
+        price: asset.data.price,
+        currency: asset.data.currency,
         name: asset.data.name,
       })
     }
@@ -49,13 +39,8 @@ const CreatorSpaceCheckout = ({ embed }) => {
 
   return (
     <CreatorSpaceShell>
-      {asset.data && <div>{JSON.stringify(asset.data)}</div>}
-      Cart ({totalUniqueItems})
-      {items.map((item) => (
-        <ProductLine key={item.id} {...item} />
-      ))}
       <Elements stripe={getStripe()}>
-        <CheckoutForm cartTotal={cartTotal} items={items} />
+        <CheckoutForm />
       </Elements>
     </CreatorSpaceShell>
   )

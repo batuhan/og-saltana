@@ -10,20 +10,20 @@ import useUpdateCurrentUser from 'hooks/useUpdateCurrentUser'
 import { useRouter } from 'next/router'
 import { useForm } from 'react-hook-form'
 import CreatorDashboardSettingsShell from 'components/Dashboard/Creator/SettingsShell'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import { useState } from 'react'
 
 const Editor = dynamic(
-  () => import('components/Dashboard/Common/Editor/Editor'),
+  () => import('components/ContentEditor/Editor/EditorWrapper'),
   {
     ssr: false,
-  }
+  },
 )
 const Uploader = dynamic(
-  () => import('components/Dashboard/Common/Editor/Uploader'),
+  () => import('components/ContentEditor/Editor/Uploader'),
   {
     ssr: false,
-  }
+  },
 )
 
 function CustomizeCreatorSpace() {
@@ -171,7 +171,7 @@ function CustomizeCreatorSpace() {
 
                   setValue(
                     'metadata.instant.avatarUrl',
-                    result.response.uploadURL
+                    result.response.uploadURL,
                   )
                   console.log(result, 'onTransloaditResult for avatar url')
                 }}
@@ -205,7 +205,7 @@ function CustomizeCreatorSpace() {
 
                   setValue(
                     'metadata.instant.coverUrl',
-                    result.response.uploadURL
+                    result.response.uploadURL,
                   )
                   console.log(result, 'onTransloaditResult')
                 }}

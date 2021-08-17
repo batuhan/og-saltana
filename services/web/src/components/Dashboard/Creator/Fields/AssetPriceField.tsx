@@ -3,9 +3,6 @@ import 'twin.macro'
 export default function AssetPriceField({ register }) {
   return (
     <div>
-      <label htmlFor="asset.price" tw="block text-sm font-medium text-gray-700">
-        Price
-      </label>
       <div tw="mt-1 relative rounded-md shadow-sm">
         <div tw="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <span tw="text-gray-500 sm:text-sm">$</span>

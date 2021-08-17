@@ -5,13 +5,13 @@ import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePr
 import { NextSeo } from 'next-seo'
 import dynamic from 'next/dynamic'
 
-import Uploader from 'components/Dashboard/Common/Editor/Uploader'
+import Uploader from 'components/ContentEditor/Editor/Uploader'
 
 const Editor = dynamic(
-  () => import('components/Dashboard/Common/Editor/Editor'),
+  () => import('components/ContentEditor/Editor/EditorSink'),
   {
     ssr: false,
-  }
+  },
 )
 
 export function ExampleOther() {

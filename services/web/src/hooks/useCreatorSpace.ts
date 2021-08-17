@@ -17,8 +17,9 @@ export default function useCreatorSpace() {
     link.data?.linkType === 'asset' &&
     link.data?.assetId
   )
+
   const asset = useApi('assets', 'read', link.data?.assetId, {
-    enabled: !!link.data?.assetId,
+    enabled: link.data?.assetId !== null && isAssetLink,
   })
 
   const isLoading =

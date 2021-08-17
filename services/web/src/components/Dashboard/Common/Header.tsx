@@ -15,7 +15,7 @@ import useCurrentUser from 'hooks/useCurrentUser'
 import Link from 'next/link'
 
 const creatorNavigation = [
-  { name: 'Dashboard', href: '/', current: true },
+  { name: 'Dashboard', href: '/', current: false },
   {
     name: 'Links',
     href: '/links',
@@ -49,7 +49,11 @@ export default function Header() {
   const user = useCurrentUser()
   const router = useRouter()
   const isRegularUserPath = router.pathname.startsWith('/my/')
-  const navigation = isRegularUserPath ? userNavigation : creatorNavigation
+  const navigation = (
+    isRegularUserPath ? userNavigation : creatorNavigation
+  ).map((item) => {
+    return { ...item, current: router.pathname.includes(item.href) }
+  })
   const NavigationLink = isRegularUserPath
     ? UserDashboardLink
     : CreatorDashboardLink

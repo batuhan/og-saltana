@@ -2,8 +2,9 @@ import * as React from 'react'
 import CreatorSpaceShell from 'components/CreatorSpace/Shell'
 
 import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreatorSpacePages'
-import NotionBox from 'components/CreatorSpace/LinkContentBoxes/NotionBox'
+
 import useCreatorSpace from 'hooks/useCreatorSpace'
+import NotionBox from 'components/ContentViewer/Notion'
 
 const CreatorLink = ({ embed }) => {
   const { isLink, link, asset, creator } = useCreatorSpace()

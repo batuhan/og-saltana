@@ -11,6 +11,8 @@ const MAIN_SITE_HAS_RULES = [
   },
 ]
 
+console.log('BASE_DOMAIN', BASE_DOMAIN)
+
 const CREATOR_SPACE_HAS_RULES = [
   // Match only one item
   //  /^(https?:\/\/)?(www\.)?(saltana|vercel)\.com$/,
@@ -59,14 +61,15 @@ const CREATOR_SPACE_REWRITES = {
       source: '/robots.txt',
       destination: '/api/methods/get-robots/:domain',
     }),
-    ...addCreatorSpaceMatchers({
-      source: '/',
-      destination: '/spaces/:domain/',
-    }),
   ],
   afterFiles: [
     // These rewrites are checked after pages/public files
     // are checked but before dynamic routes
+
+    ...addCreatorSpaceMatchers({
+      source: '/',
+      destination: '/spaces/:domain/home',
+    }),
     ...addCreatorSpaceMatchers({
       source: '/:link/:orderId',
       destination: '/spaces/:domain/:link/:orderId',
@@ -82,6 +85,10 @@ const CREATOR_SPACE_REWRITES = {
     ...addCreatorSpaceMatchers({
       source: '/:link',
       destination: '/spaces/:domain/:link',
+    }),
+    ...addCreatorSpaceMatchers({
+      source: '/',
+      destination: '/spaces/:domain',
     }),
   ],
 }
@@ -126,7 +133,7 @@ module.exports = {
   webpack: (config) => {
     // Let Babel compile outside of src/.
     const tsRule = config.module.rules.find(
-      (rule) => rule.test && rule.test.toString().includes('tsx|ts')
+      (rule) => rule.test && rule.test.toString().includes('tsx|ts'),
     )
     tsRule.include = undefined
     tsRule.exclude = /node_modules/

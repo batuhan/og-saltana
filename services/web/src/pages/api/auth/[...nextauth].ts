@@ -45,9 +45,7 @@ export default NextAuth({
      * @return {string}          URL the client will be redirect to
      */
     async redirect(url, baseUrl) {
-      return url.startsWith(baseUrl)
-        ? url
-        : baseUrl
+      return url.startsWith(baseUrl) ? url : baseUrl
     },
     async session(session, token) {
       const newSession = { ...session }
@@ -65,6 +63,9 @@ export default NextAuth({
       token.sub = token.sub || (profile.userId as string)
       token.roles = token?.roles || profile?.roles
       return token
+    },
+    async redirect(url, baseUrl) {
+      return url
     },
   },
   pages: {

@@ -11,7 +11,7 @@ import DashboardShell from 'components/Dashboard/Common/Shell'
 import useApi from 'hooks/useApi'
 import useApiMutation from 'hooks/useApiMutation'
 import useCurrentUser from 'hooks/useCurrentUser'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import AssetCategoryField from 'components/Dashboard/Creator/Fields/AssetCategoryField'
 import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
 import useCreatorSpace from 'hooks/useCreatorSpace'
@@ -146,5 +146,5 @@ export const getServerSideProps = getServerSidePropsForCreatorDashboardPages(
     queryClient.setQueryData(['categories', 'list', {}], categories)
 
     return {}
-  }
+  },
 )

@@ -8,6 +8,7 @@ import { useMutation } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { useBeforeUnload } from 'react-use'
 
 const schema = yup.object().shape({
   firstName: yup.string().required(),
@@ -21,7 +22,13 @@ const validFields = {
     'content',
     // 'username',
   ],
-  asset: ['name', 'price', 'categoryId', 'assetTypeId'],
+  asset: [
+    'name',
+    'price',
+    'categoryId',
+    'assetTypeId',
+    'metadata.deliverables',
+  ],
 }
 export default function UpdateCreatorLinkProvider({
   children,
@@ -48,11 +55,11 @@ export default function UpdateCreatorLinkProvider({
     const [linkResult, assetResult] = await Promise.all([
       saltanaInstance.links.update(
         link.data.id,
-        _.pick(data.link, validFields.link)
+        _.pick(data.link, validFields.link),
       ),
       saltanaInstance.assets.update(
         asset.data.id,
-        _.pick(data.asset, validFields.asset)
+        _.pick(data.asset, validFields.asset),
       ),
     ])
 

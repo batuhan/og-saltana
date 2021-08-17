@@ -18,7 +18,7 @@ const getServerSidePropsForCreatorDashboardPages =
       instance,
       queryClient,
       context,
-    }) => Promise.resolve({})
+    }) => Promise.resolve({}),
   ) =>
   async (context) => {
     const session = await getSession(context)
@@ -77,7 +77,9 @@ const getServerSidePropsForCreatorDashboardPages =
     if (context.params.asset) {
       const asset = await instance.assets.read(context.params.asset) // in the dashboard, the asset param is always an id
       // @TODO: if no valid item is found, we should show 404
-      queryClient.setQueryData(['assets', 'read', asset.id], asset)
+      if (asset.id) {
+        queryClient.setQueryData(['assets', 'read', asset.id], asset)
+      }
     }
 
     if (context.params.order) {

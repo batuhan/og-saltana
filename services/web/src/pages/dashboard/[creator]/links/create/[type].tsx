@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
 import DashboardShell from 'components/Dashboard/Common/Shell'
 import useApiMutation from 'hooks/useApiMutation'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 
 export default function CreatorDashboardCreateSmartLink(props) {

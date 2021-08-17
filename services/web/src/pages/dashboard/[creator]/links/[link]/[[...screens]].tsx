@@ -8,7 +8,7 @@ import useApiMutation from 'hooks/useApiMutation'
 import useCurrentUser from 'hooks/useCurrentUser'
 import React, { Suspense, useMemo } from 'react'
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import _ from 'lodash'
 
 import GmailLoader from 'components/Dashboard/Common/PlaceholderContent'
@@ -72,7 +72,7 @@ export default function CreatorDashboardLinkScreen() {
   const [screenPath] = (router.query.screens as string[]) || ['']
   const CurrentScreen = useMemo(
     () => screens.find(({ path }) => path === screenPath),
-    [screenPath]
+    [screenPath],
   )
 
   const linkType = link.data?.linkType
@@ -94,7 +94,7 @@ export default function CreatorDashboardLinkScreen() {
           ...item,
           current: CurrentScreen.name === item.name,
         })),
-    [screenPath, linkType, CurrentScreen]
+    [screenPath, linkType, CurrentScreen],
   )
 
   if (isLoading) {
@@ -113,13 +113,13 @@ export default function CreatorDashboardLinkScreen() {
           <CreatorDashboardLinkSubHeader link={link} isLink={isLink} />
         }
       >
-       <main tw="max-w-4xl mx-auto pt-0 pb-12 px-4 lg:pb-10">
+        <main tw="max-w-4xl mx-auto pt-0 pb-12 px-4 lg:pb-10">
           <CreatorDashboardLinkSidebar
             screens={filteredScreens}
             linkId={link.data.id}
           />
           <div tw="pt-5">
-          <CurrentScreen.Component link={link} />
+            <CurrentScreen.Component link={link} />
           </div>
         </main>
       </DashboardShell>

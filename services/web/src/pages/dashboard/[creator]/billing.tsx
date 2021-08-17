@@ -6,13 +6,18 @@ import _ from 'lodash'
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
 import { NextSeo } from 'next-seo'
 import dynamic from 'next/dynamic'
-import Uploader from 'components/Dashboard/Common/Editor/Uploader'
 
 const Editor = dynamic(
-  () => import('components/Dashboard/Common/Editor/Editor'),
+  () => import('components/ContentEditor/Editor/EditorWrapper'),
   {
     ssr: false,
-  }
+  },
+)
+const Uploader = dynamic(
+  () => import('components/ContentEditor/Editor/Uploader'),
+  {
+    ssr: false,
+  },
 )
 
 export function ExampleOther() {

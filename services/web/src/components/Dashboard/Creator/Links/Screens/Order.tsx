@@ -1,5 +1,5 @@
 import { PlusIcon } from '@heroicons/react/outline'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { NextSeo } from 'next-seo'
 import 'twin.macro'
