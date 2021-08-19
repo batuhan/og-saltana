@@ -71,13 +71,14 @@ export default function CreatorDashboardCustomize() {
                       ))}
                     </div>
                   </div>
-                </section>
-                <CreatorDashboardNewLinkBox />
+                </section>{' '}
+                <CreatorDashboardNotificationsFeed />
               </div>
 
               {/* Right column */}
               <div tw="grid grid-cols-1 gap-4 px-3 py-3">
-                <CreatorDashboardNotificationsFeed />
+                <h3 tw="text-lg">Add a new...</h3>
+                <CreatorDashboardNewLinkBox />
               </div>
             </div>
           </div>

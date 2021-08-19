@@ -3,6 +3,26 @@ const debug = require('debug')('saltana:integrations:stripe')
 const _ = require('lodash')
 const { parsePublicPlatformId } = require('@saltana/util-keys')
 
+
+async function getStripe(req, configRequester) {
+  const privateConfig = await configRequester.communicate(req)({
+    type: '_getConfig',
+    access: 'private'
+  })
+
+  const { secretApiKey } = _.get(privateConfig, 'saltana.integrations.stripe', {})
+  if (!secretApiKey) throw createError(403, 'Stripe secret API key not configured')
+
+  const stripe = Stripe(secretApiKey)
+
+  if (typeof _.get(stripe, method) !== 'function') {
+    throw createError(400, 'Stripe method not found', { public: { method } })
+  }
+
+  return stripe
+}
+
+
 module.exports = function createService (deps) {
   const {
     createError,
@@ -16,22 +36,45 @@ module.exports = function createService (deps) {
     webhook
   }
 
+  // @Todo: this function is currently handled by the web app but it should move here so we don't have to share secrets to the web app
+  async function _createPaymentIntent(req) {}
+
+  // takes a payment intent id of an already captured payment (payment is handled by the web app)
+  // firsst check if we have the user in our database
+  // - if we have the user:
+  //    - check if has stripe customer id, if not create it and update the user
+  // - if we don't have the user:
+  //    - create a stripe customer first (purely as an optimization), create a saltana user with the stripe customer id
+  // attaches the payment intent to the customer
+  // returns the user id so we can create the transaction and the order in a workflow
+
+  async function _finalizeCapturedPaymentIntent(req) {
+    const stripe = await getStripe(req, configRequester)
+
+    const platformId = req.platformId
+    const paymentIntentId = req.paymentIntentId
+    const env = req.env
+    const { User } = await getModels({ platformId, env })
+
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(
+      paymentIntentId
+    );
+    if (!paymentIntent) throw createError(400, 'Payment intent not found')
+    if (paymentIntent.status !== 'succeeded') throw createError(400, 'Payment intent not succeeded (yet?)')
+
+    const customerId = paymentIntent.customer
+    const user = await User.query()
+    .where('id', userId)
+    .orWhere('username', userId)
+    .orWhere('email', userId) // @TODO: this is ugly
+    .first()
+  }
+
   async function sendRequest (req) {
     const { env, method, args = [{}] } = req
 
-    const privateConfig = await configRequester.communicate(req)({
-      type: '_getConfig',
-      access: 'private'
-    })
-
-    const { secretApiKey } = _.get(privateConfig, 'saltana.integrations.stripe', {})
-    if (!secretApiKey) throw createError(403, 'Stripe secret API key not configured')
-
-    const stripe = Stripe(secretApiKey)
-
-    if (typeof _.get(stripe, method) !== 'function') {
-      throw createError(400, 'Stripe method not found', { public: { method } })
-    }
+    const stripe = await getStripe(req, configRequester)
 
     try {
       // awaiting to handle error in catch block
@@ -127,4 +170,42 @@ module.exports = function createService (deps) {
 
     return { success: true }
   }
+
+
+
 }
+responder.on('_finalizeCapturedPaymentIntent', async (req) => {
+  const { platformId, env, paymentIntentId, organizationId } = req
+
+  const stripe 
+  const platformId = req.platformId
+  const env = req.env
+  const { User } = await getModels({ platformId, env })
+
+  const userId = req.userId
+
+  const user = await User.query()
+    .where('id', userId)
+    .orWhere('username', userId)
+    .orWhere('email', userId) // @TODO: this is ugly
+    .first()
+
+  if (!user) {
+    throw createError(404)
+  }
+
+  // first check if we have the user in our database
+  // - if we have the user:
+  //    - check if has stripe customer id, if not create it and update the user
+  // - if we don't have the user:
+  //    - create a stripe customer first (purely as an optimization), create a saltana user with the stripe customer id
+  // attach the payment intent to the customer
+  
+  const result = await isOrganizationMember({
+    platformId,
+    env,
+    userId,
+    organizationId,
+  })
+  return result
+})

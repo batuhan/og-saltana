@@ -5,6 +5,7 @@ import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreato
 
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import NotionBox from 'components/ContentViewer/Notion'
+import ViewerWrapper from 'components/ContentEditor/Editor/ViewerWrapper'
 
 const CreatorLink = ({ embed }) => {
   const { isLink, link, asset, creator } = useCreatorSpace()
@@ -12,6 +13,8 @@ const CreatorLink = ({ embed }) => {
     <CreatorSpaceShell>
       <div>
         {link.data && <pre>{JSON.stringify(link.data)}</pre>}
+
+        <ViewerWrapper content={link.data?.content} />
         {asset.data && <pre>{JSON.stringify(asset.data)}</pre>}
         {creator.data && <pre>{JSON.stringify(creator.data)}</pre>}
         {isLink && embed?.provider === 'notion' && (

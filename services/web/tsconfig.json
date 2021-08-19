@@ -19,6 +19,7 @@
     "baseUrl": "./src",
     "paths": {
       "@/client/*": ["lib/client/*"],
+      "@/common/*": ["lib/common/*"],
       "@/server/*": ["lib/server/*"]
     }
   },

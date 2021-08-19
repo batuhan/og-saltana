@@ -20,6 +20,9 @@ import {
   pluginDivider,
   createDividerPlugin,
 } from 'wix-rich-content-plugin-divider'
+
+import { pluginSoundCloud } from 'wix-rich-content-plugin-sound-cloud'
+
 import { pluginEmoji } from 'wix-rich-content-plugin-emoji'
 import { pluginFileUpload } from 'wix-rich-content-plugin-file-upload'
 import { pluginGallery } from 'wix-rich-content-plugin-gallery'
@@ -177,6 +180,7 @@ const plugins = [
     getVideoUrl: (src) => `https://video.wixstatic.com/${src.pathname}`,
     exposeButtons: [videoButtonsTypes.video, videoButtonsTypes.soundCloud],
   }),
+  pluginSoundCloud(),
   pluginLinkPreview(configs.linkPreview),
   pluginPoll(),
   pluginUndoRedo(),
@@ -211,6 +215,7 @@ const pluginsMap = {
   collapsibleList: pluginCollapsibleList(),
   table: pluginTable(),
   highlight: pluginTextHighlight(),
+  soundCloud: pluginSoundCloud(),
   verticalEmbed: pluginVerticalEmbed(configs.verticalEmbed),
 }
 

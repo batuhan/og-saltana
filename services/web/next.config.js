@@ -97,6 +97,9 @@ module.exports = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  env: {
+    computedBaseDomain: BASE_DOMAIN,
+  },
   async redirects() {
     return [...CREATOR_SPACE_REDIRECTS]
   },

@@ -8,15 +8,6 @@ import tw from 'twin.macro'
 import { useForm } from 'react-hook-form'
 import useLogin from 'hooks/useLogin'
 
-const CARD_OPTIONS = {
-  iconStyle: 'solid' as const,
-  style: {
-    base: {
-      fontSize: '16px',
-    },
-  },
-}
-
 import { Disclosure } from '@headlessui/react'
 import { LockClosedIcon } from '@heroicons/react/solid'
 import { useCart } from 'react-use-cart'
@@ -139,25 +130,24 @@ const ElementsForm = () => {
   const loginMutation = useLogin({ redirect: true })
   const { link, creator, asset } = useCreatorSpace()
 
-  const onSubmit = async ({ email, cardholderName }) => {
-    setPaymentStatus('processing')
-
+  const paymentIntentMutation = useMutation(async ({ assets, email }) => {
     const paymentIntentResponse = await axios.post(
-      '/api/methods/checkout-intent',
+      '/api/methods/checkout/intent',
       {
         assets,
         email,
-        cardholderName,
       },
     )
-
-    console.log({ paymentIntentResponse })
 
     if (paymentIntentResponse.status === 500) {
       setPaymentStatus('error')
       setErrorMessage(JSON.stringify(paymentIntentResponse.data))
       return
     }
+  })
+
+  const onSubmit = async ({ email, cardholderName }) => {
+    setPaymentStatus('processing')
 
     const cardElement = elements.getElement(CardElement)
 
@@ -249,24 +239,6 @@ const ElementsForm = () => {
                 </div>
               </div>
 
-              <div tw="mt-6 flex space-x-2">
-                <div tw="flex items-center h-5">
-                  <input
-                    id="same-as-shipping"
-                    name="same-as-shipping"
-                    type="checkbox"
-                    defaultChecked
-                    tw="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
-                  />
-                </div>
-                <label
-                  htmlFor="same-as-shipping"
-                  tw="text-sm font-medium text-gray-900"
-                >
-                  Billing address is the same as shipping address
-                </label>
-              </div>
-
               <button
                 type="submit"
                 disabled={
@@ -283,7 +255,7 @@ const ElementsForm = () => {
                   tw="w-5 h-5 text-gray-400 mr-1.5"
                   aria-hidden="true"
                 />
-                Payment details stored in plain text
+                Agreements and stuff
               </p>
 
               <p tw="flex justify-center text-sm font-medium text-gray-500 mt-6">
