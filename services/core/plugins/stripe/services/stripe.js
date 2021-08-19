@@ -29,6 +29,7 @@ module.exports = function createService (deps) {
     communication: { saltanaApiRequest },
 
     configRequester,
+    userRequester,
   } = deps
 
   return {
@@ -63,12 +64,70 @@ module.exports = function createService (deps) {
     if (!paymentIntent) throw createError(400, 'Payment intent not found')
     if (paymentIntent.status !== 'succeeded') throw createError(400, 'Payment intent not succeeded (yet?)')
 
-    const customerId = paymentIntent.customer
-    const user = await User.query()
-    .where('id', userId)
-    .orWhere('username', userId)
-    .orWhere('email', userId) // @TODO: this is ugly
-    .first()
+    if (!paymentIntent.charges || paymentIntent.charges.length === 0) {
+      throw createError(400, 'Payment intent has no charges')
+    }
+    // assumes we used a credit card and have billing data
+    const lastChargeEmail = _.get(paymentIntent, 'charges.0.billing_details.email')
+
+    if (!lastChargeEmail) throw createError(400, 'Payment intent has no billing email')
+    async function getInternalUserId(email) {
+
+      const user = await User.findOne({ email })
+
+      if (!user) {
+
+
+      const userUpdater = await userRequester.communicate(req)({
+        type: 'create',
+        email: lastChargeEmail,
+        platformData: { stripeCustomerId: stripeCustomer }
+      })
+
+        // create a new user
+        const { saltanaUserId } = await createSaltanaUser(req, email)
+        user = await User.findById(saltanaUserId)
+      }
+
+  
+    }
+    async function getStripeCustomerId(email) {
+      const foundCustomers = await stripe.customers.list({email})
+      if (foundCustomers.data.length === 0) {
+        const newCustomer = await stripe.customers.create({ email })
+        return newCustomer.id
+      }
+      const customer = foundCustomers.data[0]
+      return customer.id
+    }
+
+    const [internalUser, stripeCustomer] = await Promise.all([handleInternalUser(lastChargeEmail), handleStripeCustomer(lastChargeEmail)])
+    
+    
+    // check if the user has a stripe customer id
+    const stripeCustomerIdInInternalUser = _.get(internalUser, 'providerData.stripeCustomerId')
+
+    if (!stripeCustomerIdInInternalUser) {
+
+      // update the internal user with the stripe customer id
+
+      const userUpdater = await configRequester.communicate(req)({
+        type: 'update',
+        platformData: { stripeCustomerId: stripeCustomer }
+      })
+  
+
+    }
+
+    // check if stripe customer metadata has a saltana user id
+    const internalUserIdInStripeCustomer = _.get(stripeCustomer, 'metadata.saltanaUserId')
+
+    if (!internalUserIdInStripeCustomer) {
+      await stripe.customers.update(stripeCustomer.id, { metadata: { saltanaUserId: internalUser.id } })
+    }
+
+    // attach the payment intent to the customer
+    const paymentIntent = await stripe.paymentIntents.retrieve(
   }
 
   async function sendRequest (req) {
