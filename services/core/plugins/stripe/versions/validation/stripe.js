@@ -17,7 +17,7 @@ module.exports = function createValidation(deps) {
       paymentIntentId: Joi.string().required(),
       email: Joi.string().optional(),
       assets: Joi.array().items(
-        Joi.keys({
+        Joi.object().keys({
           id: Joi.string().required(),
           quantity: Joi.number().optional(),
         }),
