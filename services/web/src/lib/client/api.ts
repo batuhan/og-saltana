@@ -8,16 +8,23 @@ export const magic =
     ? undefined
     : new Magic(process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY)
 
-export async function login(email, { callbackUrl = '/dashboard' }) {
+export async function login(
+  email,
+  { redirect = true, callbackUrl = '/dashboard' },
+) {
   const token = await magic.auth.loginWithMagicLink({
     email,
   })
-  await signIn('credentials', { callbackUrl, redirect: true, token })
+  await signIn('credentials', { callbackUrl, redirect, token })
+}
+
+export const sharedSaltanaConfig = {
+  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
+  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
 }
 
 export const sharedSaltanaInstance = createInstance({
-  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
-  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
+  ...sharedSaltanaConfig,
 })
 
 export async function getSaltanaInstance(_session = undefined) {
@@ -48,13 +55,13 @@ export async function getSaltanaInstance(_session = undefined) {
 
 const defaultQueryFn =
   (session = undefined) =>
-    async ({ queryKey }) => {
-      const [resourceType, method, data] = queryKey
-      const saltanaInstance = await getSaltanaInstance(session)
+  async ({ queryKey }) => {
+    const [resourceType, method, data] = queryKey
+    const saltanaInstance = await getSaltanaInstance(session)
 
-      const sdkResponse = await saltanaInstance[resourceType][method](data)
-      return sdkResponse
-    }
+    const sdkResponse = await saltanaInstance[resourceType][method](data)
+    return sdkResponse
+  }
 
 export const getQueryClientSettings = (session = undefined) => ({
   defaultOptions: {
@@ -79,7 +86,7 @@ export const setUserData = (queryClient, user) => {
 export const setCreatorLinkData = (queryClient, link) => {
   queryClient.setQueryData(
     ['links', 'read', `${link.ownerId}:${link.slug}`],
-    link
+    link,
   )
   queryClient.setQueryData(['links', 'read', link.id], link)
 }

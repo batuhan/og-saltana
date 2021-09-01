@@ -3,14 +3,7 @@ import { NextSeo } from 'next-seo'
 import 'twin.macro'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { Logo } from '../Logo'
-
-const CreatorSpaceShell = ({ children }) => {
-  const { creator, link, isLink } = useCreatorSpace()
-  const title = isLink ? link.data?.label : creator.data?.displayName
-  return (
-    <>
-      <NextSeo title={title} />
-      {/* <main tw=" grid place-items-center min-h-screen bg-gradient-to-t from-blue-200 to-indigo-900 p-5">
+/* <main tw=" grid place-items-center min-h-screen bg-gradient-to-t from-blue-200 to-indigo-900 p-5">
           <div>
             <h1 tw="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-200 mb-5">
               {creator.data?.displayName}
@@ -100,50 +93,62 @@ const CreatorSpaceShell = ({ children }) => {
               </div>
             </section>
           </div>
-  </main> */}
-      <section tw="text-black ">
-        <div tw="container items-center px-5 py-8 mx-auto">
-          <div tw="flex flex-col mb-12 text-left">
-            <div tw="w-full mx-auto ">
-              <div tw="p-6">
-                <div tw="w-full mx-auto my-4 bg-white border rounded-lg shadow-xl ">
-                  <div tw="p-6">
-                    <h1 tw="mb-8 text-2xl font-bold leading-none tracking-tighter text-black lg:text-3xl  ">
-                      {creator.data?.displayName}
-                    </h1>
-                    <p tw="mb-3 text-base leading-relaxed ">
-                      {creator.data?.description}
-                    </p>
+  </main> */
+const CreatorSpaceShell = ({ children, mode = 'withLayout' }) => {
+  const { creator, link, isLink } = useCreatorSpace()
+  const showLayout = mode !== 'embed'
+  const title = isLink ? link.data?.label : creator.data?.displayName
 
-                    <p tw="text-xs font-semibold tracking-widest text-black uppercase ">
-                      FROM Istanbul, Turkey
-                    </p>
-                    <p tw="text-xs font-semibold tracking-widest text-black uppercase ">
-                      Identity Verified
-                    </p>
+  return (
+    <>
+      <NextSeo title={title} />
+      {showLayout ? (
+        <section tw="text-black ">
+          <div tw="container items-center px-5 py-8 mx-auto">
+            <div tw="flex flex-col mb-12 text-left">
+              <div tw="w-full mx-auto ">
+                <div tw="p-6">
+                  <div tw="w-full mx-auto my-4 bg-white border rounded-lg shadow-xl ">
+                    <div tw="p-6">
+                      <h1 tw="mb-8 text-2xl font-bold leading-none tracking-tighter text-black lg:text-3xl  ">
+                        {creator.data?.displayName}
+                      </h1>
+                      <p tw="mb-3 text-base leading-relaxed ">
+                        {creator.data?.description}
+                      </p>
+
+                      <p tw="text-xs font-semibold tracking-widest text-black uppercase ">
+                        FROM Istanbul, Turkey
+                      </p>
+                      <p tw="text-xs font-semibold tracking-widest text-black uppercase ">
+                        Identity Verified
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div tw="w-full mx-auto my-7 p-5 border rounded-lg shadow-xl ">
-                  {children}
-                </div>
-                <div tw="w-full mx-auto my-4 bg-black border rounded-lg shadow-xl ">
-                  <div tw="p-4">
-                    <Logo h="4" fill="white" />
-                    <p tw="my-4 text-sm font-semibold tracking-widest text-white uppercase ">
-                      {creator.data?.displayName} uses Saltana, a Swiss Army
-                      knife for digital creators.
-                    </p>
-                    <button tw="text-base font-medium text-white transition duration-500 ease-in-out transform border-black rounded-md bg-black focus:outline-none focus:ring-2 ring-offset-current ring-offset-2  ">
-                      Learn more &gt;
-                    </button>
+                  <div tw="w-full mx-auto my-7 p-5 border rounded-lg shadow-xl ">
+                    {children}
+                  </div>
+                  <div tw="w-full mx-auto my-4 bg-black border rounded-lg shadow-xl ">
+                    <div tw="p-4">
+                      <Logo h="4" fill="white" />
+                      <p tw="my-4 text-sm font-semibold tracking-widest text-white uppercase ">
+                        {creator.data?.displayName} uses Saltana, a Swiss Army
+                        knife for digital creators.
+                      </p>
+                      <button tw="text-base font-medium text-white transition duration-500 ease-in-out transform border-black rounded-md bg-black focus:outline-none focus:ring-2 ring-offset-current ring-offset-2  ">
+                        Learn more &gt;
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        children
+      )}
     </>
   )
 }

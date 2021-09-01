@@ -2,15 +2,23 @@ import { useMutation } from 'react-query'
 import { login } from '@/client/api'
 import { useForm } from 'react-hook-form'
 
-export default function useLogin({ callbackUrl = undefined }) {
-  const { mutateAsync, isLoading, error, isError } = useMutation(({ email }) =>
-    login(email, { callbackUrl })
+export default function useLogin() {
+  const { mutateAsync, mutate, isLoading, error, isError } = useMutation(
+    ({
+      email,
+      callbackUrl,
+      redirect,
+    }: {
+      email: string
+      callbackUrl?: string | undefined
+      redirect?: boolean
+    }) => login(email, { callbackUrl, redirect }),
   )
-  return { mutateAsync, isLoading, error, isError }
+  return { mutateAsync, mutate, isLoading, error, isError }
 }
 
 export function useLoginForm({ callbackUrl }) {
-  const loginMutation = useLogin({ callbackUrl })
+  const loginMutation = useLogin()
 
   const {
     register,
@@ -32,7 +40,7 @@ export function useLoginForm({ callbackUrl }) {
       setError(
         'email',
         { type: 'from-core', message: JSON.stringify(error) },
-        { shouldFocus: true }
+        { shouldFocus: true },
       )
     }
   }

@@ -3,59 +3,80 @@ const createService = require('../services/stripe')
 let stripe
 let deps = {}
 
-function init (server, { middlewares, helpers } = {}) {
-  const {
-    checkPermissions,
-    restifyAuthorizationParser
-  } = middlewares
-  const {
-    wrapAction,
-    getRequestContext
-  } = helpers
+function init(server, { middlewares, helpers } = {}) {
+  const { checkPermissions, restifyAuthorizationParser } = middlewares
+  const { wrapAction, getRequestContext } = helpers
 
-  server.post({
-    name: 'stripe.pluginRequest',
-    path: '/integrations/stripe/request'
-  }, checkPermissions([
+  const commonPermissions = [
     'integrations:read_write:stripe',
-    'integrations:read_write:all' // does not currently exist
-  ]), wrapAction(async (req, res) => {
-    let ctx = getRequestContext(req)
+    'integrations:read_write:all', // does not currently exist
+  ]
 
-    const { args, method } = req.body
-    ctx = Object.assign({}, ctx, { args, method })
+  const basePath = '/integrations/stripe'
+  server.post(
+    {
+      name: 'stripe.sendRequest',
+      path: `${basePath}/request`,
+    },
+    checkPermissions([...commonPermissions]),
+    wrapAction(async (req, res) => {
+      let ctx = getRequestContext(req)
 
-    return stripe.sendRequest(ctx)
-  }))
+      const { args, method } = req.body
+      ctx = Object.assign({}, ctx, { args, method })
 
-  server.post({
-    name: 'stripe.webhooks',
-    path: '/integrations/stripe/webhooks/:publicPlatformId',
-    manualAuth: true
-  }, restifyAuthorizationParser, wrapAction(async (req, res) => {
-    const { publicPlatformId } = req.params
-    const stripeSignature = req.headers['stripe-signature']
+      return stripe.sendRequest(ctx)
+    }),
+  )
 
-    return stripe.webhook({
-      _requestId: req._requestId,
-      publicPlatformId,
-      stripeSignature,
-      rawBody: req.rawBody,
-      deps
-    })
-  }))
+  server.post(
+    {
+      name: 'stripe.processPaymentIntent',
+      path: `${basePath}/process-payment-intent`,
+    },
+    checkPermissions([...commonPermissions]),
+    wrapAction(async (req, res) => {
+      let ctx = getRequestContext(req)
+
+      const { paymentIntentId, email, assets } = req.body
+      ctx = Object.assign({}, ctx, { paymentIntentId, email, assets })
+
+      return stripe.processPaymentIntent(ctx)
+    }),
+  )
+
+  server.post(
+    {
+      name: 'stripe.webhooks',
+      path: `${basePath}/webhooks/:publicPlatformId`,
+      manualAuth: true,
+    },
+    restifyAuthorizationParser,
+    wrapAction(async (req, res) => {
+      const { publicPlatformId } = req.params
+      const stripeSignature = req.headers['stripe-signature']
+
+      return stripe.webhook({
+        _requestId: req._requestId,
+        publicPlatformId,
+        stripeSignature,
+        rawBody: req.rawBody,
+        deps,
+      })
+    }),
+  )
 }
 
-function start (startParams) {
+function start(startParams) {
   deps = Object.assign({}, startParams)
 
   const {
-    communication: { getRequester }
+    communication: { getRequester },
   } = deps
 
   const configRequester = getRequester({
     name: 'Stripe service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   Object.assign(deps, {
@@ -65,10 +86,8 @@ function start (startParams) {
   stripe = createService(deps)
 }
 
-function stop () {
-  const {
-    configRequester,
-  } = deps
+function stop() {
+  const { configRequester } = deps
 
   configRequester.close()
 
@@ -78,5 +97,5 @@ function stop () {
 module.exports = {
   init,
   start,
-  stop
+  stop,
 }

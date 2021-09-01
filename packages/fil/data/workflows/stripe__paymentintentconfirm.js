@@ -17,8 +17,8 @@ module.exports = {
     },
     run: [
       {
-        endpointMethod: 'PATCH',
-        endpointUri: '/users/${computed.userId}',
+        endpointMethod: 'GET',
+        endpointUri: '/integrations/stripe/${computed.userId}',
         stop: '!computed.canOnboardAsCreator || computed.isAlreadyOnboarded || !computed.completedRequiredInformation',
         endpointPayload: {
           displayName: 'computed.displayName',
@@ -447,6 +447,34 @@ module.exports = {
                   'transaction.platformAmount * Math.pow(10, computed.currencyDecimal) || undefined',
               },
             ],
+          },
+        },
+      ],
+    },
+
+    onStripePaymentIntentConfirmation2: {
+      name: 'On Stripe payment intent confirmation',
+      description: `
+        When a payment intent is cancelled because the uncapture duration max limit is exceeded,
+        the associated transaction must be cancelled too.
+        Otherwise the transaction owner can still accept it.
+      `,
+      event: 'stripe_payment_intent.confirmed',
+      computed: {
+        paymentIntentId: '_.get(metadata, "data.object.id")',
+        assetIds:
+          'JSON.parse(_.get(metadata, "data.object.metadata.assetIds"))',
+        email: 'JSON.parse(_.get(metadata, "data.object.metadata.assetIds"))',
+      },
+      run: [
+        {
+          stop: '!computed.paymentIntentId',
+          name: 'paymentIntent',
+          endpointMethod: 'POST',
+          endpointUri: '/integrations/stripe/request',
+          endpointPayload: {
+            method: '"paymentIntents.retrieve"',
+            args: 'computed.paymentIntentId',
           },
         },
       ],

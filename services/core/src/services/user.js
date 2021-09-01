@@ -426,6 +426,37 @@ function start({ communication }) {
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
   })
 
+  // Allows creation of users only an e-mail
+  responder.on('_upsert', async (req) => {
+    const platformId = req.platformId
+    const env = req.env
+    const { AuthMean, User } = await getModels({ platformId, env })
+    const { id } = req
+
+    const userId = req.userId
+
+    const user = await User.query().where('email', userId).first()
+
+    user = await userRequester.send({
+      type: 'create',
+      platformId,
+      env,
+      _matchedPermissions: req._matchedPermissions,
+      userType: 'user',
+      username: `${metadata.email.split('@')[0]}-${nanoid(5)}`,
+      email: metadata.email,
+      password:
+        'F)bqjH<h+deMk>UPr$d%6OPq@+S>(,K_nr+&z8y/3SXrP7-=tk[J2@2YZT^|@>Hb',
+      platformData: {
+        authProvider: 'magic',
+        magicData: {
+          issuer: metadata.issuer,
+          publicAddress: metadata.publicAddress,
+        },
+      },
+    })
+  })
+
   responder.on('update', async (req) => {
     const platformId = req.platformId
     const env = req.env

@@ -3,15 +3,19 @@ const debug = require('debug')('saltana:integrations:stripe')
 const _ = require('lodash')
 const { parsePublicPlatformId } = require('@saltana/util-keys')
 
-
 async function getStripe(req, configRequester) {
   const privateConfig = await configRequester.communicate(req)({
     type: '_getConfig',
-    access: 'private'
+    access: 'private',
   })
 
-  const { secretApiKey } = _.get(privateConfig, 'saltana.integrations.stripe', {})
-  if (!secretApiKey) throw createError(403, 'Stripe secret API key not configured')
+  const { secretApiKey } = _.get(
+    privateConfig,
+    'saltana.integrations.stripe',
+    {},
+  )
+  if (!secretApiKey)
+    throw createError(403, 'Stripe secret API key not configured')
 
   const stripe = Stripe(secretApiKey)
 
@@ -22,8 +26,7 @@ async function getStripe(req, configRequester) {
   return stripe
 }
 
-
-module.exports = function createService (deps) {
+module.exports = function createService(deps) {
   const {
     createError,
     communication: { saltanaApiRequest },
@@ -32,13 +35,74 @@ module.exports = function createService (deps) {
     userRequester,
   } = deps
 
-  return {
-    sendRequest,
-    webhook
-  }
+  const userService = userRequester.communicate(req)
 
-  // @Todo: this function is currently handled by the web app but it should move here so we don't have to share secrets to the web app
-  async function _createPaymentIntent(req) {}
+  async function fetchStripeCustomerWithSaltanaUserFromEmail(email) {
+    const [internalUser, stripeCustomerId] = await Promise.all([
+      async () => {
+        const user = await userService({ type: 'read', email })
+
+        if (user) {
+          return user
+        }
+
+        const newUser = await userService({
+          type: 'create',
+          email,
+        })
+
+        return newUser
+      },
+      async () => {
+        const foundCustomers = await stripe.customers.list({ email })
+        if (foundCustomers.data.length === 0) {
+          const newCustomer = await stripe.customers.create({ email }) // @TODO: update other info as they come
+          return newCustomer.id
+        }
+        const [customer] = foundCustomers.data
+        return customer.id
+      },
+    ])
+
+    // check if the user has a stripe customer id
+    const stripeCustomerIdInInternalUser = _.get(
+      internalUser,
+      'providerData.stripeCustomerId',
+    )
+
+    const promises = []
+    if (!stripeCustomerIdInInternalUser) {
+      // update the internal user with the stripe customer id
+
+      promises.push(
+        userService({
+          type: 'update',
+          platformData: { stripeCustomerId },
+        }),
+      )
+    }
+
+    // check if stripe customer metadata has a saltana user id
+    const internalUserIdInStripeCustomer = _.get(
+      stripeCustomer,
+      'metadata.saltanaUserId',
+    )
+
+    if (!internalUserIdInStripeCustomer) {
+      promises.push(
+        stripe.customers.update(stripeCustomer.id, {
+          metadata: { saltanaUserId: internalUser.id },
+        }),
+      )
+    }
+
+    await Promise.all(promises)
+
+    return {
+      internalUserId: internalUser.id,
+      stripeCustomerId,
+    }
+  }
 
   // takes a payment intent id of an already captured payment (payment is handled by the web app)
   // firsst check if we have the user in our database
@@ -49,88 +113,70 @@ module.exports = function createService (deps) {
   // attaches the payment intent to the customer
   // returns the user id so we can create the transaction and the order in a workflow
 
-  async function _finalizeCapturedPaymentIntent(req) {
-    const stripe = await getStripe(req, configRequester)
+  async function processPaymentIntent(req) {
+    const {
+      body: { paymentIntentId, email, assets },
+      platformId,
+      env,
+    } = req.body
+    const { id, metadata } = await stripe.paymentIntents.read(paymentIntentId)
 
-    const platformId = req.platformId
-    const paymentIntentId = req.paymentIntentId
-    const env = req.env
-    const { User } = await getModels({ platformId, env })
+    const { saltanaUserId, stripeCustomerId } =
+      await fetchStripeCustomerWithSaltanaUserFromEmail(email)
 
+    // attach payment intent to customer
+    await stripe.paymentIntents.attach(id, {
+      customer: stripeCustomerId,
+    })
 
-    const paymentIntent = await stripe.paymentIntents.retrieve(
-      paymentIntentId
-    );
-    if (!paymentIntent) throw createError(400, 'Payment intent not found')
-    if (paymentIntent.status !== 'succeeded') throw createError(400, 'Payment intent not succeeded (yet?)')
-
-    if (!paymentIntent.charges || paymentIntent.charges.length === 0) {
-      throw createError(400, 'Payment intent has no charges')
-    }
-    // assumes we used a credit card and have billing data
-    const lastChargeEmail = _.get(paymentIntent, 'charges.0.billing_details.email')
-
-    if (!lastChargeEmail) throw createError(400, 'Payment intent has no billing email')
-    async function getInternalUserId(email) {
-
-      const user = await User.findOne({ email })
-
-      if (!user) {
-
-
-      const userUpdater = await userRequester.communicate(req)({
-        type: 'create',
-        email: lastChargeEmail,
-        platformData: { stripeCustomerId: stripeCustomer }
-      })
-
-        // create a new user
-        const { saltanaUserId } = await createSaltanaUser(req, email)
-        user = await User.findById(saltanaUserId)
-      }
-
-  
-    }
-    async function getStripeCustomerId(email) {
-      const foundCustomers = await stripe.customers.list({email})
-      if (foundCustomers.data.length === 0) {
-        const newCustomer = await stripe.customers.create({ email })
-        return newCustomer.id
-      }
-      const customer = foundCustomers.data[0]
-      return customer.id
+    const parsedAssets = JSON.parse(assets)
+    if (parsedAssets.length === 0) {
+      throw createError(400, 'No asset ids found')
     }
 
-    const [internalUser, stripeCustomer] = await Promise.all([handleInternalUser(lastChargeEmail), handleStripeCustomer(lastChargeEmail)])
-    
-    
-    // check if the user has a stripe customer id
-    const stripeCustomerIdInInternalUser = _.get(internalUser, 'providerData.stripeCustomerId')
-
-    if (!stripeCustomerIdInInternalUser) {
-
-      // update the internal user with the stripe customer id
-
-      const userUpdater = await configRequester.communicate(req)({
-        type: 'update',
-        platformData: { stripeCustomerId: stripeCustomer }
-      })
-  
-
+    const commonPayload = {
+      takerId: saltanaUserId,
+      metadata: {
+        origin: metadata.origin,
+      },
+      platformData: {
+        stripeIntentId: id,
+      },
     }
 
-    // check if stripe customer metadata has a saltana user id
-    const internalUserIdInStripeCustomer = _.get(stripeCustomer, 'metadata.saltanaUserId')
+    const common = { platformId, env, method: 'POST' }
 
-    if (!internalUserIdInStripeCustomer) {
-      await stripe.customers.update(stripeCustomer.id, { metadata: { saltanaUserId: internalUser.id } })
+    const transactions = await Promise.all(
+      parsedAssets.map((asset) =>
+        saltanaApiRequest('/transactions', {
+          ...common,
+          payload: {
+            assetId: asset.id,
+            quantity: asset.quantity,
+            ...commonPayload,
+          },
+        }),
+      ),
+    )
+
+    const transactionIds = transactions.map((transaction) => transaction.id)
+
+    const order = await saltanaApiRequest('/orders', {
+      ...common,
+      payload: {
+        transactionIds,
+        ...commonPayload,
+      },
+    })
+
+    return {
+      saltanaUserId,
+      stripeCustomerId,
+      orderId: order.id,
     }
-
-    // attach the payment intent to the customer
-    const paymentIntent = await stripe.paymentIntents.retrieve(
   }
 
-  async function sendRequest (req) {
+  async function sendRequest(req) {
     const { env, method, args = [{}] } = req
 
     const stripe = await getStripe(req, configRequester)
@@ -145,7 +191,7 @@ module.exports = function createService (deps) {
       const reveal = !(process.env.NODE_ENV === 'production' && env === 'live')
       const errDetails = {
         stripeMethod: method,
-        stripeError: err
+        stripeError: err,
       }
       if (reveal) _.set(errObject, 'public', errDetails)
 
@@ -153,10 +199,16 @@ module.exports = function createService (deps) {
     }
   }
 
-  async function webhook ({ _requestId, stripeSignature, rawBody, publicPlatformId }) {
+  async function webhook({
+    _requestId,
+    stripeSignature,
+    rawBody,
+    publicPlatformId,
+  }) {
     debug('Stripe integration: webhook event %O', rawBody)
 
-    const { hasValidFormat, platformId, env } = parsePublicPlatformId(publicPlatformId)
+    const { hasValidFormat, platformId, env } =
+      parsePublicPlatformId(publicPlatformId)
     if (!hasValidFormat) throw createError(403)
 
     if (_.isEmpty(rawBody)) throw createError(400, 'Event object body expected')
@@ -164,17 +216,22 @@ module.exports = function createService (deps) {
     const req = {
       _requestId,
       platformId,
-      env
+      env,
     }
 
     const privateConfig = await configRequester.communicate(req)({
       type: '_getConfig',
-      access: 'private'
+      access: 'private',
     })
 
-    const { secretApiKey, webhookSecret } = _.get(privateConfig, 'saltana.integrations.stripe', {})
+    const { secretApiKey, webhookSecret } = _.get(
+      privateConfig,
+      'saltana.integrations.stripe',
+      {},
+    )
     if (!secretApiKey) throw createError(403, 'Stripe API key not configured')
-    if (!webhookSecret) throw createError(403, 'Stripe Webhook secret not configured')
+    if (!webhookSecret)
+      throw createError(403, 'Stripe Webhook secret not configured')
 
     const stripe = Stripe(secretApiKey)
 
@@ -183,7 +240,11 @@ module.exports = function createService (deps) {
     // Verify Stripe webhook signature
     // https://stripe.com/docs/webhooks/signatures
     try {
-      event = stripe.webhooks.constructEvent(rawBody, stripeSignature, webhookSecret)
+      event = stripe.webhooks.constructEvent(
+        rawBody,
+        stripeSignature,
+        webhookSecret,
+      )
     } catch (err) {
       throw createError(403)
     }
@@ -194,7 +255,7 @@ module.exports = function createService (deps) {
       type,
       orderBy: 'createdDate',
       order: 'desc',
-      page: 1
+      page: 1,
     }
 
     const { results: sameEvents } = await saltanaApiRequest('/events', {
@@ -203,14 +264,17 @@ module.exports = function createService (deps) {
       payload: {
         objectId: event.id,
         nbResultsPerPage: 1,
-        ...params
-      }
+        ...params,
+      },
     })
 
     // Stripe webhooks may send same events multiple times
     // https://stripe.com/docs/webhooks/best-practices#duplicate-events
     if (sameEvents.length) {
-      debug('Stripe integration: idempotency check with event id: %O', sameEvents)
+      debug(
+        'Stripe integration: idempotency check with event id: %O',
+        sameEvents,
+      )
     }
 
     await saltanaApiRequest('/events', {
@@ -223,48 +287,10 @@ module.exports = function createService (deps) {
         type,
         objectId: event.id, // just a convention to easily retrieve events, objectId being indexed
         emitterId: 'stripe',
-        metadata: event
-      }
+        metadata: event,
+      },
     })
 
     return { success: true }
   }
-
-
-
 }
-responder.on('_finalizeCapturedPaymentIntent', async (req) => {
-  const { platformId, env, paymentIntentId, organizationId } = req
-
-  const stripe 
-  const platformId = req.platformId
-  const env = req.env
-  const { User } = await getModels({ platformId, env })
-
-  const userId = req.userId
-
-  const user = await User.query()
-    .where('id', userId)
-    .orWhere('username', userId)
-    .orWhere('email', userId) // @TODO: this is ugly
-    .first()
-
-  if (!user) {
-    throw createError(404)
-  }
-
-  // first check if we have the user in our database
-  // - if we have the user:
-  //    - check if has stripe customer id, if not create it and update the user
-  // - if we don't have the user:
-  //    - create a stripe customer first (purely as an optimization), create a saltana user with the stripe customer id
-  // attach the payment intent to the customer
-  
-  const result = await isOrganizationMember({
-    platformId,
-    env,
-    userId,
-    organizationId,
-  })
-  return result
-})
