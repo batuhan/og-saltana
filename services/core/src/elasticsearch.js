@@ -92,7 +92,7 @@ async function getClient({ platformId, env } = {}) {
     const elasticsearchData = await getPlatformEnvData(
       platformId,
       env,
-      'elasticsearch'
+      'elasticsearch',
     )
     if (!elasticsearchData) {
       throw createError(500, 'ElasticSearch missing environment variables', {

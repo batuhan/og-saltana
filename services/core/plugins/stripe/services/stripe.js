@@ -14,14 +14,11 @@ async function getStripe(req, configRequester) {
     'saltana.integrations.stripe',
     {},
   )
-  if (!secretApiKey)
+  if (!secretApiKey) {
     throw createError(403, 'Stripe secret API key not configured')
+  }
 
   const stripe = Stripe(secretApiKey)
-
-  if (typeof _.get(stripe, method) !== 'function') {
-    throw createError(400, 'Stripe method not found', { public: { method } })
-  }
 
   return stripe
 }
@@ -35,12 +32,14 @@ module.exports = function createService(deps) {
     userRequester,
   } = deps
 
-  const userService = userRequester.communicate(req)
-
-  async function fetchStripeCustomerWithSaltanaUserFromEmail(email) {
-    const [internalUser, stripeCustomerId] = await Promise.all([
-      async () => {
-        const user = await userService({ type: 'read', email })
+  async function fetchStripeCustomerWithSaltanaUserFromEmail({
+    userService,
+    email,
+    stripe,
+  }) {
+    const [internalUser, stripeCustomer] = await Promise.all([
+      (async () => {
+        const user = await userService({ type: 'read', userId: email })
 
         if (user) {
           return user
@@ -52,16 +51,15 @@ module.exports = function createService(deps) {
         })
 
         return newUser
-      },
-      async () => {
+      })(),
+      (async () => {
         const foundCustomers = await stripe.customers.list({ email })
         if (foundCustomers.data.length === 0) {
-          const newCustomer = await stripe.customers.create({ email }) // @TODO: update other info as they come
-          return newCustomer.id
+          return await stripe.customers.create({ email }) // @TODO: update other info as they come
         }
         const [customer] = foundCustomers.data
-        return customer.id
-      },
+        return customer
+      })(),
     ])
 
     // check if the user has a stripe customer id
@@ -70,7 +68,9 @@ module.exports = function createService(deps) {
       'providerData.stripeCustomerId',
     )
 
+    const stripeCustomerId = _.get(stripeCustomer, 'id')
     const promises = []
+
     if (!stripeCustomerIdInInternalUser) {
       // update the internal user with the stripe customer id
 
@@ -118,11 +118,20 @@ module.exports = function createService(deps) {
       body: { paymentIntentId, email, assets },
       platformId,
       env,
-    } = req.body
-    const { id, metadata } = await stripe.paymentIntents.read(paymentIntentId)
+    } = req
+    const stripe = await getStripe(req, configRequester)
+
+    const { id, metadata } = await stripe.paymentIntents.retrieve(
+      paymentIntentId,
+    )
+    const userService = userRequester.communicate(req)
 
     const { saltanaUserId, stripeCustomerId } =
-      await fetchStripeCustomerWithSaltanaUserFromEmail(email)
+      await fetchStripeCustomerWithSaltanaUserFromEmail({
+        userService,
+        email,
+        stripe,
+      })
 
     // attach payment intent to customer
     await stripe.paymentIntents.attach(id, {
@@ -180,6 +189,10 @@ module.exports = function createService(deps) {
     const { env, method, args = [{}] } = req
 
     const stripe = await getStripe(req, configRequester)
+
+    if (typeof _.get(stripe, method) !== 'function') {
+      throw createError(400, 'Stripe method not found', { public: { method } })
+    }
 
     try {
       // awaiting to handle error in catch block
@@ -292,5 +305,12 @@ module.exports = function createService(deps) {
     })
 
     return { success: true }
+  }
+
+  return {
+    fetchStripeCustomerWithSaltanaUserFromEmail,
+    processPaymentIntent,
+    sendRequest,
+    webhook,
   }
 }

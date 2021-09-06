@@ -17,6 +17,7 @@ import OrderSummary from './OrderSummary'
 import PaymentMethods from './PaymentMethods'
 import getStripe from '@/client/stripe'
 import { Elements } from '@stripe/react-stripe-js'
+import { DevTool } from '@hookform/devtools'
 
 const PaymentStatus = ({
   status,
@@ -57,14 +58,18 @@ const CheckoutForm = () => {
     handleSubmit,
     formMethods: {
       register,
-      formState: { errors },
+      control,
+      setValue,
+      setError,
+      formState: { errors, isValid, isSubmitting },
     },
     status,
+    onPaymentMethodChange,
   } = useCheckout()
 
   const { items, totalUniqueItems, cartTotal } = useCart()
 
-  const isSubmitDisabled = status !== CHECKOUT_STATUSES.READY
+  const isSubmitDisabled = isValid !== true && isSubmitting !== true
   return (
     <div tw="bg-white">
       <main tw="lg:min-h-screen lg:overflow-hidden lg:flex lg:flex-row-reverse">
@@ -103,20 +108,16 @@ const CheckoutForm = () => {
                     <input
                       type="email"
                       id="email-address"
-                      {...register('email', {
-                        required: true,
-                        pattern: /^\S+@\S+$/i,
-                      })}
+                      {...register('email')}
                       autoComplete="email"
                       tw="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
                   </div>
                 </div>
-                <PaymentMethods />
+                <PaymentMethods onPaymentMethodChange={onPaymentMethodChange} />
               </div>
-              {status !== CHECKOUT_STATUSES.READY
-                ? 'shold be disabled'
-                : 'should not be disabled'}
+              <pre>{JSON.stringify(errors, null, 2)}</pre>
+              <pre>{JSON.stringify({ isValid }, null, 2)}</pre>
               <button
                 type="submit"
                 disabled={isSubmitDisabled}
@@ -125,9 +126,10 @@ const CheckoutForm = () => {
                   tw`w-full mt-6 bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`,
                 ]}
               >
-                Pay {formatAmountForDisplay(cartTotal, 'usd')}
+                {isSubmitting
+                  ? 'Processing...'
+                  : `Pay ${formatAmountForDisplay(cartTotal, 'usd')}`}
               </button>
-
               <p tw="flex justify-center text-sm font-medium text-gray-500 mt-6">
                 <LockClosedIcon
                   tw="w-5 h-5 text-gray-400 mr-1.5"
@@ -135,10 +137,10 @@ const CheckoutForm = () => {
                 />
                 Agreements and stuff
               </p>
-
               <p tw="flex justify-center text-sm font-medium text-gray-500 mt-6">
                 kyhjlkmk
               </p>
+              <DevTool control={control} /> {/* set up the dev tool */}
             </form>
           </div>
         </section>

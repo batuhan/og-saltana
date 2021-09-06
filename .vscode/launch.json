@@ -10,22 +10,27 @@
       "skipFiles": ["<node_internals>/**/*.js"]
     },
     {
-      "name": "Launch App",
+      "name": "Launch web",
       "request": "launch",
       "runtimeArgs": ["run", "dev"],
       "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/packages/app",
+      "cwd": "${workspaceFolder}/services/web",
       "skipFiles": ["<node_internals>/**"],
-      "type": "pwa-node"
+      "type": "node"
     },
     {
       "name": "Launch Core",
       "request": "launch",
-      "runtimeArgs": ["run", "dev"],
-      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["server/start.js"],
+      "runtimeExecutable": "node",
       "cwd": "${workspaceFolder}/services/core",
       "skipFiles": ["<node_internals>/**"],
-      "type": "node"
+      "type": "node",
+
+      "env": {
+        "NODE_ENV": "development",
+        "ROARR_LOG": "true"
+      }
     },
     {
       "type": "node",

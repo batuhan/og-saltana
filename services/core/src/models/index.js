@@ -73,7 +73,7 @@ function loadTypeParser() {
   pg.types.setTypeParser(20, 'text', (value) => {
     if (Number.MAX_SAFE_INTEGER < value) {
       throw new Error(
-        `The value ${value} exceeds the JS max integer value ${Number.MAX_SAFE_INTEGER}`
+        `The value ${value} exceeds the JS max integer value ${Number.MAX_SAFE_INTEGER}`,
       )
     }
 
@@ -123,7 +123,7 @@ async function getConnection({ platformId, env } = {}) {
     const postgresqlData = await getPlatformEnvData(
       platformId,
       env,
-      'postgresql'
+      'postgresql',
     )
     if (!postgresqlData) {
       throw createError(500, 'PostgreSQL missing environment variables', {
@@ -145,13 +145,19 @@ async function getConnection({ platformId, env } = {}) {
 
     schema = postgresqlData.schema
   } else {
+    const isPlatformEnv = platformId && env
+
+    const _schema = isPlatformEnv
+      ? `s${platformId}_${env}`
+      : process.env.POSTGRES_SCHEMA || 'public'
+
     connection = {
       host: process.env.POSTGRES_HOST,
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       port: process.env.POSTGRES_PORT,
-      schema: 'public',
+      schema: _schema,
     }
 
     sslOptions = getSSLOptions({
@@ -161,7 +167,7 @@ async function getConnection({ platformId, env } = {}) {
       sslca: process.env.POSTGRES_SSL_CA,
     })
 
-    schema = 'public'
+    schema = _schema
   }
 
   if (sslOptions) connection.ssl = sslOptions
@@ -215,7 +221,7 @@ async function getModels({ platformId, env } = {}) {
       static rawJsonbMerge(
         baseObjectName,
         changesObject,
-        { jsonbAccessor } = {}
+        { jsonbAccessor } = {},
       ) {
         if (typeof baseObjectName !== 'string')
           throw new Error('String column name expected')
@@ -228,7 +234,7 @@ async function getModels({ platformId, env } = {}) {
           }"${
             baseObjectName // We need double quotes for column names with caps like 'platformData'
           }"${jsonbAccessor ? `${jsonbAccessor})::jsonb` : ''}, ?::jsonb)`,
-          JSON.stringify(changesObject)
+          JSON.stringify(changesObject),
         )
       }
 
@@ -275,14 +281,14 @@ async function getModels({ platformId, env } = {}) {
         let updatedModel = await this.query(trx).patchAndFetchById(modelId, {
           [baseObjectName]: this.rawJsonbMerge(
             baseObjectName,
-            beforeReplaceChanges
+            beforeReplaceChanges,
           ),
         })
         if (!_.isEmpty(afterReplaceChanges)) {
           updatedModel = await this.query(trx).patchAndFetchById(modelId, {
             [baseObjectName]: this.rawJsonbMerge(
               baseObjectName,
-              afterReplaceChanges
+              afterReplaceChanges,
             ),
           })
         }

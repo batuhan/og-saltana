@@ -35,14 +35,7 @@ function init(server, { middlewares, helpers } = {}) {
       path: `${basePath}/process-payment-intent`,
     },
     checkPermissions([...commonPermissions]),
-    wrapAction(async (req, res) => {
-      let ctx = getRequestContext(req)
-
-      const { paymentIntentId, email, assets } = req.body
-      ctx = Object.assign({}, ctx, { paymentIntentId, email, assets })
-
-      return stripe.processPaymentIntent(ctx)
-    }),
+    wrapAction((req, res) => stripe.processPaymentIntent(req)),
   )
 
   server.post(
@@ -79,17 +72,24 @@ function start(startParams) {
     key: 'config',
   })
 
+  const userRequester = getRequester({
+    name: 'Stripe service > User Requester',
+    key: 'user',
+  })
+
   Object.assign(deps, {
     configRequester,
+    userRequester,
   })
 
   stripe = createService(deps)
 }
 
 function stop() {
-  const { configRequester } = deps
+  const { configRequester, userRequester } = deps
 
   configRequester.close()
+  userRequester.close()
 
   deps = null
 }

@@ -1,4 +1,4 @@
-import { getOrCreateUserFromEmail, adminApi, stripe } from '@/server/apis'
+import { adminApi } from '@/server/apis'
 
 export default async function CheckoutIntentConfirm(req, res) {
   if (req.method !== 'POST') {
@@ -9,11 +9,15 @@ export default async function CheckoutIntentConfirm(req, res) {
 
   const { paymentIntentId, email, assets } = req.body
 
-  const result = await adminApi.providers.stripeProcessPaymentIntent({
-    paymentIntentId,
-    email,
-    assets,
-  })
+  try {
+    const result = await adminApi.providers.stripeProcessPaymentIntent({
+      paymentIntentId,
+      email,
+      assets,
+    })
 
-  return res.status(200).json({ ...result })
+    return res.status(200).json({ ...result })
+  } catch (error) {
+    return res.status(500).json({ error })
+  }
 }

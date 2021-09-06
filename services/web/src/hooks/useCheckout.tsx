@@ -4,16 +4,41 @@ import { formatAmountForDisplay } from '@/client/stripe'
 import { useMutation, useQuery } from 'react-query'
 import axios from 'axios'
 import tw from 'twin.macro'
-
-import { useForm } from 'react-hook-form'
+import * as localForage from 'localforage'
+import { useController, useForm } from 'react-hook-form'
 import useLogin from 'hooks/useLogin'
+
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 
 import _ from 'lodash'
 import { useCart } from 'react-use-cart'
 import useCurrentUser from './useCurrentUser'
+import Logger from '@/common/logger'
+
+const cartCache = localForage.createInstance({
+  name: 'cart',
+})
+
+const log = Logger('useCheckout')
+// creates a hash for the cart contents
+// we don't expect too many items on the cart
+// so this works (for now)
+function hashifyCart(items = []) {
+  return items.map(({ id, quantity }) => `${id}:${quantity}`).join('|')
+}
 
 const checkoutApi = axios.create({
   baseURL: '/api/methods/checkout',
+})
+
+const schema = yup.object().shape({
+  email: yup.string().email().required(),
+  paymentIntent: yup.object().shape({
+    id: yup.string().required().min(5),
+    clientSecret: yup.string().required().min(5),
+  }),
+  validPaymentMethod: yup.mixed().oneOf([true]).required(),
 })
 
 export const CARD_OPTIONS = {
@@ -40,12 +65,14 @@ const ERROR_STATES = {}
 
 // Helpers
 async function _generatePaymentIntent(assets) {
-  console.log('calling payment intent')
+  log.debug('calling payment intent with', assets)
+
+  //  const hash = hashifyCart(assets)
   const paymentIntentResponse = await checkoutApi.post('/intent', {
     assets,
   })
 
-  console.log({ paymentIntentResponse })
+  log.debug('got payment intent response', paymentIntentResponse)
   if (paymentIntentResponse.status !== 200) {
     throw new Error(`ERROR_${paymentIntentResponse.status}`)
   }
@@ -86,7 +113,17 @@ async function _confirmPaymentIntent({ stripe, paymentIntent, card, email }) {
 // if the payment intent fails, we can show an error message
 // if the user is not logged in, we can show a login form
 export default function useCheckout() {
-  const formMethods = useForm() // basically for validating the email field
+  const formMethods = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: '',
+      paymentIntent: {
+        id: '',
+        clientSecret: '',
+      },
+      validPaymentMethod: false,
+    },
+  }) // basically for validating the email field
   const cart = useCart()
   const stripe = useStripe()
   const elements = useElements()
@@ -111,20 +148,31 @@ export default function useCheckout() {
           // when we have a new intent, checkout form is ready
           // @TODO: update the cart with the transaction preview
           setStatus(CHECKOUT_STATUSES.READY)
+
+          formMethods.setValue('paymentIntent.id', data.paymentIntentId, {
+            shouldValidate: true,
+          })
+          formMethods.setValue(
+            'paymentIntent.clientSecret',
+            data.paymentIntentClientSecret,
+            { shouldValidate: true },
+          )
+
+          return
         }
 
         // if we don't have a payment intent, throw an error
         throw new Error('ERROR_NO_PAYMENT_INTENT')
       },
       onError: (error) => {
-        console.warn('we have an error generating payment intent', error)
+        log.warn('we have an error generating payment intent', error)
       },
     },
   )
 
   // get a new payment intent every time items in the cart are changed
   useEffect(() => {
-    console.log(
+    log.debug(
       'generating payment intent',
       cart.items,
       generatePaymentIntent.status,
@@ -144,15 +192,20 @@ export default function useCheckout() {
 
       return _processPaymentIntent({
         email,
-        paymentIntentId: generatePaymentIntent.data.id,
-        assets: cart.items,
+        paymentIntentId: generatePaymentIntent.data.paymentIntentId,
+        assets: cart.items.map((item) => _.pick(item, ['id', 'quantity'])),
       })
     },
     {
       onMutate: (data) => {
         setStatus(CHECKOUT_STATUSES.PROCESSING_ORDER)
       },
+      onError: (error) => {
+        log.warn('we have an error processing payment intent', error)
+        debugger
+      },
       onSuccess: ({ email }) => {
+        debugger
         confirmPaymentIntent.mutate({ email })
         if (!user.isLoggedIn) {
           login.mutate({ email })
@@ -177,18 +230,45 @@ export default function useCheckout() {
       return
     }
     // @TODO - validate email
-    processPaymentIntent.mutate({ email })
+    await processPaymentIntent.mutateAsync({ email })
   }
+
+  function onPaymentMethodChange({
+    elementType,
+    error,
+    value,
+    empty,
+    complete,
+  }) {
+    log.debug('onPaymentMethodChange', {
+      elementType,
+      error,
+      value,
+      empty,
+      complete,
+    })
+
+    if (error && error.message) {
+      formMethods.setError('validPaymentMethod', error)
+    } else {
+      formMethods.clearErrors('validPaymentMethod')
+    }
+
+    formMethods.setValue('validPaymentMethod', complete, {
+      shouldValidate: true,
+    })
+  }
+
+  useEffect(() => {
+    formMethods.register('validPaymentMethod')
+    formMethods.register('paymentIntent')
+  }, [])
 
   return {
     status,
     handleSubmit: formMethods.handleSubmit(onSubmit),
     errorMessage,
     formMethods,
+    onPaymentMethodChange,
   }
-}
-function mutate(
-  generatePaymentIntent: UseMutationResult<any, unknown, void, void>,
-) {
-  throw new Error('Function not implemented.')
 }
