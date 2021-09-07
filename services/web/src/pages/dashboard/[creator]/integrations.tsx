@@ -19,7 +19,7 @@ export default function CreatorDashboardIntegrations() {
               lorem ipsum
             </p>
           </div>
-          <ul tw="flex flex-col divide divide-y">
+          <ul tw="flex flex-col divide-y">
             <li tw="flex flex-row">
               <div tw="select-none cursor-pointer flex flex-1 items-center p-4">
                 <div tw="flex flex-col w-10 h-10 justify-center items-center mr-4">
@@ -159,7 +159,7 @@ export default function CreatorDashboardIntegrations() {
               lorem ipsum
             </p>
           </div>
-          <ul tw="flex flex-col divide divide-y">
+          <ul tw="flex flex-col divide-y">
             <li tw="flex flex-row">
               <div tw="select-none cursor-pointer flex flex-1 items-center p-4">
                 <div tw="flex flex-col w-10 h-10 justify-center items-center mr-4">

@@ -30,6 +30,9 @@ module.exports = function createService(deps) {
 
     configRequester,
     userRequester,
+
+    transactionRequester,
+    orderRequester,
   } = deps
 
   async function fetchStripeCustomerWithSaltanaUserFromEmail({
@@ -39,18 +42,19 @@ module.exports = function createService(deps) {
   }) {
     const [internalUser, stripeCustomer] = await Promise.all([
       (async () => {
-        const user = await userService({ type: 'read', userId: email })
-
-        if (user) {
+        try {
+          const user = await userService({ type: 'read', userId: email })
           return user
+        } catch (err) {
+          console.log('userservice', 'got an error from the user service', err)
+
+          const newUser = await userService({
+            type: 'create',
+            email,
+          })
+
+          return newUser
         }
-
-        const newUser = await userService({
-          type: 'create',
-          email,
-        })
-
-        return newUser
       })(),
       (async () => {
         const foundCustomers = await stripe.customers.list({ email })
@@ -77,6 +81,7 @@ module.exports = function createService(deps) {
       promises.push(
         userService({
           type: 'update',
+          userId: internalUser.id,
           platformData: { stripeCustomerId },
         }),
       )
@@ -125,8 +130,10 @@ module.exports = function createService(deps) {
       paymentIntentId,
     )
     const userService = userRequester.communicate(req)
+    const transactionService = transactionRequester.communicate(req)
+    const orderService = orderRequester.communicate(req)
 
-    const { saltanaUserId, stripeCustomerId } =
+    const { internalUserId, stripeCustomerId } =
       await fetchStripeCustomerWithSaltanaUserFromEmail({
         userService,
         email,
@@ -134,52 +141,47 @@ module.exports = function createService(deps) {
       })
 
     // attach payment intent to customer
+    /*
     await stripe.paymentIntents.attach(id, {
       customer: stripeCustomerId,
     })
+    */
 
-    const parsedAssets = JSON.parse(assets)
-    if (parsedAssets.length === 0) {
+    if (assets.length === 0) {
       throw createError(400, 'No asset ids found')
     }
 
     const commonPayload = {
-      takerId: saltanaUserId,
+      takerId: internalUserId,
       metadata: {
-        origin: metadata.origin,
+        origin: metadata.origin, // metadata from the payment intent
       },
       platformData: {
         stripeIntentId: id,
       },
     }
 
-    const common = { platformId, env, method: 'POST' }
-
     const transactions = await Promise.all(
-      parsedAssets.map((asset) =>
-        saltanaApiRequest('/transactions', {
-          ...common,
-          payload: {
-            assetId: asset.id,
-            quantity: asset.quantity,
-            ...commonPayload,
-          },
+      assets.map((asset) =>
+        transactionService({
+          type: 'create',
+          assetId: asset.id,
+          quantity: asset.quantity,
+          ...commonPayload,
         }),
       ),
     )
 
     const transactionIds = transactions.map((transaction) => transaction.id)
 
-    const order = await saltanaApiRequest('/orders', {
-      ...common,
-      payload: {
-        transactionIds,
-        ...commonPayload,
-      },
+    const order = await orderService({
+      type: 'create',
+      transactionIds,
+      ...commonPayload,
     })
 
     return {
-      saltanaUserId,
+      internalUserId,
       stripeCustomerId,
       orderId: order.id,
     }

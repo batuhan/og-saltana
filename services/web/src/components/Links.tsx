@@ -33,7 +33,7 @@ export function DefaultLink({ children }) {
     return <Link href="/">{children}</Link>
   }
 
-  if (user.data.roles.includes('provider')) {
+  if (user.data.roles?.includes('provider')) {
     // if a creator, go to creator dashboard homepage
     return <CreatorDashboardLink>{children}</CreatorDashboardLink>
   }

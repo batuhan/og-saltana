@@ -2,209 +2,216 @@ const _ = require('lodash')
 
 let requester
 
-function init (server, { middlewares, helpers } = {}) {
-  const {
-    checkPermissions
-  } = middlewares
-  const {
-    wrapAction,
-    populateRequesterParams
-  } = helpers
+function init(server, { middlewares, helpers } = {}) {
+  const { checkPermissions } = middlewares
+  const { wrapAction, populateRequesterParams } = helpers
 
-  server.get({
-    name: 'webhook.list',
-    path: '/webhooks'
-  }, checkPermissions([
-    'webhook:list:all'
-  ]), wrapAction(async (req, res) => {
-    const fields = [
-      'orderBy',
-      'order',
-      'nbResultsPerPage',
+  server.get(
+    {
+      name: 'webhook.list',
+      path: '/webhooks',
+    },
+    checkPermissions(['webhook:list:all']),
+    wrapAction(async (req, res) => {
+      const fields = [
+        'orderBy',
+        'order',
+        'nbResultsPerPage',
 
-      // cursor pagination
-      'startingAfter',
-      'endingBefore',
+        // cursor pagination
+        'startingAfter',
+        'endingBefore',
 
-      'id',
-      'createdDate',
-      'updatedDate',
-      'event',
-      'active',
-    ]
+        'id',
+        'createdDate',
+        'updatedDate',
+        'event',
+        'active',
+      ]
 
-    const payload = _.pick(req.query, fields)
+      const payload = _.pick(req.query, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'list'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'list',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 
-  server.get({
-    name: 'webhook.read',
-    path: '/webhooks/:id'
-  }, checkPermissions([
-    'webhook:read:all'
-  ]), wrapAction(async (req, res) => {
-    const { id } = req.params
-    const fields = [
-      'logs'
-    ]
-    const payload = _.pick(req.query, fields)
+  server.get(
+    {
+      name: 'webhook.read',
+      path: '/webhooks/:id',
+    },
+    checkPermissions(['webhook:read:all']),
+    wrapAction(async (req, res) => {
+      const { id } = req.params
+      const fields = ['logs']
+      const payload = _.pick(req.query, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'read',
-      webhookId: id
-    })
+      let params = populateRequesterParams(req)({
+        type: 'read',
+        webhookId: id,
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.post({
-    name: 'webhook.create',
-    path: '/webhooks'
-  }, checkPermissions([
-    'webhook:create:all'
-  ], { checkData: true }), wrapAction(async (req, res) => {
-    const fields = [
-      'name',
-      'targetUrl',
-      'event',
-      'apiVersion',
-      'active',
-      'metadata',
-      'platformData'
-    ]
+  server.post(
+    {
+      name: 'webhook.create',
+      path: '/webhooks',
+    },
+    checkPermissions(['webhook:create:all'], { checkData: true }),
+    wrapAction(async (req, res) => {
+      const fields = [
+        'name',
+        'targetUrl',
+        'event',
+        'apiVersion',
+        'active',
+        'metadata',
+        'platformData',
+      ]
 
-    const payload = _.pick(req.body, fields)
+      const payload = _.pick(req.body, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'create'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'create',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.patch({
-    name: 'webhook.update',
-    path: '/webhooks/:id'
-  }, checkPermissions([
-    'webhook:edit:all'
-  ], { checkData: true }), wrapAction(async (req, res) => {
-    const webhookId = req.params.id
-    const fields = [
-      'name',
-      'targetUrl',
-      'event',
-      'active',
-      'metadata',
-      'platformData'
-    ]
+  server.patch(
+    {
+      name: 'webhook.update',
+      path: '/webhooks/:id',
+    },
+    checkPermissions(['webhook:edit:all'], { checkData: true }),
+    wrapAction(async (req, res) => {
+      const webhookId = req.params.id
+      const fields = [
+        'name',
+        'targetUrl',
+        'event',
+        'active',
+        'metadata',
+        'platformData',
+      ]
 
-    const payload = _.pick(req.body, fields)
+      const payload = _.pick(req.body, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'update',
-      webhookId
-    })
+      let params = populateRequesterParams(req)({
+        type: 'update',
+        webhookId,
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.del({
-    name: 'webhook.remove',
-    path: '/webhooks/:id'
-  }, checkPermissions([
-    'webhook:remove:all'
-  ]), wrapAction(async (req, res) => {
-    const { id } = req.params
+  server.del(
+    {
+      name: 'webhook.remove',
+      path: '/webhooks/:id',
+    },
+    checkPermissions(['webhook:remove:all']),
+    wrapAction(async (req, res) => {
+      const { id } = req.params
 
-    const params = populateRequesterParams(req)({
-      type: 'remove',
-      webhookId: id
-    })
+      const params = populateRequesterParams(req)({
+        type: 'remove',
+        webhookId: id,
+      })
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
   // /////////// //
   // WEBHOOK LOG //
   // /////////// //
 
-  server.get({
-    name: 'webhook.listLogs',
-    path: '/webhook-logs'
-  }, checkPermissions([
-    'webhookLog:list:all'
-  ]), wrapAction(async (req, res) => {
-    const fields = [
-      'orderBy',
-      'order',
-      'nbResultsPerPage',
+  server.get(
+    {
+      name: 'webhook.listLogs',
+      path: '/webhook-logs',
+    },
+    checkPermissions(['webhookLog:list:all']),
+    wrapAction(async (req, res) => {
+      const fields = [
+        'orderBy',
+        'order',
+        'nbResultsPerPage',
 
-      // cursor pagination
-      'startingAfter',
-      'endingBefore',
+        // cursor pagination
+        'startingAfter',
+        'endingBefore',
 
-      'id',
-      'createdDate',
-      'webhookId',
-      'eventId',
-      'status',
-    ]
+        'id',
+        'createdDate',
+        'webhookId',
+        'eventId',
+        'status',
+      ]
 
-    const payload = _.pick(req.query, fields)
+      const payload = _.pick(req.query, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'listLogs'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'listLogs',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 
-  server.get({
-    name: 'webhook.readLog',
-    path: '/webhook-logs/:id'
-  }, checkPermissions([
-    'webhookLog:read:all'
-  ]), wrapAction(async (req, res) => {
-    const { id } = req.params
+  server.get(
+    {
+      name: 'webhook.readLog',
+      path: '/webhook-logs/:id',
+    },
+    checkPermissions(['webhookLog:read:all']),
+    wrapAction(async (req, res) => {
+      const { id } = req.params
 
-    const params = populateRequesterParams(req)({
-      type: 'readLog',
-      webhookLogId: id
-    })
+      const params = populateRequesterParams(req)({
+        type: 'readLog',
+        webhookLogId: id,
+      })
 
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 }
 
-function start ({ communication }) {
+function start({ communication }) {
   const { getRequester } = communication
 
   requester = getRequester({
     name: 'Webhook route > Webhook Requester',
-    key: 'webhook'
+    key: 'webhook',
   })
 }
 
-function stop () {
+function stop() {
   requester.close()
   requester = null
 }
@@ -212,5 +219,5 @@ function stop () {
 module.exports = {
   init,
   start,
-  stop
+  stop,
 }

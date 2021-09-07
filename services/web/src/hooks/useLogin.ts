@@ -1,31 +1,40 @@
 import { useMutation } from 'react-query'
 import { login } from '@/client/api'
 import { useForm } from 'react-hook-form'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 
 export default function useLogin() {
   const { mutateAsync, mutate, isLoading, error, isError } = useMutation(
     ({
       email,
-      callbackUrl,
+      redirectTo,
       redirect,
     }: {
       email: string
-      callbackUrl?: string | undefined
+      redirectTo?: string | undefined
       redirect?: boolean
-    }) => login(email, { callbackUrl, redirect }),
+    }) => login(email, { callbackUrl: redirectTo, redirect }),
   )
   return { mutateAsync, mutate, isLoading, error, isError }
 }
 
-export function useLoginForm({ callbackUrl }) {
+export function useLoginForm() {
   const loginMutation = useLogin()
 
+  const router = useRouter()
+
+  const { redirectTo = '/dashboard' } = router.query
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-  } = useForm()
+  } = useForm({
+    defaultValues: {
+      email: router.query.email || '',
+    },
+  })
 
   const registerEmail = register('email', {
     required: true,
@@ -33,8 +42,13 @@ export function useLoginForm({ callbackUrl }) {
   })
 
   async function onSubmit({ email }) {
+    debugger
     try {
-      const loginResponse = await loginMutation.mutateAsync({ email })
+      const loginResponse = await loginMutation.mutateAsync({
+        email,
+        redirect: true,
+        redirectTo,
+      })
       console.log('loginResponse ', { loginResponse })
     } catch (error) {
       setError(
@@ -44,6 +58,13 @@ export function useLoginForm({ callbackUrl }) {
       )
     }
   }
+
+  useEffect(() => {
+    if (router.query.email) {
+      console.log('router.query.email ', { query: router.query })
+      handleSubmit(onSubmit)()
+    }
+  }, [router.query.email])
 
   return {
     registerEmail,

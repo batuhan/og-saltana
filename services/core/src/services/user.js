@@ -3,6 +3,7 @@ const _ = require('lodash')
 const bluebird = require('bluebird')
 const { raw, transaction } = require('@saltana/objection')
 const { UniqueViolationError } = require('objection-db-errors')
+const { nanoid } = require('nanoid')
 
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')
@@ -22,6 +23,16 @@ let roleRequester
 let namespaceRequester
 
 const organizationRole = 'organization'
+
+function generatePassword(length = 50) {
+  const chars =
+    '.-/*abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
 
 function start({ communication }) {
   const {
@@ -251,13 +262,15 @@ function start({ communication }) {
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
   })
 
-  responder.on('create', async (req) => {
+  async function _create(req) {
     const platformId = req.platformId
     const env = req.env
     const { AuthMean, User } = await getModels({ platformId, env })
 
-    const { password, orgOwnerId, userType: type } = req
+    const { orgOwnerId, userType } = req
 
+    const type = userType || 'user'
+    const password = req.password || generatePassword()
     const fields = [
       'username',
       'displayName',
@@ -283,8 +296,9 @@ function start({ communication }) {
     const createAttrs = Object.assign(
       {
         id: await getObjectId({ prefix: idPrefix, platformId, env }),
+        username: `${payload.email.split('@')[0]}-${nanoid(5)}`,
       },
-      payload
+      payload,
     )
 
     const currentUserId = getCurrentUserId(req)
@@ -387,12 +401,12 @@ function start({ communication }) {
           orgOwnerUpdateAttrs = {}
           orgOwnerUpdateAttrs.organizations = User.rawJsonbMerge(
             'organizations',
-            newOrganizations
+            newOrganizations,
           )
 
           updatedOrgOwnerUser = await User.query(trx).patchAndFetchById(
             organizationOwnerId,
-            orgOwnerUpdateAttrs
+            orgOwnerUpdateAttrs,
           )
         }
 
@@ -424,38 +438,9 @@ function start({ communication }) {
     }
 
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
-  })
+  }
 
-  // Allows creation of users only an e-mail
-  responder.on('_upsert', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { AuthMean, User } = await getModels({ platformId, env })
-    const { id } = req
-
-    const userId = req.userId
-
-    const user = await User.query().where('email', userId).first()
-
-    user = await userRequester.send({
-      type: 'create',
-      platformId,
-      env,
-      _matchedPermissions: req._matchedPermissions,
-      userType: 'user',
-      username: `${metadata.email.split('@')[0]}-${nanoid(5)}`,
-      email: metadata.email,
-      password:
-        'F)bqjH<h+deMk>UPr$d%6OPq@+S>(,K_nr+&z8y/3SXrP7-=tk[J2@2YZT^|@>Hb',
-      platformData: {
-        authProvider: 'magic',
-        magicData: {
-          issuer: metadata.issuer,
-          publicAddress: metadata.publicAddress,
-        },
-      },
-    })
-  })
+  responder.on('create', _create)
 
   responder.on('update', async (req) => {
     const platformId = req.platformId
@@ -513,7 +498,7 @@ function start({ communication }) {
             'or have "user:edit:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
-          }
+          },
         )
       }
     }
@@ -536,7 +521,7 @@ function start({ communication }) {
     if (platformData) {
       updateAttrs.platformData = User.rawJsonbMerge(
         'platformData',
-        platformData
+        platformData,
       )
     }
 
@@ -632,7 +617,7 @@ function start({ communication }) {
           'userOrganizationRightsChanged',
           Object.assign({}, eventPayload, {
             changesRequested: { roles: newRoles },
-          })
+          }),
         )
       }
     }
@@ -666,7 +651,7 @@ function start({ communication }) {
             'or have "user:remove:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
-          }
+          },
         )
       }
     } else if (!canRemoveUser) throw createError(403, 'Can’t delete this user.')
@@ -680,7 +665,7 @@ function start({ communication }) {
         422,
         `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${
           user.id
-        }. Please delete all User Assets before deleting this User.`
+        }. Please delete all User Assets before deleting this User.`,
       )
     }
 
@@ -698,7 +683,7 @@ function start({ communication }) {
       if (childrenOrganizations.length) {
         throw createError(
           422,
-          `${childrenOrganizations.length} children organizations still reference this organization`
+          `${childrenOrganizations.length} children organizations still reference this organization`,
         )
       }
 
@@ -722,7 +707,7 @@ function start({ communication }) {
             public: {
               ownedOrganizationIds: ownedOrganizations.map((o) => o.id),
             },
-          }
+          },
         )
       }
     }
@@ -791,7 +776,7 @@ function start({ communication }) {
           {
             // all events are generated on same current instance so let’s be gentle
             concurrency: 2,
-          }
+          },
         )
         .finally(emitDeletedEvent)
     }
@@ -826,7 +811,7 @@ function start({ communication }) {
         'Cannot update the "organizations" config of a child organization',
         {
           public: { parentOrganizationId: Object.keys(user.organizations)[0] },
-        }
+        },
       )
     }
 
@@ -896,7 +881,7 @@ function start({ communication }) {
     if (targetingOrganization) {
       throw createError(
         403,
-        'Cannot update the "organizations" config of a child organization'
+        'Cannot update the "organizations" config of a child organization',
       )
     }
 
@@ -975,7 +960,7 @@ function start({ communication }) {
             objectId: user.id,
             object: User.expose(user, { namespaces: ['*'] }),
           },
-          { platformId, env }
+          { platformId, env },
         )
       } catch (err) {
         logError(err, {
@@ -985,7 +970,7 @@ function start({ communication }) {
           message: 'Fail to create event user__created',
         })
       }
-    }
+    },
   )
 
   subscriber.on(
@@ -1002,7 +987,7 @@ function start({ communication }) {
             object: User.expose(newUser, { namespaces: ['*'] }),
             changesRequested: User.expose(updateAttrs, { namespaces: ['*'] }),
           },
-          { platformId, env }
+          { platformId, env },
         )
       } catch (err) {
         logError(err, {
@@ -1012,7 +997,7 @@ function start({ communication }) {
           message: 'Fail to create event user__updated',
         })
       }
-    }
+    },
   )
 
   subscriber.on(
@@ -1028,7 +1013,7 @@ function start({ communication }) {
             objectId: userId,
             object: User.expose(user, { req, namespaces: ['*'] }),
           },
-          { platformId, env }
+          { platformId, env },
         )
       } catch (err) {
         logError(err, {
@@ -1038,20 +1023,20 @@ function start({ communication }) {
           message: 'Fail to create event user__deleted',
         })
       }
-    }
+    },
   )
 
   subscriber.on(
     'userOrganizationJoined',
-    createOrgEventFn('user__organization_joined')
+    createOrgEventFn('user__organization_joined'),
   )
   subscriber.on(
     'userOrganizationLeft',
-    createOrgEventFn('user__organization_left')
+    createOrgEventFn('user__organization_left'),
   )
   subscriber.on(
     'userOrganizationRightsChanged',
-    createOrgEventFn('user__organization_rights_changed')
+    createOrgEventFn('user__organization_rights_changed'),
   )
 
   function createOrgEventFn(type) {
@@ -1078,7 +1063,7 @@ function start({ communication }) {
             // populate relatedObjectsIds
             _tmpObject: { organizationId },
           },
-          { platformId, env }
+          { platformId, env },
         )
       } catch (err) {
         logError(err, {
@@ -1119,7 +1104,7 @@ async function getOrganizationsDependencies({
 
   const queryBuilder = User.query().whereJsonSupersetOf(
     `organizations:${organizationId}`,
-    {}
+    {},
   )
 
   if (type === 'user') {
@@ -1201,7 +1186,7 @@ async function isOrganizationMember({
       const parentOrganization = indexedOrganizations[parentOrganizationId]
       if (!parentOrganization) {
         throw createError(
-          `There is no parent organization with ID "${parentOrganizationId}"`
+          `There is no parent organization with ID "${parentOrganizationId}"`,
         )
       }
 
@@ -1245,7 +1230,7 @@ async function checkRolesBeforeCreate({
         throw createError(
           422,
           'The following roles are not whitelisted: ' +
-            nonWhitelistRoles.join(', ')
+            nonWhitelistRoles.join(', '),
         )
       }
     }
@@ -1294,19 +1279,19 @@ async function checkRolesBeforeUpdate({
   if (targetingOrganization && !hasOrganizationRoles) {
     throw createError(
       422,
-      'Cannot transform an organization into a normal user'
+      'Cannot transform an organization into a normal user',
     )
   } else if (!targetingOrganization && hasOrganizationRoles) {
     throw createError(
       422,
-      'Cannot transform a normal user into an organization'
+      'Cannot transform a normal user into an organization',
     )
   }
 
   if (!req._matchedPermissions['user:config:all']) {
     throw createError(
       403,
-      'Roles cannot be updated without "user:config:all" permission.'
+      'Roles cannot be updated without "user:config:all" permission.',
     )
   }
 
@@ -1340,14 +1325,14 @@ async function checkOrganizationsBeforeCreate({
   if (!targetingOrganization) {
     throw createError(
       422,
-      'Cannot specify the "organizations" object when creating a user'
+      'Cannot specify the "organizations" object when creating a user',
     )
   }
 
   if (organizationsIds.length > 1) {
     throw createError(
       422,
-      'An organization cannot belong to multiple parent organizations'
+      'An organization cannot belong to multiple parent organizations',
     )
   }
 
@@ -1357,7 +1342,7 @@ async function checkOrganizationsBeforeCreate({
   if (!organizationOwnerId) {
     throw createError(
       403,
-      `Missing organization owner for the organization with ID "${organizationId}"`
+      `Missing organization owner for the organization with ID "${organizationId}"`,
     )
   }
 
@@ -1371,7 +1356,7 @@ async function checkOrganizationsBeforeCreate({
   if (!isOrgMember) {
     throw createError(
       403,
-      `The current user does not belong to the parent organization with ID "${organizationId}"`
+      `The current user does not belong to the parent organization with ID "${organizationId}"`,
     )
   }
 }

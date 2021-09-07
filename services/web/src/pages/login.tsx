@@ -11,10 +11,7 @@ import { getSession } from 'next-auth/client'
 import Link from 'next/link'
 
 export default function Login() {
-  const router = useRouter()
-  const { onSubmit, isSubmitting, registerEmail, errors } = useLoginForm({
-    callbackUrl: (router.query?.callbackUrl as string) || '/dashboard',
-  })
+  const { onSubmit, isSubmitting, registerEmail, errors } = useLoginForm()
 
   return (
     <div tw="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

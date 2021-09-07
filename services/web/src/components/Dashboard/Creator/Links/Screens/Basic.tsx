@@ -17,6 +17,8 @@ import {
 } from '@kiwicom/orbit-components'
 import useAssetTypes from 'hooks/useAssetTypes'
 import useAssetCategories from 'hooks/useAssetCategories'
+import AssetCategorySelector from '../../Fields/AssetCategorySelector'
+import AssetTypeSelector from '../../Fields/AssetTypeSelector'
 
 export default function CreatorDashboardLinkBasicScreen() {
   const { register, control, setValue } = useFormContext()
@@ -84,7 +86,7 @@ export default function CreatorDashboardLinkBasicScreen() {
         </label>
         <p tw="mt-1 text-sm text-gray-500">
           Lorem ipsum dolor sit amet consectetur adipisicing elit quam corrupti
-          consectetur.
+          consectetur. c
         </p>
         <div tw="mt-3">
           <ContentEditor fieldName="link.content" />

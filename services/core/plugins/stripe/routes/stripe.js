@@ -5,7 +5,7 @@ let deps = {}
 
 function init(server, { middlewares, helpers } = {}) {
   const { checkPermissions, restifyAuthorizationParser } = middlewares
-  const { wrapAction, getRequestContext } = helpers
+  const { wrapAction, getRequestContext, populateRequesterParams } = helpers
 
   const commonPermissions = [
     'integrations:read_write:stripe',
@@ -77,9 +77,21 @@ function start(startParams) {
     key: 'user',
   })
 
+  const transactionRequester = getRequester({
+    name: 'Stripe service > Transaction Requester',
+    key: 'transaction',
+  })
+
+  const orderRequester = getRequester({
+    name: 'Stripe service > Order Requester',
+    key: 'order',
+  })
+
   Object.assign(deps, {
     configRequester,
     userRequester,
+    transactionRequester,
+    orderRequester,
   })
 
   stripe = createService(deps)

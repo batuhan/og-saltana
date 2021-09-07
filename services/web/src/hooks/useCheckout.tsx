@@ -1,4 +1,10 @@
-import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import {
+  CardElement,
+  Elements,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js'
+
 import React, { useEffect, useMemo, useState } from 'react'
 import { formatAmountForDisplay } from '@/client/stripe'
 import { useMutation, useQuery } from 'react-query'
@@ -15,6 +21,8 @@ import _ from 'lodash'
 import { useCart } from 'react-use-cart'
 import useCurrentUser from './useCurrentUser'
 import Logger from '@/common/logger'
+import { useRouter } from 'next/router'
+import { generateOrderLink } from '@/common/utils'
 
 const cartCache = localForage.createInstance({
   name: 'cart',
@@ -87,12 +95,12 @@ async function _processPaymentIntent({ paymentIntentId, assets, email }) {
     email,
   })
 
-  return processResult
+  return { ...processResult.data, email }
 }
 
 async function _confirmPaymentIntent({ stripe, paymentIntent, card, email }) {
   const paymentConfirmation = await stripe.confirmCardPayment(
-    paymentIntent.client_secret,
+    paymentIntent.paymentIntentClientSecret,
     {
       payment_method: {
         card,
@@ -127,8 +135,7 @@ export default function useCheckout() {
   const cart = useCart()
   const stripe = useStripe()
   const elements = useElements()
-  const user = useCurrentUser()
-  const login = useLogin()
+  const router = useRouter()
 
   const [status, setStatus] = useState(CHECKOUT_STATUSES.EMPTY_CART)
   const [errorMessage, setErrorMessage] = useState(null)
@@ -202,22 +209,40 @@ export default function useCheckout() {
       },
       onError: (error) => {
         log.warn('we have an error processing payment intent', error)
-        debugger
       },
-      onSuccess: ({ email }) => {
-        debugger
-        confirmPaymentIntent.mutate({ email })
-        if (!user.isLoggedIn) {
-          login.mutate({ email })
-        }
+      onSuccess: ({ email, orderId, stripeCustomerId }) => {
+        log.debug('successfully processed payment intent', email, orderId)
+        confirmPaymentIntent.mutate({ email, orderId, stripeCustomerId })
       },
     },
   )
 
   // [PAYMENT_INTENT_CONFIRMATION] starts
-  const confirmPaymentIntent = useMutation(async ({ email }) => {
-    const result = await _confirmPaymentIntent({ stripe, email })
-  })
+  const confirmPaymentIntent = useMutation(
+    async ({
+      email,
+      orderId,
+      stripeCustomerId,
+    }: {
+      email: string
+      orderId: string
+      stripeCustomerId: string
+    }) => {
+      const result = await _confirmPaymentIntent({
+        stripe,
+        card: elements.getElement(CardElement),
+        paymentIntent: generatePaymentIntent.data,
+        email,
+      })
+
+      return { stripeResult: result, email, orderId, stripeCustomerId }
+    },
+    {
+      onSuccess: ({ email, orderId }) => {
+        router.push(generateOrderLink({ email, orderId }))
+      },
+    },
+  )
 
   // [PAYMENT_INTENT_CONFIRMATION] ends
   // when the payment intent is processed in our backend (creating transactions&order&user)
