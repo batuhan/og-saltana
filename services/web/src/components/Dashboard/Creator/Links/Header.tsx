@@ -24,52 +24,6 @@ export default function SubHeader({ link, isLink }) {
     <div tw="bg-black text-white">
       <div tw="max-w-3xl mx-auto px-4 pb-5 sm:px-6 lg:max-w-5xl lg:px-8">
         <div tw="relative">
-          <div>
-            <nav tw="hidden sm:flex" aria-label="Breadcrumb">
-              <ol tw="flex items-center space-x-4">
-                <li>
-                  <div>
-                    <CreatorDashboardLink>
-                      <a tw="text-sm font-medium text-gray-400 hover:text-gray-200">
-                        Dashboard
-                      </a>
-                    </CreatorDashboardLink>
-                  </div>
-                </li>
-                <li>
-                  <div tw="flex items-center">
-                    <ChevronRightIcon
-                      tw="flex-shrink-0 h-5 w-5 text-gray-500"
-                      aria-hidden="true"
-                    />
-                    <CreatorDashboardLinksLink>
-                      <a tw="ml-4 text-sm font-medium text-gray-400 hover:text-gray-200">
-                        Links
-                      </a>
-                    </CreatorDashboardLinksLink>
-                  </div>
-                </li>
-                {isLink && (
-                  <li>
-                    <div tw="flex items-center">
-                      <ChevronRightIcon
-                        tw="flex-shrink-0 h-5 w-5 text-gray-500"
-                        aria-hidden="true"
-                      />
-                      <CreatorDashboardLinksLink href={`/${link.data.id}`}>
-                        <a
-                          aria-current="page"
-                          tw="ml-4 text-sm font-medium text-gray-400 hover:text-gray-200"
-                        >
-                          /{link.data.slug}
-                        </a>
-                      </CreatorDashboardLinksLink>
-                    </div>
-                  </li>
-                )}
-              </ol>
-            </nav>
-          </div>
           {isLink && (
             <div tw="mt-2 md:flex md:items-center md:justify-between">
               <div tw="flex-1 min-w-0">

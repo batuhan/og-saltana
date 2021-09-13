@@ -35,6 +35,7 @@ export default function UpdateCreatorLinkProvider({
   creator,
   asset,
   link,
+  ...props
 }) {
   const methods = useForm({
     defaultValues: {
@@ -72,7 +73,9 @@ export default function UpdateCreatorLinkProvider({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)}>{children}</form>
+      <form onSubmit={handleSubmit(onSubmit)} {...props}>
+        {children}
+      </form>
       {process.env.NODE_ENV === 'development' && <DevTool control={control} />}
     </FormProvider>
   )

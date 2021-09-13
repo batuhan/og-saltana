@@ -3,11 +3,14 @@ import useCurrentUser from 'hooks/useCurrentUser'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 
 const getCreatorDashboardLink = (basePath = '') =>
-  function _DashboardLink({ children, href = '' }) {
+  function _DashboardLink({ children, href = '', ...props }) {
     const user = useCurrentUser()
 
     return (
-      <Link href={`/dashboard/${user.data.username}${basePath}${href}`}>
+      <Link
+        href={`/dashboard/${user.data.username}${basePath}${href}`}
+        {...props}
+      >
         {children}
       </Link>
     )
@@ -15,6 +18,9 @@ const getCreatorDashboardLink = (basePath = '') =>
 
 export const CreatorDashboardLink = getCreatorDashboardLink()
 export const CreatorDashboardLinksLink = getCreatorDashboardLink('/links')
+export const CreatorDashboardAssetsLink = getCreatorDashboardLink('/assets')
+export const CreatorDashboardOrdersLink =
+  getCreatorDashboardLink('/assets/orders')
 
 export function UserDashboardLink({ children, href = '/assets' }) {
   return <Link href={`/my${href}`}>{children}</Link>

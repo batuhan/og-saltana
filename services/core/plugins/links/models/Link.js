@@ -15,7 +15,7 @@ module.exports = (Base) =>
           'name',
           'destination', // resolves to data.destination
           'content', // resolves to data.pageContent
-          'assetId',
+          'assetIds',
 
           // common elements
           'createdDate',
@@ -66,7 +66,7 @@ module.exports = (Base) =>
             'destination',
             'content',
             'slug',
-            'assetId',
+            'assetIds',
           ]),
         },
         metadata: link.metadata,
@@ -94,7 +94,7 @@ module.exports = (Base) =>
         destination: setNullIfUndefined(doc.data.destination),
         content: setNullIfUndefined(doc.data.content),
         accessType: setNullIfUndefined(doc.data.accessType),
-        assetId: setNullIfUndefined(doc.data.assetId),
+        assetIds: setNullIfUndefined(doc.data.assetIds),
         metadata: doc.metadata,
         platformData: doc.platformData,
       }

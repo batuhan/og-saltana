@@ -20,16 +20,16 @@ export default function DashboardShell({
   }, [isLoading, isLoggedIn, router])
 
   return (
-    <div tw="min-h-screen flex flex-col h-screen justify-between">
-      <div tw="bg-black text-white">
+    <div className="min-h-screen flex flex-col h-screen justify-between">
+      <div className="bg-black text-white">
         <Header />
       </div>
 
       {container === true ? (
         <>
           {subHeader}
-          <main tw="pt-5 mb-auto bg-white text-black">
-            <div tw="max-w-3xl mx-auto lg:max-w-5xl  bg-white text-black">
+          <main className="mb-auto bg-white text-black h-full">
+            <div className="max-w-3xl mx-auto lg:max-w-5xl  bg-white text-black">
               {children}
             </div>
           </main>

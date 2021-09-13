@@ -18,8 +18,14 @@ export default function useCreatorSpace() {
     link.data?.assetId
   )
 
-  const asset = useApi('assets', 'read', link.data?.assetId, {
-    enabled: link.data?.assetId !== null && isAssetLink,
+  const assetId = link.data?.assetId || query.asset
+  const asset = useApi('assets', 'read', assetId, {
+    enabled: (link.data?.assetId !== null && isAssetLink) || !!assetId,
+  })
+
+  const isOrder = query.order && query.order.length > 0
+  const order = useApi('assets', 'read', query.order, {
+    enabled: isOrder,
   })
 
   const isLoading =
@@ -27,5 +33,5 @@ export default function useCreatorSpace() {
     (isLink ? link.isLoading : false) ||
     (isAssetLink ? asset.isLoading : false)
 
-  return { link, creator, asset, isLink, isAssetLink, isLoading }
+  return { link, creator, asset, order, isLink, isAssetLink, isLoading }
 }

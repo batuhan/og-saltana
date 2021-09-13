@@ -35,6 +35,9 @@ async function getUserById(userId) {
 */
 
 export default NextAuth({
+  jwt: {
+    secret: process.env.SALTANA_CORE_SECRET_API_KEY || 'system',
+  },
   callbacks: {
     async signIn() {
       return true

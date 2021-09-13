@@ -6,8 +6,12 @@ import React, { useMemo, useState } from 'react'
 import { useWatch } from 'react-hook-form'
 import 'twin.macro'
 
-export default function AssetCategorySelector({ control, register, setValue }) {
-  const FIELD_NAME = 'asset.categoryId'
+export default function AssetCategorySelector({
+  control,
+  register,
+  setValue,
+  FIELD_NAME = 'asset.categoryId',
+}) {
   const assetCategories = useAssetCategories({})
   const assetCategoryId = register(FIELD_NAME, { required: true })
   const selectedCategoryId = useWatch({
@@ -49,11 +53,13 @@ export default function AssetCategorySelector({ control, register, setValue }) {
       onOpen={() => setOpened(true)}
       onClose={() => setOpened(false)}
     >
-      <InputField
-        inlineLabel
-        label="Category"
+      <input
+        type="text"
+        name={FIELD_NAME}
+        id={FIELD_NAME}
         readOnly
         value={selectedCategory?.name}
+        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm"
       />
     </Popover>
   )

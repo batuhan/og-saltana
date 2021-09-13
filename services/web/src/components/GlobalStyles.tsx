@@ -9,7 +9,7 @@ const CustomStyles = createGlobalStyle`
 
 const GlobalStyles = () => (
   <>
-    <BaseStyles />
+    {/*<BaseStyles />*/}
     <CustomStyles />
   </>
 )

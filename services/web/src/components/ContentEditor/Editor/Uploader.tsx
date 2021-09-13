@@ -26,7 +26,7 @@ const defOpts = {
 export default function Uploader(props) {
   const uppy = React.useMemo(
     () =>
-      Uppy()
+      new Uppy()
         .use(Transloadit, {
           params: {
             auth: {
@@ -72,7 +72,7 @@ export default function Uploader(props) {
             props.onTransloaditResult(uppy.getFile(result.localId))
           }
         }),
-    []
+    [],
   )
   React.useEffect(() => () => uppy.close(), [uppy])
 

@@ -32,7 +32,7 @@ export function ContentEditor2({ fieldName, defaultValue }) {
 export default function ContentEditor({ fieldName }: { fieldName: string }) {
   const { register, setValue, watch } = useFormContext()
   const value = watch(fieldName)
-  const [hasContent, setHasContent] = useState(false)
+  const [hasContent, setHasContent] = useState(true)
 
   useEffect(() => {
     register(fieldName, { required: true })
