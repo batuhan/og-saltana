@@ -156,10 +156,6 @@ const team = [
   },
 ]
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
 export default function LinkView({ linkId }) {
   const link = useApi('links', 'read', linkId, {
     initialData: {},

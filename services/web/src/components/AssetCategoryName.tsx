@@ -1,6 +1,6 @@
 import useApi from 'hooks/useApi'
 
-export default function CategoryName({ categoryId }) {
+export default function AssetCategoryName({ categoryId }) {
   const categories = useApi('categories', 'list', {})
 
   if (!categories) {

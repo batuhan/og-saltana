@@ -3,18 +3,16 @@ import { CartProvider } from 'react-use-cart'
 import { Hydrate } from 'react-query/hydration'
 import { Provider } from 'next-auth/client'
 import { ReactQueryDevtools } from 'react-query/devtools'
-import { getTokens } from '@kiwicom/orbit-components'
-import { ThemeProvider } from 'styled-components'
-import GlobalStyles from '../../components/GlobalStyles'
 import { SaltanaCoreProvider } from './SaltanaCoreProvider'
 
-const tokens = getTokens()
+import { getTokens } from '@kiwicom/orbit-components'
+import { ThemeProvider } from 'styled-components'
 
 function Providers({ children, pageProps }) {
+  const tokens = getTokens()
+
   return (
     <ThemeProvider theme={{ orbit: tokens }}>
-      <GlobalStyles />
-
       <Provider session={pageProps.session}>
         <SaltanaCoreProvider>
           <Hydrate state={pageProps.dehydratedState}>

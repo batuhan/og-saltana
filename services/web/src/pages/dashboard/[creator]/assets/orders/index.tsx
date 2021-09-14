@@ -1,6 +1,6 @@
 import * as React from 'react'
 import DashboardShell from 'components/Dashboard/Common/Shell'
-import 'twin.macro'
+
 import { NextSeo } from 'next-seo'
 import {
   CalendarIcon,
@@ -18,9 +18,9 @@ import { CreatorDashboardOrdersLink } from 'components/Links'
 import { uniq } from 'lodash'
 export function Title() {
   return (
-    <div tw="md:flex md:items-center md:justify-between">
-      <div tw="flex-1 min-w-0">
-        <h2 tw="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+    <div className="md:flex md:items-center md:justify-between">
+      <div className="flex-1 min-w-0">
+        <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
           Orders
         </h2>
       </div>
@@ -57,16 +57,22 @@ function AssetName({ transactionId }) {
 }
 export function Stats() {
   return (
-    <div tw="px-4 mt-6 sm:px-6 lg:px-8">
-      <h3 tw="text-lg leading-6 font-medium text-gray-900">Last 30 days</h3>
-      <dl tw="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+    <div className="px-4 mt-6 sm:px-6 lg:px-8">
+      <h3 className="text-lg leading-6 font-medium text-gray-900">
+        Last 30 days
+      </h3>
+      <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
         {stats.map((item) => (
           <div
             key={item.name}
-            tw="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6"
+            className="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6"
           >
-            <dt tw="text-sm font-medium text-gray-500 truncate">{item.name}</dt>
-            <dd tw="mt-1 text-3xl font-semibold text-gray-900">{item.stat}</dd>
+            <dt className="text-sm font-medium text-gray-500 truncate">
+              {item.name}
+            </dt>
+            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+              {item.stat}
+            </dd>
           </div>
         ))}
       </dl>
@@ -356,10 +362,6 @@ const filters = [
   },
 ]
 const activeFilters = [{ value: 'objects', label: 'Objects' }]
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
 
 function OrderNew2() {
   const [open, setOpen] = useState(false)

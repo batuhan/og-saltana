@@ -4,7 +4,7 @@ import useCreatorSpace from 'hooks/useCreatorSpace'
 import { useCart } from 'react-use-cart'
 import React, { useEffect } from 'react'
 import CheckoutForm from 'components/Checkout/CheckoutForm'
-import tw from 'twin.macro'
+
 import { useRouter } from 'next/router'
 interface ProductLineProps {
   name?: string

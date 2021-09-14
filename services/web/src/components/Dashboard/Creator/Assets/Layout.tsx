@@ -1,6 +1,6 @@
 import * as React from 'react'
 import DashboardShell from 'components/Dashboard/Common/Shell'
-import 'twin.macro'
+
 import { NextSeo } from 'next-seo'
 import { CalendarIcon, ChevronRightIcon } from '@heroicons/react/solid'
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
@@ -8,7 +8,6 @@ import useApi from 'hooks/useApi'
 import useCurrentUser from 'hooks/useCurrentUser'
 import { CreatorDashboardAssetsLink } from 'components/Links'
 
-/* This example requires Tailwind CSS v2.0+ */
 import {
   ChartBarIcon,
   FolderIcon,
@@ -16,7 +15,6 @@ import {
   InboxIcon,
   UsersIcon,
 } from '@heroicons/react/outline'
-import CategoryName from 'components/Dashboard/Common/CategoryName'
 
 const navigation = [
   { name: 'Assets', href: '/', icon: HomeIcon, current: true },
@@ -32,10 +30,6 @@ const secondaryNavigation = [
   { name: 'Customer migration guides', href: '#' },
   { name: 'Profit sharing program', href: '#' },
 ]
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
 
 function Sidebar() {
   return (

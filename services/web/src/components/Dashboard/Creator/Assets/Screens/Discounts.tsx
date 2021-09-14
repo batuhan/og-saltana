@@ -1,6 +1,5 @@
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { NextSeo } from 'next-seo'
-import 'twin.macro'
 
 import { useFormContext } from 'react-hook-form'
 

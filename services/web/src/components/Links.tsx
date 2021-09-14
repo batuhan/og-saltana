@@ -9,6 +9,7 @@ const getCreatorDashboardLink = (basePath = '') =>
     return (
       <Link
         href={`/dashboard/${user.data.username}${basePath}${href}`}
+        passHref
         {...props}
       >
         {children}
@@ -24,15 +25,19 @@ export const CreatorDashboardOrdersLink =
 
 export function UserDashboardLink({ children, href = '/assets', ...props }) {
   return (
-    <Link href={`/my${href}`} {...props}>
+    <Link href={`/my${href}`} passHref {...props}>
       {children}
     </Link>
   )
 }
 
-export function CurrentCreatorSpaceLink({ children, href = '' }) {
+export function CurrentCreatorSpaceLink({ children, href = '', ...props }) {
   const { creator } = useCreatorSpace()
-  return <Link href={`/${creator.data.username}/${href}`}>{children}</Link>
+  return (
+    <Link href={`/${creator.data.username}/${href}`} {...props}>
+      {children}
+    </Link>
+  )
 }
 
 export function DefaultLink({ children, ...props }) {

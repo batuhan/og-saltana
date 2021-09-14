@@ -4,7 +4,6 @@ import CreatorPageSlug from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { NextSeo } from 'next-seo'
-import 'twin.macro'
 
 import { useFormContext } from 'react-hook-form'
 import React from 'react'
@@ -281,7 +280,7 @@ export default function CreatorDashboardLinkCustomizeScreen() {
         </div>
       </div>
 
-      <div tw="mb-5">
+      <div className="mb-5">
         <Card
           actions={
             <ButtonLink onClick={() => console.log('onClick')} size="small">

@@ -10,5 +10,16 @@ module.exports = {
       },
     ],
     '@kiwicom/babel-plugin-orbit-components',
+    [
+      require.resolve('babel-plugin-module-resolver'),
+      {
+        root: ['./src/'],
+        alias: {
+          '@/client': './src/lib/client',
+          '@/common': './src/lib/common',
+          '@/server': './src/lib/server',
+        },
+      },
+    ],
   ],
 }

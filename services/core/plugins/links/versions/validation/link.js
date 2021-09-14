@@ -7,13 +7,13 @@ const groupSchema = Joi.string().valid(
   'authorId',
   'targetId',
   'assetId',
-  'transactionId'
+  'transactionId',
 )
 
 const labelSchema = Joi.string().regex(/^\w+(:\w+)*$/)
 const labelWithWildcardSchema = Joi.string().regex(/^(\*|(\w+)(:(\w+|\*))*)$/)
 const multipleLabelsWithWildcardSchema = Joi.string().regex(
-  /^(\*|(\w+)(:(\w+|\*))*)(,(\*|(\w+)(:(\w+|\*))*))*$/
+  /^(\*|(\w+)(:(\w+|\*))*)(,(\*|(\w+)(:(\w+|\*))*))*$/,
 )
 
 const orderByFields = ['createdDate', 'updatedDate']
@@ -30,7 +30,7 @@ const linkTypeSchema = Joi.valid(
   'embed',
   'link-list',
   'content',
-  'redirect'
+  'redirect',
 )
 
 module.exports = function createValidation(deps) {
@@ -75,7 +75,7 @@ module.exports = function createValidation(deps) {
       id: [Joi.string(), Joi.array().unique().items(Joi.string())],
       ownerId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       targetId: [Joi.string(), Joi.array().unique().items(Joi.string())],
-      assetId: [Joi.string(), Joi.array().unique().items(Joi.string())],
+      assetIds: [Joi.string(), Joi.array().unique().items(Joi.string())],
       transactionId: [Joi.string(), Joi.array().unique().items(Joi.string())],
       label: [
         multipleLabelsWithWildcardSchema,
@@ -94,7 +94,7 @@ module.exports = function createValidation(deps) {
         slug: slugSchema,
         linkType: linkTypeSchema,
         destination: destinationSchema,
-        assetId: Joi.string(),
+        assetIds: Joi.array().items(Joi.string()),
         content: Joi.object().unknown(),
         metadata: Joi.object().unknown(),
         platformData: Joi.object().unknown(),
@@ -112,9 +112,8 @@ module.exports = function createValidation(deps) {
   }
   schemas['2019-05-20'].update = {
     params: objectIdParamsSchema,
-    body: schemas['2019-05-20'].create.body.fork(
-      ['linkType', 'assetId'],
-      (schema) => schema.forbidden()
+    body: schemas['2019-05-20'].create.body.fork(['asset'], (schema) =>
+      schema.forbidden(),
     ),
     //.fork('score', (schema) => schema.optional()),
   }

@@ -1,19 +1,12 @@
-import 'twin.macro'
 import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
-import { DevTool } from '@hookform/devtools'
 import { useMutation } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { useBeforeUnload } from 'react-use'
-
-const schema = yup.object().shape({
-  firstName: yup.string().required(),
-  age: yup.number().positive().integer().required(),
-})
+import HookFormDevTools from '@/client/devtools'
 
 const validFields = [
   'destination',
@@ -58,8 +51,8 @@ export default function UpdateCreatorLinkProvider({
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} {...props}>
         {children}
+        <HookFormDevTools control={control} />
       </form>
-      {process.env.NODE_ENV === 'development' && <DevTool control={control} />}
     </FormProvider>
   )
 }

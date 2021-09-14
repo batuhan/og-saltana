@@ -1,6 +1,5 @@
 import * as React from 'react'
-import DashboardShell from 'components/Dashboard/Common/Shell'
-import 'twin.macro'
+
 import { NextSeo } from 'next-seo'
 import {
   ArrowSmDownIcon,
@@ -17,6 +16,12 @@ import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePr
 import useApi from 'hooks/useApi'
 import useCurrentUser from 'hooks/useCurrentUser'
 import { CreatorDashboardAssetsLink } from 'components/Links'
+
+import AssetCategoryName from 'components/AssetCategoryName'
+import CreatorDashboardAssetsLayout from 'components/Dashboard/Creator/Assets/Layout'
+import { Menu, Transition } from '@headlessui/react'
+import { useMyAssets } from 'hooks/useAssets'
+import classNames from '@/common/classnames'
 
 const projects = [
   {
@@ -58,9 +63,7 @@ const projects = [
   // More projects...
 ]
 const project = projects[0]
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+
 const stats = [
   {
     name: 'Total Subscribers',
@@ -223,7 +226,10 @@ function AssetTable({ assets }) {
                                 <span>
                                   {name}{' '}
                                   <span className="text-gray-500 font-normal">
-                                    in <CategoryName categoryId={categoryId} />
+                                    in{' '}
+                                    <AssetCategoryName
+                                      categoryId={categoryId}
+                                    />
                                   </span>
                                 </span>
                               </a>
@@ -412,7 +418,7 @@ function ListNew({ assets }) {
               <div className="flex items-center">
                 <div className="flex-shrink-0 h-10 w-10">
                   <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    <CategoryName categoryId={categoryId} />
+                    <AssetCategoryName categoryId={categoryId} />
                   </span>
                 </div>
                 <div className="ml-4">
@@ -449,21 +455,9 @@ function ListNew({ assets }) {
   )
 }
 
-import CategoryName from 'components/Dashboard/Common/CategoryName'
-import CreatorDashboardAssetsLayout from 'components/Dashboard/Creator/Assets/Layout'
-import { Menu, Transition } from '@headlessui/react'
-
 export const CreatorDashboardAssets = () => {
   const user = useCurrentUser()
-  const assetsQuery = useApi(
-    'assets',
-    'list',
-    {
-      ownerId: user.data?.id,
-      nbResultsPerPage: 100,
-    },
-    { enabled: user.isLoggedIn },
-  )
+  const assetsQuery = useMyAssets()
   return (
     <CreatorDashboardAssetsLayout>
       <NextSeo title="Assets" />

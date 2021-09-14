@@ -1,5 +1,3 @@
-import 'twin.macro'
-
 import { HomeIcon, PlusIcon, SearchIcon } from '@heroicons/react/solid'
 import { useRouter } from 'next/router'
 import { useForm, useFormContext } from 'react-hook-form'

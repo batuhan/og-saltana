@@ -1,4 +1,3 @@
-import tw from 'twin.macro'
 import { useEffect } from 'react'
 import useCurrentUser from 'hooks/useCurrentUser'
 import { useRouter } from 'next/router'

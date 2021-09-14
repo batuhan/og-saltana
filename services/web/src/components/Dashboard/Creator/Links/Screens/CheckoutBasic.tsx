@@ -6,6 +6,7 @@ import * as React from 'react'
 import Select, { Option } from 'rc-select'
 import { ListChoice } from '@kiwicom/orbit-components'
 import { debounce } from 'lodash'
+import { useMyAssets } from 'hooks/useAssets'
 
 function NewPicker() {
   const [selectedPrimrayColor, setSelectedPrimaryColor] = React.useState(null)
@@ -17,16 +18,12 @@ function NewPicker() {
   const [selectedSecondaryColor, setSelectedSecondaryColor] =
     React.useState(null)
 
-  const { status: searchStatus, data: colorSearchResults } =
-    useColorSearch(searchText)
-
-  const { status: companionStatus, data: companionColors } = useSecondaryColor(
-    selectedPrimrayColor?.id,
-  )
+  const { status: searchStatus, data: colorSearchResults } = useMyAssets({
+    query: searchText,
+  })
 
   const handleChangePrimary = (selectedItem, event) => {
     setSelectedPrimaryColor(selectedItem)
-    setSelectedSecondaryColor(null)
   }
 
   const handleInputChangePrimary = (inputText, event) => {
@@ -37,17 +34,12 @@ function NewPicker() {
     }
   }
 
-  const handleChangeSecondary = (selectedItem, event) => {
-    setSelectedSecondaryColor(selectedItem)
-  }
-
   const handleSubmit = (e) => {
     e.preventDefault()
     alert(
       JSON.stringify(
         {
           primary: selectedPrimrayColor,
-          secondary: selectedSecondaryColor,
         },
         null,
         2,
@@ -57,7 +49,6 @@ function NewPicker() {
 
   const handleReset = () => {
     setSelectedPrimaryColor(null)
-    setSelectedSecondaryColor(null)
     setSearchText('')
   }
 
@@ -65,7 +56,6 @@ function NewPicker() {
     <div className="App">
       <h1>Color Search</h1>
       <div>Search Status: {searchStatus}</div>
-      <div>Companion Status: {companionStatus}</div>
       <form onSubmit={handleSubmit}>
         <h2>Primary Color</h2>
         <Select
@@ -80,23 +70,7 @@ function NewPicker() {
           onChange={handleChangePrimary}
           onInputChange={handleInputChangePrimary}
         />
-        <h2>Secondary Color</h2>
-        <Select
-          noOptionsMessage={() => 'Search for a primary color first'}
-          placeholder={'Select a secondary color'}
-          isClearable={true}
-          isLoading={searchStatus === 'loading'}
-          isSearchable={false}
-          value={selectedSecondaryColor}
-          options={companionColors}
-          getOptionLabel={(color) => color.name}
-          getOptionVale={(color) => color}
-          onChange={handleChangeSecondary}
-        />
-        <button
-          type="submit"
-          disabled={!selectedPrimrayColor || !selectedSecondaryColor}
-        >
+        <button type="submit" disabled={!selectedPrimrayColor}>
           Submit
         </button>
         <button type="reset" onClick={handleReset}>
@@ -104,10 +78,9 @@ function NewPicker() {
         </button>
       </form>
 
-      <ColorCombo
-        selectedPrimrayColor={selectedPrimrayColor}
-        selectedSecondaryColor={selectedSecondaryColor}
-      />
+      <pre className="code">
+        {JSON.stringify(selectedPrimrayColor, null, 2)}
+      </pre>
     </div>
   )
 }
@@ -146,10 +119,6 @@ const AssetPicker = (props) => {
       </Select>
     </>
   )
-}
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
 }
 
 export default function CheckoutBasic() {

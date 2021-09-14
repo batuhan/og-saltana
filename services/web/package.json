@@ -25,7 +25,7 @@
     "@algolia/client-search": "^4.10.5",
     "@headlessui/react": "1.4.1",
     "@heroicons/react": "^1.0.4",
-    "@hookform/devtools": "4.0.1",
+    "@hookform/devtools": "3.1.0",
     "@hookform/resolvers": "^2.8.0",
     "@kiwicom/orbit-components": "latest",
     "@next-auth/react-query": "^0.0.12",
@@ -144,7 +144,6 @@
     "tailwindcss": "^2.2.15",
     "tailwindcss-debug-screens": "^2.1.0",
     "tailwindcss-filters": "3.0.0",
-    "twin.macro": "^2.7.0",
     "use-dark-mode": "^2.3.1",
     "next-pwa": "^5.3.1",
     "wix-rich-content-fullscreen": "^8.53.0",
@@ -184,6 +183,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
+    "babel-plugin-module-resolver": "4.1.0",
     "@emotion/babel-plugin": "11.3.0",
     "@kiwicom/babel-plugin-orbit-components": "latest",
     "@storybook/addon-a11y": "6.3.8",
@@ -243,9 +243,5 @@
     "plop": "^2.7.4",
     "typescript-plugin-styled-components": "^2.0.0"
   },
-  "babelMacros": {
-    "twin": {
-      "preset": "styled-components"
-    }
-  }
+  "babelMacros": {}
 }

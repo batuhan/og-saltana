@@ -2,9 +2,10 @@ import useCreatorSpace from 'hooks/useCreatorSpace'
 import { useFormContext } from 'react-hook-form'
 import { useState } from 'react'
 import { RadioGroup } from '@headlessui/react'
-import tw from 'twin.macro'
+
 import { NextSeo } from 'next-seo'
 import SaveButton from '../../SaveButton'
+import classnames from '@/common/classnames'
 const settings = [
   {
     name: 'Public access',
@@ -36,16 +37,14 @@ const RadioGroupOption =
   ({ checked, children }) =>
     (
       <div
-        css={[
-          settingIdx === 0 ? tw`rounded-tl-md rounded-tr-md` : '',
+        className={classnames(
+          settingIdx === 0 ? `rounded-tl-md rounded-tr-md` : '',
           settingIdx === settings.length - 1
-            ? tw`rounded-bl-md rounded-br-md`
+            ? `rounded-bl-md rounded-br-md`
             : '',
-          checked
-            ? tw`bg-indigo-50 border-indigo-200 z-10`
-            : tw`border-gray-200`,
-          tw`relative border p-4 flex cursor-pointer focus:outline-none`,
-        ]}
+          checked ? `bg-indigo-50 border-indigo-200 z-10` : `border-gray-200`,
+          `relative border p-4 flex cursor-pointer focus:outline-none`,
+        )}
       >
         {children}
       </div>
@@ -61,33 +60,33 @@ function List({ settings }) {
       {({ active, checked }) => (
         <>
           <span
-            css={[
+            className={classnames(
               checked
-                ? tw`bg-indigo-600 border-transparent`
-                : tw`bg-white border-gray-300`,
-              active ? tw`ring-2 ring-offset-2 ring-indigo-500` : '',
-              tw`h-4 w-4 mt-0.5 cursor-pointer rounded-full border flex items-center justify-center`,
-            ]}
+                ? `bg-indigo-600 border-transparent`
+                : `bg-white border-gray-300`,
+              active ? `ring-2 ring-offset-2 ring-indigo-500` : '',
+              `h-4 w-4 mt-0.5 cursor-pointer rounded-full border flex items-center justify-center`,
+            )}
             aria-hidden="true"
           >
-            <span tw="rounded-full bg-white w-1.5 h-1.5" />
+            <span className="rounded-full bg-white w-1.5 h-1.5" />
           </span>
-          <div tw="ml-3 flex flex-col">
+          <div className="ml-3 flex flex-col">
             <RadioGroup.Label
               as="span"
-              css={[
-                checked ? tw`text-indigo-900` : tw`text-gray-900`,
-                tw`block text-sm font-medium`,
-              ]}
+              className={classnames(
+                checked ? `text-indigo-900` : `text-gray-900`,
+                `block text-sm font-medium`,
+              )}
             >
               {setting.name}
             </RadioGroup.Label>
             <RadioGroup.Description
               as="span"
-              css={[
-                checked ? tw`text-indigo-700` : tw`text-gray-500`,
-                tw`block text-sm`,
-              ]}
+              className={classnames(
+                checked ? `text-indigo-700` : `text-gray-500`,
+                `block text-sm`,
+              )}
             >
               {setting.description}
             </RadioGroup.Description>
@@ -107,8 +106,8 @@ export default function CreatorDashboardLinkAccessScreen() {
     <>
       <NextSeo title="Access - Links" />
       <RadioGroup value={selected} onChange={setSelected}>
-        <RadioGroup.Label tw="sr-only">Privacy setting</RadioGroup.Label>
-        <div tw="bg-white rounded-md -space-y-px">
+        <RadioGroup.Label className="sr-only">Privacy setting</RadioGroup.Label>
+        <div className="bg-white rounded-md -space-y-px">
           <List settings={settings} />
         </div>
       </RadioGroup>

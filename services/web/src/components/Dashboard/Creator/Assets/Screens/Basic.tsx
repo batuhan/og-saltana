@@ -2,7 +2,7 @@
 import { PlusIcon, QuestionMarkCircleIcon } from '@heroicons/react/outline'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import React from 'react'
-import 'twin.macro'
+
 import ContentEditor from 'components/ContentEditor/ContentEditor'
 
 import { useFormContext, useWatch } from 'react-hook-form'

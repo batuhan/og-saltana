@@ -1,5 +1,5 @@
 import * as React from 'react'
-import tw from 'twin.macro'
+
 import NextImage from 'next/image'
 import Abstract from './Abstract'
 import Airtable from './Airtable'

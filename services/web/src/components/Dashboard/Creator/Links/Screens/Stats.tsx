@@ -1,5 +1,4 @@
 import { NextSeo } from 'next-seo'
-import 'twin.macro'
 
 export default function CreatorDashboardLinkStatsScreen() {
   return (

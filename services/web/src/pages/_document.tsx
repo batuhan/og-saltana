@@ -8,7 +8,6 @@ import Document, {
 } from 'next/document'
 import React from 'react'
 import { ServerStyleSheet } from 'styled-components'
-import tw from 'twin.macro'
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
@@ -36,7 +35,6 @@ export default class MyDocument extends Document {
       sheet.seal()
     }
   }
-
   render() {
     return (
       <Html>

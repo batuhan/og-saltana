@@ -2,10 +2,10 @@ import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 
 import ContentEditor from './ContentEditor'
-import 'twin.macro'
+
 import { useForm, FormProvider } from 'react-hook-form'
 import _ from 'lodash'
-import { DevTool } from '@hookform/devtools'
+import HookFormDevTools from '@/client/devtools'
 import { Layout, LayoutColumn, Text } from '@kiwicom/orbit-components'
 
 function MockFormProvider({ children, content }) {
@@ -29,19 +29,10 @@ function MockFormProvider({ children, content }) {
     <FormProvider {...methods}>
       <Layout type="Booking">
         <LayoutColumn>
-          <form onSubmit={handleSubmit(onSubmit)}>{children}</form>
-        </LayoutColumn>
-        <LayoutColumn>
-          <div
-            style={{
-              background: '#F5F7F9',
-              minHeight: '200px',
-            }}
-          >
-            {process.env.NODE_ENV === 'development' && (
-              <DevTool control={control} placement="bottom-right" />
-            )}
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {children}
+            <HookFormDevTools control={control} />
+          </form>
         </LayoutColumn>
       </Layout>
     </FormProvider>

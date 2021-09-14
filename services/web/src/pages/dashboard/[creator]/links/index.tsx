@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import Link from 'next/link'
+import { Disclosure } from '@headlessui/react'
+
+import classNames from '@/common/classnames'
 
 import {
   ArrowSmDownIcon,
@@ -23,7 +24,6 @@ import {
   PhoneIcon,
   SearchIcon,
 } from '@heroicons/react/solid'
-import tw from 'twin.macro'
 import { NextSeo } from 'next-seo'
 import React from 'react'
 import DashboardShell from 'components/Dashboard/Common/Shell'
@@ -50,10 +50,6 @@ const item = {
   previousStat: '70,946',
   change: '12%',
   changeType: 'increase',
-}
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
 }
 
 function DiscoverWorkflows() {

@@ -11,10 +11,6 @@ import Deliverables from 'components/Dashboard/Creator/Assets/Screens/Deliverabl
 import Discounts from 'components/Dashboard/Creator/Assets/Screens/Discounts'
 import Customize from 'components/Dashboard/Creator/Assets/Screens/Customize'
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
 import {
   Disclosure,
   Menu,

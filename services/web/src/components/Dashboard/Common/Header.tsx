@@ -1,6 +1,5 @@
 import { Fragment } from 'react'
 import { Menu, Popover, Transition } from '@headlessui/react'
-import tw from 'twin.macro'
 import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
 import { Logo } from 'components/Logo'
 import Avatar from 'components/Avatar'
@@ -12,7 +11,10 @@ import {
 import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/client'
 import useCurrentUser from 'hooks/useCurrentUser'
-import Link from 'next/link'
+import { Disclosure } from '@headlessui/react'
+
+import { PlusSmIcon } from '@heroicons/react/solid'
+import classNames from '@/common/classnames'
 
 const creatorNavigation = [
   {
@@ -42,15 +44,6 @@ const userNavigation = [
   { name: 'Payments', href: '/payments' },
   { name: 'Account Settings', href: '/settings' },
 ]
-
-/* This example requires Tailwind CSS v2.0+ */
-import { Disclosure } from '@headlessui/react'
-
-import { PlusSmIcon } from '@heroicons/react/solid'
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
 
 // md:mr-auto md:ml-4 md:py-1 md:pl-4 md:border-l md:border-gray-400	flex flex-wrap items-center text-base justify-center
 export default function Header() {
@@ -116,7 +109,7 @@ export default function Header() {
                   <div className="hidden md:ml-6 md:flex md:space-x-8">
                     {/* Current: "border-white text-white", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
                     {navigation.map((item) => (
-                      <NavigationLink key={item.name} {...item}>
+                      <NavigationLink key={item.name} passHref>
                         <a
                           href="#"
                           className={
@@ -192,19 +185,6 @@ export default function Header() {
                               )}
                             </Menu.Item>
                           ))}
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                href="#"
-                                className={classNames(
-                                  active ? 'bg-gray-100' : '',
-                                  'block px-4 py-2 text-sm text-gray-700',
-                                )}
-                              >
-                                Settings
-                              </a>
-                            )}
-                          </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
                               <a
@@ -285,23 +265,13 @@ export default function Header() {
                       </a>
                     </UserDashboardLink>
                   ))}
+
                   <a
+                    onClick={() => signOut()}
                     href="#"
                     className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 sm:px-6"
                   >
-                    Your Profile
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 sm:px-6"
-                  >
-                    Settings
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 sm:px-6"
-                  >
-                    Sign out
+                    Logout
                   </a>
                 </div>
               </div>

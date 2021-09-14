@@ -1,5 +1,3 @@
-import 'twin.macro'
-
 import { HomeIcon, PlusIcon, SearchIcon } from '@heroicons/react/solid'
 import { useRouter } from 'next/router'
 import { useForm, useFormContext } from 'react-hook-form'
@@ -20,9 +18,6 @@ import UpdateCreatorLinkProvider from '@/client/UpdateCreatorLinkProvider'
 import Basic from 'components/Dashboard/Creator/Links/Screens/Basic'
 import Stats from 'components/Dashboard/Creator/Links/Screens/Stats'
 import Workflows from 'components/Dashboard/Creator/Links/Screens/Workflows'
-import Deliverables from 'components/Dashboard/Creator/Links/Screens/Deliverables'
-import Discounts from 'components/Dashboard/Creator/Links/Screens/Discounts'
-import Orders from 'components/Dashboard/Creator/Links/Screens/Orders'
 import Access from 'components/Dashboard/Creator/Links/Screens/Access'
 import Customize from 'components/Dashboard/Creator/Links/Screens/Customize'
 import Advanced from 'components/Dashboard/Creator/Links/Screens/Advanced'
@@ -36,25 +31,11 @@ const screens = [
     onLinkTypes: ['*'],
   },
   {
-    name: 'Deliverables',
-    path: 'deliverables',
-    Component: Deliverables,
-    current: false,
-    onLinkTypes: ['asset'],
-  },
-  {
     name: 'Workflows',
     path: 'workflows',
     Component: Workflows,
     current: false,
     onLinkTypes: ['*'],
-  },
-  {
-    name: 'Discounts & Vouchers',
-    path: 'deliverables',
-    Component: Discounts,
-    current: false,
-    onLinkTypes: ['asset'],
   },
   {
     name: 'Customize',
@@ -100,7 +81,7 @@ export default function CreatorDashboardLinkScreen() {
   if (isLoading) {
     return (
       <DashboardShell>
-        <main tw="py-6 lg:col-span-9 xl:col-span-10">
+        <main className="py-6 lg:col-span-9 xl:col-span-10">
           <GmailLoader />
         </main>
       </DashboardShell>
@@ -113,12 +94,12 @@ export default function CreatorDashboardLinkScreen() {
           <CreatorDashboardLinkSubHeader link={link} isLink={isLink} />
         }
       >
-        <main tw="max-w-4xl mx-auto pt-0 pb-12 px-4 lg:pb-10">
+        <main className="max-w-4xl mx-auto pt-0 pb-12 px-4 lg:pb-10">
           <CreatorDashboardLinkSidebar
             screens={filteredScreens}
             linkId={link.data.id}
           />
-          <div tw="pt-5">
+          <div className="pt-5">
             <CurrentScreen.Component link={link} />
           </div>
         </main>

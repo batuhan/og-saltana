@@ -1,7 +1,5 @@
-import 'twin.macro'
 import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import _ from 'lodash'
-import { DevTool } from '@hookform/devtools'
 import { useMutation } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
 

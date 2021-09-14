@@ -138,9 +138,7 @@ module.exports = {
     },
   },
   variants: {
-    extend: {
-      opacity: ['disabled'],
-    },
+    extend: {},
   },
   plugins: [
     require('@tailwindcss/forms'),

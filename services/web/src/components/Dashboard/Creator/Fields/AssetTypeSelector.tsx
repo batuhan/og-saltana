@@ -3,7 +3,6 @@ import useApi from 'hooks/useApi'
 import useAssetTypes from 'hooks/useAssetTypes'
 import React, { useMemo, useState } from 'react'
 import { useWatch } from 'react-hook-form'
-import 'twin.macro'
 
 export default function AssetTypeSelector({
   control,
