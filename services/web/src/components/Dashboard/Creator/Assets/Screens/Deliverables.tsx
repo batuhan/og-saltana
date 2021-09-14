@@ -4,6 +4,7 @@ import ContentEditor from 'components/ContentEditor/ContentEditor'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { RadioGroup, Switch } from '@headlessui/react'
 import React from 'react'
+import SaveButton from '../../SaveButton'
 
 export default function CreatorDashboardLinkDeliverablesScreen({ asset }) {
   return (
@@ -44,15 +45,10 @@ export default function CreatorDashboardLinkDeliverablesScreen({ asset }) {
               </div>
             </div>
           </div>
-          <ContentEditor fieldName="asset.metadata.deliverables" />
+          <ContentEditor fieldName="metadata.deliverables" />
         </div>
         <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-          <button
-            type="submit"
-            className="bg-gray-800 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-          >
-            Save
-          </button>
+          <SaveButton />
         </div>
       </div>
     </section>

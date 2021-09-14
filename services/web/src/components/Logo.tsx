@@ -1,12 +1,16 @@
 import * as React from 'react'
-import tw from 'twin.macro'
 
 const DEFAULT_FILL = '#00223D'
 // @TODO: add other logo types and wrap inside a div
 
-export const Logo = ({ fill = DEFAULT_FILL }) => {
+export const Logo = ({ fill = DEFAULT_FILL, ...props }) => {
   return (
-    <svg aria-hidden viewBox="0 0 3850 720" tw="block h-5 w-auto">
+    <svg
+      aria-hidden
+      viewBox="0 0 3850 720"
+      className="block h-5 w-auto"
+      {...props}
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"

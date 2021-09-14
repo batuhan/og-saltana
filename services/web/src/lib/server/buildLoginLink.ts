@@ -1,3 +1,3 @@
 export default function buildLoginLink({ resolvedUrl }) {
-  return `/login?callbackUrl=${resolvedUrl}`
+  return `/login?redirectTo=${resolvedUrl}`
 }

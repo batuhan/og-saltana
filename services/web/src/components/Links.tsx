@@ -22,8 +22,12 @@ export const CreatorDashboardAssetsLink = getCreatorDashboardLink('/assets')
 export const CreatorDashboardOrdersLink =
   getCreatorDashboardLink('/assets/orders')
 
-export function UserDashboardLink({ children, href = '/assets' }) {
-  return <Link href={`/my${href}`}>{children}</Link>
+export function UserDashboardLink({ children, href = '/assets', ...props }) {
+  return (
+    <Link href={`/my${href}`} {...props}>
+      {children}
+    </Link>
+  )
 }
 
 export function CurrentCreatorSpaceLink({ children, href = '' }) {
@@ -31,12 +35,16 @@ export function CurrentCreatorSpaceLink({ children, href = '' }) {
   return <Link href={`/${creator.data.username}/${href}`}>{children}</Link>
 }
 
-export function DefaultLink({ children }) {
+export function DefaultLink({ children, ...props }) {
   const user = useCurrentUser()
 
   if (!user) {
     // if a guest, go to homepage
-    return <Link href="/">{children}</Link>
+    return (
+      <Link href="/" {...props}>
+        {children}
+      </Link>
+    )
   }
 
   if (user.data.roles?.includes('provider')) {

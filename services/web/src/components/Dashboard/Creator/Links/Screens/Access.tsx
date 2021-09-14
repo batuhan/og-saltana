@@ -4,24 +4,29 @@ import { useState } from 'react'
 import { RadioGroup } from '@headlessui/react'
 import tw from 'twin.macro'
 import { NextSeo } from 'next-seo'
-
+import SaveButton from '../../SaveButton'
 const settings = [
   {
     name: 'Public access',
+    value: 'public',
     description: 'This link would be available to anyone who has it',
   },
   {
     name: 'Require purchase of any asset',
+    value: 'purchase',
     description:
       'Anyone who bought any assets from you will be able to access the link ',
   },
   {
     name: 'Require purchase of particular assets',
+    value: 'purchase',
+
     description:
       "Anyone who bought one or more assets you'll pick will be able to access the link ",
   },
   {
     name: 'Require e-mail',
+    value: 'email',
     description: 'Require e-mail validation to access the link',
   },
 ]
@@ -100,13 +105,14 @@ export default function CreatorDashboardLinkAccessScreen() {
 
   return (
     <>
-      <NextSeo title="Access" />
+      <NextSeo title="Access - Links" />
       <RadioGroup value={selected} onChange={setSelected}>
         <RadioGroup.Label tw="sr-only">Privacy setting</RadioGroup.Label>
         <div tw="bg-white rounded-md -space-y-px">
           <List settings={settings} />
         </div>
       </RadioGroup>
+      <SaveButton />
     </>
   )
 }

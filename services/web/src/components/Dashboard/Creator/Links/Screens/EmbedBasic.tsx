@@ -1,38 +1,6 @@
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { useFormContext } from 'react-hook-form'
 
-/*
-  This example requires Tailwind CSS v2.0+ 
-  
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
-/*
-  This example requires Tailwind CSS v2.0+ 
-  
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/aspect-ratio'),
-    ],
-  }
-  ```
-*/
 import { Fragment, useState } from 'react'
 import { Dialog, RadioGroup, Transition } from '@headlessui/react'
 import { ShieldCheckIcon, XIcon } from '@heroicons/react/outline'
@@ -143,7 +111,7 @@ export default function NewBasic() {
   const { creator, link, asset } = useCreatorSpace()
 
   return (
-    <form className="space-y-8 divide-y divide-gray-200">
+    <div className="space-y-8 divide-y divide-gray-200">
       <div className="space-y-8 divide-y divide-gray-200">
         <div>
           <div className="sm:col-span-4">
@@ -187,6 +155,6 @@ export default function NewBasic() {
           </button>
         </div>
       </div>
-    </form>
+    </div>
   )
 }

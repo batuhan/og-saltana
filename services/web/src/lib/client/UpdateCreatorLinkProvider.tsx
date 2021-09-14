@@ -15,21 +15,13 @@ const schema = yup.object().shape({
   age: yup.number().positive().integer().required(),
 })
 
-const validFields = {
-  link: [
-    'destination',
-    'slug',
-    'content',
-    // 'username',
-  ],
-  asset: [
-    'name',
-    'price',
-    'categoryId',
-    'assetTypeId',
-    'metadata.deliverables',
-  ],
-}
+const validFields = [
+  'destination',
+  'slug',
+  'content',
+  // 'username',
+]
+
 export default function UpdateCreatorLinkProvider({
   children,
   creator,
@@ -38,10 +30,7 @@ export default function UpdateCreatorLinkProvider({
   ...props
 }) {
   const methods = useForm({
-    defaultValues: {
-      link: _.pick(link.data, [...validFields.link, 'assetId', 'linkType']),
-      asset: _.pick(asset.data || {}, validFields.asset),
-    },
+    defaultValues: _.pick(link.data, [...validFields, 'assetId', 'linkType']),
     //resolver: yupResolver(schema),
   })
 
@@ -53,18 +42,12 @@ export default function UpdateCreatorLinkProvider({
 
   const updateLink = useMutation(async (data) => {
     const saltanaInstance = await getSaltanaInstance()
-    const [linkResult, assetResult] = await Promise.all([
-      saltanaInstance.links.update(
-        link.data.id,
-        _.pick(data.link, validFields.link),
-      ),
-      saltanaInstance.assets.update(
-        asset.data.id,
-        _.pick(data.asset, validFields.asset),
-      ),
-    ])
+    const linkResult = await saltanaInstance.links.update(
+      link.data.id,
+      _.pick(data, validFields),
+    )
 
-    return { link: linkResult, asset: assetResult }
+    return { link: linkResult }
   }, {})
 
   async function onSubmit(data) {

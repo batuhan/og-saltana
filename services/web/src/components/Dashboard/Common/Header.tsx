@@ -38,20 +38,13 @@ const creatorNavigation = [
 ]
 
 const userNavigation = [
-  { name: 'My Assets', href: '/assets' },
+  { name: 'Assets', href: '/assets' },
   { name: 'Payments', href: '/payments' },
   { name: 'Account Settings', href: '/settings' },
 ]
 
 /* This example requires Tailwind CSS v2.0+ */
 import { Disclosure } from '@headlessui/react'
-
-const user = {
-  name: 'Tom Cook',
-  email: 'tom@example.com',
-  imageUrl:
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-}
 
 import { PlusSmIcon } from '@heroicons/react/solid'
 
@@ -114,7 +107,11 @@ export default function Header() {
                     </Disclosure.Button>
                   </div>
                   <div className="flex-shrink-0 flex items-center">
-                    <Logo h="5" fill="#ffffff" />
+                    <DefaultLink passHref>
+                      <a href="#">
+                        <Logo h="5" fill="#ffffff" />
+                      </a>
+                    </DefaultLink>
                   </div>
                   <div className="hidden md:ml-6 md:flex md:space-x-8">
                     {/* Current: "border-white text-white", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
@@ -163,8 +160,8 @@ export default function Header() {
                           <span className="sr-only">Open user menu</span>
                           <img
                             className="h-8 w-8 rounded-full"
-                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            alt=""
+                            src={user.data.imageUrl}
+                            alt={user.data.displayName}
                           />
                         </Menu.Button>
                       </div>
@@ -178,19 +175,23 @@ export default function Header() {
                         leaveTo="transform opacity-0 scale-95"
                       >
                         <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                href="#"
-                                className={classNames(
-                                  active ? 'bg-gray-100' : '',
-                                  'block px-4 py-2 text-sm text-gray-700',
-                                )}
-                              >
-                                Your Profile
-                              </a>
-                            )}
-                          </Menu.Item>
+                          {userNavigation.map((item) => (
+                            <Menu.Item key={item.name}>
+                              {({ active }) => (
+                                <UserDashboardLink href={item.href} passHref>
+                                  <a
+                                    href="#"
+                                    className={classNames(
+                                      active ? 'bg-gray-100' : '',
+                                      'block px-4 py-2 text-sm text-gray-700',
+                                    )}
+                                  >
+                                    {item.name}
+                                  </a>
+                                </UserDashboardLink>
+                              )}
+                            </Menu.Item>
+                          ))}
                           <Menu.Item>
                             {({ active }) => (
                               <a
@@ -207,13 +208,14 @@ export default function Header() {
                           <Menu.Item>
                             {({ active }) => (
                               <a
+                                onClick={() => signOut()}
                                 href="#"
                                 className={classNames(
                                   active ? 'bg-gray-100' : '',
                                   'block px-4 py-2 text-sm text-gray-700',
                                 )}
                               >
-                                Sign out
+                                Logout
                               </a>
                             )}
                           </Menu.Item>
@@ -257,7 +259,7 @@ export default function Header() {
                       {name}
                     </div>
                     <div className="text-sm font-medium text-gray-500">
-                      tom@example.com
+                      {user.data.email}
                     </div>
                   </div>
                   <button
@@ -269,6 +271,20 @@ export default function Header() {
                   </button>
                 </div>
                 <div className="mt-3 space-y-1">
+                  {userNavigation.map((item) => (
+                    <UserDashboardLink
+                      key={item.name}
+                      href={item.href}
+                      passHref
+                    >
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 sm:px-6"
+                      >
+                        {item.name}
+                      </a>
+                    </UserDashboardLink>
+                  ))}
                   <a
                     href="#"
                     className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 sm:px-6"

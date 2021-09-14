@@ -15,7 +15,7 @@ export default function DashboardShell({
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
-      router.push(`/login?callbackUrl=REPLACE`)
+      router.push(`/login?redirectTo=REPLACE`)
     }
   }, [isLoading, isLoggedIn, router])
 

@@ -232,10 +232,10 @@ export default function MyPurchases() {
     'orders',
     'list',
     {
-      payerId: user.user.id,
+      payerId: user.data.id,
       nbResultsPerPage: 100,
     },
-    { initialData: [], enabled: user.isLoggedIn }
+    { initialData: [], enabled: user.isLoggedIn },
   )
 
   return (

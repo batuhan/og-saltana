@@ -2,11 +2,16 @@ import useApi from 'hooks/useApi'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import UpdateCreatorLinkProvider from '@/client/UpdateCreatorLinkProvider'
 import Discounts from './Screens/Discounts'
+import Access from './Screens/Access'
 import EmbedBasic from './Screens/EmbedBasic'
 import CheckoutBasic from './Screens/CheckoutBasic'
 import Workflows from './Screens/Workflows'
 import { Tab } from '@headlessui/react'
 import Customize from './Screens/Customize'
+
+import { Fragment, useMemo } from 'react'
+import { Menu, Transition } from '@headlessui/react'
+import { DotsVerticalIcon } from '@heroicons/react/solid'
 
 function Overview() {
   return (
@@ -108,6 +113,12 @@ const screens = [
     onLinkTypes: ['*'],
   },
   {
+    name: 'Access',
+    path: 'access',
+    Component: Access,
+    onLinkTypes: ['embed', 'redirect'],
+  },
+  {
     name: 'Customize',
     path: 'customize',
     Component: Customize,
@@ -144,11 +155,6 @@ const team = [
       'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
   },
 ]
-
-/* This example requires Tailwind CSS v2.0+ */
-import { Fragment, useMemo } from 'react'
-import { Menu, Transition } from '@headlessui/react'
-import { DotsVerticalIcon } from '@heroicons/react/solid'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')

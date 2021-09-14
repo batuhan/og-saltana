@@ -18,7 +18,7 @@ export default function Login() {
       <NextSeo title="Login" />
       <div tw="max-w-md w-full space-y-8">
         <div>
-          <Logo tw="mx-auto h-12 w-auto" h={9} />
+          <Logo className="mx-auto h-8 w-auto" />
           <h2 tw="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
