@@ -2,7 +2,7 @@ import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
-import { useMutation } from 'react-query'
+import { useMutation, useQueryClient } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -23,8 +23,9 @@ export default function UpdateCreatorLinkProvider({
   link,
   ...props
 }) {
-  const defaultValues = _.pick(link.data, [...validFields])
-  console.log({ link, defaultValues })
+  const queryClient = useQueryClient()
+
+  const defaultValues = { content: '', ..._.pick(link.data, [...validFields]) }
 
   const methods = useForm({
     defaultValues,
@@ -37,15 +38,24 @@ export default function UpdateCreatorLinkProvider({
     formState: { errors },
   } = methods
 
-  const updateLink = useMutation(async (data) => {
-    const saltanaInstance = await getSaltanaInstance()
-    const linkResult = await saltanaInstance.links.update(link.data.id, {
-      ...defaultValues,
-      ..._.pick(data, validFields),
-    })
+  const updateLink = useMutation(
+    async (data) => {
+      const saltanaInstance = await getSaltanaInstance()
+      const linkResult = await saltanaInstance.links.update(link.data.id, {
+        ...defaultValues,
+        ..._.pick(data, validFields),
+      })
 
-    return { link: linkResult }
-  }, {})
+      return { ...linkResult }
+    },
+    {
+      onSuccess: (data, variables) => {
+        queryClient.setQueryData(['links', 'read', link.data.id], data)
+        queryClient.invalidateQueries('links')
+        // queryClient.invalidateQueries('assets')
+      },
+    },
+  )
 
   async function onSubmit(data) {
     await updateLink.mutateAsync(data)

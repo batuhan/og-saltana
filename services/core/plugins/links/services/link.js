@@ -238,6 +238,8 @@ module.exports = function createService(deps) {
 
     const fields = [
       'content',
+      'destination',
+      'slug',
       'linkType',
       'metadata',
       'assetIds',
@@ -262,7 +264,6 @@ module.exports = function createService(deps) {
 
     const isSelf = link.ownerId && link.authorId !== currentUserId
 
-    console.log({ isSelf, a: req._matchedPermissions['link:edit:all'] })
     if (!req._matchedPermissions['link:edit:all'] && !isSelf) {
       throw createError(403)
     }

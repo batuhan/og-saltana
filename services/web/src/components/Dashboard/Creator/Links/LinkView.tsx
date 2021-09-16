@@ -16,46 +16,57 @@ import { DotsVerticalIcon } from '@heroicons/react/solid'
 import classNames from '@/common/classnames'
 import GmailLoader from 'components/Dashboard/Common/PlaceholderContent'
 
-const screens = [
-  {
-    name: 'Overview',
+const screens = {
+  Overview: {
     Component: Overview,
+
+    name: 'Overview',
+
     onLinkTypes: ['*'],
   },
-  {
-    name: 'Basic',
+  CheckoutBasic: {
     Component: CheckoutBasic,
+
+    name: 'Basic',
+
     onLinkTypes: ['asset'],
   },
-  {
-    name: 'Basic',
+  EmbedBasic: {
     Component: EmbedBasic,
+
+    name: 'Basic',
+
     onLinkTypes: ['embed', 'redirect'],
   },
-  {
-    name: 'Workflows',
+  Workflows: {
     Component: Workflows,
+
+    name: 'Workflows',
+
     onLinkTypes: ['*'],
   },
-  {
+  Access: {
+    Component: Access,
+
     name: 'Access',
     path: 'access',
-    Component: Access,
+
     onLinkTypes: ['embed', 'redirect'],
   },
-  {
+  Customize: {
+    Component: Customize,
+
     name: 'Customize',
     path: 'customize',
-    Component: Customize,
+
     onLinkTypes: ['embed', 'asset'],
   },
-]
+}
 
 function LinkViewPlaceholder() {
   return <GmailLoader />
 }
 export default function LinkView({ linkId }) {
-  console.log({ linkId })
   const link = useApi('links', 'read', linkId, {
     initialData: {},
     enabled: linkId && linkId.length > 0,
@@ -64,28 +75,24 @@ export default function LinkView({ linkId }) {
   const linkType = link.data?.linkType
   const filteredScreens = useMemo(
     () =>
-      screens
-        .filter(({ onLinkTypes }) => {
-          if (onLinkTypes.includes('*')) {
-            return true
-          }
+      Object.keys(screens).filter((screenKey) => {
+        const { onLinkTypes } = screens[screenKey]
+        if (onLinkTypes.includes('*')) {
+          return true
+        }
 
-          if (onLinkTypes.includes(linkType)) {
-            return true
-          }
+        if (onLinkTypes.includes(linkType)) {
+          return true
+        }
 
-          return false
-        })
-        .map((item) => ({
-          ...item,
-        })),
+        return false
+      }),
     [linkType],
   )
   const [dropdownOpen, setDropDownOpen] = useState(false)
 
-  const [selectedScreeen, setSelectedScreen] = useState(0)
-
-  const selectedScreenName = screens[selectedScreeen].name
+  const [selectedScreenKey, setSelectedScreenKey] = useState('Overview')
+  const SelectedScreen = screens[selectedScreenKey]
 
   return link.isFetched ? (
     <UpdateCreatorLinkProvider
@@ -94,7 +101,7 @@ export default function LinkView({ linkId }) {
       asset={asset}
       className="w-full h-full"
     >
-      <NextSeo title={`${selectedScreenName} - /${link.data.slug} - Links`} />
+      <NextSeo title={`${SelectedScreen.name} - /${link.data.slug} - Links`} />
 
       <article>
         {/* Profile header */}
@@ -204,8 +211,12 @@ export default function LinkView({ linkId }) {
         </div>
         <Tab.Group
           onChange={(index) => {
-            setSelectedScreen(index)
-            console.log('Changed selected tab to:', index)
+            setSelectedScreenKey(filteredScreens[index])
+            console.log(
+              'Changed selected tab to:',
+              index,
+              filteredScreens[index],
+            )
           }}
         >
           <div className="mt-6 sm:mt-2 2xl:mt-5">
@@ -213,9 +224,9 @@ export default function LinkView({ linkId }) {
               <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                   <Tab.List>
-                    {filteredScreens.map((tab) => (
+                    {filteredScreens.map((screenKey) => (
                       <Tab
-                        key={tab.name}
+                        key={screenKey}
                         className={({ selected }) => `
                         ${
                           selected
@@ -225,7 +236,7 @@ export default function LinkView({ linkId }) {
                           whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
                         `}
                       >
-                        {tab.name}
+                        {screens[screenKey].name}
                       </Tab>
                     ))}
                   </Tab.List>
@@ -235,14 +246,16 @@ export default function LinkView({ linkId }) {
           </div>
 
           <Tab.Panels>
-            {filteredScreens.map(({ Component, name }) => (
-              <Tab.Panel
-                key={name}
-                className="mt-6 min-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
-              >
-                <Component />
-              </Tab.Panel>
-            ))}
+            {filteredScreens.map((key, index) => {
+              return (
+                <Tab.Panel
+                  key={key}
+                  className="mt-6 min-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+                >
+                  <SelectedScreen.Component />
+                </Tab.Panel>
+              )
+            })}
           </Tab.Panels>
         </Tab.Group>
       </article>

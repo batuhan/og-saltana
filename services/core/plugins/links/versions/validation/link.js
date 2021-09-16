@@ -95,7 +95,7 @@ module.exports = function createValidation(deps) {
         linkType: linkTypeSchema,
         destination: destinationSchema,
         assetIds: Joi.array().items(Joi.string()),
-        content: Joi.object().unknown(),
+        content: Joi.object().unknown().allow('', null),
         metadata: Joi.object().unknown(),
         platformData: Joi.object().unknown(),
         asset: Joi.object().keys({
