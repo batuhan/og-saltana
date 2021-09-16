@@ -1,7 +1,6 @@
 import { PlusIcon } from '@heroicons/react/outline'
 import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import { NextSeo } from 'next-seo'
 
 import { useFormContext } from 'react-hook-form'
 
@@ -13,8 +12,6 @@ export default function CreatorDashboardLinkAdvancedScreen() {
 
   return (
     <main>
-      <NextSeo title="Advanced" />
-
       <CreatorSlugField username={creator.data.username} {...methods} />
 
       <div className="space-y-6">

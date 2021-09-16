@@ -26,7 +26,7 @@ const destinationSchema = Joi.string()
   .allow(null, '')
 
 const linkTypeSchema = Joi.valid(
-  'asset',
+  'checkout',
   'embed',
   'link-list',
   'content',

@@ -12,6 +12,7 @@ const validFields = [
   'destination',
   'slug',
   'content',
+  'linkType',
   // 'username',
 ]
 
@@ -22,8 +23,11 @@ export default function UpdateCreatorLinkProvider({
   link,
   ...props
 }) {
+  const defaultValues = _.pick(link.data, [...validFields])
+  console.log({ link, defaultValues })
+
   const methods = useForm({
-    defaultValues: _.pick(link.data, [...validFields, 'assetId', 'linkType']),
+    defaultValues,
     //resolver: yupResolver(schema),
   })
 
@@ -35,10 +39,10 @@ export default function UpdateCreatorLinkProvider({
 
   const updateLink = useMutation(async (data) => {
     const saltanaInstance = await getSaltanaInstance()
-    const linkResult = await saltanaInstance.links.update(
-      link.data.id,
-      _.pick(data, validFields),
-    )
+    const linkResult = await saltanaInstance.links.update(link.data.id, {
+      ...defaultValues,
+      ..._.pick(data, validFields),
+    })
 
     return { link: linkResult }
   }, {})

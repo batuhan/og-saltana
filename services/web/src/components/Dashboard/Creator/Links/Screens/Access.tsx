@@ -3,7 +3,6 @@ import { useFormContext } from 'react-hook-form'
 import { useState } from 'react'
 import { RadioGroup } from '@headlessui/react'
 
-import { NextSeo } from 'next-seo'
 import SaveButton from '../../SaveButton'
 import classnames from '@/common/classnames'
 const settings = [
@@ -104,7 +103,6 @@ export default function CreatorDashboardLinkAccessScreen() {
 
   return (
     <>
-      <NextSeo title="Access - Links" />
       <RadioGroup value={selected} onChange={setSelected}>
         <RadioGroup.Label className="sr-only">Privacy setting</RadioGroup.Label>
         <div className="bg-white rounded-md -space-y-px">

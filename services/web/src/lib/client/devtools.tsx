@@ -10,8 +10,8 @@ const HookFormDevTool = dynamic(
 )
 
 export default function HookFormDevTools(props) {
-  if (process.env.NODE_ENV !== 'development') {
-    return <Empty />
+  return <Empty />
+  if (process.env.NODE_ENV !== 'development' || !props.control) {
   }
   return <HookFormDevTool {...props} />
 }

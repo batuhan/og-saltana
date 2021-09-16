@@ -9,8 +9,8 @@ const getCreatorDashboardLink = (basePath = '') =>
     return (
       <Link
         href={`/dashboard/${user.data.username}${basePath}${href}`}
-        passHref
         {...props}
+        passHref
       >
         {children}
       </Link>
@@ -25,7 +25,7 @@ export const CreatorDashboardOrdersLink =
 
 export function UserDashboardLink({ children, href = '/assets', ...props }) {
   return (
-    <Link href={`/my${href}`} passHref {...props}>
+    <Link href={`/my${href}`} {...props} passHref>
       {children}
     </Link>
   )
@@ -34,7 +34,7 @@ export function UserDashboardLink({ children, href = '/assets', ...props }) {
 export function CurrentCreatorSpaceLink({ children, href = '', ...props }) {
   const { creator } = useCreatorSpace()
   return (
-    <Link href={`/${creator.data.username}/${href}`} {...props}>
+    <Link href={`/${creator.data.username}/${href}`} {...props} passHref>
       {children}
     </Link>
   )
@@ -46,7 +46,7 @@ export function DefaultLink({ children, ...props }) {
   if (!user) {
     // if a guest, go to homepage
     return (
-      <Link href="/" {...props}>
+      <Link href="/" {...props} passHref>
         {children}
       </Link>
     )

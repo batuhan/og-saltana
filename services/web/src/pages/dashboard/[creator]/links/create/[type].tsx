@@ -36,7 +36,7 @@ export default function CreatorDashboardCreateSmartLink(props) {
 
   const { mutateAsync } = useApiMutation('links', 'create', {
     onSuccess: ({ id }) => {
-      push(`/${creator.data.username}/dashboard/links/${id}`)
+      push(`/dashboard/${creator.data.username}/links?link=${id}#ref=create`)
     },
   })
 
@@ -75,7 +75,7 @@ export default function CreatorDashboardCreateSmartLink(props) {
                     })}
                     disabled={isSubmitting}
                     id="destination"
-                    className={classnames(
+                    className={classNames(
                       isSubmitting && `disabled:opacity-50`,
                       `block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md`,
                     )}

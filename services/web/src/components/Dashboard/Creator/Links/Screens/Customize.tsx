@@ -3,7 +3,6 @@ import { PlusIcon } from '@heroicons/react/outline'
 import CreatorPageSlug from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import { NextSeo } from 'next-seo'
 
 import { useFormContext } from 'react-hook-form'
 import React from 'react'
@@ -22,8 +21,6 @@ export default function CreatorDashboardLinkCustomizeScreen() {
 
   return (
     <main>
-      <NextSeo title="Customize" />
-
       <div className="pt-8">
         <div>
           <h3 className="text-lg leading-6 font-medium text-gray-900">

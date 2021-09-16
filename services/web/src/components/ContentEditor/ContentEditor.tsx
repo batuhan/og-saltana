@@ -11,7 +11,10 @@ function decodeContent(content) {
   if (!content) {
     return { blocks: [], entityMap: {} }
   }
-  return JSON.parse(content)
+  if (typeof content === 'string') {
+    return JSON.parse(content)
+  }
+  return content
 }
 
 export default function ContentEditor({ fieldName }: { fieldName: string }) {
@@ -23,7 +26,7 @@ export default function ContentEditor({ fieldName }: { fieldName: string }) {
   }, [register, fieldName])
 
   const onChange = (newValue) =>
-    setValue(fieldName, encodeContent(newValue), {
+    setValue(fieldName, `${encodeContent(newValue)}`, {
       shouldDirty: true,
     })
 

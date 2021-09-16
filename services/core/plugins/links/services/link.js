@@ -236,7 +236,13 @@ module.exports = function createService(deps) {
   async function update(req) {
     const linkId = req.linkId
 
-    const fields = ['content', 'metadata', 'assetIds', 'platformData']
+    const fields = [
+      'content',
+      'linkType',
+      'metadata',
+      'assetIds',
+      'platformData',
+    ]
 
     const payload = _.pick(req, fields)
 

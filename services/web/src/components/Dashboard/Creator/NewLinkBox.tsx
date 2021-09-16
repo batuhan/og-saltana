@@ -1,52 +1,8 @@
 import _ from 'lodash'
 import { CreatorDashboardLinksLink } from 'components/Links'
-
-const soonActions = [
-  {
-    name: 'Embed',
-    description:
-      'Show your content on other platform within your Saltana space. Supports Notion, AirTable, Figma, YouTube, Twich and more!',
-    type: 'embed',
-  },
-  {
-    name: 'Live',
-    description: 'Show your Notion documents within your Saltana space',
-    type: 'embed?type=notion',
-  },
-  {
-    name: 'Music Cover',
-    description: 'List your music Spotify, SoundCloud etc',
-    type: 'music',
-  },
-].map((action) => ({ ...action, name: `SOON - ${action.name}` }))
-
-const actions = [
-  {
-    name: 'Checkout',
-    description: 'Sell documents, downloadable files and more',
-    type: 'checkout',
-  },
-  {
-    name: 'Link List',
-    description: 'List your relevant links all over internet in a simple page',
-    type: 'link-list',
-  },
-  {
-    name: 'Notion page',
-    description: 'Natively embed Notion content on your Saltana space',
-    type: 'embed?type=notion',
-  },
-  {
-    name: 'Redirection',
-    description:
-      'Create a link you can track and modify to share on social media',
-    type: 'redirect',
-  },
-  ...soonActions,
-]
-
+import linkTypes from '@/common/link-types'
 export default function CreatorDashboardNewLinkBox() {
-  const actionsMap = actions.map(({ name, description, type }, actionIdx) => (
+  const actionsMap = linkTypes.map(({ name, description, type }, actionIdx) => (
     <li key={name} className="flow-root">
       <div className="relative -m-2 p-2 flex items-center space-x-4 rounded-xl hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500">
         <div>

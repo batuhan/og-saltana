@@ -1,4 +1,3 @@
-import React, { Suspense, useMemo, useState } from 'react'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
 
@@ -10,26 +9,17 @@ import Workflows from 'components/Dashboard/Creator/Assets/Screens/Workflows'
 import Deliverables from 'components/Dashboard/Creator/Assets/Screens/Deliverables'
 import Discounts from 'components/Dashboard/Creator/Assets/Screens/Discounts'
 import Customize from 'components/Dashboard/Creator/Assets/Screens/Customize'
+import { NextSeo } from 'next-seo'
 
+import { Tab } from '@headlessui/react'
 import {
-  Disclosure,
-  Menu,
-  RadioGroup,
-  Switch,
-  Tab,
-  Transition,
-} from '@headlessui/react'
-import {
-  BellIcon,
   CogIcon,
-  CreditCardIcon,
-  KeyIcon,
-  MenuIcon,
   UserCircleIcon,
   ViewGridAddIcon,
-  XIcon,
 } from '@heroicons/react/outline'
 import useApi from 'hooks/useApi'
+import classNames from '@/common/classnames'
+import { useState } from 'react'
 
 const secondaryNavigation = [
   { name: 'Website redesign', href: '#' },
@@ -38,48 +28,36 @@ const secondaryNavigation = [
   { name: 'Profit sharing program', href: '#' },
 ]
 
-const sections = [
+const screens = [
   {
     name: 'Basic',
-    href: '#',
     Component: Basic,
     icon: UserCircleIcon,
-    current: false,
   },
   {
     name: 'Deliverables',
-    href: '#',
     Component: Deliverables,
     icon: CogIcon,
-    current: false,
   },
   {
     name: 'Discounts & Vouchers',
-    href: '#',
     Component: Discounts,
     icon: ViewGridAddIcon,
-    current: false,
   },
   {
     name: 'Integrations',
-    href: '#',
     Component: Workflows,
     icon: ViewGridAddIcon,
-    current: false,
   },
   {
     name: 'Workflows',
-    href: '#',
     Component: Workflows,
     icon: ViewGridAddIcon,
-    current: false,
   },
   {
     name: 'Customize',
-    href: '#',
     Component: Customize,
     icon: ViewGridAddIcon,
-    current: false,
   },
 ]
 
@@ -88,26 +66,36 @@ export default function CreatorDashboardAssetScreen({ assetId }) {
   const asset = useApi('assets', 'read', assetId, {
     enabled: !!assetId,
   })
+
+  const [selectedScreen, setSelectedScreen] = useState(0)
+
+  const selectedScreenName = screens[selectedScreen].name
+
   if (isLoading) {
     return (
       <main className="py-6 lg:col-span-9 xl:col-span-10">
+        <NextSeo title={`${selectedScreenName} - Loading - Assets`} />
+
         <GmailLoader />
       </main>
     )
   }
   return (
     <UpdateCreatorAssetProvider creator={creator} asset={asset}>
+      <NextSeo title={`${selectedScreenName} - ${asset.data.name} - Assets`} />
+
       <main className="mx-auto  ">
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-5 space-y-6 ">
           <Tab.Group
             onChange={(index) => {
+              setSelectedScreen(index)
               console.log('Changed selected tab to:', index)
             }}
           >
             <aside className="py-10 px-2 sm:px-6 lg:py-0 lg:px-0 lg:col-span-3 ">
               <nav className="space-y-5 pt-5">
                 <Tab.List>
-                  {sections.map((item) => (
+                  {screens.map((item) => (
                     <Tab
                       key={item.name}
                       className={({ selected }) =>
@@ -156,7 +144,7 @@ export default function CreatorDashboardAssetScreen({ assetId }) {
               </div>
             </aside>
             <Tab.Panels className="space-y-6  sm:px-6 lg:px-0 lg:col-span-9">
-              {sections.map(({ name, Component }) => (
+              {screens.map(({ name, Component }) => (
                 <Tab.Panel key={name}>
                   <Component asset={asset} />
                 </Tab.Panel>

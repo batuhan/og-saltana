@@ -47,7 +47,6 @@ export default function UpdateCreatorAssetProvider({
       <form onSubmit={handleSubmit(onSubmit)} {...props}>
         {children}
       </form>
-      {process.env.NODE_ENV === 'development' && <DevTool control={control} />}
     </FormProvider>
   )
 }

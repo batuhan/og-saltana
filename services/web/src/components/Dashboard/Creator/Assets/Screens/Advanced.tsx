@@ -13,8 +13,6 @@ export default function CreatorDashboardLinkAdvancedScreen() {
 
   return (
     <main>
-      <NextSeo title="Advanced" />
-
       <CreatorSlugField username={creator.data.username} {...methods} />
 
       <div className="space-y-6">

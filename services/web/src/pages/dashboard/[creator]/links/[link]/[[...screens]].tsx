@@ -16,7 +16,6 @@ import CreatorDashboardLinkSubHeader from 'components/Dashboard/Creator/Links/He
 import UpdateCreatorLinkProvider from '@/client/UpdateCreatorLinkProvider'
 
 import Basic from 'components/Dashboard/Creator/Links/Screens/Basic'
-import Stats from 'components/Dashboard/Creator/Links/Screens/Stats'
 import Workflows from 'components/Dashboard/Creator/Links/Screens/Workflows'
 import Access from 'components/Dashboard/Creator/Links/Screens/Access'
 import Customize from 'components/Dashboard/Creator/Links/Screens/Customize'

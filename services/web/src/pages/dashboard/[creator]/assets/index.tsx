@@ -13,8 +13,6 @@ import {
   UserAddIcon,
 } from '@heroicons/react/solid'
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
-import useApi from 'hooks/useApi'
-import useCurrentUser from 'hooks/useCurrentUser'
 import { CreatorDashboardAssetsLink } from 'components/Links'
 
 import AssetCategoryName from 'components/AssetCategoryName'
@@ -138,7 +136,6 @@ function AssetTable({ assets }) {
     <div className="relative h-screen flex overflow-hidden bg-white">
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
         <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
-          {/* Pinned projects */}
           <div className="px-4 mt-6 sm:px-6 lg:px-8">
             <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
               Pinned Projects
@@ -456,7 +453,6 @@ function ListNew({ assets }) {
 }
 
 export const CreatorDashboardAssets = () => {
-  const user = useCurrentUser()
   const assetsQuery = useMyAssets()
   return (
     <CreatorDashboardAssetsLayout>

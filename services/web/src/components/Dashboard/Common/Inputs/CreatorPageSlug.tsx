@@ -22,6 +22,7 @@ export default function CreatorSlugField({
             id={name}
             disabled={isSubmitting}
             autoComplete="slug"
+            {...register(name, { required: true })}
             className={classNames(
               isSubmitting && `disabled:opacity-50`,
               `flex-1 block w-full focus:ring-indigo-500 focus:border-indigo-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300`,

@@ -4,7 +4,6 @@ import useCreatorSpace from 'hooks/useCreatorSpace'
 import React from 'react'
 
 import { useFormContext } from 'react-hook-form'
-import { NextSeo } from 'next-seo'
 import {
   Card,
   ButtonLink,
@@ -16,7 +15,6 @@ import {
 export default function CreatorDashboardLinkWorkflowsScreen() {
   return (
     <main>
-      <NextSeo title="Workflows" />
       n8n integration with a simple interface but we need to define some
       "templates" for each link type
       <div className="mb-5">

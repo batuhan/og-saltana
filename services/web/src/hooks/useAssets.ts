@@ -2,29 +2,27 @@ import useApi from './useApi'
 import useCurrentUser from './useCurrentUser'
 
 // Assets
-export default function useAssets(
-  { ownerId, nbResultsPerPage = 100 },
-  params = {},
-) {
+export default function useAssets(data = {}, params = {}) {
   return useApi(
     'assets',
     'list',
     {
-      ownerId,
-      nbResultsPerPage,
+      nbResultsPerPage: 100,
+      ...data,
     },
     params,
   )
 }
 
 // My Assets
-export function useMyAssets({ nbResultsPerPage = 100, ...data }, params = {}) {
-  const {
-    isLoggedIn,
-    data: { id },
-  } = useCurrentUser()
+export function useMyAssets(queryData = {}, params = {}) {
+  const { isLoggedIn, data } = useCurrentUser()
+
   return useAssets(
-    { ownerId: id, nbResultsPerPage, ...data },
-    { enabled: isLoggedIn && id, ...params },
+    { ...data, ownerId: data.id },
+    {
+      enabled: isLoggedIn && data?.id ? true : false,
+      ...params,
+    },
   )
 }

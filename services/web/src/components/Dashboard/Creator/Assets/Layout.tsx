@@ -15,6 +15,7 @@ import {
   InboxIcon,
   UsersIcon,
 } from '@heroicons/react/outline'
+import classNames from '@/common/classnames'
 
 const navigation = [
   { name: 'Assets', href: '/', icon: HomeIcon, current: true },

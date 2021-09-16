@@ -109,7 +109,7 @@ export default function Header() {
                   <div className="hidden md:ml-6 md:flex md:space-x-8">
                     {/* Current: "border-white text-white", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
                     {navigation.map((item) => (
-                      <NavigationLink key={item.name} passHref>
+                      <NavigationLink href={item.href} key={item.name} passHref>
                         <a
                           href="#"
                           className={

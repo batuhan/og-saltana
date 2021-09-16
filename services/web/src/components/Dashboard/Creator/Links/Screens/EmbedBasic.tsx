@@ -1,54 +1,41 @@
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, Controller } from 'react-hook-form'
 
-import { Fragment, useState } from 'react'
+import React, { Fragment, useState } from 'react'
 import { Dialog, RadioGroup, Transition } from '@headlessui/react'
-import { ShieldCheckIcon, XIcon } from '@heroicons/react/outline'
 import {
   CheckIcon,
   QuestionMarkCircleIcon,
   StarIcon,
 } from '@heroicons/react/solid'
+import classNames from '@/common/classnames'
+import SaveButton from '../../SaveButton'
 
-const product = {
-  name: 'Everyday Ruck Snack',
-  price: '$220',
-  rating: 3.9,
-  href: '#',
-  imageSrc:
-    'https://tailwindui.com/img/ecommerce-images/product-quick-preview-03-detail.jpg',
-  imageAlt:
-    'Interior of light green canvas bag with padded laptop sleeve and internal organization pouch.',
-  sizes: [
-    {
-      name: 'Embedded',
-      description: 'Embeds the content into your space with your styles',
-    },
-    {
-      name: 'Redirection',
-      description: 'Redirect to the destination while counting page views',
-    },
-  ],
+const _linkTypes = {
+  embed: {
+    name: 'Embedded',
+    description: 'Embeds the content into your space with your styles',
+  },
+  redirect: {
+    name: 'Redirection',
+    description: 'Redirect to the destination while counting page views',
+  },
 }
 
-function Size() {
-  const [open, setOpen] = useState(false)
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0])
-
+function LinkType({ onChange, onBlur, value }) {
   return (
     <>
       <div className="sm:flex sm:justify-between">
-        {/* Size selector */}
-        <RadioGroup value={selectedSize} onChange={setSelectedSize}>
+        <RadioGroup value={value} onChange={onChange}>
           <RadioGroup.Label className="block text-sm font-medium text-gray-700">
-            Size
+            Type
           </RadioGroup.Label>
           <div className="mt-1 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {product.sizes.map((size) => (
+            {Object.keys(_linkTypes).map((linkType) => (
               <RadioGroup.Option
                 as="div"
-                key={size.name}
-                value={size}
+                key={linkType}
+                value={linkType}
                 className={({ active }) =>
                   classNames(
                     active ? 'ring-2 ring-indigo-500' : '',
@@ -62,13 +49,13 @@ function Size() {
                       as="p"
                       className="text-base font-medium text-gray-900"
                     >
-                      {size.name}
+                      {_linkTypes[linkType].name}
                     </RadioGroup.Label>
                     <RadioGroup.Description
                       as="p"
                       className="mt-1 text-sm text-gray-500"
                     >
-                      {size.description}
+                      {_linkTypes[linkType].description}
                     </RadioGroup.Description>
                     <div
                       className={classNames(
@@ -90,7 +77,7 @@ function Size() {
           href="#"
           className="group flex text-sm text-gray-500 hover:text-gray-700"
         >
-          <span>What size should I buy?</span>
+          <span>Which option should I use?</span>
           <QuestionMarkCircleIcon
             className="flex-shrink-0 ml-2 h-5 w-5 text-gray-400 group-hover:text-gray-500"
             aria-hidden="true"
@@ -101,10 +88,8 @@ function Size() {
   )
 }
 
-export default function NewBasic() {
+export default function EmbedBasic() {
   const { register, control, setValue } = useFormContext()
-
-  const { creator, link, asset } = useCreatorSpace()
 
   return (
     <div className="space-y-8 divide-y divide-gray-200">
@@ -127,9 +112,32 @@ export default function NewBasic() {
               />
             </div>
           </div>
+          <div className="sm:col-span-4 mt-2">
+            <label
+              htmlFor="slug"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Slug
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...register('slug', {
+                  required: true,
+                })}
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
           <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
             <div className="sm:col-span-6">
-              <Size />
+              <Controller
+                control={control}
+                name="linkType"
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                  <LinkType onChange={onChange} onBlur={onBlur} value={value} />
+                )}
+              />
             </div>
           </div>
         </div>
@@ -137,18 +145,7 @@ export default function NewBasic() {
 
       <div className="pt-5">
         <div className="flex justify-end">
-          <button
-            type="button"
-            className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Save
-          </button>
+          <SaveButton />
         </div>
       </div>
     </div>
