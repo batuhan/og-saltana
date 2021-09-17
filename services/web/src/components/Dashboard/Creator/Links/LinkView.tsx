@@ -71,40 +71,36 @@ export default function LinkView({ linkId }) {
     initialData: {},
     enabled: linkId && linkId.length > 0,
   })
-  const { creator, asset, isLink, isLoading } = useCreatorSpace()
+  const { creator } = useCreatorSpace()
   const linkType = link.data?.linkType
-  const filteredScreens = useMemo(
-    () =>
-      Object.keys(screens).filter((screenKey) => {
-        const { onLinkTypes } = screens[screenKey]
-        if (onLinkTypes.includes('*')) {
-          return true
-        }
+  const filteredScreens = Object.keys(screens).filter((screenKey) => {
+    const { onLinkTypes } = screens[screenKey]
+    if (onLinkTypes.includes('*')) {
+      return true
+    }
 
-        if (onLinkTypes.includes(linkType)) {
-          return true
-        }
+    if (onLinkTypes.includes(linkType)) {
+      return true
+    }
 
-        return false
-      }),
-    [linkType],
-  )
+    return false
+  })
   const [dropdownOpen, setDropDownOpen] = useState(false)
 
-  const [selectedScreenKey, setSelectedScreenKey] = useState('Overview')
-  const SelectedScreen = screens[selectedScreenKey]
+  const [selectedScreenKey, setSelectedScreenKey] = useState(
+    `${linkId}-Overview`,
+  )
+  const SelectedScreen = screens[selectedScreenKey.split('-')[1]]
 
   return link.isFetched ? (
     <UpdateCreatorLinkProvider
       link={link}
       creator={creator}
-      asset={asset}
       className="w-full h-full"
     >
       <NextSeo title={`${SelectedScreen.name} - /${link.data.slug} - Links`} />
 
       <article>
-        {/* Profile header */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="block  mt-6 min-w-0 flex-1">
             <div className="pb-5 border-b border-gray-200">
@@ -211,7 +207,7 @@ export default function LinkView({ linkId }) {
         </div>
         <Tab.Group
           onChange={(index) => {
-            setSelectedScreenKey(filteredScreens[index])
+            setSelectedScreenKey(`${linkId}-${filteredScreens[index]}`)
             console.log(
               'Changed selected tab to:',
               index,
@@ -226,7 +222,7 @@ export default function LinkView({ linkId }) {
                   <Tab.List>
                     {filteredScreens.map((screenKey) => (
                       <Tab
-                        key={screenKey}
+                        key={`${linkId}-${screenKey}`}
                         className={({ selected }) => `
                         ${
                           selected
@@ -246,13 +242,13 @@ export default function LinkView({ linkId }) {
           </div>
 
           <Tab.Panels>
-            {filteredScreens.map((key, index) => {
+            {filteredScreens.map((screenKey, index) => {
               return (
                 <Tab.Panel
-                  key={key}
+                  key={`${linkId}-${screenKey}`}
                   className="mt-6 min-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
                 >
-                  <SelectedScreen.Component />
+                  <SelectedScreen.Component linkId={linkId} />
                 </Tab.Panel>
               )
             })}

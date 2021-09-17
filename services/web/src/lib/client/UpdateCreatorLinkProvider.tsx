@@ -19,7 +19,6 @@ const validFields = [
 export default function UpdateCreatorLinkProvider({
   children,
   creator,
-  asset,
   link,
   ...props
 }) {
@@ -50,9 +49,9 @@ export default function UpdateCreatorLinkProvider({
     },
     {
       onSuccess: (data, variables) => {
+        // queryClient.invalidateQueries('links')
         queryClient.setQueryData(['links', 'read', link.data.id], data)
         queryClient.invalidateQueries('links')
-        // queryClient.invalidateQueries('assets')
       },
     },
   )

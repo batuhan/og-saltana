@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router'
 import useApi from './useApi'
+import useAsset from './useAsset'
+import _ from 'lodash'
 
 export default function useCreatorSpace() {
   const { query } = useRouter()
@@ -18,14 +20,12 @@ export default function useCreatorSpace() {
     link.data?.assetId
   )
 
-  const assetId = link.data?.assetId || query.asset
-  const asset = useApi('assets', 'read', assetId, {
-    enabled: (link.data?.assetId !== null && isAssetLink) || !!assetId,
-  })
+  const assetId = query.asset
+  //const assetId = link.data?.assetId || query.asset
+  const asset = useAsset(assetId)
 
-  const isOrder = query.order && query.order.length > 0
-  const order = useApi('assets', 'read', query.order, {
-    enabled: isOrder,
+  const order = useApi('orders', 'read', query.order, {
+    enabled: _.isEmpty(query.order) === false,
   })
 
   const isLoading =

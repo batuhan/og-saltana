@@ -308,6 +308,7 @@ import {
 import { XIcon } from '@heroicons/react/outline'
 import { ChevronDownIcon } from '@heroicons/react/solid'
 import CreatorDashboardAssetsLayout from 'components/Dashboard/Creator/Assets/Layout'
+import classNames from '@/common/classnames'
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },

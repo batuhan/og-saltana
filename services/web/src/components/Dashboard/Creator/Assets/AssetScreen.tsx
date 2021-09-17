@@ -20,6 +20,7 @@ import {
 import useApi from 'hooks/useApi'
 import classNames from '@/common/classnames'
 import { useState } from 'react'
+import useAsset from 'hooks/useAsset'
 
 const secondaryNavigation = [
   { name: 'Website redesign', href: '#' },
@@ -63,9 +64,7 @@ const screens = [
 
 export default function CreatorDashboardAssetScreen({ assetId }) {
   const { creator, isLoading } = useCreatorSpace()
-  const asset = useApi('assets', 'read', assetId, {
-    enabled: !!assetId,
-  })
+  const asset = useAsset(assetId)
 
   const [selectedScreen, setSelectedScreen] = useState(0)
 
