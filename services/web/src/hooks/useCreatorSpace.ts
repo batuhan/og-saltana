@@ -1,37 +1,67 @@
 import { useRouter } from 'next/router'
 import useApi from './useApi'
-import useAsset from './useAsset'
 import _ from 'lodash'
+
+function isEnabled(...conditions) {
+  return conditions.every((condition) => condition === true)
+}
+
+function isNotEmpty(...params) {
+  return _.isEmpty(...params) === false
+}
 
 export default function useCreatorSpace() {
   const { query } = useRouter()
-  const isLink = query.link && query.link.length > 0
+
+  // Fetch the creator
+  const isCreatorQueryEnabled = isEnabled(isNotEmpty(query.creator))
+
   const creator = useApi('users', 'read', query.creator, {
-    enabled: !!query.creator,
+    enabled: isCreatorQueryEnabled,
   })
 
-  const link = useApi('links', 'read', `${creator.data?.id}:${query.link}`, {
-    enabled: !!(isLink && creator.data?.id && creator.data?.id.length > 0),
+  // Fetch the link if we are in a link page
+  const isLinkPage = _.isEmpty(query.link) === false
+  const linkId = `${query.creator}:${query.link}`
+  const isLinkQueryEnabled = isEnabled(isLinkPage, isNotEmpty(query.link))
+
+  const link = useApi('links', 'read', linkId, {
+    enabled: isLinkQueryEnabled,
+    initialData: { id: linkId },
   })
 
-  const isAssetLink = !!(
-    isLink &&
-    link.data?.linkType === 'asset' &&
-    link.data?.assetId
-  )
-
+  // Fetch the asset if we are in an asset page
+  const isAssetPage = _.isEmpty(query.asset) === false
   const assetId = query.asset
-  //const assetId = link.data?.assetId || query.asset
-  const asset = useAsset(assetId)
+  const isAssetQueryEnabled = isEnabled(isAssetPage, isNotEmpty(query.asset))
+  const asset = useApi('assets', 'read', assetId, {
+    enabled: isAssetQueryEnabled,
+    initialData: { id: assetId },
+  })
 
-  const order = useApi('orders', 'read', query.order, {
-    enabled: _.isEmpty(query.order) === false,
+  // Fetch the order if we are in an order page
+  const isOrderPage = _.isEmpty(query.order) === false
+  const orderId = query.order
+  const isOrderQueryEnabled = isEnabled(isOrderPage, isNotEmpty(query.order))
+  const order = useApi('orders', 'read', orderId, {
+    enabled: isOrderQueryEnabled,
+    initialData: { id: orderId },
   })
 
   const isLoading =
     creator.isLoading ||
-    (isLink ? link.isLoading : false) ||
-    (isAssetLink ? asset.isLoading : false)
+    (isLinkQueryEnabled ? link.isLoading : false) ||
+    (isAssetQueryEnabled ? asset.isLoading : false) ||
+    (isOrderQueryEnabled ? order.isLoading : false)
 
-  return { link, creator, asset, order, isLink, isAssetLink, isLoading }
+  return {
+    link,
+    creator,
+    asset,
+    order,
+    isLoading,
+    isLinkPage,
+    isAssetPage,
+    isOrderPage,
+  }
 }

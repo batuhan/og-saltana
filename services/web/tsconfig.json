@@ -20,7 +20,8 @@
     "paths": {
       "@/client/*": ["lib/client/*"],
       "@/common/*": ["lib/common/*"],
-      "@/server/*": ["lib/server/*"]
+      "@/server/*": ["lib/server/*"],
+      "@/hooks/*": ["hooks/*"]
     }
   },
   "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],

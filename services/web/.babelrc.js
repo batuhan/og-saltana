@@ -18,6 +18,7 @@ module.exports = {
           '@/client': './src/lib/client',
           '@/common': './src/lib/common',
           '@/server': './src/lib/server',
+          '@/hooks': './src/hooks',
         },
       },
     ],

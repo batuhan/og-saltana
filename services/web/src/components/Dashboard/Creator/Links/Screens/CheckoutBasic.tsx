@@ -6,7 +6,8 @@ import * as React from 'react'
 import Select, { Option } from 'rc-select'
 import { ListChoice } from '@kiwicom/orbit-components'
 import { debounce } from 'lodash'
-import { useMyAssets } from 'hooks/useAssets'
+import { useMyAssets } from '@/hooks/useAssets'
+import QuickAssetSelector from '../../Assets/Fields/QuickAssetSelector'
 
 function NewPicker() {
   const [selectedPrimrayColor, setSelectedPrimaryColor] = React.useState(null)
@@ -129,17 +130,15 @@ export default function CheckoutBasic() {
   return (
     <div className="space-y-8 divide-y divide-gray-200 min-w-full">
       <div className="space-y-8 divide-y divide-gray-200">
-        <div className="pt-8">
-          <div>
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Assets
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Assets you selected are combined inside the checkout form in your
-              link.
-            </p>
-          </div>
-          <div className="mt-6 flex min-w-full">sdfs</div>
+        <div>
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Assets
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Assets you selected are combined inside the checkout form in your
+            link.
+          </p>
+          <QuickAssetSelector fieldName="assetIds" />
         </div>
         <div className="pt-8">
           <div>

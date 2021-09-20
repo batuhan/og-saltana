@@ -8,7 +8,7 @@ import NotionBox from 'components/ContentViewer/Notion'
 import ViewerWrapper from 'components/ContentEditor/Editor/ViewerWrapper'
 
 const CreatorLink = ({ embed }) => {
-  const { isLink, link, asset, creator } = useCreatorSpace()
+  const { link, asset, creator } = useCreatorSpace()
   return (
     <CreatorSpaceShell>
       <div>
@@ -17,7 +17,7 @@ const CreatorLink = ({ embed }) => {
         <ViewerWrapper content={link.data?.content} />
         {asset.data && <pre>{JSON.stringify(asset.data)}</pre>}
         {creator.data && <pre>{JSON.stringify(creator.data)}</pre>}
-        {isLink && embed?.provider === 'notion' && (
+        {embed?.provider === 'notion' && (
           <NotionBox recordMap={embed.recordMap} />
         )}
       </div>

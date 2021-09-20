@@ -20,7 +20,7 @@ import {
 import useApi from 'hooks/useApi'
 import classNames from '@/common/classnames'
 import { useState } from 'react'
-import useAsset from 'hooks/useAsset'
+import useAsset from '@/hooks/useAsset'
 
 const secondaryNavigation = [
   { name: 'Website redesign', href: '#' },

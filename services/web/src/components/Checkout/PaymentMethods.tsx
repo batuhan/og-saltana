@@ -1,6 +1,6 @@
 import { Checkbox } from '@kiwicom/orbit-components'
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { CARD_OPTIONS } from 'hooks/useCheckout'
+import { CARD_OPTIONS } from 'components/Checkout/useCheckout'
 import React from 'react'
 import { useForm, useController, Controller } from 'react-hook-form'
 

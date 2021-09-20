@@ -2,17 +2,17 @@ import CreatorSpaceShell from 'components/CreatorSpace/Shell'
 import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreatorSpacePages'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import CheckoutForm from 'components/Checkout/CheckoutForm'
+import { useRouter } from 'next/router'
 
-const CreatorSpaceLinkCheckout = () => {
-  const { link } = useCreatorSpace()
+const CreatorSpaceAssetCheckout = () => {
+  const { query } = useRouter()
+
+  const assetIds = query.assetIds ? query.assetIds.split(',') : []
 
   return (
     <CreatorSpaceShell>
-      {link.isLoading ? (
-        'Loading...'
-      ) : (
-        <CheckoutForm assetIds={link.data.assetIds} />
-      )}
+      <pre>{JSON.stringify(assetIds, null, 2)}</pre>
+      <CheckoutForm assetIds={[...assetIds]} />
     </CreatorSpaceShell>
   )
 }
@@ -26,4 +26,4 @@ export async function getStaticPaths() {
   }
 }
 
-export default CreatorSpaceLinkCheckout
+export default CreatorSpaceAssetCheckout

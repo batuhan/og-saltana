@@ -19,7 +19,7 @@ export function useMyAssets(queryData = {}, params = {}) {
   const { isLoggedIn, data } = useCurrentUser()
 
   return useAssets(
-    { ...data, ownerId: data.id },
+    { ownerId: data.id },
     {
       enabled: isLoggedIn && data?.id ? true : false,
       ...params,

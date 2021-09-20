@@ -18,7 +18,7 @@ import { CreatorDashboardAssetsLink } from 'components/Links'
 import AssetCategoryName from 'components/AssetCategoryName'
 import CreatorDashboardAssetsLayout from 'components/Dashboard/Creator/Assets/Layout'
 import { Menu, Transition } from '@headlessui/react'
-import { useMyAssets } from 'hooks/useAssets'
+import { useMyAssets } from '@/hooks/useAssets'
 import classNames from '@/common/classnames'
 
 const projects = [

@@ -13,6 +13,7 @@ const validFields = [
   'slug',
   'content',
   'linkType',
+  'assetIds',
   // 'username',
 ]
 

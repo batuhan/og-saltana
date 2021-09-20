@@ -41,7 +41,7 @@ const screens = [
     path: 'customize',
     Component: Customize,
     current: false,
-    onLinkTypes: ['embed', 'asset'],
+    onLinkTypes: ['embed', 'checkout'],
   },
 ]
 

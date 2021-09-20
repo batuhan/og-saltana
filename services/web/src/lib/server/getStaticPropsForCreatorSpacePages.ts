@@ -65,18 +65,27 @@ const getStaticPropsForCreatorSpacePages =
 
       setCreatorLinkData(sharedQueryClient, link)
 
-      commonProps.link = { ...link }
-
       switch (link.linkType) {
-        case 'asset':
-          const asset = await sharedSaltanaInstance.assets.read(link.assetId)
-          if (asset.id) {
-            sharedQueryClient.setQueryData(
-              ['assets', 'read', link.assetId],
-              asset,
-            )
-            commonProps.asset = { ...asset }
+        case 'checkout':
+          if (_.isArray(link.assets) === false || _.isEmpty(link.assetIds)) {
+            break
           }
+
+          const assetsQuery = {
+            id: [...link.assetIds],
+            ownerId: [creator.id],
+          }
+          const assets = await sharedSaltanaInstance.assets.list(assetsQuery)
+
+          sharedQueryClient.setQueryData(
+            ['assets', 'list', assetsQuery],
+            assets,
+          )
+
+          assets.forEach((asset) =>
+            sharedQueryClient.setQueryData(['assets', 'read', asset.id], asset),
+          )
+
           break
         case 'embed':
           const embed = parseEmbedDestination(link.destination)

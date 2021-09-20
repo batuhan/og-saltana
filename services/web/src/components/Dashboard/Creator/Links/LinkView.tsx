@@ -29,7 +29,7 @@ const screens = {
 
     name: 'Basic',
 
-    onLinkTypes: ['asset'],
+    onLinkTypes: ['checkout'],
   },
   EmbedBasic: {
     Component: EmbedBasic,
@@ -59,7 +59,7 @@ const screens = {
     name: 'Customize',
     path: 'customize',
 
-    onLinkTypes: ['embed', 'asset'],
+    onLinkTypes: ['embed', 'checkout'],
   },
 }
 

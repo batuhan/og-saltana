@@ -19,7 +19,7 @@ import * as yup from 'yup'
 
 import _ from 'lodash'
 import { useCart } from 'react-use-cart'
-import useCurrentUser from './useCurrentUser'
+import useCurrentUser from '../../hooks/useCurrentUser'
 import Logger from '@/common/logger'
 import { useRouter } from 'next/router'
 import { generateOrderLink } from '@/common/utils'
@@ -120,7 +120,7 @@ async function _confirmPaymentIntent({ stripe, paymentIntent, card, email }) {
 // when the payment intent is confirmed, we can redirect the user to the success page
 // if the payment intent fails, we can show an error message
 // if the user is not logged in, we can show a login form
-export default function useCheckout() {
+export default function useCheckout({ assetIds }) {
   const formMethods = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -129,10 +129,11 @@ export default function useCheckout() {
         id: '',
         clientSecret: '',
       },
+      assetIds,
       validPaymentMethod: false,
     },
   }) // basically for validating the email field
-  const cart = useCart()
+
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
@@ -143,9 +144,7 @@ export default function useCheckout() {
   // [GENERATE_PAYMENT_INTENT] starts
   const generatePaymentIntent = useMutation(
     async () =>
-      _generatePaymentIntent(
-        cart.items.map(({ id, quantity }) => ({ id, quantity })),
-      ),
+      _generatePaymentIntent(assetIds.map((id) => ({ id, quantity: 1 }))),
     {
       onMutate: (variables) => {
         setStatus(CHECKOUT_STATUSES.LOADING)
@@ -181,13 +180,13 @@ export default function useCheckout() {
   useEffect(() => {
     log.debug(
       'generating payment intent',
-      cart.items,
+      assetIds,
       generatePaymentIntent.status,
     )
     if (generatePaymentIntent.status === 'idle') {
       generatePaymentIntent.mutate()
     }
-  }, [cart.items, generatePaymentIntent.status])
+  }, [assetIds, generatePaymentIntent.status])
   // [GENERATE_PAYMENT_INTENT] ends
 
   // [PAYMENT_INTENT_PROCESSING] starts
@@ -200,7 +199,7 @@ export default function useCheckout() {
       return _processPaymentIntent({
         email,
         paymentIntentId: generatePaymentIntent.data.paymentIntentId,
-        assets: cart.items.map((item) => _.pick(item, ['id', 'quantity'])),
+        assets: assetIds.map((id) => ({ id, quantity: 1 })),
       })
     },
     {
@@ -289,11 +288,21 @@ export default function useCheckout() {
     formMethods.register('paymentIntent')
   }, [])
 
+  const { transactions, totalAmount, currency } =
+    generatePaymentIntent.data || {
+      transactions: [],
+      totalAmount: 0,
+      currency: 'USD',
+    }
+
   return {
     status,
     handleSubmit: formMethods.handleSubmit(onSubmit),
     errorMessage,
     formMethods,
+    transactions,
+    totalAmount,
+    currency,
     onPaymentMethodChange,
   }
 }

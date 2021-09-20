@@ -11,12 +11,13 @@ import { Disclosure } from '@headlessui/react'
 import { LockClosedIcon } from '@heroicons/react/solid'
 import { useCart } from 'react-use-cart'
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import useCheckout, { CHECKOUT_STATUSES } from 'hooks/useCheckout'
+import useCheckout, { CHECKOUT_STATUSES } from 'components/Checkout/useCheckout'
 import OrderSummary from './OrderSummary'
 import PaymentMethods from './PaymentMethods'
 import getStripe from '@/client/stripe'
 import HookFormDevTools from '@/client/devtools'
 import { Elements } from '@stripe/react-stripe-js'
+import classNames from '@/common/classnames'
 
 const PaymentStatus = ({
   status,
@@ -52,7 +53,7 @@ const PaymentStatus = ({
   }
 }
 
-const CheckoutForm = () => {
+const CheckoutForm = ({ assetIds }) => {
   const {
     handleSubmit,
     formMethods: {
@@ -64,9 +65,7 @@ const CheckoutForm = () => {
     },
     status,
     onPaymentMethodChange,
-  } = useCheckout()
-
-  const { items, totalUniqueItems, cartTotal } = useCart()
+  } = useCheckout({ assetIds })
 
   const isSubmitDisabled = isValid !== true && isSubmitting !== true
   return (
@@ -149,10 +148,10 @@ const CheckoutForm = () => {
   )
 }
 
-const WrappedCheckoutForm = () => {
+const WrappedCheckoutForm = ({ assetIds }) => {
   return (
     <Elements stripe={getStripe()}>
-      <CheckoutForm />
+      <CheckoutForm assetIds={assetIds} />
     </Elements>
   )
 }

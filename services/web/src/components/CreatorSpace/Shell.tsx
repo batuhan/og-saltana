@@ -5,9 +5,9 @@ import useCreatorSpace from 'hooks/useCreatorSpace'
 import { Logo } from '../Logo'
 
 const CreatorSpaceShell = ({ children, mode = 'withLayout' }) => {
-  const { creator, link, isLink } = useCreatorSpace()
+  const { creator } = useCreatorSpace()
   const showLayout = mode !== 'embed'
-  const title = isLink ? link.data?.label : creator.data?.displayName
+  const title = creator.data?.displayName
 
   return (
     <>
