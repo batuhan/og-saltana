@@ -10,23 +10,15 @@ import { formatAmountForDisplay } from '@/client/stripe'
 import { useMutation, useQuery } from 'react-query'
 import axios from 'axios'
 
-import * as localForage from 'localforage'
 import { useController, useForm } from 'react-hook-form'
-import useLogin from 'hooks/useLogin'
-
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
 import _ from 'lodash'
-import { useCart } from 'react-use-cart'
-import useCurrentUser from '../../hooks/useCurrentUser'
 import Logger from '@/common/logger'
 import { useRouter } from 'next/router'
 import { generateOrderLink } from '@/common/utils'
-
-const cartCache = localForage.createInstance({
-  name: 'cart',
-})
+import useCurrentUser from '@/hooks/useCurrentUser'
 
 const log = Logger('useCheckout')
 // creates a hash for the cart contents
@@ -59,7 +51,6 @@ export const CARD_OPTIONS = {
 }
 
 export const CHECKOUT_STATUSES = {
-  EMPTY_CART: 'empty_cart',
   LOADING: 'loading',
   READY: 'ready',
   PROCESSING_ORDER: 'processing_order',
@@ -68,8 +59,6 @@ export const CHECKOUT_STATUSES = {
   SUCCESS: 'success',
   ERROR: 'error',
 }
-
-const ERROR_STATES = {}
 
 // Helpers
 async function _generatePaymentIntent(assets) {
@@ -138,9 +127,18 @@ export default function useCheckout({ assetIds }) {
   const elements = useElements()
   const router = useRouter()
 
-  const [status, setStatus] = useState(CHECKOUT_STATUSES.EMPTY_CART)
+  const [status, setStatus] = useState(CHECKOUT_STATUSES.LOADING)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [requiredFields, setRequiredFields] = useState([])
+  const { isLoggedIn } = useCurrentUser()
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      setRequiredFields(['whoami', 'saved-payment-methods'])
+    } else {
+      setRequiredFields(['email', 'payment-methods', 'saved-payment-methods'])
+    }
+  }, [isLoggedIn])
   // [GENERATE_PAYMENT_INTENT] starts
   const generatePaymentIntent = useMutation(
     async () =>
@@ -172,6 +170,16 @@ export default function useCheckout({ assetIds }) {
       },
       onError: (error) => {
         log.warn('we have an error generating payment intent', error)
+
+        switch (error.message) {
+          case 'Asset not validated':
+            setStatus(CHECKOUT_STATUSES.ERROR)
+            setErrorMessage('ERROR_ASSET_NOT_VALIDATED')
+            break
+          default:
+            setStatus(CHECKOUT_STATUSES.ERROR)
+            setErrorMessage('ERROR_GENERATING_PAYMENT_INTENT')
+        }
       },
     },
   )
@@ -183,6 +191,11 @@ export default function useCheckout({ assetIds }) {
       assetIds,
       generatePaymentIntent.status,
     )
+
+    if (_.isEmpty(assetIds)) {
+      return
+    }
+
     if (generatePaymentIntent.status === 'idle') {
       generatePaymentIntent.mutate()
     }
@@ -303,6 +316,7 @@ export default function useCheckout({ assetIds }) {
     transactions,
     totalAmount,
     currency,
+    requiredFields,
     onPaymentMethodChange,
   }
 }

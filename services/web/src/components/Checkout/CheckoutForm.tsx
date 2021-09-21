@@ -18,7 +18,14 @@ import getStripe from '@/client/stripe'
 import HookFormDevTools from '@/client/devtools'
 import { Elements } from '@stripe/react-stripe-js'
 import classNames from '@/common/classnames'
+import GmailLoader from 'components/Dashboard/Common/PlaceholderContent'
+import _ from 'lodash'
+import useCurrentUser from '@/hooks/useCurrentUser'
 
+function WhoAmI() {
+  const { data } = useCurrentUser()
+  return <div>You are logged in as {data.email} Click here to logout</div>
+}
 const PaymentStatus = ({
   status,
   errorMessage,
@@ -65,6 +72,10 @@ const CheckoutForm = ({ assetIds }) => {
     },
     status,
     onPaymentMethodChange,
+    transactions,
+    totalAmount,
+    currency,
+    requiredFields,
   } = useCheckout({ assetIds })
 
   const isSubmitDisabled = isValid !== true && isSubmitting !== true
@@ -86,32 +97,35 @@ const CheckoutForm = ({ assetIds }) => {
                   <Disclosure as="div">
                     {({ open }) => (
                       <OrderSummary
-                        assets={items}
-                        totalUniqueItems={totalUniqueItems}
-                        cartTotal={cartTotal}
+                        transactions={transactions}
+                        totalAmount={totalAmount}
                         open={open}
                       />
                     )}
                   </Disclosure>
                 </div>
 
-                <div className="col-span-full">
-                  <label
-                    htmlFor="email-address"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email address
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="email"
-                      id="email-address"
-                      {...register('email')}
-                      autoComplete="email"
-                      className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
+                {requiredFields.includes('whoami') && <WhoAmI />}
+
+                {requiredFields.includes('email') && (
+                  <div className="col-span-full">
+                    <label
+                      htmlFor="email-address"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Email address
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="email"
+                        id="email-address"
+                        {...register('email')}
+                        autoComplete="email"
+                        className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
                 <PaymentMethods onPaymentMethodChange={onPaymentMethodChange} />
               </div>
               <pre>{JSON.stringify(errors, null, 2)}</pre>
@@ -126,7 +140,10 @@ const CheckoutForm = ({ assetIds }) => {
               >
                 {isSubmitting
                   ? 'Processing...'
-                  : `Pay ${formatAmountForDisplay(cartTotal, 'usd')}`}
+                  : `Pay ${formatAmountForDisplay(
+                      totalAmount,
+                      currency.toLowerCase(),
+                    )}`}
               </button>
               <p className="flex justify-center text-sm font-medium text-gray-500 mt-6">
                 <LockClosedIcon
@@ -151,7 +168,11 @@ const CheckoutForm = ({ assetIds }) => {
 const WrappedCheckoutForm = ({ assetIds }) => {
   return (
     <Elements stripe={getStripe()}>
-      <CheckoutForm assetIds={assetIds} />
+      {_.isEmpty(assetIds) ? (
+        <GmailLoader />
+      ) : (
+        <CheckoutForm assetIds={assetIds} />
+      )}
     </Elements>
   )
 }

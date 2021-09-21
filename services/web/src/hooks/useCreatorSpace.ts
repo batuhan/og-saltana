@@ -22,8 +22,12 @@ export default function useCreatorSpace() {
 
   // Fetch the link if we are in a link page
   const isLinkPage = _.isEmpty(query.link) === false
-  const linkId = `${query.creator}:${query.link}`
-  const isLinkQueryEnabled = isEnabled(isLinkPage, isNotEmpty(query.link))
+  const linkId = `${creator.data.id}:${query.link}`
+  const isLinkQueryEnabled = isEnabled(
+    isLinkPage,
+    isNotEmpty(query.link),
+    isNotEmpty(creator.data.id),
+  )
 
   const link = useApi('links', 'read', linkId, {
     enabled: isLinkQueryEnabled,
