@@ -27,7 +27,11 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   const user = await instance.users.read(session.user.id)
 
-  const destination = `/${user.username}${resolvedUrl}`
+  console.log(req)
+  const destination = resolvedUrl.replace(
+    '/dashboard/_/',
+    `/dashboard/${user.username}/`,
+  )
 
   return {
     redirect: {

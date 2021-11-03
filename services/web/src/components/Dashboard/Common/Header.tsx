@@ -1,5 +1,5 @@
-import { Fragment } from 'react'
-import { Menu, Popover, Transition } from '@headlessui/react'
+import { Fragment, useState } from 'react'
+import { Menu, Popover, Transition, Listbox } from '@headlessui/react'
 import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
 import { Logo } from 'components/Logo'
 import Avatar from 'components/Avatar'
@@ -15,6 +15,7 @@ import { Disclosure } from '@headlessui/react'
 
 import { PlusSmIcon } from '@heroicons/react/solid'
 import classNames from '@/common/classnames'
+import linkTypes from '@/common/link-types'
 
 const creatorNavigation = [
   {
@@ -44,6 +45,85 @@ const userNavigation = [
   { name: 'Payments', href: '/payments' },
   { name: 'Account Settings', href: '/settings' },
 ]
+
+/* This example requires Tailwind CSS v2.0+ */
+import { CheckIcon, ChevronDownIcon } from '@heroicons/react/solid'
+
+function CreatorAddNewButton() {
+  const {
+    push,
+    query: { creator },
+  } = useRouter()
+  return (
+    <Listbox
+      onChange={(type) => {
+        push(`/dashboard/${creator}/links/create/${type}`)
+      }}
+    >
+      <Listbox.Label className="sr-only">Create a new link</Listbox.Label>
+      <div className="relative">
+        <div className="inline-flex shadow-sm rounded-md divide-x divide-indigo-600">
+          <div className="relative z-0 inline-flex shadow-sm rounded-md divide-x divide-indigo-600">
+            <div className="relative inline-flex items-center bg-indigo-500 py-2 pl-3 pr-4 border border-transparent rounded-l-md shadow-sm text-white">
+              <p className="ml-2.5 text-sm font-medium">Create...</p>
+            </div>
+            <Listbox.Button className="relative inline-flex items-center bg-indigo-500 p-2 rounded-l-none rounded-r-md text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:z-10 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500">
+              <span className="sr-only">Create a new link</span>
+              <PlusSmIcon className="h-5 w-5 text-white" aria-hidden="true" />
+            </Listbox.Button>
+          </div>
+        </div>
+
+        <Transition
+          as={Fragment}
+          leave="transition ease-in duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <Listbox.Options className="origin-top-right absolute z-10 right-0 mt-2 w-72 rounded-md shadow-lg overflow-hidden bg-white divide-y divide-gray-200 ring-1 ring-black ring-opacity-5 focus:outline-none">
+            {linkTypes.map((type) => (
+              <Listbox.Option
+                key={type.type}
+                className={({ active }) =>
+                  classNames(
+                    active ? 'text-white bg-indigo-500' : 'text-gray-900',
+                    'cursor-default select-none relative p-4 text-sm',
+                  )
+                }
+                value={type.type}
+              >
+                {({ selected, active }) => (
+                  <div className="flex flex-col">
+                    <div className="flex justify-between">
+                      <p className={selected ? 'font-semibold' : 'font-normal'}>
+                        {type.name}
+                      </p>
+                      {selected ? (
+                        <span
+                          className={active ? 'text-white' : 'text-indigo-500'}
+                        >
+                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                      ) : null}
+                    </div>
+                    <p
+                      className={classNames(
+                        active ? 'text-indigo-200' : 'text-gray-500',
+                        'mt-2',
+                      )}
+                    >
+                      {type.description}
+                    </p>
+                  </div>
+                )}
+              </Listbox.Option>
+            ))}
+          </Listbox.Options>
+        </Transition>
+      </div>
+    </Listbox>
+  )
+}
 
 // md:mr-auto md:ml-4 md:py-1 md:pl-4 md:border-l md:border-gray-400	flex flex-wrap items-center text-base justify-center
 export default function Header() {
@@ -126,16 +206,7 @@ export default function Header() {
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <button
-                      type="button"
-                      className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      <PlusSmIcon
-                        className="-ml-1 mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                      <span>New Job</span>
-                    </button>
+                    <CreatorAddNewButton />
                   </div>
                   <div className="hidden md:ml-4 md:flex-shrink-0 md:flex md:items-center">
                     <button

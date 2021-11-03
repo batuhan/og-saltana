@@ -29,14 +29,16 @@ export const sharedSaltanaInstance = createInstance({
 
 export async function getSaltanaInstance(_session = undefined) {
   const session = _session || (await getSession())
+  return getSaltanaInstanceSync(session)
+}
 
+export function getSaltanaInstanceSync(session = undefined) {
   if (!session) {
     return sharedSaltanaInstance
   }
 
   const newInstance = createInstance({
-    apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
-    apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
+    ...sharedSaltanaConfig,
   })
 
   newInstance.auth.setTokens({
@@ -55,12 +57,15 @@ export async function getSaltanaInstance(_session = undefined) {
 
 const defaultQueryFn =
   (session = undefined) =>
-  async ({ queryKey }) => {
+  ({ queryKey }) => {
     const [resourceType, method, data] = queryKey
-    const saltanaInstance = await getSaltanaInstance(session)
 
-    const sdkResponse = await saltanaInstance[resourceType][method](data)
-    return sdkResponse
+    const saltanaInstance =
+      session && session.saltanaInstance
+        ? session.saltanaInstance
+        : getSaltanaInstanceSync(session)
+
+    return saltanaInstance[resourceType][method](data)
   }
 
 export const getQueryClientSettings = (session = undefined) => ({

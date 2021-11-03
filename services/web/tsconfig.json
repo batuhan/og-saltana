@@ -2,7 +2,11 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -15,15 +19,34 @@
     "isolatedModules": true,
     "strictFunctionTypes": false,
     "jsx": "preserve",
-    "typeRoots": ["node_modules/@types", "types"],
+    "typeRoots": [
+      "node_modules/@types",
+      "types"
+    ],
     "baseUrl": "./src",
     "paths": {
-      "@/client/*": ["lib/client/*"],
-      "@/common/*": ["lib/common/*"],
-      "@/server/*": ["lib/server/*"],
-      "@/hooks/*": ["hooks/*"]
-    }
+      "@/client/*": [
+        "lib/client/*"
+      ],
+      "@/common/*": [
+        "lib/common/*"
+      ],
+      "@/server/*": [
+        "lib/server/*"
+      ],
+      "@/hooks/*": [
+        "hooks/*"
+      ]
+    },
+    "incremental": true
   },
-  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", ".yarn"]
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    ".yarn"
+  ]
 }

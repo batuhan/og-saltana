@@ -31,7 +31,7 @@ export default function useCreatorSpace() {
 
   const link = useApi('links', 'read', linkId, {
     enabled: isLinkQueryEnabled,
-    initialData: { id: linkId },
+    initialData: { id: linkId, assetIds: [] },
   })
 
   // Fetch the asset if we are in an asset page

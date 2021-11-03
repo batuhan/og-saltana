@@ -9,7 +9,6 @@ import useLogin from 'hooks/useLogin'
 
 import { Disclosure } from '@headlessui/react'
 import { LockClosedIcon } from '@heroicons/react/solid'
-import { useCart } from 'react-use-cart'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import useCheckout, { CHECKOUT_STATUSES } from 'components/Checkout/useCheckout'
 import OrderSummary from './OrderSummary'

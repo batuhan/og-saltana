@@ -15,7 +15,7 @@ import { Menu, Transition } from '@headlessui/react'
 import { DotsVerticalIcon } from '@heroicons/react/solid'
 import classNames from '@/common/classnames'
 import GmailLoader from 'components/Dashboard/Common/PlaceholderContent'
-
+import CopiableExternalLink from 'components/CopiableExternalLink'
 const screens = {
   Overview: {
     Component: Overview,
@@ -113,8 +113,9 @@ export default function LinkView({ linkId }) {
                     /{link.data.slug}
                   </h1>
                   <p className="mt-1 text-sm text-gray-500 overflow-hidden overflow-ellipsis">
-                    https://{creator.data.username}.saltana.com/
-                    {link.data.slug}
+                    <CopiableExternalLink
+                      href={`https://${creator.data.username}.saltana.com/${link.data.slug}`}
+                    />
                   </p>
                 </div>
 

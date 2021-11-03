@@ -88,7 +88,7 @@ export default function CreatorDashboardCreateSmartLink(props) {
               </div>
             )}
 
-            {type === 'asset' && (
+            {type === 'checkout' && (
               <>
                 <div>
                   <label

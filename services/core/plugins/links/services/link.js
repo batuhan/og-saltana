@@ -179,7 +179,7 @@ module.exports = function createService(deps) {
 
     let asset
     switch (createAttrs.linkType) {
-      case 'asset':
+      case 'checkout':
         asset = await assetRequester.communicate(req)({
           ...req.asset,
           ownerId: createAttrs.ownerId,

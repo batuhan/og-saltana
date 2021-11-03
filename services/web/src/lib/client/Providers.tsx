@@ -1,5 +1,3 @@
-import { CartProvider } from 'react-use-cart'
-
 import { Hydrate } from 'react-query/hydration'
 import { Provider } from 'next-auth/client'
 import { ReactQueryDevtools } from 'react-query/devtools'
@@ -16,7 +14,7 @@ function Providers({ children, pageProps }) {
       <Provider session={pageProps.session}>
         <SaltanaCoreProvider>
           <Hydrate state={pageProps.dehydratedState}>
-            <CartProvider>{children}</CartProvider>
+            {children}
             {process.env.NODE_ENV === 'development' && (
               <ReactQueryDevtools initialIsOpen={false} />
             )}

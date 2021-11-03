@@ -8,11 +8,7 @@ const CreatorSpaceLinkCheckout = () => {
 
   return (
     <CreatorSpaceShell>
-      {link.isLoading ? (
-        'Loading...'
-      ) : (
-        <CheckoutForm assetIds={link.data.assetIds} />
-      )}
+      <CheckoutForm assetIds={link.data.assetIds} />
     </CreatorSpaceShell>
   )
 }
