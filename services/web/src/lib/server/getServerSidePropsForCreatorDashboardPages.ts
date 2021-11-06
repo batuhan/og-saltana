@@ -38,7 +38,7 @@ const getServerSidePropsForCreatorDashboardPages =
     if (!currentUser.roles.includes('provider')) {
       return {
         redirect: {
-          destination: `/request-invite`,
+          destination: `/dashboard/welcome`,
           permanent: false,
         },
       }
@@ -59,7 +59,7 @@ const getServerSidePropsForCreatorDashboardPages =
     ) {
       return {
         redirect: {
-          destination: `/dashboard/welcome/creator`,
+          destination: `/dashboard/welcome`,
           permanent: false,
         },
       }

@@ -14,6 +14,7 @@ import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField
 import AssetTypeSelector from 'components/Dashboard/Creator/Fields/AssetTypeSelector'
 import AssetCategorySelector from 'components/Dashboard/Creator/Fields/AssetCategorySelector'
 import classNames from '@/common/classnames'
+import GenericFormFieldError from 'components/GenericFormFieldError'
 export default function CreatorDashboardCreateSmartLink(props) {
   const { creator } = useCreatorSpace()
   const {
@@ -107,6 +108,8 @@ export default function CreatorDashboardCreateSmartLink(props) {
                       className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
                     />
                   </div>
+                  <GenericFormFieldError errors={errors} fieldName="name" />
+
                 </div>
                 <div>
                   <label
@@ -126,20 +129,48 @@ export default function CreatorDashboardCreateSmartLink(props) {
                       defaultValue=""
                     />
                   </div>
+                  <GenericFormFieldError errors={errors} fieldName="name" />
+
                 </div>
                 <div>
-                  <AssetTypeSelector
-                    register={register}
-                    control={control}
-                    setValue={setValue}
-                  />
+                  <label
+                    htmlFor="asset.categoryId"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    asset.categoryId
+                  </label>
+                  <div className="mt-1">
+
+                    <AssetCategorySelector
+                      register={register}
+                      control={control}
+                      setValue={setValue}
+                    />
+                  </div>
+                  <GenericFormFieldError errors={errors} fieldName="asset.categoryId" />
+
                 </div>
                 <div>
-                  <AssetCategorySelector
-                    register={register}
-                    control={control}
-                    setValue={setValue}
-                  />
+                  <label
+                    htmlFor="asset.assetTypeId"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    asset.assetTypeId
+                  </label>
+                  <div className="mt-1">
+                    <AssetTypeSelector
+                      register={register}
+                      control={control}
+                      setValue={setValue}
+                    />
+                  </div>
+                  <GenericFormFieldError errors={errors} fieldName="asset.assetTypeId" />
+
+                </div>
+                <div>
+
+                </div>
+                <div>
                 </div>
                 <AssetPriceField register={register} />
               </>

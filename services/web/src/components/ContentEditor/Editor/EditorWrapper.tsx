@@ -87,7 +87,6 @@ import 'wix-rich-content-plugin-spoiler/dist/styles.min.css'
 import 'wix-rich-content-plugin-text-color/dist/styles.min.css'
 import 'wix-rich-content-plugin-headings/dist/styles.min.css'
 import 'wix-rich-content-plugin-vertical-embed/dist/styles.min.css'
-import 'wix-rich-content-plugin-table/dist/styles.min.css'
 import 'wix-rich-content-plugin-collapsible-list/dist/styles.min.css'
 import 'wix-rich-content-plugin-unsupported-blocks/dist/styles.min.css'
 // styles end
@@ -251,7 +250,7 @@ interface Props {
   experiments?: Record<string, any>
 }
 
-const MiniEditor = (props) => {}
+const MiniEditor = (props) => { }
 
 const isMobile = false
 class EditorWrapper extends React.Component<Props> {

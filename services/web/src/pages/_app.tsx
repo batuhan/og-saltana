@@ -12,7 +12,7 @@ function App({ Component, pageProps }: AppProps) {
     <Providers pageProps={pageProps}>
       <Head>
         <meta content="IE=edge" httpEquiv="X-UA-Compatible" />
-        <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
       </Head>
 
       <DefaultSeo {...SEO} />

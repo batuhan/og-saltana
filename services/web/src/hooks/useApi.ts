@@ -13,7 +13,7 @@ export default function useApi(resourceType, method, data, opts = {}) {
       if (
         resourceType === 'links' &&
         isEnabled &&
-        data.endsWith(':undefined')
+        data?.endsWith(':undefined')
       ) {
         throw new Error(
           ":id must not end or start with undefined and should not use username instead of user id's",

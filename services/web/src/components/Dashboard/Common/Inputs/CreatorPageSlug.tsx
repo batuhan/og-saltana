@@ -1,4 +1,5 @@
 import classNames from '@/common/classnames'
+import GenericFormFieldError from 'components/GenericFormFieldError'
 
 export default function CreatorSlugField({
   register,
@@ -30,7 +31,7 @@ export default function CreatorSlugField({
           />
         </div>
       </div>
-      {errors[name] && <div>{JSON.stringify(errors[name])}</div>}
+      <GenericFormFieldError errors={errors} fieldName={name} />
     </>
   )
 }

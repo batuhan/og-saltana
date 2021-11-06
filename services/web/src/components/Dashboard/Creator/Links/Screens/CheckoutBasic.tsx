@@ -1,7 +1,6 @@
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import { useFormContext } from 'react-hook-form'
 import ContentEditor from 'components/ContentEditor/ContentEditor'
-import SaveButton from '../../SaveButton'
 import * as React from 'react'
 import Select, { Option } from 'rc-select'
 import { ListChoice } from '@kiwicom/orbit-components'
@@ -94,7 +93,7 @@ const AssetPicker = (props) => {
           <ListChoice
             description="Further description"
             icon={<span>sdfs</span>}
-            onClick={function () {}}
+            onClick={function () { }}
             selectable
             title="jack"
           />
@@ -103,7 +102,7 @@ const AssetPicker = (props) => {
           <ListChoice
             description="Further description"
             icon={<span>sdfs</span>}
-            onClick={function () {}}
+            onClick={function () { }}
             selectable
             title="asad"
           />
@@ -112,7 +111,7 @@ const AssetPicker = (props) => {
           <ListChoice
             description="Further description"
             icon={<span>sdfs</span>}
-            onClick={function () {}}
+            onClick={function () { }}
             selectable
             title="xzcvsdrf"
           />
@@ -155,11 +154,7 @@ export default function CheckoutBasic() {
         </div>
       </div>
 
-      <div className="pt-5">
-        <div className="flex justify-end">
-          <SaveButton />
-        </div>
-      </div>
+
     </div>
   )
 }

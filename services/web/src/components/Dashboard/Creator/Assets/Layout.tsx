@@ -89,20 +89,7 @@ export const CreatorDashboardAssetsLayout = ({ children }) => {
   return (
     <DashboardShell>
       <NextSeo title="Assets" />
-      <div className="flex-1 relative z-0 flex overflow-hidden py-5">
-        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none xl:order-last">
-          {/* Start main area*/}
-          <div className="h-full ">{children}</div>
-          {/* End main area */}
-        </main>
-        <aside className="hidden relative xl:order-first xl:flex xl:flex-col flex-shrink-0 w-50 pr-5 ">
-          {/* Start secondary column (hidden on smaller screens) */}
-          <div className="h-full px-5">
-            <Sidebar />
-          </div>
-          {/* End secondary column */}
-        </aside>
-      </div>
+      {children}
     </DashboardShell>
   )
 }

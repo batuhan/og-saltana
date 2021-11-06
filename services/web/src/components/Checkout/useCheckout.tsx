@@ -11,7 +11,7 @@ import { useMutation, useQuery } from 'react-query'
 import axios from 'axios'
 
 import { useController, useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.umd'
 import * as yup from 'yup'
 
 import _ from 'lodash'

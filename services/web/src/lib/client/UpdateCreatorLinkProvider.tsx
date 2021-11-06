@@ -4,8 +4,6 @@ import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
 import { useMutation, useQueryClient } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
 import HookFormDevTools from '@/client/devtools'
 
 const validFields = [

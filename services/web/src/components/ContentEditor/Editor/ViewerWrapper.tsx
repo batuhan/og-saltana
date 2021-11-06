@@ -61,7 +61,6 @@ import 'wix-rich-content-text-selection-toolbar/dist/styles.min.css'
 import 'wix-rich-content-link-preview-popover/dist/styles.min.css'
 import 'wix-rich-content-plugin-social-polls/dist/styles.min.css'
 import 'wix-rich-content-plugin-collapsible-list/dist/styles.min.css'
-import 'wix-rich-content-plugin-table/dist/styles.min.css'
 import 'wix-rich-content-plugin-vertical-embed/dist/styles.min.css'
 
 const configs = {

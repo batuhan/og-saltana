@@ -12,6 +12,7 @@ const MAIN_SITE_HAS_RULES = [
 ]
 
 console.log('BASE_DOMAIN', BASE_DOMAIN)
+const path = require('path')
 
 const CREATOR_SPACE_HAS_RULES = [
   // Match only one item

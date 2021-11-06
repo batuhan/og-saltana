@@ -44,6 +44,7 @@ const userNavigation = [
   { name: 'Assets', href: '/assets' },
   { name: 'Payments', href: '/payments' },
   { name: 'Account Settings', href: '/settings' },
+  // { name: 'Logout', href: '/logout' }
 ]
 
 /* This example requires Tailwind CSS v2.0+ */
@@ -142,13 +143,13 @@ export default function Header() {
   const miniNavigation = isCreator
     ? creatorNavigation
     : [
-        {
-          name: 'Apply for a creator account',
-          href: '/request-invite',
-          creatorScoped: false,
-          current: true,
-        },
-      ]
+      {
+        name: 'Apply for a creator account',
+        href: '/request-invite',
+        creatorScoped: false,
+        current: true,
+      },
+    ]
   const MiniNavigationLink = isCreator
     ? CreatorDashboardLink
     : UserDashboardLink
@@ -218,7 +219,7 @@ export default function Header() {
                     </button>
 
                     {/* Profile dropdown */}
-                    <Menu as="div" className="ml-3 relative">
+                    {isCreator && <Menu as="div" className="ml-3 relative">
                       <div>
                         <Menu.Button className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                           <span className="sr-only">Open user menu</span>
@@ -272,7 +273,7 @@ export default function Header() {
                           </Menu.Item>
                         </Menu.Items>
                       </Transition>
-                    </Menu>
+                    </Menu>}
                   </div>
                 </div>
               </div>

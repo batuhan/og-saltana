@@ -9,6 +9,7 @@ import Overview from './Screens/Overview'
 import { Tab } from '@headlessui/react'
 import Customize from './Screens/Customize'
 import { NextSeo } from 'next-seo'
+import SaveButton from '../SaveButton'
 
 import { Fragment, useMemo, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
@@ -17,55 +18,49 @@ import classNames from '@/common/classnames'
 import GmailLoader from 'components/Dashboard/Common/PlaceholderContent'
 import CopiableExternalLink from 'components/CopiableExternalLink'
 const screens = {
-  Overview: {
-    Component: Overview,
-
-    name: 'Overview',
-
-    onLinkTypes: ['*'],
-  },
   CheckoutBasic: {
     Component: CheckoutBasic,
-
     name: 'Basic',
-
     onLinkTypes: ['checkout'],
+    isOpen: true,
   },
   EmbedBasic: {
     Component: EmbedBasic,
-
     name: 'Basic',
-
     onLinkTypes: ['embed', 'redirect'],
+    isOpen: true
   },
   Workflows: {
     Component: Workflows,
-
     name: 'Workflows',
-
     onLinkTypes: ['*'],
+    isOpen: false
   },
   Access: {
     Component: Access,
-
     name: 'Access',
     path: 'access',
-
     onLinkTypes: ['embed', 'redirect'],
+    isOpen: false
   },
   Customize: {
     Component: Customize,
-
     name: 'Customize',
     path: 'customize',
-
     onLinkTypes: ['embed', 'checkout'],
+    isOpen: true
   },
 }
 
 function LinkViewPlaceholder() {
   return <GmailLoader />
 }
+
+/* This example requires Tailwind CSS v2.0+ */
+import { Disclosure } from '@headlessui/react'
+import { ChevronDownIcon } from '@heroicons/react/outline'
+
+
 export default function LinkView({ linkId }) {
   const link = useApi('links', 'read', linkId, {
     initialData: {},
@@ -87,31 +82,22 @@ export default function LinkView({ linkId }) {
   })
   const [dropdownOpen, setDropDownOpen] = useState(false)
 
-  const [selectedScreenKey, setSelectedScreenKey] = useState(
-    `${linkId}-Overview`,
-  )
-  const SelectedScreen = screens[selectedScreenKey.split('-')[1]]
-
   return link.isFetched ? (
     <UpdateCreatorLinkProvider
       link={link}
       creator={creator}
       className="w-full h-full"
     >
-      <NextSeo title={`${SelectedScreen.name} - /${link.data.slug} - Links`} />
+      <NextSeo title={`/${link.data.slug} - Links`} />
+
 
       <article>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="block  mt-6 min-w-0 flex-1">
+        <div className="mx-auto">
+          <div className="block flex-1">
             <div className="pb-5 border-b border-gray-200">
               <div className="sm:flex sm:justify-between sm:items-baseline">
                 <div className="sm:w-0 sm:flex-1">
-                  <h1
-                    id="message-heading"
-                    className="text-xl font-bold text-gray-900 truncate"
-                  >
-                    /{link.data.slug}
-                  </h1>
+
                   <p className="mt-1 text-sm text-gray-500 overflow-hidden overflow-ellipsis">
                     <CopiableExternalLink
                       href={`https://${creator.data.username}.saltana.com/${link.data.slug}`}
@@ -206,57 +192,41 @@ export default function LinkView({ linkId }) {
             </div>
           </div>
         </div>
-        <Tab.Group
-          onChange={(index) => {
-            setSelectedScreenKey(`${linkId}-${filteredScreens[index]}`)
-            console.log(
-              'Changed selected tab to:',
-              index,
-              filteredScreens[index],
-            )
-          }}
-        >
-          <div className="mt-6 sm:mt-2 2xl:mt-5">
-            <div className="border-b border-gray-200">
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                  <Tab.List>
-                    {filteredScreens.map((screenKey) => (
-                      <Tab
-                        key={`${linkId}-${screenKey}`}
-                        className={({ selected }) => `
-                        ${
-                          selected
-                            ? 'border-pink-500 text-gray-900'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        }
-                          whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-                        `}
-                      >
-                        {screens[screenKey].name}
-                      </Tab>
-                    ))}
-                  </Tab.List>
-                </nav>
-              </div>
-            </div>
-          </div>
+        <dl className="mt-6 space-y-6 divide-y divide-gray-200">
+          {filteredScreens.map((screenKey) => {
+            const { Component, isOpen, name } = screens[screenKey]
 
-          <Tab.Panels>
-            {filteredScreens.map((screenKey, index) => {
-              return (
-                <Tab.Panel
-                  key={`${linkId}-${screenKey}`}
-                  className="mt-6 min-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
-                >
-                  <SelectedScreen.Component linkId={linkId} />
-                </Tab.Panel>
-              )
-            })}
-          </Tab.Panels>
-        </Tab.Group>
-      </article>
-    </UpdateCreatorLinkProvider>
+            return (<Disclosure as="div" key={`${linkId}-${screenKey}`} className="pt-6" defaultOpen={isOpen || false}>
+              {({ open }) => (
+                <>
+                  <dt className="text-lg">
+                    <Disclosure.Button className="text-left w-full flex justify-between items-start text-gray-400">
+                      <span className="font-medium text-gray-900">{name}</span>
+                      <span className="ml-6 h-7 flex items-center">
+                        <ChevronDownIcon
+                          className={classNames(open ? '-rotate-180' : 'rotate-0', 'h-6 w-6 transform')}
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </Disclosure.Button>
+                  </dt>
+                  <Disclosure.Panel as="dd" className="mt-2 pr-12">
+                    <Component linkId={linkId} />
+                  </Disclosure.Panel>
+                </>
+              )}
+            </Disclosure>)
+          })}
+        </dl>
+
+
+      </article >
+      <div className="flex-shrink-0 px-4 border-t border-gray-200 py-5 sm:px-6">
+        <div className="space-x-3 flex justify-end">
+          <SaveButton />
+        </div>
+      </div>
+    </UpdateCreatorLinkProvider >
   ) : (
     <LinkViewPlaceholder />
   )
