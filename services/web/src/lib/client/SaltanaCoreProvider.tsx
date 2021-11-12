@@ -89,6 +89,7 @@ function SaltanaCoreProvider({ children }) {
       const saltanaInstance = await getSaltanaInstance(session)
       const queryClient = createQueryClient(saltanaInstance)
       const saltanaUser = await saltanaInstance.users.read('me')
+
       const isCreator = saltanaUser.roles.includes('creator')
       const isAdmin = saltanaUser.roles.includes('admin')
 
@@ -114,8 +115,8 @@ function SaltanaCoreProvider({ children }) {
 
         createdAt: saltanaUser.createdAt,
 
-        isCreator: saltanaUser.roles.includes('creator'),
-        isAdmin: saltanaUser.roles.includes('admin'),
+        //isCreator: saltanaUser.roles.includes('creator'),
+        //isAdmin: saltanaUser.roles.includes('admin'),
       }
 
       setCurrentUser(userData)

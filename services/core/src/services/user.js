@@ -228,7 +228,7 @@ function start({ communication }) {
     return paginationMeta
   })
 
-  responder.on('read', async (req) => {
+  const read = async (req) => {
     const platformId = req.platformId
     const env = req.env
     const { User } = await getModels({ platformId, env })
@@ -244,6 +244,13 @@ function start({ communication }) {
 
     if (!user) {
       if (userId.startsWith('usr_cl_')) {
+        console.log(
+          '[User Responder] User not found, but it is a Clerk user so creating it',
+        )
+
+        await _syncUserWithClerk(req)
+        console.log('created')
+        return read(req)
         // create the user
       }
 
@@ -266,9 +273,11 @@ function start({ communication }) {
     })
 
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
-  })
+  }
 
-  async function _create(req, userIdOverride) {
+  responder.on('read', read)
+
+  async function _create(req) {
     const platformId = req.platformId
     const env = req.env
     const { AuthMean, User } = await getModels({ platformId, env })
@@ -299,11 +308,13 @@ function start({ communication }) {
       ? User.organizationIdPrefix
       : User.idPrefix
 
+    const userIdToBeCreated =
+      req.userIdOverride ||
+      (await getObjectId({ prefix: idPrefix, platformId, env }))
+
     const createAttrs = Object.assign(
       {
-        id:
-          userIdOverride ||
-          (await getObjectId({ prefix: idPrefix, platformId, env })),
+        id: userIdToBeCreated,
         username: `${payload.email.split('@')[0]}-${nanoid(5)}`,
       },
       payload,
@@ -931,19 +942,7 @@ function start({ communication }) {
   })
 
   // INTERNAL
-
-  responder.on('_getOrganizations', async (req) => {
-    const { platformId, env, organizationsIds } = req
-
-    const organizations = await getOrganizations({
-      platformId,
-      env,
-      organizationsIds,
-    })
-    return organizations
-  })
-
-  responder.on('_syncUserWithClerk', async (req) => {
+  const _syncUserWithClerk = async (req) => {
     const { platformId, env, clerkUserId } = req
 
     const { User } = await getModels({ platformId, env })
@@ -966,7 +965,8 @@ function start({ communication }) {
         }
       })(),
       (async () => {
-        return await getClerkUser(userId)
+        const userIdInClerk = userId.replace('usr_cl', 'user_')
+        return await getClerkUser(userIdInClerk)
       })(),
     ])
 
@@ -1080,18 +1080,36 @@ function start({ communication }) {
 
     if (Object.keys(updatesToInternalUser).length === 0) {
       // no updates to internal user
+      console.log('no updates to internal user')
       return
     }
 
     const _req = {
       ...req,
       ...internalUserData,
+      userIdOverride: currentUserId,
     }
+
     if (internalUser === null) {
-      const newUser = await _create(req, clerkUser.id)
+      console.log('Creating internal user...')
+      return await _create(_req)
     } else {
-      const trst = await update(req, internalUser.id, internalUserData)
+      console.log('Updating existing user...')
+      return await update(_req)
     }
+  }
+
+  responder.on('_syncUserWithClerk', _syncUserWithClerk)
+
+  responder.on('_getOrganizations', async (req) => {
+    const { platformId, env, organizationsIds } = req
+
+    const organizations = await getOrganizations({
+      platformId,
+      env,
+      organizationsIds,
+    })
+    return organizations
   })
 
   responder.on('_isOrganizationMember', async (req) => {
