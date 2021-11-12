@@ -1,85 +1,77 @@
-import { getSession, signOut, signIn } from 'next-auth/client'
 import { QueryClient } from 'react-query'
 import { createInstance } from '@saltana/sdk'
-import { Magic } from 'magic-sdk'
-
-export const magic =
-  typeof window === 'undefined'
-    ? undefined
-    : new Magic(process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY)
 
 export async function login(
   email,
   { redirect = true, callbackUrl = '/dashboard' },
 ) {
-  const token = await magic.auth.loginWithMagicLink({
-    email,
-  })
-  await signIn('credentials', { callbackUrl, redirect, token })
+  // const token = await magic.auth.loginWithMagicLink({
+  //   email,
+  // })
+  // await signIn('credentials', { callbackUrl, redirect, token })
 }
 
 export const sharedSaltanaConfig = {
   apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
-  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
+  apiHost:
+    typeof window === 'undefined'
+      ? process.env.NEXT_PUBLIC_CORE_API_HOST
+      : window.location.hostname,
 }
 
 export const sharedSaltanaInstance = createInstance({
   ...sharedSaltanaConfig,
 })
 
-export async function getSaltanaInstance(_session = undefined) {
-  const session = _session || (await getSession())
-  return getSaltanaInstanceSync(session)
-}
-
-export function getSaltanaInstanceSync(session = undefined) {
+export async function getSaltanaInstance(session) {
   if (!session) {
     return sharedSaltanaInstance
   }
 
-  const newInstance = createInstance({
+  const accessToken = await session.getToken()
+
+  const tokenStore = {
+    getTokens() {
+      return { accessToken }
+    },
+    setTokens(tokens) {
+      throw new Error('Not implemented')
+    },
+    removeTokens() {
+      throw new Error('Not implemented')
+    },
+  }
+
+  return createInstance({
     ...sharedSaltanaConfig,
+    tokenStore,
   })
+}
 
-  newInstance.auth.setTokens({
-    accessToken: session.coreAccessToken,
-    refreshToken: session.refreshToken,
-    tokenType: 'Bearer',
-    userId: session.user.id,
-  })
-
-  newInstance.onError('userSessionExpired', function () {
-    signOut()
-  })
-
-  return newInstance
+export function getSaltanaInstanceSync() {
+  return sharedSaltanaInstance
 }
 
 const defaultQueryFn =
-  (session = undefined) =>
+  (instance) =>
   ({ queryKey }) => {
     const [resourceType, method, data] = queryKey
 
-    const saltanaInstance =
-      session && session.saltanaInstance
-        ? session.saltanaInstance
-        : getSaltanaInstanceSync(session)
-
-    return saltanaInstance[resourceType][method](data)
+    return instance[resourceType][method](data)
   }
 
-export const getQueryClientSettings = (session = undefined) => ({
+export const getQueryClientSettings = (instance) => ({
   defaultOptions: {
     queries: {
-      queryFn: defaultQueryFn(session),
+      queryFn: defaultQueryFn(instance),
     },
   },
 })
 
-export const createQueryClient = (session = undefined) =>
-  new QueryClient(getQueryClientSettings(session))
+export const createQueryClient = (instance) =>
+  new QueryClient(getQueryClientSettings(instance))
 
-export const sharedQueryClient = createQueryClient()
+export const sharedQueryClient = createQueryClient(sharedSaltanaInstance)
 
 export const setUserData = (queryClient, user) => {
   queryClient.setQueryData(['users', 'read', user.id], user)

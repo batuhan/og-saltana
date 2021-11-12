@@ -8,7 +8,7 @@ const getCreatorDashboardLink = (basePath = '') =>
 
     return (
       <Link
-        href={`/dashboard/${user.data.username}${basePath}${href}`}
+        href={`/dashboard/${user.username}${basePath}${href}`}
         {...props}
         passHref
       >
@@ -52,7 +52,7 @@ export function DefaultLink({ children, ...props }) {
     )
   }
 
-  if (user.data.roles?.includes('provider')) {
+  if (user.roles?.includes('provider')) {
     // if a creator, go to creator dashboard homepage
     return <CreatorDashboardLink>{children}</CreatorDashboardLink>
   }

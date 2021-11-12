@@ -28,7 +28,6 @@ import {
   UserDashboardLink,
 } from 'components/Links'
 import { useRouter } from 'next/router'
-import { signOut } from 'next-auth/client'
 import useCurrentUser from 'hooks/useCurrentUser'
 import { Disclosure } from '@headlessui/react'
 

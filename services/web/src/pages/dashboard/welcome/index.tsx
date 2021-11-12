@@ -7,9 +7,10 @@ import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 
 import { GetServerSideProps } from 'next'
-import { getSession } from 'next-auth/client'
+
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
+import { requireSession } from "@clerk/nextjs/api";
 
 import DashboardShell from 'components/Dashboard/Common/Shell'
 import FormSubmitButton from 'components/FormSubmitButton'
@@ -279,7 +280,7 @@ export default function WelcomePage({ userData, ...props }) {
   return userData.roles.includes('provider') ? <WelcomeCreator userData={userData} {...props} /> : <NonCreator userData={userData} {...props} />
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+export const getServerSideProps: GetServerSideProps = requireSession(async ({ req, res }) => {
   const session = await getSession({ req })
   if (!session) {
     res.statusCode = 403
@@ -324,4 +325,4 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
       userData
     },
   }
-}
+})

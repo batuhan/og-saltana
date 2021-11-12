@@ -12,7 +12,6 @@ const CreatorSpaceLinkCheckout = () => {
     </CreatorSpaceShell>
   )
 }
-
 export const getStaticProps = getStaticPropsForCreatorSpacePages()
 
 export async function getStaticPaths() {

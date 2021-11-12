@@ -1,4 +1,3 @@
-import { getSession } from 'next-auth/client'
 import { io } from 'socket.io-client'
 import { sharedSaltanaConfig } from './api'
 

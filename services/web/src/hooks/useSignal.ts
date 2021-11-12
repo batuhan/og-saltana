@@ -1,4 +1,5 @@
-import { useSession } from 'next-auth/client'
+import { useSession } from '@clerk/nextjs'
+
 import { createContext, useEffect } from 'react'
 import useApi from './useApi'
 

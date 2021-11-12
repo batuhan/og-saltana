@@ -4,6 +4,7 @@ const bluebird = require('bluebird')
 const { raw, transaction } = require('@saltana/objection')
 const { UniqueViolationError } = require('objection-db-errors')
 const { nanoid } = require('nanoid')
+const cleanDeep = require('clean-deep')
 
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')
@@ -14,6 +15,8 @@ const { checkPermissions } = require('../auth')
 const { performListQuery } = require('../util/listQueryBuilder')
 
 const { getCurrentUserId, getRealCurrentUserId } = require('../util/user')
+
+const { getUser: getClerkUser } = require('../external-services/clerk')
 
 let responder
 let subscriber
@@ -230,7 +233,8 @@ function start({ communication }) {
     const env = req.env
     const { User } = await getModels({ platformId, env })
 
-    const userId = req.userId
+    const currentUserId = getCurrentUserId(req)
+    const userId = req.userId === 'me' ? currentUserId : req.userId
 
     const user = await User.query()
       .where('id', userId)
@@ -239,10 +243,12 @@ function start({ communication }) {
       .first()
 
     if (!user) {
+      if (userId.startsWith('usr_cl_')) {
+        // create the user
+      }
+
       throw createError(404)
     }
-
-    const currentUserId = getCurrentUserId(req)
 
     const isSelf = User.isSelf(user, currentUserId)
     if (!req._matchedPermissions['user:read:all'] && !isSelf) {
@@ -262,7 +268,7 @@ function start({ communication }) {
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
   })
 
-  async function _create(req) {
+  async function _create(req, userIdOverride) {
     const platformId = req.platformId
     const env = req.env
     const { AuthMean, User } = await getModels({ platformId, env })
@@ -295,7 +301,9 @@ function start({ communication }) {
 
     const createAttrs = Object.assign(
       {
-        id: await getObjectId({ prefix: idPrefix, platformId, env }),
+        id:
+          userIdOverride ||
+          (await getObjectId({ prefix: idPrefix, platformId, env })),
         username: `${payload.email.split('@')[0]}-${nanoid(5)}`,
       },
       payload,
@@ -442,7 +450,7 @@ function start({ communication }) {
 
   responder.on('create', _create)
 
-  responder.on('update', async (req) => {
+  const update = async (req) => {
     const platformId = req.platformId
     const env = req.env
     const { User } = await getModels({ platformId, env })
@@ -623,7 +631,9 @@ function start({ communication }) {
     }
 
     return User.expose(newUser, { req, namespaces: dynamicReadNamespaces })
-  })
+  }
+
+  responder.on('update', update)
 
   responder.on('remove', async (req) => {
     const platformId = req.platformId
@@ -931,6 +941,157 @@ function start({ communication }) {
       organizationsIds,
     })
     return organizations
+  })
+
+  responder.on('_syncUserWithClerk', async (req) => {
+    const { platformId, env, clerkUserId } = req
+
+    const { User } = await getModels({ platformId, env })
+
+    const currentUserId = getCurrentUserId(req)
+    const userId = req.userId === 'me' ? currentUserId : req.userId
+
+    const [internalUser, clerkUser] = await Promise.all([
+      (async () => {
+        try {
+          return await User.query().where('id', userId).select('id').first()
+        } catch (err) {
+          console.error(
+            'userservice',
+            'got an error from the user service',
+            err,
+          )
+
+          return null
+        }
+      })(),
+      (async () => {
+        return await getClerkUser(userId)
+      })(),
+    ])
+
+    if (clerkUser === null) {
+      throw new Error('Invalid Clerk ID')
+    }
+
+    const updatesToInternalUser = {}
+    const updatesToClerkUser = {}
+
+    const metadata = _.get(internalUser, 'metadata', {
+      instant: {},
+      _private: {},
+    })
+
+    const platformData = _.get(internalUser, 'platformData', {
+      instant: {},
+      _private: {},
+    })
+
+    // username
+    if (_.get(internalUser, 'username') !== _.get(clerkUser, 'username')) {
+      updatesToInternalUser.username = _.get(clerkUser, 'username')
+    }
+
+    // email
+    if (_.get(internalUser, 'email') !== _.get(clerkUser, 'email')) {
+      updatesToInternalUser.email = _.get(clerkUser, 'primaryEmailAddress')
+    }
+
+    // firstName
+    if (_.get(internalUser, 'firstName') !== _.get(clerkUser, 'firstName')) {
+      updatesToInternalUser.firstName = _.get(clerkUser, 'firstName')
+    }
+
+    // lastName
+    if (_.get(internalUser, 'lastName') !== _.get(clerkUser, 'lastName')) {
+      updatesToInternalUser.lastName = _.get(clerkUser, 'lastName')
+    }
+
+    // Birthday
+    const birthday = _.get(clerkUser, 'birthday')
+    if (_.get(metadata, '_private.birthday') !== birthday) {
+      updatesToInternalUser.birthday = birthday
+    }
+
+    // Gender
+    const gender = _.get(clerkUser, 'gender')
+    if (_.get(metadata, '_private.gender') !== gender) {
+      updatesToInternalUser.gender = gender
+    }
+
+    // Profile Image Url
+    const avatarUrl = _.get(clerkUser, 'profileImageUrl')
+    if (_.get(metadata, 'instant.avatarUrl') !== avatarUrl) {
+      updatesToInternalUser.avatarUrl = avatarUrl
+    }
+
+    // password enabled
+    const passwordEnabled = _.get(clerkUser, 'passwordEnabled')
+    if (_.get(platformData, 'clerk_passwordEnabled') !== passwordEnabled) {
+      updatesToInternalUser.passwordEnabled = passwordEnabled
+    }
+
+    // twoFactorEnabled
+    const twoFactorEnabled = _.get(clerkUser, 'twoFactorEnabled')
+    if (_.get(platformData, 'clerk_twoFactorEnabled') !== twoFactorEnabled) {
+      updatesToInternalUser.twoFactorEnabled = twoFactorEnabled
+    }
+
+    // publicMetadata in clerk
+    const publicMetadata = _.get(clerkUser, 'publicMetadata')
+    if (_.get(metadata, 'instant.clerk') !== publicMetadata) {
+      updatesToInternalUser.publicMetadata = publicMetadata
+    }
+
+    // privateMetadata in clerk
+    const privateMetadata = _.get(clerkUser, 'privateMetadata')
+    if (
+      _.get(platformData, '_private.clerk_privateMetadata') !== privateMetadata
+    ) {
+      updatesToInternalUser.privateMetadata = privateMetadata
+    }
+
+    const internalUserData = cleanDeep({
+      username: updatesToInternalUser.username,
+      displayName: updatesToInternalUser.displayName,
+      firstname: updatesToInternalUser.firstName,
+      lastname: updatesToInternalUser.lastName,
+      email: updatesToInternalUser.email,
+      password: generatePassword(),
+      metadata: {
+        _private: {
+          birthday: updatesToInternalUser.birthday,
+          gender: updatesToInternalUser.gender,
+        },
+        instant: {
+          avatarUrl: updatesToInternalUser.avatarUrl,
+          clerk: updatesToInternalUser.clerk,
+        },
+      },
+      platformData: {
+        clerk_passwordEnabled: updatesToInternalUser.passwordEnabled,
+        clerk_twoFactorEnabled: updatesToInternalUser.twoFactorEnabled,
+        _private: {
+          clerk_privateMetadata: updatesToInternalUser.privateMetadata,
+        },
+        createdBy: 'clerk',
+      },
+    })
+
+    if (Object.keys(updatesToInternalUser).length === 0) {
+      // no updates to internal user
+      return
+    }
+
+    const _req = {
+      ...req,
+      ...internalUserData,
+    }
+    if (internalUser === null) {
+      const newUser = await _create(req, clerkUser.id)
+    } else {
+      const trst = await update(req, internalUser.id, internalUserData)
+    }
   })
 
   responder.on('_isOrganizationMember', async (req) => {

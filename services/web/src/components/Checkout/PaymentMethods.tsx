@@ -1,5 +1,5 @@
 import { Checkbox } from '@kiwicom/orbit-components'
-import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { CARD_OPTIONS } from 'components/Checkout/useCheckout'
 import React from 'react'
 import { useForm, useController, Controller } from 'react-hook-form'
@@ -15,8 +15,7 @@ export default function PaymentMethods({ onPaymentMethodChange }) {
       </label>
       <div className="mt-1 mb-5">
         <div className="block w-full">
-          <CardElement
-            options={CARD_OPTIONS}
+          <PaymentElement
             onChange={onPaymentMethodChange}
           />
         </div>

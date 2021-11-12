@@ -1,5 +1,5 @@
 import { Hydrate } from 'react-query/hydration'
-import { Provider } from 'next-auth/client'
+import { ClerkProvider } from '@clerk/nextjs';
 import { ReactQueryDevtools } from 'react-query/devtools'
 import { SaltanaCoreProvider } from './SaltanaCoreProvider'
 
@@ -11,7 +11,7 @@ function Providers({ children, pageProps }) {
 
   return (
     <ThemeProvider theme={{ orbit: tokens }}>
-      <Provider session={pageProps.session}>
+      <ClerkProvider>
         <SaltanaCoreProvider>
           <Hydrate state={pageProps.dehydratedState}>
             {children}
@@ -20,7 +20,7 @@ function Providers({ children, pageProps }) {
             )}
           </Hydrate>
         </SaltanaCoreProvider>
-      </Provider>
+      </ClerkProvider>
     </ThemeProvider>
   )
 }

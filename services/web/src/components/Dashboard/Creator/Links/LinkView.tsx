@@ -11,7 +11,7 @@ import Customize from './Screens/Customize'
 import { NextSeo } from 'next-seo'
 import SaveButton from '../SaveButton'
 
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { DotsVerticalIcon } from '@heroicons/react/solid'
 import classNames from '@/common/classnames'
@@ -68,19 +68,28 @@ export default function LinkView({ linkId }) {
   })
   const { creator } = useCreatorSpace()
   const linkType = link.data?.linkType
-  const filteredScreens = Object.keys(screens).filter((screenKey) => {
-    const { onLinkTypes } = screens[screenKey]
-    if (onLinkTypes.includes('*')) {
-      return true
-    }
 
-    if (onLinkTypes.includes(linkType)) {
-      return true
-    }
 
-    return false
-  })
+
   const [dropdownOpen, setDropDownOpen] = useState(false)
+  const [filteredScreens, setFilteredScreens] = useState([])
+
+  useEffect(() => {
+    if (link.isFetched) {
+      setFilteredScreens(Object.keys(screens).filter((screenKey) => {
+        const { onLinkTypes } = screens[screenKey]
+        if (onLinkTypes.includes('*')) {
+          return true
+        }
+
+        if (onLinkTypes.includes(linkType)) {
+          return true
+        }
+
+        return false
+      }))
+    }
+  }, [link.isFetched, linkType, linkId])
 
   return link.isFetched ? (
     <UpdateCreatorLinkProvider

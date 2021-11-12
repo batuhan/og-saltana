@@ -3,7 +3,8 @@ import CreatorSpaceShell from 'components/CreatorSpace/Shell'
 import AuthRequiredShell from 'components/CreatorSpace/AuthRequiredShell'
 import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreatorSpacePages'
 import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/client'
+import { useSession } from '@clerk/nextjs'
+
 import useApi from 'hooks/useApi'
 import { uniq } from 'lodash'
 

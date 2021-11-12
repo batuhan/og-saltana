@@ -309,8 +309,44 @@ module.exports = function createService(deps) {
     return { success: true }
   }
 
+  // Get the Stripe Customer ID for the current user
+  // Ask the Stripe API for hosted billing link
+  async function createCustomerSessionLink(req) {
+    const { platformId, env } = req
+    const userService = userRequester.communicate(req)
+    const currentUserId = getCurrentUserId(req)
+
+    const [user, stripe] = await Promise.all([
+      userService({ type: 'read', userId: currentUserId }),
+      getStripe(req, configRequester),
+    ])
+
+    if (!user) throw createError(404, 'User not found')
+    const stripeCustomerId = _.get(user, 'platformData.stripeCustomerId')
+
+    if (!stripeCustomerId) {
+      throw createError(400, 'Stripe customer id not found for this user')
+    }
+
+    const isProvider = _.get(user, 'roles', []).includes('provider')
+
+    // user confiigration id bpc_1JubGhCzDOw5R4whIMBj5eYd
+    // provider confiigration id bpc_1JubGhCzDOw5R4wh8PYiArdx
+    const stripeBillingPortalSessionConfiguration = isProvider
+      ? 'bpc_1JubGhCzDOw5R4whIMBj5eYd'
+      : 'bpc_1JubGhCzDOw5R4wh8PYiArdx'
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      configuration: stripeBillingPortalSessionConfiguration,
+    })
+
+    return session.url
+  }
+
   return {
     fetchStripeCustomerWithSaltanaUserFromEmail,
+    createCustomerSessionLink,
     processPaymentIntent,
     sendRequest,
     webhook,

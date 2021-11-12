@@ -1,4 +1,5 @@
-import { useSession } from 'next-auth/client'
+import { useSession } from '@clerk/nextjs'
+
 import useApi from './useApi'
 
 export default function useCurrentUserPaymentMethods() {

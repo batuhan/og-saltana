@@ -13,6 +13,7 @@ function init(server, { middlewares, helpers } = {}) {
   ]
 
   const basePath = '/integrations/stripe'
+
   server.post(
     {
       name: 'stripe.sendRequest',
@@ -36,6 +37,29 @@ function init(server, { middlewares, helpers } = {}) {
     },
     checkPermissions([...commonPermissions]),
     wrapAction((req, res) => stripe.processPaymentIntent(req)),
+  )
+
+  server.get(
+    {
+      name: 'stripe.createStripeCustomerSessionLink',
+      path: `${basePath}/create-stripe-customer-session-link`,
+    },
+    checkPermissions(['invoice:read', 'invoice:read:all'], {
+      checkData: true,
+      editProtectedNamespaces: true,
+    }),
+    wrapAction((req, res) => stripe.createCustomerSessionLink(req)),
+  )
+  server.post(
+    {
+      name: 'stripe.createStripeCustomerSessionLink',
+      path: `${basePath}/create-stripe-customer-session-link`,
+    },
+    checkPermissions(['invoice:read', 'invoice:read:all'], {
+      checkData: true,
+      editProtectedNamespaces: true,
+    }),
+    wrapAction((req, res) => stripe.createCustomerSessionLink(req)),
   )
 
   server.post(

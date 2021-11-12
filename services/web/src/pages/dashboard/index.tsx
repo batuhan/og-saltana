@@ -1,38 +1,32 @@
-import { getSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import { getSaltanaInstance } from '@/client/api'
 import buildLoginLink from '@/server/buildLoginLink'
+import useCurrentUser from '@/hooks/useCurrentUser'
+import React, { useEffect } from 'react'
+import { SignUp, SignedIn, RedirectToSignIn, RedirectToUserProfile, SignedOut } from "@clerk/nextjs";
 
-export default function DashboardRedirectThingy() {
+function RedirectToPrimaryCreatorSpace() {
+  const currentUser = useCurrentUser()
+
+  useEffect(() => {
+    console.log('changed currentUser', currentUser)
+    console.log('loaded ', currentUser)
+
+
+
+  }, [currentUser])
+
   return null
 }
+export default function DashboardRedirectThingy() {
 
-export const getServerSideProps: GetServerSideProps = async ({
-  req,
-  resolvedUrl,
-  res,
-}) => {
-  const session = await getSession({ req })
+  return (<>
+    <SignedIn>
+      <RedirectToPrimaryCreatorSpace />
+    </SignedIn>
 
-  if (!session) {
-    return {
-      redirect: {
-        destination: buildLoginLink({ resolvedUrl }),
-        permanent: false,
-      },
-    }
-  }
-
-  const instance = await getSaltanaInstance(session)
-
-  const user = await instance.users.read(session.user.id)
-
-  const destination = `/dashboard/${user.username}/links`
-
-  return {
-    redirect: {
-      destination,
-      permanent: false,
-    },
-  }
+    <SignedOut>
+      <RedirectToSignIn />
+    </SignedOut>
+  </>)
 }

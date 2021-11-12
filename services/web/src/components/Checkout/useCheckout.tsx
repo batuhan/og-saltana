@@ -19,6 +19,7 @@ import Logger from '@/common/logger'
 import { useRouter } from 'next/router'
 import { generateOrderLink } from '@/common/utils'
 import useCurrentUser from '@/hooks/useCurrentUser'
+import getStripe from '@/client/stripe'
 
 const log = Logger('useCheckout')
 // creates a hash for the cart contents
@@ -114,10 +115,6 @@ export default function useCheckout({ assetIds }) {
     resolver: yupResolver(schema),
     defaultValues: {
       email: '',
-      paymentIntent: {
-        id: '',
-        clientSecret: '',
-      },
       assetIds,
       validPaymentMethod: false,
     },
@@ -126,6 +123,7 @@ export default function useCheckout({ assetIds }) {
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
+  const [clientSecret, setClientSecret] = useState("");
 
   const [status, setStatus] = useState(CHECKOUT_STATUSES.LOADING)
   const [errorMessage, setErrorMessage] = useState(null)
@@ -298,7 +296,6 @@ export default function useCheckout({ assetIds }) {
 
   useEffect(() => {
     formMethods.register('validPaymentMethod')
-    formMethods.register('paymentIntent')
   }, [])
 
   const { transactions, totalAmount, currency } =

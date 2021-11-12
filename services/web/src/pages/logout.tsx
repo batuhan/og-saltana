@@ -1,4 +1,3 @@
-import { getSession, signOut } from 'next-auth/client'
 import { useEffect } from 'react'
 
 import { Logo } from 'components/Logo'

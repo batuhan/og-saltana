@@ -108,10 +108,7 @@ module.exports = {
     return {
       beforeFiles: [
         ...CREATOR_SPACE_REWRITES.beforeFiles,
-        {
-          source: `/api/v1/:path*`,
-          destination: `${CORE_API_URL}/:path*`,
-        },
+
         {
           source: '/',
           has: MAIN_SITE_HAS_RULES,

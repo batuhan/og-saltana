@@ -1,6 +1,5 @@
 import * as React from 'react'
 import DashboardShell from 'components/Dashboard/Common/Shell'
-import { getSession, useSession } from 'next-auth/client'
 import { NextSeo } from 'next-seo'
 import { GetServerSideProps } from 'next'
 

@@ -4,11 +4,14 @@ import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreato
 import { useRouter } from 'next/router'
 import useCurrentUser from 'hooks/useCurrentUser'
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/client'
+import { SignedIn, useSession } from "@clerk/clerk-react";
+
 import { generateOrderLink } from '@/common/utils'
 
 const AuthRequiredShell = ({ children }) => {
-  const [session, loading] = useSession()
+  const session = useSession()
+  const { isLoading } = session
+
   const {
     query: { email, orderId },
     push,

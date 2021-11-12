@@ -1,4 +1,5 @@
-import { useSession } from 'next-auth/client'
+import { useSession } from "@clerk/nextjs";
+
 import React, {
   useMemo,
   createContext,
@@ -20,101 +21,115 @@ export const CurrentUserContext = createContext({})
 
 const is =
   ({ userId, username }) =>
-  (usernameOrUserId) => {
-    if (!userId) {
+    (usernameOrUserId) => {
+      if (!userId) {
+        return false
+      }
+
+      if (usernameOrUserId === userId) {
+        return true
+      }
+
+      if (usernameOrUserId === username) {
+        return true
+      }
+
       return false
     }
 
-    if (usernameOrUserId === userId) {
-      return true
-    }
-
-    if (usernameOrUserId === username) {
-      return true
-    }
-
-    return false
-  }
-
 const EMPTY_USER_OBJECT = {
   id: null,
+  primaryEmailAddress: null,
+  primaryPhoneNumber: null,
   username: null,
+  fullName: null,
+  firstName: null,
+  lastName: null,
+  profileImageUrl: null,
+
+  displayName: null,
+  description: null,
+
+  passwordEnabled: false,
+  clerkMetadata: {},
+
+  platformData: {},
   roles: [],
-  email: null,
-  isLoaded: false,
-  isLoading: false,
+  metadata: {},
+
+  createdAt: null,
+
+  isCreator: false,
+  isAdmin: false,
 }
 
 function SaltanaCoreProvider({ children }) {
-  const [session, loading] = useSession()
-  const userId = session ? session.user.id : null
-
-  const gotSession = loading === false && userId !== null
-
-  const apiInstance = useCallback(() => {}, [])
-  //  const apiInstance = useRef(sharedSaltanaInstance)
-
-  const [currentUser, setCurrentUser] = useState({
-    ...EMPTY_USER_OBJECT,
-    id: userId,
-    isLoading: gotSession,
-  })
+  const { session } = useSession({ withAssertions: true })
 
   const [queryClient, setQueryClient] = useState(sharedQueryClient)
+  const [currentUser, setCurrentUser] = useState({ ...EMPTY_USER_OBJECT })
+  const [isLoading, setIsLoading] = useState(false)
 
-  // when session changes, update the api instance & query client
+
   useEffect(() => {
-    if (session) {
-      const _apiInstance = getSaltanaInstanceSync(session)
-      const _queryClient = createQueryClient({
-        saltanaInstance: apiInstance.current,
-      })
+    setIsLoading(true)
 
-      _apiInstance.users.read(userId).then((user) => {
-        setUserData(_queryClient, user)
-        setCurrentUser({
-          ...EMPTY_USER_OBJECT,
-          ...user,
-          isLoading: false,
-          isLoaded: true,
-        })
-      })
+    console.log('new session', session)
+    if (!session?.user) {
 
-      setQueryClient(_queryClient)
-      apiInstance.current = _apiInstance
-      queryClient.current = _queryClient
-    } else {
-      apiInstance.current = sharedSaltanaInstance
-      queryClient.current = sharedQueryClient
+      setQueryClient(sharedQueryClient)
+      setCurrentUser({ ...EMPTY_USER_OBJECT })
+      setIsLoading(false)
+
+      return
     }
 
-    return () => {
-      // jjs
+    const { user } = session
+    async function loadUser() {
+      const saltanaInstance = await getSaltanaInstance(session)
+      const queryClient = createQueryClient(saltanaInstance)
+      const saltanaUser = await saltanaInstance.users.read('me')
+      const isCreator = saltanaUser.roles.includes('creator')
+      const isAdmin = saltanaUser.roles.includes('admin')
+
+      const userData = {
+        id: user.id,
+        primaryEmailAddress: user.primaryEmailAddress,
+        primaryPhoneNumber: user.primaryPhoneNumber,
+        username: user.username,
+        fullName: user.fullName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: saltanaUser.profileImageUrl,
+
+        displayName: saltanaUser.displayName,
+        description: saltanaUser.description,
+
+        passwordEnabled: user.passwordEnabled,
+        clerkMetadata: user.publicMetadata,
+
+        platformData: saltanaUser.platformData,
+        roles: saltanaUser.roles,
+        metadata: saltanaUser.metadata,
+
+        createdAt: saltanaUser.createdAt,
+
+        isCreator: saltanaUser.roles.includes('creator'),
+        isAdmin: saltanaUser.roles.includes('admin'),
+      }
+
+      setCurrentUser(userData)
+      setUserData(queryClient, userData)
+      setQueryClient(queryClient)
+      setIsLoading(false)
     }
+
+    loadUser()
+
   }, [session])
 
-  const _is = useMemo(
-    () =>
-      is({
-        userId,
-        username: currentUser.username,
-        //email: currentUser.email,
-      }),
-    [userId, currentUser],
-  )
-
-  const context = {
-    isLoading: currentUser.isLoading,
-    is: _is,
-    isLoggedIn: !!(!currentUser.isLoading && currentUser.id),
-    data: currentUser,
-    session,
-    //queryClient: queryClient.current,
-    //apiInstance: apiInstance.current,
-  }
-
   return (
-    <CurrentUserContext.Provider value={context}>
+    <CurrentUserContext.Provider value={{ ...currentUser, isLoading }}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </CurrentUserContext.Provider>
   )

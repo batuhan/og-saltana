@@ -5,7 +5,7 @@ export default function CopiableExternalLink({ href }) {
   const [state, copyToClipboard] = useCopyToClipboard()
 
   return (
-    <div>
+    <>
       <input value={href} disabled />
       <button type="button" onClick={() => copyToClipboard(href)}>
         copy text
@@ -18,6 +18,6 @@ export default function CopiableExternalLink({ href }) {
       ) : (
         state.value && <p>Copied {state.value}</p>
       )}
-    </div>
+    </>
   )
 }

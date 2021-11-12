@@ -38,7 +38,8 @@ import { CreatorDashboardLinksLink } from 'components/Links'
 import CreatorDashboardNewLinkBox from 'components/Dashboard/Creator/NewLinkBox'
 
 import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/client'
+import { useSession, withUser } from "@clerk/nextjs";
+
 import useApi from 'hooks/useApi'
 import LinkView from 'components/Dashboard/Creator/Links/LinkView'
 import LinkSlideOverView from 'components/Dashboard/Creator/Links/LinkSlideOverView'
@@ -199,18 +200,19 @@ function CreatorAddNewButton() {
     </Listbox>
   )
 }
-
-export default function CreatorDashboardLinks() {
-  const [session, loading] = useSession()
+export default withUser(CreatorDashboardLinks)
+function CreatorDashboardLinks(props) {
+  console.log("creator dashobard links props", props)
+  const { user } = useSession()
   const router = useRouter()
   const links = useApi(
     'links',
     'list',
     {
-      ownerId: session.user.id,
+      ownerId: user.id,
       nbResultsPerPage: 100,
     },
-    { initialData: [], enabled: !loading },
+    { initialData: [] },
   )
 
   function onLinkClose() {
@@ -448,17 +450,3 @@ export default function CreatorDashboardLinks() {
     </DashboardShell>
   )
 }
-
-export const getServerSideProps = getServerSidePropsForCreatorDashboardPages(
-  async ({ session, instance, queryClient }) => {
-    const query = {
-      ownerId: session.user.id,
-      nbResultsPerPage: 100,
-    }
-    const links = await instance.links.list(query)
-
-    queryClient.setQueryData(['links', 'list', query], links)
-
-    return {}
-  },
-)

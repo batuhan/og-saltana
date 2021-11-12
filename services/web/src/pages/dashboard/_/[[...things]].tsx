@@ -1,4 +1,3 @@
-import { getSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import { getSaltanaInstance } from '@/client/api'
 import buildLoginLink from '@/server/buildLoginLink'
