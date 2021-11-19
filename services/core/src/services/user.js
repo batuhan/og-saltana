@@ -7,7 +7,7 @@ const { nanoid } = require('nanoid')
 const cleanDeep = require('clean-deep')
 
 const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
+const { getModels, AuthMean } = require('../models')
 const { getObjectId } = require('@saltana/util-keys')
 
 const { checkPermissions } = require('../auth')
@@ -16,7 +16,8 @@ const { performListQuery } = require('../util/listQueryBuilder')
 
 const { getCurrentUserId, getRealCurrentUserId } = require('../util/user')
 
-const { getUser: getClerkUser } = require('../external-services/clerk')
+const { getUser: getClerkUser, diffClerkUserAndInternalUser } = require('../external-services/clerk')
+const { query } = require('../models/Base')
 
 let responder
 let subscriber
@@ -227,6 +228,11 @@ function start({ communication }) {
 
     return paginationMeta
   })
+  responder.on('read', read)
+
+  responder.on('create', _create)
+  responder.on('update', update)
+  responder.on('_syncUserWithClerk', _syncUserWithClerk)
 
   const read = async (req) => {
     const platformId = req.platformId
@@ -243,17 +249,6 @@ function start({ communication }) {
       .first()
 
     if (!user) {
-      if (userId.startsWith('usr_cl_')) {
-        console.log(
-          '[User Responder] User not found, but it is a Clerk user so creating it',
-        )
-
-        await _syncUserWithClerk(req)
-        console.log('created')
-        return read(req)
-        // create the user
-      }
-
       throw createError(404)
     }
 
@@ -275,17 +270,11 @@ function start({ communication }) {
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
   }
 
-  responder.on('read', read)
-
   async function _create(req) {
-    const platformId = req.platformId
-    const env = req.env
+    const { orgOwnerId, userType, platformId, env } = req
     const { AuthMean, User } = await getModels({ platformId, env })
 
-    const { orgOwnerId, userType } = req
-
     const type = userType || 'user'
-    const password = req.password || generatePassword()
     const fields = [
       'username',
       'displayName',
@@ -308,17 +297,13 @@ function start({ communication }) {
       ? User.organizationIdPrefix
       : User.idPrefix
 
-    const userIdToBeCreated =
-      req.userIdOverride ||
-      (await getObjectId({ prefix: idPrefix, platformId, env }))
+    const userIdToBeCreated = await getObjectId({
+      prefix: idPrefix,
+      platformId,
+      env,
+    })
 
-    const createAttrs = Object.assign(
-      {
-        id: userIdToBeCreated,
-        username: `${payload.email.split('@')[0]}-${nanoid(5)}`,
-      },
-      payload,
-    )
+    const createAttrs = { ...payload, id: userIdToBeCreated }
 
     const currentUserId = getCurrentUserId(req)
     const canCreateAnyOrg = req._matchedPermissions['organization:create:all']
@@ -393,6 +378,7 @@ function start({ communication }) {
     }
 
     const knex = User.knex()
+    const authProvider = req.authProvider || '_local_'
 
     try {
       user = await transaction(knex, async (trx) => {
@@ -400,15 +386,30 @@ function start({ communication }) {
 
         // do not create an auth mean because user cannot directly authenticate as an organization
         if (!targetingOrganization) {
-          await AuthMean.query(trx).insert({
+          const authMeanToBeCreated = {
             id: await getObjectId({
               prefix: AuthMean.idPrefix,
               platformId,
               env,
             }),
-            provider: '_local_',
-            password,
             userId: createdUser.id,
+          }
+
+          switch (authProvider) {
+            case 'clerk':
+              authMeanToBeCreated.identifier = req.clerkUserId
+              authMeanToBeCreated.provider = 'clerk'
+
+              break
+
+            default:
+              authMeanToBeCreated.password = req.password || generatePassword()
+              authMeanToBeCreated.provider = '_local_'
+              break
+          }
+
+          await AuthMean.query(trx).insert({
+            ...authMeanToBeCreated,
           })
         } else {
           const newOrganizations = {
@@ -458,8 +459,6 @@ function start({ communication }) {
 
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
   }
-
-  responder.on('create', _create)
 
   const update = async (req) => {
     const platformId = req.platformId
@@ -514,7 +513,7 @@ function start({ communication }) {
         throw createError(
           403,
           'Must be owner of the organization to transfer ownership, ' +
-            'or have "user:edit:all" permission',
+          'or have "user:edit:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
           },
@@ -644,8 +643,6 @@ function start({ communication }) {
     return User.expose(newUser, { req, namespaces: dynamicReadNamespaces })
   }
 
-  responder.on('update', update)
-
   responder.on('remove', async (req) => {
     const platformId = req.platformId
     const env = req.env
@@ -669,7 +666,7 @@ function start({ communication }) {
         throw createError(
           403,
           'Must be owner of the organization to delete, ' +
-            'or have "user:remove:all" permission',
+          'or have "user:remove:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
           },
@@ -684,8 +681,7 @@ function start({ communication }) {
     if (nbAssets) {
       throw createError(
         422,
-        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${
-          user.id
+        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${user.id
         }. Please delete all User Assets before deleting this User.`,
       )
     }
@@ -942,164 +938,76 @@ function start({ communication }) {
   })
 
   // INTERNAL
-  const _syncUserWithClerk = async (req) => {
-    const { platformId, env, clerkUserId } = req
 
-    const { User } = await getModels({ platformId, env })
+  function _resolveInternalUserIdFromClerkUserId({ platformId, env, clerkUserId }) {
+    const { AuthMean } = await getModels({ platformId, env })
 
-    const currentUserId = getCurrentUserId(req)
-    const userId = req.userId === 'me' ? currentUserId : req.userId
+    const authMean = await AuthMean.query()
+      .where('identifier', clerkUserId)
+      .where('provider', 'clerk')
+      .select('userId')
+      .first()
 
-    const [internalUser, clerkUser] = await Promise.all([
-      (async () => {
-        try {
-          return await User.query().where('id', userId).select('id').first()
-        } catch (err) {
-          console.error(
-            'userservice',
-            'got an error from the user service',
-            err,
-          )
-
-          return null
-        }
-      })(),
-      (async () => {
-        const userIdInClerk = userId.replace('usr_cl', 'user_')
-        return await getClerkUser(userIdInClerk)
-      })(),
-    ])
-
-    if (clerkUser === null) {
-      throw new Error('Invalid Clerk ID')
+    if (!authMean) {
+      throw new Error("No auth mean found for the Clerk user, probably means there is no internal user")
     }
 
-    const updatesToInternalUser = {}
-    const updatesToClerkUser = {}
-
-    const metadata = _.get(internalUser, 'metadata', {
-      instant: {},
-      _private: {},
-    })
-
-    const platformData = _.get(internalUser, 'platformData', {
-      instant: {},
-      _private: {},
-    })
-
-    // username
-    if (_.get(internalUser, 'username') !== _.get(clerkUser, 'username')) {
-      updatesToInternalUser.username = _.get(clerkUser, 'username')
-    }
-
-    // email
-    if (_.get(internalUser, 'email') !== _.get(clerkUser, 'email')) {
-      updatesToInternalUser.email = _.get(clerkUser, 'primaryEmailAddress')
-    }
-
-    // firstName
-    if (_.get(internalUser, 'firstName') !== _.get(clerkUser, 'firstName')) {
-      updatesToInternalUser.firstName = _.get(clerkUser, 'firstName')
-    }
-
-    // lastName
-    if (_.get(internalUser, 'lastName') !== _.get(clerkUser, 'lastName')) {
-      updatesToInternalUser.lastName = _.get(clerkUser, 'lastName')
-    }
-
-    // Birthday
-    const birthday = _.get(clerkUser, 'birthday')
-    if (_.get(metadata, '_private.birthday') !== birthday) {
-      updatesToInternalUser.birthday = birthday
-    }
-
-    // Gender
-    const gender = _.get(clerkUser, 'gender')
-    if (_.get(metadata, '_private.gender') !== gender) {
-      updatesToInternalUser.gender = gender
-    }
-
-    // Profile Image Url
-    const avatarUrl = _.get(clerkUser, 'profileImageUrl')
-    if (_.get(metadata, 'instant.avatarUrl') !== avatarUrl) {
-      updatesToInternalUser.avatarUrl = avatarUrl
-    }
-
-    // password enabled
-    const passwordEnabled = _.get(clerkUser, 'passwordEnabled')
-    if (_.get(platformData, 'clerk_passwordEnabled') !== passwordEnabled) {
-      updatesToInternalUser.passwordEnabled = passwordEnabled
-    }
-
-    // twoFactorEnabled
-    const twoFactorEnabled = _.get(clerkUser, 'twoFactorEnabled')
-    if (_.get(platformData, 'clerk_twoFactorEnabled') !== twoFactorEnabled) {
-      updatesToInternalUser.twoFactorEnabled = twoFactorEnabled
-    }
-
-    // publicMetadata in clerk
-    const publicMetadata = _.get(clerkUser, 'publicMetadata')
-    if (_.get(metadata, 'instant.clerk') !== publicMetadata) {
-      updatesToInternalUser.publicMetadata = publicMetadata
-    }
-
-    // privateMetadata in clerk
-    const privateMetadata = _.get(clerkUser, 'privateMetadata')
-    if (
-      _.get(platformData, '_private.clerk_privateMetadata') !== privateMetadata
-    ) {
-      updatesToInternalUser.privateMetadata = privateMetadata
-    }
-
-    const internalUserData = cleanDeep({
-      username: updatesToInternalUser.username,
-      displayName: updatesToInternalUser.displayName,
-      firstname: updatesToInternalUser.firstName,
-      lastname: updatesToInternalUser.lastName,
-      email: updatesToInternalUser.email,
-      password: generatePassword(),
-      metadata: {
-        _private: {
-          birthday: updatesToInternalUser.birthday,
-          gender: updatesToInternalUser.gender,
-        },
-        instant: {
-          avatarUrl: updatesToInternalUser.avatarUrl,
-          clerk: updatesToInternalUser.clerk,
-        },
-      },
-      platformData: {
-        clerk_passwordEnabled: updatesToInternalUser.passwordEnabled,
-        clerk_twoFactorEnabled: updatesToInternalUser.twoFactorEnabled,
-        _private: {
-          clerk_privateMetadata: updatesToInternalUser.privateMetadata,
-        },
-        createdBy: 'clerk',
-      },
-    })
-
-    if (Object.keys(updatesToInternalUser).length === 0) {
-      // no updates to internal user
-      console.log('no updates to internal user')
-      return
-    }
-
-    const _req = {
-      ...req,
-      ...internalUserData,
-      userIdOverride: currentUserId,
-    }
-
-    if (internalUser === null) {
-      console.log('Creating internal user...')
-      return await _create(_req)
-    } else {
-      console.log('Updating existing user...')
-      return await update(_req)
-    }
+    return authMean.userId
   }
 
-  responder.on('_syncUserWithClerk', _syncUserWithClerk)
+  function __resolveInternalUserIdFromClerkUserId({ platformId, env, clerkUserId }) {
+    const { AuthMean } = await getModels({ platformId, env })
+
+    const authMean = await AuthMean.query()
+      .where('identifier', clerkUserId)
+      .where('provider', 'clerk')
+      .select('userId')
+      .first()
+
+    if (!authMean) {
+      // verify the user from clerk
+      const clerkUser = await getClerkUser(userIdInClerk)
+
+      debugger;
+      // throw error if the user does not exists in clerk
+
+      // create a new internal user
+      const userInitialFields = {
+        username: null,
+        // displayName: null,
+        firstname: null,
+        lastname: null,
+        email: null,
+        // description: null,
+        // roles: null,
+        // organizations: null,
+        metadata: {},
+        platformData: {},
+      }
+
+      const createParams = { platformId, env, clerkUserId, userType = 'user', authProvider = 'clerk', ...userInitialFields }
+      const newUser = _create(createParams)
+
+      return newUser.id
+
+    }
+
+    return read({ platformId, env, userId: 'me', _userId: internalUserId })
+  }
+
+  async function _updateInternalUserFromClerkUser({ platformId, env, clerkUserId }) {
+
+    const internalUserId = await _resolveInternalUserIdFromClerkUserId({ platformId, env, clerkUserId})
+    const internalUser = await read({ platformId, env, clerkUserId , userId: internalUserId })
+    const clerkUser = await getClerkUser(userIdInClerk)
+    const updatesToUser = diffClerkUserAndInternalUser(clerkUser, internalUser)
+
+    if (Object.keys(updatesToUser).length > 0) {
+      await update({ platformId, env, userId: internalUserId, ...updatesToUser })
+    }
+
+  }
+
 
   responder.on('_getOrganizations', async (req) => {
     const { platformId, env, organizationsIds } = req
@@ -1409,7 +1317,7 @@ async function checkRolesBeforeCreate({
         throw createError(
           422,
           'The following roles are not whitelisted: ' +
-            nonWhitelistRoles.join(', '),
+          nonWhitelistRoles.join(', '),
         )
       }
     }

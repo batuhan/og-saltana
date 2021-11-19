@@ -957,6 +957,132 @@ function start({ communication, serverPort, isSystem }) {
     return { success: true }
   })
 
+  // Difference of Clerk auth from other methods is that it doesn't require
+  // a SaltanaCore AuthToken, it just works with a token from Clerk
+  // returns
+  responder.on('ssoLoginWithClerk', async (req) => {
+    const { publicPlatformId, provider, originalUrl, state } = req
+
+    const { platformId, env, hasValidFormat } =
+      parsePublicPlatformId(publicPlatformId)
+
+    if (!hasValidFormat) {
+      throw createError(422)
+    }
+
+    const identifier = _.get(req, 'auth.clerkUserId', null)
+
+    if (identifier !== null) {
+      throw createError(402, 'No provider indentifier found to process')
+    }
+
+    const provider = 'clerk'
+
+    const { AuthMean, User } = await getModels({
+      platformId,
+      env,
+    })
+
+    const authMean = await AuthMean.query().findOne({
+      provider,
+      identifier,
+    })
+
+    const knex = AuthMean.knex()
+
+    const shouldCreateUser = !authMean
+    if (shouldCreateUser) {
+      const config = await configRequester.send({
+        type: '_getConfig',
+        platformId,
+        env,
+        access: 'default',
+      })
+
+      const { user } = await transaction(knex, async (trx) => {
+        const createAttrs = {
+          ...diffClerkUserAndInternalUser(clerkUser),
+          id: await getObjectId({
+            prefix: User.idPrefix,
+            platformId,
+            env,
+          }),
+          roles: _.get(config, 'saltana.roles.default') || User.defaultRoles,
+        }
+        _.set(createAttrs, 'platformData.ssoProviders', [provider])
+
+        const user = await User.query(trx).insert(createAttrs)
+
+        await AuthMean.query(trx).insert({
+          id: await getObjectId({
+            prefix: AuthMean.idPrefix,
+            platformId,
+            env,
+          }),
+          provider,
+          identifier, // external provider user ID
+          userId: user.id,
+          //tokens: {},
+        })
+
+        return { user }
+      })
+
+      userPublisher.publish('userCreated', {
+        user,
+        eventDate: user.createdDate,
+        platformId,
+        env,
+      })
+    } else {
+      const { user, updateAttrs } = await transaction(knex, async (trx) => {
+        const user = await User.query(trx).findById(authMean.userId)
+        if (!user) {
+          throw createError('User not found while referenced by an auth mean')
+        }
+
+        let platformData
+
+        const updateAttrs = diffClerkUserAndInternalUser(clerkUser, user)
+
+        if (updateAttrs.metadata) {
+          updateAttrs.metadata = User.rawJsonbMerge(
+            'metadata',
+            updateAttrs.metadata,
+          )
+        }
+
+        if (updateAttrs.platformData) {
+          updateAttrs.platformData = User.rawJsonbMerge(
+            'platformData',
+            updateAttrs.platformData,
+          )
+        }
+
+        const user = await User.query(trx).patchAndFetchById(
+          authMean.userId,
+          updateAttrs,
+        )
+
+        // should only update last updated, maybe?
+        await AuthMean.query(trx).patchAndFetchById(authMean.id, {
+          //  tokens: tokensToStore,
+        })
+        return { user, updateAttrs }
+      })
+
+      userPublisher.publish('userUpdated', {
+        newUser: user,
+        updateAttrs: updateAttrs,
+        eventDate: user.updatedDate,
+        platformId,
+        env,
+      })
+    }
+
+    return { success: true }
+  })
+
   responder.on('confirmPasswordReset', async (req) => {
     const platformId = req.platformId
     const env = req.env

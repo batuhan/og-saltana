@@ -11,7 +11,10 @@ const { logError } = require('../server/logger')
 const Base = require('./models/Base')
 
 const { decodeBase64 } = require('./util/encoding')
-const { clerk, verifyTokenSync } = require('./external-services/clerk')
+const {
+  clerk,
+  verifyToken: verifyClerkToken,
+} = require('./external-services/clerk')
 
 const { parsePermission } = require('./permissions')
 
@@ -97,79 +100,167 @@ function stop() {
  * @param {String} env
  * @param {String} [apmLabel = 'Authentication token'] - APM span label for performance monitoring
  */
-async function checkAuthToken({
+async function checkClerkAuthToken({
   authToken,
   platformId,
   env,
-  apmLabel = 'Authentication token',
+  apmLabel = 'Authentication token (Clerk)',
 }) {
   const apmSpan = apm.startSpan(apmLabel)
 
-  let decodedToken
-  let isSaltanaAuthToken
-  let isTokenExpired = false
+  const data = {
+    decodedToken: {},
+    isSaltanaAuthToken: true,
+    isTokenExpired: true,
+    isTokenValid: false,
+  }
 
   try {
-    // const options = { algorithms: ['HS256'] }
-    const options = {}
-    isSaltanaAuthToken = true
+    // verify & decode the token
+    const decodedToken = await verifyClerkToken(authToken)
+    const clerkUserId = decodedToken.sub
 
-    try {
-      decodedToken = jwt.decode(authToken, options)
-      const isClerkToken = decodedToken.iss.includes('clerk')
+    if (!clerkUserId) {
+      throw Error('No Clerk User ID was given')
+    }
 
-      const cb = (err, decoded) => {
-        if (err && err.name === 'TokenExpiredError') isTokenExpired = true
-        if (err && !isTokenExpired) throw err
-      }
+    // fetch the internal user via authmean
+    const internalUser = await userRequester.send({
+      type: '_resolveInternalUserIdFromClerkUserId',
+      platformId,
+      env,
+      clerkUserId,
+    })
 
-      if (isClerkToken) {
-        verifyTokenSync(authToken, cb)
-
-        if (decodedToken.sub?.startsWith('user_')) {
-          const userId = `usr_cl_${decodedToken.sub.split('user_')[1]}`
-          decodedToken.sub = userId
-        }
-      } else {
-        const secret = await authenticationRequester.send({
-          type: '_getAuthSecret',
-          platformId,
-          env,
-        })
-        jwt.verify(authToken, secret, options, cb)
-      }
-    } catch (err) {
-      if (err && process.env.NODE_ENV === 'test') logError(err)
+    decodedToken._internalUser = internalUser
+    decodedToken._providerSub = clerkUserId
+    decodedToken.sub = internalUser.id
+  } catch (err) {
+    if (err && err?.name === 'TokenExpiredError') {
+      isTokenExpired = true
+      data.isTokenValid = true // token could be signed correctly and be expired
+    } else {
+      data.isTokenValid = false
+    }
+    if (err && process.env.NODE_ENV === 'test') {
+      logError(err)
     }
   } finally {
     apmSpan && apmSpan.end()
   }
 
   return {
-    decodedToken,
-    isSaltanaAuthToken,
-    isTokenExpired,
+    ...data,
+  }
+}
+
+/**
+ * Check if the passed JWT auth token is valid and not expired
+ * @param {Object} authToken
+ * @param {String} platformId
+ * @param {String} env
+ * @param {String} [apmLabel = 'Authentication token'] - APM span label for performance monitoring
+ */
+async function checkAuthToken({
+  authToken,
+  platformId,
+  env,
+  apmLabel = 'Authentication token (V1)',
+}) {
+  const apmSpan = apm.startSpan(apmLabel)
+
+  const data = {
+    decodedToken: {},
+    isSaltanaAuthToken: true,
+    isTokenExpired: true,
+    isTokenValid: false,
+  }
+
+  const options = {}
+
+  try {
+    // const options = { algorithms: ['HS256'] }
+
+    const secret = await authenticationRequester.send({
+      type: '_getAuthSecret',
+      platformId,
+      env,
+    })
+
+    jwt.verify(authToken, secret, options, (err, decoded) => {
+      if (err && err.name === 'TokenExpiredError') {
+        data.isTokenExpired = true
+      }
+      data.decodedToken = decoded
+      if (err && !isTokenExpired) {
+        throw err
+      }
+      data.isTokenValid = true
+    })
+  } catch (err) {
+    if (err && process.env.NODE_ENV === 'test') {
+      logError(err)
+    }
+    data.isTokenValid = false
+  } finally {
+    apmSpan && apmSpan.end()
+  }
+
+  return {
+    ...data,
   }
 }
 
 function loadStrategies(server) {
+  // Saltana Core v2 (supports Clerk)
   server.use(async (req, res, next) => {
     const bypassAuthTokenCheck =
       req._allowMissingPlatformId && (!req.platformId || !req.env)
     const hasToken = !!req.authorization.token
-    if (bypassAuthTokenCheck || !hasToken) return next()
 
+    if (bypassAuthTokenCheck || !hasToken) {
+      return next()
+    }
+
+    const tokenType = _.get(req, 'authorization.tokenType', 'legacy')
+
+    const data = {
+      token: req.authorization.token,
+      tokenType,
+      decodedToken: {},
+      isSaltanaAuthToken: false,
+      isTokenExpired: true,
+    }
     try {
-      const { decodedToken, isSaltanaAuthToken, isTokenExpired } =
-        await checkAuthToken({
+      if (tokenType === 'clerk') {
+        // verify the token
+        // fetch the internal user id
+        const checkClerkResult = await checkClerkAuthToken({
           authToken: req.authorization.token,
           platformId: req.platformId,
           env: req.env,
         })
 
-      if (!isTokenExpired) {
-        req.auth = decodedToken
-        req._saltanaAuthToken = isSaltanaAuthToken
+        data.decodedToken = checkClerkResult.decodedToken
+        data.isSaltanaAuthToken = checkClerkResult.isSaltanaAuthToken
+        data.isTokenExpired = checkClerkResult.isTokenExpired
+      }
+
+      if (tokenType === 'legacy') {
+        const checkLegacyResult = await checkAuthToken({
+          authToken: req.authorization.token,
+          platformId: req.platformId,
+          env: req.env,
+        })
+
+        data.decodedToken = checkLegacyResult.decodedToken
+        data.isSaltanaAuthToken = checkLegacyResult.isSaltanaAuthToken
+        data.isTokenExpired = checkLegacyResult.isTokenExpired
+      }
+
+      if (data.isTokenExpired !== true) {
+        req.auth = data.decodedToken
+        req._saltanaAuthToken = data.isSaltanaAuthToken
       }
 
       next()
