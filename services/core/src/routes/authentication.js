@@ -29,27 +29,6 @@ function init(server, { middlewares, helpers } = {}) {
 
   server.post(
     {
-      name: 'auth.loginMagic',
-      path: '/auth/login/magic',
-    },
-    checkPermissions(['auth:login']),
-    wrapAction(async (req, res) => {
-      const fields = ['token']
-
-      const payload = _.pick(req.body, fields)
-
-      let params = populateRequesterParams(req)({
-        type: 'loginMagic',
-      })
-
-      params = Object.assign({}, params, payload)
-
-      return requester.send(params)
-    }),
-  )
-
-  server.post(
-    {
       name: 'auth.logout',
       path: '/auth/logout',
     },
@@ -136,15 +115,23 @@ function init(server, { middlewares, helpers } = {}) {
   server.post(
     {
       name: 'auth.ssoLoginWithClerk',
-      path: '/auth/sso/:platformId/clerk',
+      path: '/auth/login/clerk',
     },
     wrapAction(async (req, res) => {
-      const { platformId, provider } = req.params
+      const {
+        platformId,
+        env,
+        auth: { _providerSub },
+        authorization: { token },
+      } = req
 
       const params = populateRequesterParams(req)({
         type: 'ssoLoginWithClerk',
-        publicPlatformId: platformId,
-        provider,
+        platformId,
+        token,
+        env,
+        provider: 'clerk',
+        identifier: _providerSub,
       })
 
       return requester.send(params)

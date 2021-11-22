@@ -185,7 +185,7 @@ export default function CreatorDashboardCreateSmartLink(props) {
               />
             )}
 
-            <div className="flex justify-end">
+            <div className="flex justify-end bg-black">
               <button
                 type="submit"
                 disabled={isSubmitting}

@@ -25,9 +25,12 @@ const { computeDate } = require('../util/time')
 
 const { setSearchParams } = require('../util/url')
 
+const {
+  verifyToken: verifyClerkToken,
+  diffClerkUserAndInternalUser,
+  getUser,
+} = require('../external-services/clerk')
 const { parseAuthorizationHeader, checkAuthToken } = require('../auth')
-
-const { magic } = require('../external-services/magic-auth')
 
 const {
   getRandomString,
@@ -78,56 +81,6 @@ function start({ communication, serverPort, isSystem }) {
     name: 'Authentication service to User publisher',
     key: 'user',
     namespace: COMMUNICATION_ID,
-  })
-
-  responder.on('loginMagic', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { AuthMean, User } = await getModels({ platformId, env })
-
-    const { token } = req
-
-    const metadata = await magic.users.getMetadataByToken(token)
-
-    let user = await User.query().findOne({ email: metadata.email })
-    if (!user) {
-      user = await userRequester.send({
-        type: 'create',
-        platformId,
-        env,
-        _matchedPermissions: req._matchedPermissions,
-        userType: 'user',
-        username: `${metadata.email.split('@')[0]}-${nanoid(5)}`,
-        email: metadata.email,
-        password:
-          'F)bqjH<h+deMk>UPr$d%6OPq@+S>(,K_nr+&z8y/3SXrP7-=tk[J2@2YZT^|@>Hb',
-        platformData: {
-          authProvider: 'magic',
-          magicData: {
-            issuer: metadata.issuer,
-            publicAddress: metadata.publicAddress,
-          },
-        },
-      })
-    }
-
-    const authMean = await AuthMean.query().findOne({
-      provider: '_local_',
-      userId: user.id,
-    })
-    if (!authMean) {
-      console.log('failed authMean')
-      throw createError(403)
-    }
-
-    const result = await createLoginTokens({
-      platformId,
-      env,
-      user,
-      userAgent: req._userAgent,
-    })
-
-    return result
   })
 
   responder.on('login', async (req) => {
@@ -957,26 +910,39 @@ function start({ communication, serverPort, isSystem }) {
     return { success: true }
   })
 
+  responder.on(
+    '_getAuthMean',
+    async ({ platformId, env, identifier, provider }) => {
+      const { AuthMean } = await getModels({ platformId, env })
+
+      const authMean = await AuthMean.query()
+        .where('identifier', identifier)
+        .where('provider', provider)
+        .select('userId')
+        .first()
+
+      return authMean
+    },
+  )
+
   // Difference of Clerk auth from other methods is that it doesn't require
   // a SaltanaCore AuthToken, it just works with a token from Clerk
   // returns
+  // This responder should be able to work without a middleware parsing out the token
   responder.on('ssoLoginWithClerk', async (req) => {
-    const { publicPlatformId, provider, originalUrl, state } = req
+    const { platformId, provider, token, env, identifier } = req
 
-    const { platformId, env, hasValidFormat } =
-      parsePublicPlatformId(publicPlatformId)
+    // const { platformId, env, hasValidFormat } =
+    //   parsePublicPlatformId(publicPlatformId)
 
-    if (!hasValidFormat) {
-      throw createError(422)
-    }
+    // const decodedToken = await verifyClerkToken(clerkToken)
+    // if (!hasValidFormat || provider !== 'clerk' || !decodedToken) {
+    //   throw createError(422)
+    // }
 
-    const identifier = _.get(req, 'auth.clerkUserId', null)
-
-    if (identifier !== null) {
+    if (identifier === null) {
       throw createError(402, 'No provider indentifier found to process')
     }
-
-    const provider = 'clerk'
 
     const { AuthMean, User } = await getModels({
       platformId,
@@ -990,6 +956,8 @@ function start({ communication, serverPort, isSystem }) {
 
     const knex = AuthMean.knex()
 
+    const clerkUser = await getUser(identifier)
+    console.log('clerkUser', clerkUser)
     const shouldCreateUser = !authMean
     if (shouldCreateUser) {
       const config = await configRequester.send({
@@ -1059,7 +1027,7 @@ function start({ communication, serverPort, isSystem }) {
           )
         }
 
-        const user = await User.query(trx).patchAndFetchById(
+        const updatedUser = await User.query(trx).patchAndFetchById(
           authMean.userId,
           updateAttrs,
         )
@@ -1068,7 +1036,7 @@ function start({ communication, serverPort, isSystem }) {
         await AuthMean.query(trx).patchAndFetchById(authMean.id, {
           //  tokens: tokensToStore,
         })
-        return { user, updateAttrs }
+        return { user: updatedUser, updateAttrs }
       })
 
       userPublisher.publish('userUpdated', {

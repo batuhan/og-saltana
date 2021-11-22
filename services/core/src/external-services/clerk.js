@@ -35,17 +35,17 @@ function getUser(userId) {
 const fieldMap = {
   // clerkField: internalUserField
   username: 'username',
-  primaryEmailAddress: 'email',
+  'emailAddresses.0.emailAddress': 'email',
   firstName: 'firstname',
   lastName: 'lastname',
   birthday: 'metadata._private.birthday',
   gender: 'metadata._private.gender',
-  profileImageUrl: 'instant.avatarUrl',
+  profileImageUrl: 'metadata.instant.avatarUrl',
   id: 'metadata._private.clerk.userId',
   passwordEnabled: 'metadata._private.clerk.passwordEnabled',
   twoFactorEnabled: 'metadata._private.clerk.twoFactorEnabled',
   publicMetadata: 'metadata._private.clerk.publicMetadata',
-  privateMetadata: 'platformData._private.clerk.privateMetadata',
+  privateMetadata: 'metadata._private.clerk.privateMetadata',
 }
 
 // Diffs Clerk user and internal user, clerk data always wins
@@ -70,7 +70,7 @@ function diffClerkUserAndInternalUser(clerkUser, internalUser = {}) {
     }
   })
 
-  return internalUserData
+  return updatesToInternalUser
 }
 
 module.exports = {

@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 const { parseKey } = require('@saltana/util-keys')
 
-const { logError } = require('../server/logger')
+const { logError, log } = require('../server/logger')
 
 const Base = require('./models/Base')
 
@@ -125,16 +125,32 @@ async function checkClerkAuthToken({
     }
 
     // fetch the internal user via authmean
-    const internalUser = await userRequester.send({
-      type: '_resolveInternalUserIdFromClerkUserId',
+    const authMean = await authenticationRequester.send({
+      type: '_getAuthMean',
       platformId,
       env,
-      clerkUserId,
+      identifier: clerkUserId,
+      provider: 'clerk',
     })
 
-    decodedToken._internalUser = internalUser
-    decodedToken._providerSub = clerkUserId
-    decodedToken.sub = internalUser.id
+    if (!authMean) {
+      log.debug(
+        'No auth mean found for the Clerk user, probably means there is no internal user',
+      )
+    }
+
+    const internalUserId = authMean?.userId || null
+
+    //decodedToken._internalUser = internalUser
+
+    data.decodedToken = {
+      ...decodedToken,
+      _providerSub: clerkUserId,
+      sub: internalUserId,
+    }
+    data.isSaltanaAuthToken = true
+    data.isTokenValid = true
+    data.isTokenExpired = false
   } catch (err) {
     if (err && err?.name === 'TokenExpiredError') {
       isTokenExpired = true
@@ -142,9 +158,11 @@ async function checkClerkAuthToken({
     } else {
       data.isTokenValid = false
     }
-    if (err && process.env.NODE_ENV === 'test') {
-      logError(err)
-    }
+    // this might cause too much logging
+    logError(err)
+    // if (err && process.env.NODE_ENV === 'test') {
+    //   logError(err)
+    // }
   } finally {
     apmSpan && apmSpan.end()
   }
@@ -231,6 +249,8 @@ function loadStrategies(server) {
       isSaltanaAuthToken: false,
       isTokenExpired: true,
     }
+
+    log.debug(`Auth token type: ${tokenType}`)
     try {
       if (tokenType === 'clerk') {
         // verify the token
@@ -239,6 +259,7 @@ function loadStrategies(server) {
           authToken: req.authorization.token,
           platformId: req.platformId,
           env: req.env,
+          getModels: req.getModels,
         })
 
         data.decodedToken = checkClerkResult.decodedToken
@@ -263,8 +284,13 @@ function loadStrategies(server) {
         req._saltanaAuthToken = data.isSaltanaAuthToken
       }
 
+      log.debug(`Auth token is valid: ${data.isTokenValid}`)
+      log.debug(`Auth token is expired: ${data.isTokenExpired}`)
+      log.debug(`Saltana auth token: ${data.isSaltanaAuthToken}`)
+      log.debug(`Auth token decoded: ${JSON.stringify(data.decodedToken)}`)
       next()
     } catch (err) {
+      logError(err)
       next(err)
     }
   })
@@ -395,7 +421,7 @@ function checkPermissions(
         const apmSpan = apm.startSpan('Get access info for token')
 
         // the header x-saltana-organization-id is only useful for authentication by token
-        organizationId = req.headers['x-saltana-organization-id']
+        organizationId = _.get(req.headers, 'x-saltana-organization-id')
 
         const tokenPermissions = token.permissions || []
 
@@ -409,7 +435,8 @@ function checkPermissions(
           organizationId = getOrganizationIdFn(req)
         }
 
-        if (organizationId) {
+        console.log('organizationId', organizationId)
+        if (organizationId !== null && organizationId !== undefined) {
           if (!userId) {
             throw createError(
               403,
@@ -911,8 +938,10 @@ function parseAuthorizationHeader(req, { noThrowIfError = false } = {}) {
   }
 
   if (apiKey) validApiKeyFormat = _.get(parseKey(apiKey), 'hasValidFormat')
+
+  let _decodedToken
   if (token) {
-    const _decodedToken = jwt.decode(token)
+    _decodedToken = jwt.decode(token)
     validTokenFormat = !_.isEmpty(_decodedToken)
   }
   if (tokenType) validTokenTypeFormat = !_.isEmpty(tokenType)
@@ -925,13 +954,23 @@ function parseAuthorizationHeader(req, { noThrowIfError = false } = {}) {
     else throw createError(401)
   }
 
-  if (apiKey) req.authorization.apiKey = apiKey
-  if (token) req.authorization.token = token
-  if (tokenType) req.authorization.tokenType = tokenType
+  if (apiKey) {
+    req.authorization.apiKey = apiKey
+  }
+  if (token) {
+    req.authorization.token = token
+  }
+  if (tokenType) {
+    req.authorization.tokenType = tokenType
+  }
+  if (_decodedToken) {
+    req.authorization.__decodedToken = _decodedToken
+  }
 
   // Convert custom SaltanaCore-v1 scheme to Bearer scheme for jwt middleware
-  if (apiKey && token) req.headers.authorization = `Bearer ${token}`
-
+  if (apiKey && token) {
+    req.headers.authorization = `Bearer ${token}`
+  }
   function throwInvalid() {
     throw createError(401, 'Invalid Authorization Header format')
   }

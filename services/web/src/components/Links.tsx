@@ -4,11 +4,11 @@ import useCreatorSpace from 'hooks/useCreatorSpace'
 
 const getCreatorDashboardLink = (basePath = '') =>
   function _DashboardLink({ children, href = '', ...props }) {
-    const user = useCurrentUser()
+    const { user } = useCurrentUser()
 
     return (
       <Link
-        href={`/dashboard/${user.username}${basePath}${href}`}
+        href={`/dashboard/${user?.username || user?.id || "me"}${basePath}${href}`}
         {...props}
         passHref
       >
@@ -52,7 +52,7 @@ export function DefaultLink({ children, ...props }) {
     )
   }
 
-  if (user.roles?.includes('provider')) {
+  if (user?.roles?.includes('provider')) {
     // if a creator, go to creator dashboard homepage
     return <CreatorDashboardLink>{children}</CreatorDashboardLink>
   }

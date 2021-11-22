@@ -67,18 +67,17 @@ function SaltanaCoreProvider({ children }) {
   const { session } = useSession({ withAssertions: true })
 
   const [queryClient, setQueryClient] = useState(sharedQueryClient)
-  const [currentUser, setCurrentUser] = useState({ ...EMPTY_USER_OBJECT })
+  const [currentUser, setCurrentUser] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
 
   useEffect(() => {
     setIsLoading(true)
 
-    console.log('new session', session)
     if (!session?.user) {
 
       setQueryClient(sharedQueryClient)
-      setCurrentUser({ ...EMPTY_USER_OBJECT })
+      setCurrentUser(null)
       setIsLoading(false)
 
       return
@@ -88,14 +87,21 @@ function SaltanaCoreProvider({ children }) {
     async function loadUser() {
       const saltanaInstance = await getSaltanaInstance(session)
       const queryClient = createQueryClient(saltanaInstance)
+
+      const response = await saltanaInstance.auth.loginWithClerk()
+      if (response.success !== true) {
+        throw new Error('failed to login with clerkr')
+      }
       const saltanaUser = await saltanaInstance.users.read('me')
 
-      const isCreator = saltanaUser.roles.includes('creator')
+
+      const isCreator = saltanaUser.roles.includes('provider')
       const isAdmin = saltanaUser.roles.includes('admin')
 
       const userData = {
-        id: user.id,
-        primaryEmailAddress: user.primaryEmailAddress,
+        id: saltanaUser.id,
+        clerkId: user.id,
+        email: user.primaryEmailAddress.emailAddress,
         primaryPhoneNumber: user.primaryPhoneNumber,
         username: user.username,
         fullName: user.fullName,
@@ -115,11 +121,11 @@ function SaltanaCoreProvider({ children }) {
 
         createdAt: saltanaUser.createdAt,
 
-        //isCreator: saltanaUser.roles.includes('creator'),
-        //isAdmin: saltanaUser.roles.includes('admin'),
+        isCreator,
+        isAdmin,
       }
 
-      setCurrentUser(userData)
+      setCurrentUser({ ...userData })
       setUserData(queryClient, userData)
       setQueryClient(queryClient)
       setIsLoading(false)
@@ -130,7 +136,7 @@ function SaltanaCoreProvider({ children }) {
   }, [session])
 
   return (
-    <CurrentUserContext.Provider value={{ ...currentUser, isLoading }}>
+    <CurrentUserContext.Provider value={{ user: currentUser, isLoading }}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </CurrentUserContext.Provider>
   )

@@ -43,6 +43,7 @@ import { useSession, withUser } from "@clerk/nextjs";
 import useApi from 'hooks/useApi'
 import LinkView from 'components/Dashboard/Creator/Links/LinkView'
 import LinkSlideOverView from 'components/Dashboard/Creator/Links/LinkSlideOverView'
+import useCurrentUser from '@/hooks/useCurrentUser'
 const user = {
   name: 'Tom Cook',
   imageUrl:
@@ -203,16 +204,16 @@ function CreatorAddNewButton() {
 export default withUser(CreatorDashboardLinks)
 function CreatorDashboardLinks(props) {
   console.log("creator dashobard links props", props)
-  const { user } = useSession()
+  const { user } = useCurrentUser()
   const router = useRouter()
   const links = useApi(
     'links',
     'list',
     {
-      ownerId: user.id,
+      ownerId: user?.id,
       nbResultsPerPage: 100,
     },
-    { initialData: [] },
+    { initialData: [], enabled: user?.id !== undefined },
   )
 
   function onLinkClose() {

@@ -7,32 +7,32 @@ export default function DashboardRedirectThingy() {
   return null
 }
 
-export const getServerSideProps: GetServerSideProps = async ({
-  req,
-  resolvedUrl,
-  res,
-}) => {
-  const session = await getSession({ req })
+// export const getServerSideProps: GetServerSideProps = async ({
+//   req,
+//   resolvedUrl,
+//   res,
+// }) => {
+//   const session = await getSession({ req })
 
-  if (!session) {
-    return {
-      redirect: {
-        destination: buildLoginLink({ resolvedUrl }),
-        permanent: false,
-      },
-    }
-  }
+//   if (!session) {
+//     return {
+//       redirect: {
+//         destination: buildLoginLink({ resolvedUrl }),
+//         permanent: false,
+//       },
+//     }
+//   }
 
-  const instance = await getSaltanaInstance(session)
+//   const instance = await getSaltanaInstance(session)
 
-  const user = await instance.users.read(session.user.id)
+//   const user = await instance.users.read(session.user.id)
 
-  const destination = `/dashboard/${user.username}/links`
+//   const destination = `/dashboard/${user.username}/links`
 
-  return {
-    redirect: {
-      destination,
-      permanent: false,
-    },
-  }
-}
+//   return {
+//     redirect: {
+//       destination,
+//       permanent: false,
+//     },
+//   }
+// }

@@ -2,7 +2,7 @@ import Resource from '../Resource'
 import { decodeJwtToken } from '../utils'
 
 const method = Resource.method
-
+// we don't actually use this but use clerk's client side sdk
 export default class Auth extends Resource {}
 
 Auth.prototype.login = method({
@@ -17,14 +17,13 @@ Auth.prototype.login = method({
   },
 })
 
-Auth.prototype.loginMagic = method({
-  path: '/auth/login/magic',
+Auth.prototype.loginWithClerk = method({
+  path: '/auth/login/clerk',
   method: 'POST',
   afterRequest: (res, self) => {
-    console.error({res, self})
-    const tokenStore = self._saltana.getApiField('tokenStore')
+    // const tokenStore = self._saltana.getApiField('tokenStore')
 
-    tokenStore.setTokens(res)
+    // tokenStore.setTokens(res)
 
     return res
   },

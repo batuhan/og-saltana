@@ -194,8 +194,8 @@ function loadServer() {
         req.apmSpans = {}
 
         logTrace(loggingParams, 'Metrics')
-      }
-    )
+      },
+    ),
   )
 
   // create an object that can be used to store any APM spans
@@ -300,7 +300,7 @@ function loadServer() {
         'www-authenticate',
         // Returning Basic scheme first
         // http://test.greenbytes.de/tech/tc/httpauth/#multibasicunknown
-        `Basic realm="${realm}", Bearer realm="${realmAsUser}", SaltanaCore-v1 realm="${realmAsUser}"`
+        `Basic realm="${realm}", Bearer realm="${realmAsUser}", SaltanaCore-v1 realm="${realmAsUser}"`,
       )
     }
 
@@ -314,7 +314,7 @@ function loadServer() {
       const newError = getFormattedError(err, statusCode)
 
       const keys = _.uniq(
-        Object.getOwnPropertyNames(err).concat(Object.keys(newError))
+        Object.getOwnPropertyNames(err).concat(Object.keys(newError)),
       )
 
       // copy newError into err
@@ -584,7 +584,7 @@ function loadServer() {
         else
           throw createError(
             401,
-            'Please provide a secret or publishable API key'
+            'Please provide a secret or publishable API key',
           )
       }
 

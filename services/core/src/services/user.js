@@ -9,14 +9,17 @@ const cleanDeep = require('clean-deep')
 const { logError } = require('../../server/logger')
 const { getModels, AuthMean } = require('../models')
 const { getObjectId } = require('@saltana/util-keys')
-
+const { log } = require('../util/logging')
 const { checkPermissions } = require('../auth')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
 const { getCurrentUserId, getRealCurrentUserId } = require('../util/user')
 
-const { getUser: getClerkUser, diffClerkUserAndInternalUser } = require('../external-services/clerk')
+const {
+  getUser: getClerkUser,
+  diffClerkUserAndInternalUser,
+} = require('../external-services/clerk')
 const { query } = require('../models/Base')
 
 let responder
@@ -228,13 +231,7 @@ function start({ communication }) {
 
     return paginationMeta
   })
-  responder.on('read', read)
-
-  responder.on('create', _create)
-  responder.on('update', update)
-  responder.on('_syncUserWithClerk', _syncUserWithClerk)
-
-  const read = async (req) => {
+  responder.on('read', async (req) => {
     const platformId = req.platformId
     const env = req.env
     const { User } = await getModels({ platformId, env })
@@ -268,9 +265,9 @@ function start({ communication }) {
     })
 
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
-  }
+  })
 
-  async function _create(req) {
+  responder.on('create', async (req) => {
     const { orgOwnerId, userType, platformId, env } = req
     const { AuthMean, User } = await getModels({ platformId, env })
 
@@ -396,6 +393,7 @@ function start({ communication }) {
           }
 
           switch (authProvider) {
+            // This function techincally supports Clerk but for now we are using ssoLoginWithClerk for sync
             case 'clerk':
               authMeanToBeCreated.identifier = req.clerkUserId
               authMeanToBeCreated.provider = 'clerk'
@@ -458,9 +456,8 @@ function start({ communication }) {
     }
 
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
-  }
-
-  const update = async (req) => {
+  })
+  responder.on('update', async (req) => {
     const platformId = req.platformId
     const env = req.env
     const { User } = await getModels({ platformId, env })
@@ -513,7 +510,7 @@ function start({ communication }) {
         throw createError(
           403,
           'Must be owner of the organization to transfer ownership, ' +
-          'or have "user:edit:all" permission',
+            'or have "user:edit:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
           },
@@ -641,7 +638,7 @@ function start({ communication }) {
     }
 
     return User.expose(newUser, { req, namespaces: dynamicReadNamespaces })
-  }
+  })
 
   responder.on('remove', async (req) => {
     const platformId = req.platformId
@@ -666,7 +663,7 @@ function start({ communication }) {
         throw createError(
           403,
           'Must be owner of the organization to delete, ' +
-          'or have "user:remove:all" permission',
+            'or have "user:remove:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
           },
@@ -681,7 +678,8 @@ function start({ communication }) {
     if (nbAssets) {
       throw createError(
         422,
-        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${user.id
+        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${
+          user.id
         }. Please delete all User Assets before deleting this User.`,
       )
     }
@@ -938,76 +936,6 @@ function start({ communication }) {
   })
 
   // INTERNAL
-
-  function _resolveInternalUserIdFromClerkUserId({ platformId, env, clerkUserId }) {
-    const { AuthMean } = await getModels({ platformId, env })
-
-    const authMean = await AuthMean.query()
-      .where('identifier', clerkUserId)
-      .where('provider', 'clerk')
-      .select('userId')
-      .first()
-
-    if (!authMean) {
-      throw new Error("No auth mean found for the Clerk user, probably means there is no internal user")
-    }
-
-    return authMean.userId
-  }
-
-  function __resolveInternalUserIdFromClerkUserId({ platformId, env, clerkUserId }) {
-    const { AuthMean } = await getModels({ platformId, env })
-
-    const authMean = await AuthMean.query()
-      .where('identifier', clerkUserId)
-      .where('provider', 'clerk')
-      .select('userId')
-      .first()
-
-    if (!authMean) {
-      // verify the user from clerk
-      const clerkUser = await getClerkUser(userIdInClerk)
-
-      debugger;
-      // throw error if the user does not exists in clerk
-
-      // create a new internal user
-      const userInitialFields = {
-        username: null,
-        // displayName: null,
-        firstname: null,
-        lastname: null,
-        email: null,
-        // description: null,
-        // roles: null,
-        // organizations: null,
-        metadata: {},
-        platformData: {},
-      }
-
-      const createParams = { platformId, env, clerkUserId, userType = 'user', authProvider = 'clerk', ...userInitialFields }
-      const newUser = _create(createParams)
-
-      return newUser.id
-
-    }
-
-    return read({ platformId, env, userId: 'me', _userId: internalUserId })
-  }
-
-  async function _updateInternalUserFromClerkUser({ platformId, env, clerkUserId }) {
-
-    const internalUserId = await _resolveInternalUserIdFromClerkUserId({ platformId, env, clerkUserId})
-    const internalUser = await read({ platformId, env, clerkUserId , userId: internalUserId })
-    const clerkUser = await getClerkUser(userIdInClerk)
-    const updatesToUser = diffClerkUserAndInternalUser(clerkUser, internalUser)
-
-    if (Object.keys(updatesToUser).length > 0) {
-      await update({ platformId, env, userId: internalUserId, ...updatesToUser })
-    }
-
-  }
-
 
   responder.on('_getOrganizations', async (req) => {
     const { platformId, env, organizationsIds } = req
@@ -1317,7 +1245,7 @@ async function checkRolesBeforeCreate({
         throw createError(
           422,
           'The following roles are not whitelisted: ' +
-          nonWhitelistRoles.join(', '),
+            nonWhitelistRoles.join(', '),
         )
       }
     }

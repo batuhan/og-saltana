@@ -5,14 +5,14 @@ const {
   addRequestContext,
   getUserContextFromRequest,
   getCustomContextFromRequest,
-  getLabelsFromRequest
+  getLabelsFromRequest,
 } = require('../../server/apm')
 
 const { logError } = require('../../server/logger')
 
 class CustomResponder extends Cote.Responder {
   // Inherit on method to log the processing duration
-  on (type, handler) {
+  on(type, handler) {
     const name = `Responder: ${this.advertisement.name} | type: ${type}`
 
     const newHandler = async function (...args) {
@@ -24,7 +24,7 @@ class CustomResponder extends Cote.Responder {
       const traceparent = receivedParams._apmTraceparent
 
       apm.startTransaction(name, 'custom', {
-        childOf: traceparent
+        childOf: traceparent,
       })
 
       addRequestContext(apm, receivedParams)
@@ -42,7 +42,7 @@ class CustomResponder extends Cote.Responder {
           custom: getCustomContextFromRequest(receivedParams),
           labels: getLabelsFromRequest(receivedParams),
           enableRoarr: false, // no need to log via Roarr because it's only a capture error problem for APM
-          message: err.message
+          message: err.message,
         })
         throw err
       } finally {

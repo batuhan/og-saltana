@@ -1,19 +1,3 @@
-/*
-  This example requires Tailwind CSS v2.0+ 
-  
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
 import { Fragment, useState } from 'react'
 import { Dialog, Menu, Transition, Popover, Listbox } from '@headlessui/react'
 import { ClockIcon, HomeIcon, MenuAlt1Icon, ViewListIcon, XIcon, BellIcon, MenuIcon, TrendingUpIcon, LinkIcon, CashIcon, ShareIcon, SwitchHorizontalIcon, AdjustmentsIcon } from '@heroicons/react/outline'
@@ -33,9 +17,7 @@ import useCurrentUser from 'hooks/useCurrentUser'
 import { Disclosure } from '@headlessui/react'
 import { SignIn, SignedOut, UserButton, SignedIn } from "@clerk/nextjs";
 
-import { PlusSmIcon } from '@heroicons/react/solid'
 import classNames from '@/common/classnames'
-import linkTypes from '@/common/link-types'
 const creatorNavigation = [
   {
     name: 'Links',
@@ -84,11 +66,14 @@ const userNavigation = [
   { name: 'Help', href: '/help', current: false },
   // { name: 'Logout', href: '/logout' }
 ]
+
+
 export default function WrappedDashboardShell(props) {
+  const { user, isLoading } = useCurrentUser()
 
   return (
     <SignedIn>
-      <DashboardShell {...props} />
+      {user ? <DashboardShell {...props} user={user} /> : 'Loading user...'}
     </SignedIn>
   )
 }
@@ -96,11 +81,12 @@ function DashboardShell({
   children,
   container = true,
   subHeader = null,
+  user
 }) {
   const { signOut } = useClerk();
 
+  console.log("user", user)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const user = useCurrentUser()
   const router = useRouter()
   const isRegularUserPath = router.pathname.startsWith('/my/')
   const _userNavigation = userNavigation.map((item) => {
@@ -110,12 +96,12 @@ function DashboardShell({
     return { ...item, current: isRegularUserPath ? false : router.pathname.endsWith(item.href) }
   })
 
+  const name = user.firstName
+    ? `${user.firstName} ${user.lastName} (${user.displayName})`
+    : user.email
 
-  const name = user.firstname
-    ? `${user.firstname} ${user.lastname} (${user.displayName})`
-    : (user.displayName || 'testr')
+  const showCreatorNavigation = user.isCreator
   return (
-
     <div className="min-h-full">
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="fixed inset-0 flex z-40 lg:hidden" onClose={setSidebarOpen}>
@@ -170,7 +156,7 @@ function DashboardShell({
               </div>
               <div className="mt-5 flex-1 h-0 overflow-y-auto">
                 <nav className="px-2">
-                  <div className="space-y-1">
+                  {showCreatorNavigation && <div className="space-y-1">
                     {_creatorNavigation.map((item) => (
                       <CreatorDashboardLink key={item.name}
                         href={item.href} >
@@ -194,7 +180,7 @@ function DashboardShell({
                           {item.name}
                         </a></CreatorDashboardLink>
                     ))}
-                  </div>
+                  </div>}
                   <div className="mt-8">
                     <h3
                       className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"
@@ -249,129 +235,22 @@ function DashboardShell({
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="mt-6 h-0 flex-1 flex flex-col overflow-y-auto">
           {/* Creator spaces dropdown */}
-          <Menu as="div" className="px-3 relative inline-block text-left">
-            <div>
-              <Menu.Button className="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500">
+          <div className="px-3 relative inline-block text-left">
+            <a href="https://saltana.com/request-invite" target="_blank" >
+              <div className="group w-full bg-yellow-200 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500">
                 <span className="flex w-full justify-between items-center">
                   <span className="flex min-w-0 items-center justify-between space-x-3">
 
-                    <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0">
-                      <Avatar
-                        size={40}
-                        name={name}
-
-                      /></div>
                     <span className="flex-1 flex flex-col min-w-0">
-                      <span className="text-gray-900 text-sm font-medium truncate">{name}</span>
-                      <span className="text-gray-500 text-sm truncate">@{user.username}</span>
+                      <span className="text-gray-900 text-sm font-medium ">Apply for a creator account</span>
                     </span>
                   </span>
-                  <SelectorIcon
-                    className="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                    aria-hidden="true"
-                  />
                 </span>
-              </Menu.Button>
-            </div>
-            <Transition
-              as={Fragment}
-              enter="transition ease-out duration-100"
-              enterFrom="transform opacity-0 scale-95"
-              enterTo="transform opacity-100 scale-100"
-              leave="transition ease-in duration-75"
-              leaveFrom="transform opacity-100 scale-100"
-              leaveTo="transform opacity-0 scale-95"
-            >
-              <Menu.Items className="z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none">
-                <div className="py-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'block px-4 py-2 text-sm'
-                        )}
-                      >
-                        View profile
-                      </a>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'block px-4 py-2 text-sm'
-                        )}
-                      >
-                        Settings
-                      </a>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'block px-4 py-2 text-sm'
-                        )}
-                      >
-                        Notifications
-                      </a>
-                    )}
-                  </Menu.Item>
-                </div>
-                <div className="py-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'block px-4 py-2 text-sm'
-                        )}
-                      >
-                        Get desktop app
-                      </a>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'block px-4 py-2 text-sm'
-                        )}
-                      >
-                        Support
-                      </a>
-                    )}
-                  </Menu.Item>
-                </div>
-                <div className="py-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        className={classNames(
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'block px-4 py-2 text-sm'
-                        )}
-                      >
-                        Logout
-                      </a>
-                    )}
-                  </Menu.Item>
-                </div>
-              </Menu.Items>
-            </Transition>
-          </Menu>
+              </div>
+            </a>
+          </div>
           {/* Sidebar Search */}
-          <div className="px-3 mt-5">
+          {showCreatorNavigation && <div className="px-3 mt-5">
             <label htmlFor="search" className="sr-only">
               Search
             </label>
@@ -390,10 +269,10 @@ function DashboardShell({
                 placeholder="Search"
               />
             </div>
-          </div>
+          </div>}
           {/* Navigation */}
           <nav className="px-3 mt-6">
-            <div className="space-y-1">
+            {showCreatorNavigation && <div className="space-y-1">
               {_creatorNavigation.map((item) => (
                 <CreatorDashboardLink key={item.name}
                   href={item.href} passHref>
@@ -414,7 +293,7 @@ function DashboardShell({
                     {item.name}
                   </a></CreatorDashboardLink>
               ))}
-            </div>
+            </div>}
             <div className="mt-8">
               {/* Secondary navigation */}
               <h3
@@ -456,7 +335,7 @@ function DashboardShell({
                 <UserButton />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Tom Cook</p>
+                <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{name}</p>
               </div>
             </div>
           </div>
@@ -568,7 +447,7 @@ function DashboardShell({
                               'block px-4 py-2 text-sm'
                             )}
                           >
-                            Get desktop app
+                            Get desktop app g
                           </a>
                         )}
                       </Menu.Item>

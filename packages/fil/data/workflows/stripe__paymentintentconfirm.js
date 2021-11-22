@@ -8,7 +8,7 @@ module.exports = {
     computed: {
       canOnboardAsCreator: 'user.roles.includes("provider")',
       isAlreadyOnboarded:
-        '_.get(user, "platformData._private.finishedOnboarding", false)',
+        '_.get(user, "metadata._private.finishedOnboarding", false)',
       completedRequiredInformation:
         'user.firstname && user.lastname && user.username && user.description',
       userId: 'user.id',
@@ -22,7 +22,7 @@ module.exports = {
         stop: '!computed.canOnboardAsCreator || computed.isAlreadyOnboarded || !computed.completedRequiredInformation',
         endpointPayload: {
           displayName: 'computed.displayName',
-          platformData: {
+          metadata: {
             _private: {
               finishedOnboarding: true,
             },

@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  # Use self-signed SSL certificates for testing
+  # For production, please refer to docs/ssl-database.md
+  postgresql:
+    build:
+      context: '.'
+    ports:
+      - '6543:5432'
+    command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - timescaledb-v1.7.1-pg12-data:/var/lib/postgresql/data/pgdata
+
+volumes:
+  timescaledb-v1.7.1-pg12-data:

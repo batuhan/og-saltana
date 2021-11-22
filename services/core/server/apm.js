@@ -15,24 +15,35 @@ const defaultNbRevealedChars = 4
 const apiKeyRegex = /^((?:.+)_(?:test|live)_)(.+)$/i
 
 // https://www.elastic.co/guide/en/apm/agent/nodejs/current/agent-api.html#apm-add-filter
-apm.addFilter(payload => {
+apm.addFilter((payload) => {
   // remove sensitive header values by replacing the value by '[REDACTED]'
   const requestHeaders = _.get(payload, 'context.request.headers')
 
   if (requestHeaders) {
     if (requestHeaders['x-api-key']) {
-      requestHeaders['x-api-key'] = obfuscateSensitiveInfo(requestHeaders['x-api-key'], { prefixRegex: apiKeyRegex })
+      requestHeaders['x-api-key'] = obfuscateSensitiveInfo(
+        requestHeaders['x-api-key'],
+        { prefixRegex: apiKeyRegex },
+      )
     }
     if (requestHeaders['x-saltana-system-key']) {
-      requestHeaders['x-saltana-system-key'] = obfuscateSensitiveInfo(requestHeaders['x-saltana-system-key'])
+      requestHeaders['x-saltana-system-key'] = obfuscateSensitiveInfo(
+        requestHeaders['x-saltana-system-key'],
+      )
     }
     if (requestHeaders['x-saltana-workflow-key']) {
-      requestHeaders['x-saltana-workflow-key'] = obfuscateSensitiveInfo(requestHeaders['x-saltana-workflow-key'])
+      requestHeaders['x-saltana-workflow-key'] = obfuscateSensitiveInfo(
+        requestHeaders['x-saltana-workflow-key'],
+      )
     }
   }
 
   const userContext = _.get(payload, 'context.user')
-  if (userContext && userContext.username && apiKeyRegex.test(userContext.username)) {
+  if (
+    userContext &&
+    userContext.username &&
+    apiKeyRegex.test(userContext.username)
+  ) {
     // APM client automatically uses Authorization `username:password`
     // and sends it via user context to APM server
     delete userContext.username
@@ -41,7 +52,10 @@ apm.addFilter(payload => {
   return payload
 })
 
-function obfuscateSensitiveInfo (value, { nbRevealedChars = defaultNbRevealedChars, prefixRegex } = {}) {
+function obfuscateSensitiveInfo(
+  value,
+  { nbRevealedChars = defaultNbRevealedChars, prefixRegex } = {},
+) {
   const ellipsisChar = '…'
   let obfuscatedValue
 
@@ -61,7 +75,7 @@ function obfuscateSensitiveInfo (value, { nbRevealedChars = defaultNbRevealedCha
   return obfuscatedValue + ellipsisChar
 }
 
-function start () {
+function start() {
   if (!isActive) return
 
   // For advanced configuration: https://www.elastic.co/guide/en/apm/agent/nodejs/current/configuration.html
@@ -70,29 +84,29 @@ function start () {
     secretToken,
 
     // https://www.elastic.co/guide/en/apm/agent/nodejs/current/configuration.html#log-level
-    logLevel: 'fatal' // set to 'fatal' so APM agent won't be too chatty in stdout
+    logLevel: 'fatal', // set to 'fatal' so APM agent won't be too chatty in stdout
   })
 }
 
-function removeUndefinedValues (json) {
-  return _.pickBy(json, value => !_.isUndefined(value))
+function removeUndefinedValues(json) {
+  return _.pickBy(json, (value) => !_.isUndefined(value))
 }
 
-function getUserContextFromRequest (req) {
+function getUserContextFromRequest(req) {
   return removeUndefinedValues({
-    id: req.platformId
+    id: req.platformId,
   })
 }
 
-function getCustomContextFromRequest (req) {
+function getCustomContextFromRequest(req) {
   return removeUndefinedValues({
     selectedVersion: req._selectedVersion,
     platformVersion: req._platformVersion,
-    latestVersion: req._latestVersion
+    latestVersion: req._latestVersion,
   })
 }
 
-function getLabelsFromRequest (req) {
+function getLabelsFromRequest(req) {
   return removeUndefinedValues({
     platformId: req.platformId,
     env: req.env,
@@ -100,11 +114,11 @@ function getLabelsFromRequest (req) {
     userId: getCurrentUserId(req),
     isSystem: isSystem(req._systemHash),
     requestId: req._requestId,
-    instanceId: process.env.INSTANCE_ID
+    instanceId: process.env.INSTANCE_ID,
   })
 }
 
-function addRequestContext (apmAgent, req) {
+function addRequestContext(apmAgent, req) {
   apmAgent.setUserContext(getUserContextFromRequest(req))
   apmAgent.setCustomContext(getCustomContextFromRequest(req))
   apmAgent.addLabels(getLabelsFromRequest(req))
@@ -114,8 +128,10 @@ module.exports = {
   start,
   isActive,
 
+  apm,
+
   addRequestContext,
   getUserContextFromRequest,
   getCustomContextFromRequest,
-  getLabelsFromRequest
+  getLabelsFromRequest,
 }

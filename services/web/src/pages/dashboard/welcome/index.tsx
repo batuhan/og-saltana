@@ -280,49 +280,50 @@ export default function WelcomePage({ userData, ...props }) {
   return userData.roles.includes('provider') ? <WelcomeCreator userData={userData} {...props} /> : <NonCreator userData={userData} {...props} />
 }
 
-export const getServerSideProps: GetServerSideProps = requireSession(async ({ req, res }) => {
-  const session = await getSession({ req })
-  if (!session) {
-    res.statusCode = 403
-    return {
-      redirect: {
-        destination: `/login`,
-        permanent: false, // @TODO: This should be true
-      },
-    }
-  }
+// export const getServerSideProps: GetServerSideProps = requireSession(async ({ req, res }) => {
+//   debugger
+//   const session = await getSession({ req })
+//   if (!session) {
+//     res.statusCode = 403
+//     return {
+//       redirect: {
+//         destination: `/login`,
+//         permanent: false, // @TODO: This should be true
+//       },
+//     }
+//   }
 
-  const instance = await getSaltanaInstance(session)
+//   const instance = await getSaltanaInstance(session)
 
-  const userData = await instance.users.read(session.user.id)
+//   const userData = await instance.users.read(session.user.id)
 
-  const finishedOnboarding = _.get(userData.platformData, '_private.finishedOnboarding', false)
-  const roles = _.get(userData, 'roles', [])
-  const isCreator = roles.includes('provider')
+//   const finishedOnboarding = _.get(userData.platformData, '_private.finishedOnboarding', false)
+//   const roles = _.get(userData, 'roles', [])
+//   const isCreator = roles.includes('provider')
 
-  if (isCreator === false) {
-    return {
-      redirect: {
-        destination: '/request-invite',
-        permanent: false,
-      },
-    }
-  }
+//   if (isCreator === false) {
+//     return {
+//       redirect: {
+//         destination: '/request-invite',
+//         permanent: false,
+//       },
+//     }
+//   }
 
-  if (
-    finishedOnboarding === true
-  ) {
-    return {
-      redirect: {
-        destination: `/dashboard`,
-        permanent: false, // @TODO: This should be true
-      },
-    }
-  }
+//   if (
+//     finishedOnboarding === true
+//   ) {
+//     return {
+//       redirect: {
+//         destination: `/dashboard`,
+//         permanent: false, // @TODO: This should be true
+//       },
+//     }
+//   }
 
-  return {
-    props: {
-      userData
-    },
-  }
-})
+//   return {
+//     props: {
+//       userData
+//     },
+//   }
+// })
