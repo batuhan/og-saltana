@@ -6,7 +6,9 @@ const publicApiKey = process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY
 async function middleware(req: NextRequest, res: NextResponse) {
   // Run cors
   // await cors(req, res)
+
   const path = req.nextUrl.pathname.replace(/^\/api\/v1/, '')
+  const search = req.nextUrl.search
   const method = req.method || 'GET'
 
   const authHeaderInRequest = req.headers.get('Authorization')
@@ -33,10 +35,17 @@ async function middleware(req: NextRequest, res: NextResponse) {
     headers.authorization = `Basic ${btoa(publicApiKey + ':')}`
   }
 
-  const response = await fetch(`${CORE_API_URL}${path}`, {
+  // debugger
+  const fetchOptions: RequestInit = {
     method,
     headers: { ...headers },
-  })
+  }
+
+  if (req.body) {
+    fetchOptions.body = JSON.stringify(req.body)
+  }
+
+  const response = await fetch(`${CORE_API_URL}${path}${search}`, fetchOptions)
 
   return new Response(JSON.stringify(await response.json()), {
     status: response.status,

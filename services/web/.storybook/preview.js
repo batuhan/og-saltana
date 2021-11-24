@@ -1,7 +1,7 @@
 // .storybook/preview.js
 
 import React from 'react'
-import Providers from '../src/lib/client/Providers'
+import { ProvidersWithoutExternal } from '../src/lib/client/Providers'
 
 export const parameters = {
   actions: { argTypesRegex: '^on[A-Z].*' },
@@ -11,8 +11,8 @@ const mockPageProps = {}
 
 export const decorators = [
   (Story) => (
-    <Providers pageProps={mockPageProps}>
+    <ProvidersWithoutExternal pageProps={mockPageProps}>
       <Story />
-    </Providers>
+    </ProvidersWithoutExternal>
   ),
 ]

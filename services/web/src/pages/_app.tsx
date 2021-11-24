@@ -5,7 +5,7 @@ import { DefaultSeo } from 'next-seo'
 
 import SEO from '../../next-seo.config'
 import Providers from '@/client/Providers'
-import '../styles/globals.css'
+import '../styles/globals.scss'
 
 function App({ Component, pageProps }: AppProps) {
   return (

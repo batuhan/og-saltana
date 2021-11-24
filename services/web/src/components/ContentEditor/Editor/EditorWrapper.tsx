@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
 import {
   RichContentEditor,
   RichContentEditorProps,
@@ -60,6 +60,52 @@ import {
   pluginTextHighlight,
   createTextColorPlugin,
 } from 'wix-rich-content-plugin-text-color'
+import Uppy from '@uppy/core'
+import Webcam from '@uppy/webcam'
+import Instagram from '@uppy/instagram'
+import Url from '@uppy/url'
+import Dropbox from '@uppy/dropbox'
+import GoogleDrive from '@uppy/google-drive'
+import Facebook from '@uppy/facebook'
+import Zoom from '@uppy/zoom'
+import DragDrop from '@uppy/drag-drop'
+import UppyDashboard from '@uppy/dashboard'
+
+import ImageEditor from '@uppy/image-editor'
+import Transloadit from '@uppy/transloadit'
+import '@uppy/core/dist/style.css'
+import '@uppy/dashboard/dist/style.css'
+import '@uppy/webcam/dist/style.css'
+
+import { DashboardModal, useUppy } from '@uppy/react'
+
+const defOpts = {
+  companionUrl: Transloadit.COMPANION,
+  companionAllowedHosts: Transloadit.COMPANION_PATTERN,
+}
+
+function Uploader({ uppy, showUploader }) {
+
+  return (
+    <DashboardModal
+      uppy={uppy}
+      open={showUploader}
+      theme="dark"
+      proudlyDisplayPoweredByUppy={false}
+      plugins={[
+        'Webcam',
+        'Instagram',
+        'DragDrop',
+        'Dropbox',
+        'Facebook',
+        'Zoom',
+        'Url',
+        'ImageEditor',
+        'GoogleDrive',
+      ]}
+    />
+  )
+}
 
 // styles start
 import 'wix-rich-content-editor-common/dist/styles.min.css'
@@ -91,7 +137,7 @@ import 'wix-rich-content-plugin-collapsible-list/dist/styles.min.css'
 import 'wix-rich-content-plugin-unsupported-blocks/dist/styles.min.css'
 // styles end
 
-import { mockFileUploadFunc, mockImageNativeUploadFunc } from './fileUploadUtil'
+// import { mockFileUploadFunc, mockImageNativeUploadFunc } from './fileUploadUtil'
 import { MockVerticalSearchModule } from './verticalEmbedUtil'
 
 const { Instagram, Twitter, TikTok } = LinkPreviewProviders
@@ -100,7 +146,7 @@ const { event, booking, product } = verticalEmbedProviders
 const configs = {
   fileUpload: {
     accept: '*',
-    handleFileSelection: mockFileUploadFunc,
+    handleFileSelection: (...args) => console.trace(...args),
   },
   giphy: {
     giphySdkApiKey:
@@ -250,62 +296,130 @@ interface Props {
   experiments?: Record<string, any>
 }
 
-const MiniEditor = (props) => { }
 
-const isMobile = false
-class EditorWrapper extends React.Component<Props> {
-  static defaultProps = {
-    isMobile, //: mobileDetect.mobile() !== null,
-    toolbarSettings: { getToolbarSettings },
+const _isMobile = false
+
+function EditorWrapper({
+  isMobile: _isMobile,
+  toolbarSettings = { getToolbarSettings },
+  content,
+  injectedContent,
+  theme,
+  onChange,
+  isMobile,
+  onBlur,
+  onFocus,
+  rcProps = {},
+  experiments,
+  ...props
+}) {
+  const editorRef = useRef()
+
+  const [showUploader, setShowUploader] = useState(false)
+  const [activeUppyInstance, setActiveUppyInstance] = useState<Uppy.Uppy>(null)
+  const getToolbarProps = (type) => {
+    editorRef.current?.getToolbarProps(type)
   }
-
-  editor: RicosEditorType
-
-  getToolbarProps = (type) => this.editor.getToolbarProps(type)
-
-  editorPlugins = this.props.pluginsToDisplay
-    ? this.props.pluginsToDisplay.map((plugin) => pluginsMap[plugin])
+  const editorPlugins = props.pluginsToDisplay
+    ? props.pluginsToDisplay.map((plugin) => pluginsMap[plugin])
     : plugins
 
-  render() {
-    const {
-      content,
-      injectedContent,
-      theme,
-      onChange,
-      isMobile,
-      toolbarSettings,
-      onBlur,
-      onFocus,
-      rcProps = {},
-      experiments,
-    } = this.props
-
-    return (
-      <>
-        <RicosEditor
-          ref={(ref) => (this.editor = ref)}
-          plugins={this.editorPlugins}
-          theme={theme}
-          content={content}
-          injectedContent={injectedContent}
-          isMobile={isMobile}
-          placeholder={'Share something...'}
-          toolbarSettings={toolbarSettings}
-          onChange={onChange}
-          experiments={experiments}
-          _rcProps={rcProps}
-          onAtomicBlockFocus={(d) => console.log('onAtomicBlockFocus', d)} // eslint-disable-line
-        >
-          <RichContentEditor
-            onFocus={onFocus}
-            onBlur={onBlur}
-            helpers={{ handleFileUpload: mockImageNativeUploadFunc }}
-          />
-        </RicosEditor>
-      </>
-    )
-  }
+  // const galleryPluginUpload = useUppy(() => {
+  //   const _uppy = new Uppy({
+  //     id: 'galleryPluginUpload',
+  //     restrictions: {
+  //       allowedFileTypes: ['image/*'],
+  //     }
+  //   })
+  //     .use(Transloadit, {
+  //       params: {
+  //         auth: {
+  //           key: process.env.NEXT_PUBLIC_TRANSLOADIT_AUTH_KEY,
+  //         },
+  //         // It’s more secure to use a template_id and enable
+  //         // Signature Authentication
+  //         steps: {
+  //           resize: {
+  //             robot: '/image/resize',
+  //             width: 250,
+  //             height: 250,
+  //             resize_strategy: 'fit',
+  //             text: [
+  //               {
+  //                 text: '© Transloadit.com',
+  //                 size: 12,
+  //                 font: 'Ubuntu',
+  //                 color: '#eeeeee',
+  //                 valign: 'bottom',
+  //                 align: 'right',
+  //                 x_offset: 16,
+  //                 y_offset: -10,
+  //               },
+  //             ],
+  //           },
+  //         },
+  //       },
+  //       waitForEncoding: true,
+  //     })
+  //     .use(Webcam)
+  //     .use(DragDrop)
+  //     .use(Dropbox, defOpts)
+  //     .use(GoogleDrive, defOpts)
+  //     .use(Facebook, defOpts)
+  //     .use(Zoom, defOpts)
+  //     .use(Url, defOpts)
+  //     .use(ImageEditor, {
+  //       quality: 0.8,
+  //     })
+  //     .on('transloadit:result', (stepName, result) => {
+  //       console.log(result, _uppy.getFile(result.localId))
+  //       if (props.onTransloaditResult) {
+  //         props.onTransloaditResult(_uppy.getFile(result.localId))
+  //       }
+  //     })
+  //   return _uppy
+  // })
+  // //(property) Helpers.handleFileSelection?: (index: number, multiple: boolean, updateEntity: UpdateEntityFunc<ImageComponentData[]>, removeEntity?: undefined, componentData?: ComponentData) => void
+  // function handleFileSelection(
+  //   index: number,
+  //   multiple: boolean,
+  //   updateEntity,
+  //   removeEntity?: undefined,
+  //   componentData?,
+  // ) {
+  //   console.log('upload', {
+  //     index,
+  //     multiple,
+  //     updateEntity,
+  //     removeEntity,
+  //     componentData,
+  //   })
+  // }
+  return (
+    <>
+      <RicosEditor
+        ref={editorRef}
+        plugins={editorPlugins}
+        theme={theme}
+        content={content}
+        injectedContent={injectedContent}
+        isMobile={isMobile}
+        placeholder={'Share something...'}
+        // toolbarSettings={toolbarSettings}
+        onChange={onChange}
+        experiments={experiments}
+        _rcProps={rcProps}
+        onAtomicBlockFocus={(d) => console.log('onAtomicBlockFocus', d)} // eslint-disable-line
+      >
+        <RichContentEditor
+          onFocus={onFocus}
+          onBlur={onBlur}
+        // helpers={{ handleFileSelection }}
+        />
+      </RicosEditor>
+      {/* <Uploader /> */}
+    </>
+  )
 }
 
 export default EditorWrapper

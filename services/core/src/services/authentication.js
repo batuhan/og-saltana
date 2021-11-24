@@ -949,67 +949,65 @@ function start({ communication, serverPort, isSystem }) {
       env,
     })
 
-    const authMean = await AuthMean.query().findOne({
-      provider,
-      identifier,
-    })
-
     const knex = AuthMean.knex()
 
+    const config = await configRequester.send({
+      type: '_getConfig',
+      platformId,
+      env,
+      access: 'default',
+    })
+
     const clerkUser = await getUser(identifier)
-    console.log('clerkUser', clerkUser)
-    const shouldCreateUser = !authMean
-    if (shouldCreateUser) {
-      const config = await configRequester.send({
-        type: '_getConfig',
-        platformId,
-        env,
-        access: 'default',
-      })
-
-      const { user } = await transaction(knex, async (trx) => {
-        const createAttrs = {
-          ...diffClerkUserAndInternalUser(clerkUser),
-          id: await getObjectId({
-            prefix: User.idPrefix,
-            platformId,
-            env,
-          }),
-          roles: _.get(config, 'saltana.roles.default') || User.defaultRoles,
-        }
-        _.set(createAttrs, 'platformData.ssoProviders', [provider])
-
-        const user = await User.query(trx).insert(createAttrs)
-
-        await AuthMean.query(trx).insert({
-          id: await getObjectId({
-            prefix: AuthMean.idPrefix,
-            platformId,
-            env,
-          }),
+    const { user, isNew, updateAttrs } = await transaction(
+      knex,
+      async (trx) => {
+        const authMean = await AuthMean.query(trx).findOne({
           provider,
-          identifier, // external provider user ID
-          userId: user.id,
-          //tokens: {},
+          identifier,
         })
+        const response = {
+          user: null,
+          authMean,
+          isNew: !authMean,
+          updateAttrs: null,
+        }
 
-        return { user }
-      })
+        if (response.isNew) {
+          const createAttrs = {
+            ...diffClerkUserAndInternalUser(clerkUser),
+            id: await getObjectId({
+              prefix: User.idPrefix,
+              platformId,
+              env,
+            }),
+            roles: _.get(config, 'saltana.roles.default') || User.defaultRoles,
+          }
+          _.set(createAttrs, 'platformData.ssoProviders', [provider])
 
-      userPublisher.publish('userCreated', {
-        user,
-        eventDate: user.createdDate,
-        platformId,
-        env,
-      })
-    } else {
-      const { user, updateAttrs } = await transaction(knex, async (trx) => {
+          const user = await User.query(trx).insert(createAttrs)
+
+          const newAuthMean = await AuthMean.query(trx).insert({
+            id: await getObjectId({
+              prefix: AuthMean.idPrefix,
+              platformId,
+              env,
+            }),
+            provider,
+            identifier, // external provider user ID
+            userId: user.id,
+            //tokens: {},
+          })
+
+          return { ...response, user, authMean: newAuthMean, isNew: true }
+        }
+
         const user = await User.query(trx).findById(authMean.userId)
         if (!user) {
-          throw createError('User not found while referenced by an auth mean')
+          throw createError(
+            'User not found while referenced by an auth mean; this should not happen',
+          )
         }
-
-        let platformData
 
         const updateAttrs = diffClerkUserAndInternalUser(clerkUser, user)
 
@@ -1036,9 +1034,24 @@ function start({ communication, serverPort, isSystem }) {
         await AuthMean.query(trx).patchAndFetchById(authMean.id, {
           //  tokens: tokensToStore,
         })
-        return { user: updatedUser, updateAttrs }
-      })
+        return {
+          ...response,
+          user: updatedUser,
+          authMean,
+          isNew: false,
+          updateAttrs,
+        }
+      },
+    )
 
+    if (isNew) {
+      userPublisher.publish('userCreated', {
+        user,
+        eventDate: user.createdDate,
+        platformId,
+        env,
+      })
+    } else {
       userPublisher.publish('userUpdated', {
         newUser: user,
         updateAttrs: updateAttrs,
@@ -1048,7 +1061,7 @@ function start({ communication, serverPort, isSystem }) {
       })
     }
 
-    return { success: true }
+    return { success: true, userId: user.id, roles: user.roles }
   })
 
   responder.on('confirmPasswordReset', async (req) => {

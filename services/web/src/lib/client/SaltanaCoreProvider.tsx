@@ -7,17 +7,14 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { useCallback } from 'react'
 import { QueryClientProvider, useQuery } from 'react-query'
 import {
   createQueryClient,
   getSaltanaInstance,
-  getSaltanaInstanceSync,
   setUserData,
   sharedQueryClient,
-  sharedSaltanaInstance,
 } from './api'
-export const CurrentUserContext = createContext({})
+export const CurrentUserContext = createContext({ user: null, isLoading: true })
 
 const is =
   ({ userId, username }) =>
@@ -83,7 +80,6 @@ function SaltanaCoreProvider({ children }) {
       return
     }
 
-    const { user } = session
     async function loadUser() {
       const saltanaInstance = await getSaltanaInstance(session)
       const queryClient = createQueryClient(saltanaInstance)
@@ -98,6 +94,7 @@ function SaltanaCoreProvider({ children }) {
       const isCreator = saltanaUser.roles.includes('provider')
       const isAdmin = saltanaUser.roles.includes('admin')
 
+      const { user } = session
       const userData = {
         id: saltanaUser.id,
         clerkId: user.id,
@@ -125,13 +122,16 @@ function SaltanaCoreProvider({ children }) {
         isAdmin,
       }
 
+      return { userData, queryClient }
+
+    }
+
+    loadUser().then(({ userData, queryClient }) => {
       setCurrentUser({ ...userData })
       setUserData(queryClient, userData)
       setQueryClient(queryClient)
       setIsLoading(false)
-    }
-
-    loadUser()
+    })
 
   }, [session])
 

@@ -44,6 +44,7 @@ import useApi from 'hooks/useApi'
 import LinkView from 'components/Dashboard/Creator/Links/LinkView'
 import LinkSlideOverView from 'components/Dashboard/Creator/Links/LinkSlideOverView'
 import useCurrentUser from '@/hooks/useCurrentUser'
+import EmptyLinks from 'components/Dashboard/Creator/EmptyLinks'
 const user = {
   name: 'Tom Cook',
   imageUrl:
@@ -250,8 +251,12 @@ function CreatorDashboardLinks(props) {
 
           <DiscoverWorkflows />
         </div>
+        {links.data.length === 0 && <div className="px-4 mt-6 sm:px-6 lg:px-8">
+
+          <EmptyLinks />
+        </div>}
         {/* Pinned projects */}
-        <div className="px-4 mt-6 sm:px-6 lg:px-8">
+        {links.data.length > 0 && <div className="px-4 mt-6 sm:px-6 lg:px-8">
           <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Pinned Projects</h2>
           <ul role="list" className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 xl:grid-cols-4 mt-3">
             {pinnedProjects.map((project) => (
@@ -336,10 +341,10 @@ function CreatorDashboardLinks(props) {
               </li>
             ))}
           </ul>
-        </div>
+        </div>}
 
         {/* Projects list (only on smallest breakpoint) */}
-        <div className="mt-10 sm:hidden">
+        {links.data.length > 0 && <div className="mt-10 sm:hidden">
           <div className="px-4 sm:px-6">
             <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Projects</h2>
           </div>
@@ -369,10 +374,10 @@ function CreatorDashboardLinks(props) {
               </li>
             ))}
           </ul>
-        </div>
+        </div>}
 
         {/* Projects table (small breakpoint and up) */}
-        <div className="hidden mt-8 sm:block">
+        {links.data.length > 0 && <div className="hidden mt-8 sm:block">
           <div className="align-middle inline-block min-w-full border-b border-gray-200">
             <table className="min-w-full">
               <thead>
@@ -445,7 +450,7 @@ function CreatorDashboardLinks(props) {
               </tbody>
             </table>
           </div>
-        </div>
+        </div>}
       </main>
       <LinkSlideOverView />
     </DashboardShell>

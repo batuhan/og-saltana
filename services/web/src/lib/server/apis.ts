@@ -1,11 +1,12 @@
 import Stripe from 'stripe'
 import { createInstance } from '@saltana/sdk'
+import { sharedSaltanaConfig } from '@/common/api'
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {})
 
 export const adminApi = createInstance({
+  ...sharedSaltanaConfig,
   apiKey: process.env.SALTANA_CORE_SECRET_API_KEY,
-  apiHost: process.env.NEXT_PUBLIC_CORE_API_HOST,
 })
 
 export async function getOrCreateUserFromEmail(

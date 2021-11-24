@@ -59,10 +59,6 @@ Primary.args = {
   label: 'ContentEditor',
 }
 
-export const TextOnly = Template.bind({})
-TextOnly.args = {
-  label: 'ContentEditor',
-}
 
 export const BlocksOnly = Template.bind({})
 BlocksOnly.args = {

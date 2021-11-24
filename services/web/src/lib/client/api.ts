@@ -1,5 +1,5 @@
 import { QueryClient } from 'react-query'
-import { createInstance } from '@saltana/sdk'
+import { getSaltanaInstanceFor, sharedSaltanaInstance } from '@/common/api'
 
 export async function login(
   email,
@@ -11,18 +11,6 @@ export async function login(
   // await signIn('credentials', { callbackUrl, redirect, token })
 }
 
-export const sharedSaltanaConfig = {
-  apiKey: process.env.NEXT_PUBLIC_SALTANA_CORE_PUBLISHABLE_KEY,
-  apiHost:
-    typeof window === 'undefined'
-      ? process.env.NEXT_PUBLIC_CORE_API_HOST
-      : window.location.hostname,
-}
-
-export const sharedSaltanaInstance = createInstance({
-  ...sharedSaltanaConfig,
-})
-
 export async function getSaltanaInstance(session) {
   if (!session) {
     return sharedSaltanaInstance
@@ -30,22 +18,7 @@ export async function getSaltanaInstance(session) {
 
   const accessToken = await session.getToken()
 
-  const tokenStore = {
-    getTokens() {
-      return { accessToken }
-    },
-    setTokens(tokens) {
-      throw new Error('Not implemented')
-    },
-    removeTokens() {
-      throw new Error('Not implemented')
-    },
-  }
-
-  return createInstance({
-    ...sharedSaltanaConfig,
-    tokenStore,
-  })
+  return getSaltanaInstanceFor('clerk', accessToken)
 }
 
 export function getSaltanaInstanceSync() {

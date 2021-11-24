@@ -5,6 +5,10 @@ import { SaltanaCoreProvider } from './SaltanaCoreProvider'
 
 import { getTokens } from '@kiwicom/orbit-components'
 import { ThemeProvider } from 'styled-components'
+import { QueryClientProvider, useQuery } from 'react-query'
+import {
+  sharedQueryClient,
+} from './api'
 
 function Providers({ children, pageProps }) {
   const tokens = getTokens()
@@ -25,4 +29,21 @@ function Providers({ children, pageProps }) {
   )
 }
 
+export function ProvidersWithoutExternal({ children, pageProps }) {
+  const tokens = getTokens()
+
+  return (
+    <ThemeProvider theme={{ orbit: tokens }}>
+      <QueryClientProvider client={sharedQueryClient}>{children}
+
+        <Hydrate state={pageProps.dehydratedState}>
+          {children}
+          {process.env.NODE_ENV === 'development' && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
+        </Hydrate>
+      </QueryClientProvider>
+    </ThemeProvider>
+  )
+}
 export default Providers

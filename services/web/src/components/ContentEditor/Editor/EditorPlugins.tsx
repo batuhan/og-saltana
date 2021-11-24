@@ -782,7 +782,9 @@ const config: RichContentEditorProps['config'] = {
     // },
     accept: '*',
     // onFileSelected: mockFileNativeUploadFunc,
-    // handleFileSelection: mockFileUploadFunc,
+    handleFileSelection: (updateEntity) => {
+      console.log({ updateEntity })
+    },
   },
   [LINK_BUTTON_TYPE]: { ...buttonConfig },
   [ACTION_BUTTON_TYPE]: {
