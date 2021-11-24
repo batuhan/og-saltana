@@ -7,6 +7,7 @@ import { NextSeo } from 'next-seo'
 
 import _ from 'lodash'
 import { UserProfile } from '@clerk/nextjs'
+import getServerSidePropsForUserDashboardPages from '@/server/getServerSidePropsForUserDashboardPages'
 
 export default function DashboardUserSettings({ userId }) {
 
@@ -20,3 +21,4 @@ export default function DashboardUserSettings({ userId }) {
   )
 }
 
+export const getServerSideProps = getServerSidePropsForUserDashboardPages()

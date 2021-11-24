@@ -16,7 +16,7 @@ function Providers({ children, pageProps }) {
   return (
     <ThemeProvider theme={{ orbit: tokens }}>
       <ClerkProvider>
-        <SaltanaCoreProvider>
+        <SaltanaCoreProvider state={pageProps.coreState}>
           <Hydrate state={pageProps.dehydratedState}>
             {children}
             {process.env.NODE_ENV === 'development' && (

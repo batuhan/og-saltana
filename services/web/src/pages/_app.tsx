@@ -8,6 +8,7 @@ import Providers from '@/client/Providers'
 import '../styles/globals.scss'
 
 function App({ Component, pageProps }: AppProps) {
+  console.log("page props", { pageProps })
   return (
     <Providers pageProps={pageProps}>
       <Head>

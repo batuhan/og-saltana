@@ -10,11 +10,11 @@ import {
 } from './utils'
 
 export default class Resource {
-  constructor (saltana) {
+  constructor(saltana) {
     this._saltana = saltana
   }
 
-  _request ({ path, method, data, queryParams, options = {} }) {
+  _request({ path, method, data, queryParams, options = {} }) {
     const requestParams = {
       url: path,
       method,
@@ -35,7 +35,7 @@ export default class Resource {
       .catch(this._errorHandler)
   }
 
-  _responseHandler (res) {
+  _responseHandler(res) {
     const response = clone(res.data)
     const headers = res.headers || {}
 
@@ -49,7 +49,7 @@ export default class Resource {
     return response
   }
 
-  _errorHandler (err) {
+  _errorHandler(err) {
     if (!err.response) throw err
 
     const rawResponse = Object.assign({}, err.response)
@@ -66,14 +66,14 @@ export default class Resource {
     throw error
   }
 
-  _prepareHeaders (options) {
+  _prepareHeaders(options) {
     const apiKey = this._saltana.getApiField('key')
     const headers = {}
 
     const token = options.tokens || {}
 
     if (token.provider === 'clerk') {
-      headers.authorization = `SaltanaCore-V2 apiKey=${apiKey}, tokenType=clerk, token=${token}`
+      headers.authorization = `SaltanaCore-V2 apiKey=${apiKey}, tokenType=clerk, token=${token.token}`
     } else {
       // Migrating to 'Authorization: Basic|Bearer|SaltanaCore-V1' header
       const authorization = options.headers && options.headers.authorization // can only be Bearer token
@@ -110,7 +110,7 @@ export default class Resource {
     return pickBy(headers)
   }
 
-  getBaseURL () {
+  getBaseURL() {
     const protocol = this._saltana.getApiField('protocol')
     const host = this._saltana.getApiField('host')
     const port = this._saltana.getApiField('port')
@@ -125,7 +125,7 @@ export default class Resource {
     return baseURL
   }
 
-  static addBasicMethods (resource, { path, includeBasic = [] }) {
+  static addBasicMethods(resource, { path, includeBasic = [] }) {
     const basicMethods = getBasicMethods(path, method)
 
     includeBasic.forEach((name) => {

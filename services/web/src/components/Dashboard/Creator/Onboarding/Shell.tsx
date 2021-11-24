@@ -1,14 +1,96 @@
-import React from 'react'
 const Link = ({ to, children, ...props }) => (
   <a href={`${to}`} {...props}>
     {children}
   </a>
 )
 import Image from 'next/image'
-import OnboardingImage from '../../images/onboarding-image.jpg'
-import OnboardingDecoration from '../../images/auth-decoration.png'
+import OnboardingImage from '../../../../images/onboarding-image.jpg'
+import OnboardingDecoration from '../../../../images/auth-decoration.png'
+import useCurrentUser from '@/hooks/useCurrentUser'
+import { isUsernameUnique } from '@/client/field-validators'
+import useUpdateCurrentUser from '@/hooks/useUpdateCurrentUser'
+import _ from 'lodash'
+import { useRouter } from 'next/router'
+import { useForm } from 'react-hook-form'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { Dialog, Transition } from '@headlessui/react'
 
-function CreatorOnboardingShell({ children }) {
+import { NextSeo } from 'next-seo'
+
+
+import { GetServerSideProps } from 'next'
+
+import { dehydrate } from 'react-query/hydration'
+import { requireSession } from "@clerk/nextjs/api";
+
+import DashboardShell from 'components/Dashboard/Common/Shell'
+import FormSubmitButton from 'components/FormSubmitButton'
+import GenericFormFieldError from 'components/GenericFormFieldError'
+import {
+  createQueryClient,
+  getSaltanaInstance,
+  setUserData,
+} from '@/client/api'
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.umd'
+import * as Yup from 'yup'
+
+function CreatorOnboardingShell({ children, userData = {} }) {
+
+  const { user } = useCurrentUser()
+  console.log({ user })
+  const router = useRouter()
+  // form validation rules
+  const validationSchema = Yup.object().shape({
+    username: Yup.string().required('Username is required').min(3),
+    firstname: Yup.string().required('First name is required'),
+    lastname: Yup.string().required('Last name is required'),
+    description: Yup.string().required('Description is required'),
+  })
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+    criteriaMode: 'all',
+    defaultValues: _.pick(userData, [
+      'firstname',
+      'lastname',
+      'description',
+      'username',
+    ]),
+  })
+
+  async function onSuccess() {
+    router.push(`/dashboard`)
+  }
+
+  const updateUserSettings = useUpdateCurrentUser({ onSuccess })
+
+  async function onSubmit(data) {
+
+    try {
+      await isUsernameUnique(data.username)
+    } catch (error) {
+      setError('username', {
+        type: 'unique',
+        message: 'This username is unavailable. If you are known with this username across the web, contact us, we might be able to help.',
+      }, { shouldFocus: true })
+
+      return
+    }
+
+    try {
+      const result = await updateUserSettings.mutateAsync(data)
+      console.log("we have a result I guess", result)
+    } catch (error) {
+      //@TODO: what errors?
+      console.log("got some errors from the api", error)
+    }
+  }
+  const currentUser = useCurrentUser()
   return (
     <main className="bg-white">
       <div className="relative flex">

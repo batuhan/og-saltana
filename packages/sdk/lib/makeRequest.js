@@ -8,7 +8,7 @@ import {
   isPromise,
 } from './utils'
 
-function getRequestOpts (requestArgs, spec, tokens) {
+function getRequestOpts(requestArgs, spec, tokens) {
   const { path, method = 'GET', urlParams = [] } = spec
 
   // Don't mutate args externally.
@@ -71,7 +71,7 @@ function getRequestOpts (requestArgs, spec, tokens) {
   }
 }
 
-function handlePaginationMeta (res) {
+function handlePaginationMeta(res) {
   if (Array.isArray(res)) return res
 
   const cursorPagination = typeof res.hasNextPage !== 'undefined'
@@ -106,7 +106,7 @@ function handlePaginationMeta (res) {
   return newResponse
 }
 
-function getTokens (self) {
+function getTokens(self) {
   return Promise.resolve().then(() => {
     const apiKey = self._saltana.getApiField('key')
 
@@ -184,7 +184,7 @@ function getTokens (self) {
   })
 }
 
-function getNewAccessToken (self, refreshToken) {
+function getNewAccessToken(self, refreshToken) {
   const requestParams = {
     path: '/auth/token',
     method: 'POST',
@@ -197,7 +197,7 @@ function getNewAccessToken (self, refreshToken) {
   return self._request(requestParams).then((res) => res.accessToken)
 }
 
-export default function makeRequest (self, requestArgs, spec) {
+export default function makeRequest(self, requestArgs, spec) {
   return Promise.resolve()
     .then(() => getTokens(self))
     .then((tokens) => {
@@ -208,7 +208,7 @@ export default function makeRequest (self, requestArgs, spec) {
         method: opts.requestMethod,
         data: opts.data,
         queryParams: opts.queryParams,
-        options: { headers: opts.headers },
+        options: { headers: opts.headers, tokens: opts.tokens },
       }
 
       if (spec.beforeRequest) {

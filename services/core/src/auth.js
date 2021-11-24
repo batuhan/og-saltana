@@ -248,6 +248,7 @@ function loadStrategies(server) {
       decodedToken: {},
       isSaltanaAuthToken: false,
       isTokenExpired: true,
+      isTokenValid: false,
     }
 
     log.debug(`Auth token type: ${tokenType}`)
@@ -265,6 +266,7 @@ function loadStrategies(server) {
         data.decodedToken = checkClerkResult.decodedToken
         data.isSaltanaAuthToken = checkClerkResult.isSaltanaAuthToken
         data.isTokenExpired = checkClerkResult.isTokenExpired
+        data.isTokenValid = checkClerkResult.isTokenValid
       }
 
       if (tokenType === 'legacy') {
@@ -277,6 +279,7 @@ function loadStrategies(server) {
         data.decodedToken = checkLegacyResult.decodedToken
         data.isSaltanaAuthToken = checkLegacyResult.isSaltanaAuthToken
         data.isTokenExpired = checkLegacyResult.isTokenExpired
+        data.isTokenValid = checkLegacyResult.isTokenValid
       }
 
       if (data.isTokenExpired !== true) {

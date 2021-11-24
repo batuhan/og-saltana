@@ -31,7 +31,8 @@
     "update:sdks": "yarn pnpify --sdk",
     "devdeps:start": "docker start core_postgresql_1 core_elasticsearch_1 core_redis_1",
     "env:spread": "echo \"./services/web/ ./services/core/ ./packages/common/\" | xargs -n 1 cp -v ./.env",
-    "build:env": "sync-dotenv"
+    "env:sync": "sync-dotenv",
+    "env:build": "yarn run env:sync && yarn run env:spread"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",

@@ -4,29 +4,10 @@ import buildLoginLink from '@/server/buildLoginLink'
 import useCurrentUser from '@/hooks/useCurrentUser'
 import React, { useEffect } from 'react'
 import { SignUp, SignedIn, RedirectToSignIn, RedirectToUserProfile, SignedOut } from "@clerk/nextjs";
+import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
 
-function RedirectToPrimaryCreatorSpace() {
-  const currentUser = useCurrentUser()
-
-  useEffect(() => {
-    console.log('changed currentUser', currentUser)
-    console.log('loaded ', currentUser)
-
-
-
-  }, [currentUser])
-
+export default function Dashboard() {
   return null
 }
-export default function DashboardRedirectThingy() {
 
-  return (<>
-    <SignedIn>
-      <RedirectToPrimaryCreatorSpace />
-    </SignedIn>
-
-    <SignedOut>
-      <RedirectToSignIn />
-    </SignedOut>
-  </>)
-}
+export const getServerSideProps: GetServerSideProps = getServerSidePropsForCreatorDashboardPages()

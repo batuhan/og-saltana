@@ -1,4 +1,6 @@
+import { getSaltanaInstanceFor } from "@/common/api";
 import { useSession } from "@clerk/nextjs";
+import _ from "lodash";
 
 import React, {
   useMemo,
@@ -60,36 +62,34 @@ const EMPTY_USER_OBJECT = {
   isAdmin: false,
 }
 
-function SaltanaCoreProvider({ children }) {
+function SaltanaCoreProvider(props) {
+
+  console.log('core provider', props)
+  const { children, state } = props
   const { session } = useSession({ withAssertions: true })
 
-  const [queryClient, setQueryClient] = useState(sharedQueryClient)
-  const [currentUser, setCurrentUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const hasUserAndToken = session && state && _.isEmpty(state.token) === false
+  const defaultQueryClient = hasUserAndToken ? createQueryClient(getSaltanaInstanceFor('clerk', state.token)) : sharedQueryClient
 
+  const queryClient = useRef(defaultQueryClient)
+  const [currentUser, setCurrentUser] = useState(state.currentUser || null)
+  const [isLoading, setIsLoading] = useState(state.currentUser === null)
 
   useEffect(() => {
     setIsLoading(true)
 
     if (!session?.user) {
-
-      setQueryClient(sharedQueryClient)
+      queryClient.current = sharedQueryClient
       setCurrentUser(null)
       setIsLoading(false)
-
       return
     }
 
     async function loadUser() {
       const saltanaInstance = await getSaltanaInstance(session)
-      const queryClient = createQueryClient(saltanaInstance)
+      const queryClientForInstance = createQueryClient(saltanaInstance)
 
-      const response = await saltanaInstance.auth.loginWithClerk()
-      if (response.success !== true) {
-        throw new Error('failed to login with clerkr')
-      }
       const saltanaUser = await saltanaInstance.users.read('me')
-
 
       const isCreator = saltanaUser.roles.includes('provider')
       const isAdmin = saltanaUser.roles.includes('admin')
@@ -121,15 +121,14 @@ function SaltanaCoreProvider({ children }) {
         isCreator,
         isAdmin,
       }
+      setUserData(queryClientForInstance, userData)
 
-      return { userData, queryClient }
-
+      return { userData, queryClientForInstance }
     }
 
-    loadUser().then(({ userData, queryClient }) => {
+    loadUser().then(({ userData, queryClientForInstance }) => {
+      queryClient.current = queryClientForInstance
       setCurrentUser({ ...userData })
-      setUserData(queryClient, userData)
-      setQueryClient(queryClient)
       setIsLoading(false)
     })
 
@@ -137,7 +136,7 @@ function SaltanaCoreProvider({ children }) {
 
   return (
     <CurrentUserContext.Provider value={{ user: currentUser, isLoading }}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient.current}>{children}</QueryClientProvider>
     </CurrentUserContext.Provider>
   )
 }

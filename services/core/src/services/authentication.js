@@ -1545,11 +1545,12 @@ function start({ communication, serverPort, isSystem }) {
     const env = parsedApiKey.env
 
     if (token) {
-      const { decodedToken, isTokenExpired } = await checkAuthToken({
-        authToken: token,
-        platformId,
-        env,
-      })
+      const { decodedToken, isTokenExpired, isTokenValid } =
+        await checkAuthToken({
+          authToken: token,
+          platformId,
+          env,
+        })
 
       result.valid = !!decodedToken
 
