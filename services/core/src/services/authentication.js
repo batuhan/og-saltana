@@ -930,7 +930,7 @@ function start({ communication, serverPort, isSystem }) {
   // returns
   // This responder should be able to work without a middleware parsing out the token
   responder.on('ssoLoginWithClerk', async (req) => {
-    const { platformId, provider, token, env, identifier } = req
+    const { platformId, provider, env, identifier } = req
 
     // const { platformId, env, hasValidFormat } =
     //   parsePublicPlatformId(publicPlatformId)
@@ -966,14 +966,8 @@ function start({ communication, serverPort, isSystem }) {
           provider,
           identifier,
         })
-        const response = {
-          user: null,
-          authMean,
-          isNew: !authMean,
-          updateAttrs: null,
-        }
 
-        if (response.isNew) {
+        if (!authMean) {
           const createAttrs = {
             ...diffClerkUserAndInternalUser(clerkUser),
             id: await getObjectId({
@@ -999,7 +993,10 @@ function start({ communication, serverPort, isSystem }) {
             //tokens: {},
           })
 
-          return { ...response, user, authMean: newAuthMean, isNew: true }
+          return {
+            user,
+            isNew: true,
+          }
         }
 
         const user = await User.query(trx).findById(authMean.userId)
@@ -1025,19 +1022,17 @@ function start({ communication, serverPort, isSystem }) {
           )
         }
 
-        const updatedUser = await User.query(trx).patchAndFetchById(
+        const refetchedUser = await User.query(trx).patchAndFetchById(
           authMean.userId,
           updateAttrs,
         )
 
         // should only update last updated, maybe?
-        await AuthMean.query(trx).patchAndFetchById(authMean.id, {
-          //  tokens: tokensToStore,
-        })
+        // await AuthMean.query(trx).patchAndFetchById(authMean.id, {
+        //   //  tokens: tokensToStore,
+        // })
         return {
-          ...response,
-          user: updatedUser,
-          authMean,
+          user: { ...refetchedUser },
           isNew: false,
           updateAttrs,
         }
@@ -1061,7 +1056,7 @@ function start({ communication, serverPort, isSystem }) {
       })
     }
 
-    return { success: true, userId: user.id, roles: user.roles }
+    return { user, isNew, updateAttrs }
   })
 
   responder.on('confirmPasswordReset', async (req) => {

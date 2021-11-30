@@ -62,7 +62,7 @@ export const CHECKOUT_STATUSES = {
 }
 
 // Helpers
-async function _generatePaymentIntent(assets) {
+export async function _generatePaymentIntent(assets) {
   log.debug('calling payment intent with', assets)
 
   //  const hash = hashifyCart(assets)
@@ -110,11 +110,12 @@ async function _confirmPaymentIntent({ stripe, paymentIntent, card, email }) {
 // when the payment intent is confirmed, we can redirect the user to the success page
 // if the payment intent fails, we can show an error message
 // if the user is not logged in, we can show a login form
-export default function useCheckout({ assetIds }) {
+export default function useCheckout({ assetIds, paymentIntent }) {
+  const { user } = useCurrentUser()
   const formMethods = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      email: '',
+      email: user?.email || '',
       assetIds,
       validPaymentMethod: false,
     },
@@ -123,82 +124,19 @@ export default function useCheckout({ assetIds }) {
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
-  const [clientSecret, setClientSecret] = useState("");
 
   const [status, setStatus] = useState(CHECKOUT_STATUSES.LOADING)
   const [errorMessage, setErrorMessage] = useState(null)
   const [requiredFields, setRequiredFields] = useState([])
-  const { isLoggedIn } = useCurrentUser()
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (user?.id) {
       setRequiredFields(['whoami', 'saved-payment-methods'])
     } else {
       setRequiredFields(['email', 'payment-methods', 'saved-payment-methods'])
     }
-  }, [isLoggedIn])
-  // [GENERATE_PAYMENT_INTENT] starts
-  const generatePaymentIntent = useMutation(
-    async () =>
-      _generatePaymentIntent(assetIds.map((id) => ({ id, quantity: 1 }))),
-    {
-      onMutate: (variables) => {
-        setStatus(CHECKOUT_STATUSES.LOADING)
-      },
-      onSuccess: (data) => {
-        if (data?.paymentIntentId) {
-          // when we have a new intent, checkout form is ready
-          // @TODO: update the cart with the transaction preview
-          setStatus(CHECKOUT_STATUSES.READY)
+  }, [user])
 
-          formMethods.setValue('paymentIntent.id', data.paymentIntentId, {
-            shouldValidate: true,
-          })
-          formMethods.setValue(
-            'paymentIntent.clientSecret',
-            data.paymentIntentClientSecret,
-            { shouldValidate: true },
-          )
-
-          return
-        }
-
-        // if we don't have a payment intent, throw an error
-        throw new Error('ERROR_NO_PAYMENT_INTENT')
-      },
-      onError: (error) => {
-        log.warn('we have an error generating payment intent', error)
-
-        switch (error.message) {
-          case 'Asset not validated':
-            setStatus(CHECKOUT_STATUSES.ERROR)
-            setErrorMessage('ERROR_ASSET_NOT_VALIDATED')
-            break
-          default:
-            setStatus(CHECKOUT_STATUSES.ERROR)
-            setErrorMessage('ERROR_GENERATING_PAYMENT_INTENT')
-        }
-      },
-    },
-  )
-
-  // get a new payment intent every time items in the cart are changed
-  useEffect(() => {
-    log.debug(
-      'generating payment intent',
-      assetIds,
-      generatePaymentIntent.status,
-    )
-
-    if (_.isEmpty(assetIds)) {
-      return
-    }
-
-    if (generatePaymentIntent.status === 'idle') {
-      generatePaymentIntent.mutate()
-    }
-  }, [assetIds, generatePaymentIntent.status])
-  // [GENERATE_PAYMENT_INTENT] ends
 
   // [PAYMENT_INTENT_PROCESSING] starts
   const processPaymentIntent = useMutation(
@@ -209,7 +147,7 @@ export default function useCheckout({ assetIds }) {
 
       return _processPaymentIntent({
         email,
-        paymentIntentId: generatePaymentIntent.data.paymentIntentId,
+        paymentIntentId: paymentIntent.data.paymentIntentId,
         assets: assetIds.map((id) => ({ id, quantity: 1 })),
       })
     },
@@ -241,7 +179,7 @@ export default function useCheckout({ assetIds }) {
       const result = await _confirmPaymentIntent({
         stripe,
         card: elements.getElement(CardElement),
-        paymentIntent: generatePaymentIntent.data,
+        paymentIntent: paymentIntent.data,
         email,
       })
 
@@ -269,14 +207,14 @@ export default function useCheckout({ assetIds }) {
   }
 
   function onPaymentMethodChange({
-    elementType,
+
     error,
     value,
     empty,
     complete,
   }) {
     log.debug('onPaymentMethodChange', {
-      elementType,
+
       error,
       value,
       empty,
@@ -299,7 +237,7 @@ export default function useCheckout({ assetIds }) {
   }, [])
 
   const { transactions, totalAmount, currency } =
-    generatePaymentIntent.data || {
+    paymentIntent.data || {
       transactions: [],
       totalAmount: 0,
       currency: 'USD',

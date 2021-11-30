@@ -1,5 +1,6 @@
-import { getSaltanaInstanceFor } from "@/common/api";
+import { getSaltanaInstanceFor, sharedSaltanaInstance } from "@/common/api";
 import { useSession } from "@clerk/nextjs";
+import ErrorPage from "components/ErrorPage";
 import _ from "lodash";
 
 import React, {
@@ -16,7 +17,7 @@ import {
   setUserData,
   sharedQueryClient,
 } from './api'
-export const CurrentUserContext = createContext({ user: null, isLoading: true })
+export const CurrentUserContext = createContext({ user: null, instance: sharedSaltanaInstance, isLoaded: false })
 
 const is =
   ({ userId, username }) =>
@@ -36,106 +37,110 @@ const is =
       return false
     }
 
-const EMPTY_USER_OBJECT = {
-  id: null,
-  primaryEmailAddress: null,
-  primaryPhoneNumber: null,
-  username: null,
-  fullName: null,
-  firstName: null,
-  lastName: null,
-  profileImageUrl: null,
+function _hasUserAndToken(coreState, session): boolean {
+  const checks = [
+    _.get(session, 'user.id', null),
+    _.get(coreState, 'token', null),
+  ]
 
-  displayName: null,
-  description: null,
-
-  passwordEnabled: false,
-  clerkMetadata: {},
-
-  platformData: {},
-  roles: [],
-  metadata: {},
-
-  createdAt: null,
-
-  isCreator: false,
-  isAdmin: false,
+  return checks.every(check => _.isEmpty(check) === false)
 }
 
 function SaltanaCoreProvider(props) {
-
-  console.log('core provider', props)
-  const { children, state } = props
+  const { children, state = {} } = props
   const { session } = useSession({ withAssertions: true })
 
-  const hasUserAndToken = session && state && _.isEmpty(state.token) === false
-  const defaultQueryClient = hasUserAndToken ? createQueryClient(getSaltanaInstanceFor('clerk', state.token)) : sharedQueryClient
+  const hasUserAndToken = _hasUserAndToken(state, session)
+  const initialInstance = hasUserAndToken ? getSaltanaInstanceFor('clerk', state.token) : sharedSaltanaInstance
+  const initialQueryClient = hasUserAndToken ? createQueryClient(initialInstance) : sharedQueryClient
 
-  const queryClient = useRef(defaultQueryClient)
-  const [currentUser, setCurrentUser] = useState(state.currentUser || null)
+  const queryClient = useRef(initialQueryClient)
+  const saltanaInstance = useRef(initialInstance)
+  const currentUser = useRef(state.currentUser || null)
+
   const [isLoading, setIsLoading] = useState(state.currentUser === null)
+  const [errorWhenLoadingUser, setErrorWhenLoadingUser] = useState(null)
 
   useEffect(() => {
     setIsLoading(true)
+    const hasUser = _hasUserAndToken(state, session)
 
-    if (!session?.user) {
+    if (hasUser === false) {
       queryClient.current = sharedQueryClient
-      setCurrentUser(null)
+      saltanaInstance.current = sharedSaltanaInstance
+      currentUser.current = null
       setIsLoading(false)
       return
     }
 
     async function loadUser() {
-      const saltanaInstance = await getSaltanaInstance(session)
-      const queryClientForInstance = createQueryClient(saltanaInstance)
+      const instance = await getSaltanaInstance(session)
+      const queryClientForInstance = createQueryClient(instance)
 
-      const saltanaUser = await saltanaInstance.users.read('me')
+      try {
+        const saltanaUser = await instance.users.read('me')
+        const isCreator = saltanaUser.roles.includes('provider')
+        const isAdmin = saltanaUser.roles.includes('admin')
 
-      const isCreator = saltanaUser.roles.includes('provider')
-      const isAdmin = saltanaUser.roles.includes('admin')
+        const { user } = session
+        const userData = {
+          id: saltanaUser.id,
+          clerkId: user.id,
+          email: user.primaryEmailAddress.emailAddress,
+          primaryPhoneNumber: user.primaryPhoneNumber,
+          username: user.username,
+          fullName: user.fullName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: saltanaUser.profileImageUrl,
 
-      const { user } = session
-      const userData = {
-        id: saltanaUser.id,
-        clerkId: user.id,
-        email: user.primaryEmailAddress.emailAddress,
-        primaryPhoneNumber: user.primaryPhoneNumber,
-        username: user.username,
-        fullName: user.fullName,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profileImageUrl: saltanaUser.profileImageUrl,
+          displayName: saltanaUser.displayName,
+          description: saltanaUser.description,
 
-        displayName: saltanaUser.displayName,
-        description: saltanaUser.description,
+          passwordEnabled: user.passwordEnabled,
+          clerkMetadata: user.publicMetadata,
 
-        passwordEnabled: user.passwordEnabled,
-        clerkMetadata: user.publicMetadata,
+          platformData: saltanaUser.platformData,
+          roles: saltanaUser.roles,
+          metadata: saltanaUser.metadata,
 
-        platformData: saltanaUser.platformData,
-        roles: saltanaUser.roles,
-        metadata: saltanaUser.metadata,
+          createdAt: saltanaUser.createdAt,
 
-        createdAt: saltanaUser.createdAt,
+          isCreator,
+          isAdmin,
+        }
 
-        isCreator,
-        isAdmin,
+        setUserData(queryClientForInstance, userData)
+
+        return { userData, queryClientForInstance, instance }
+      } catch (error) {
+        queryClient.current = sharedQueryClient
+        saltanaInstance.current = sharedSaltanaInstance
+        currentUser.current = null
+        setIsLoading(false)
+        setErrorWhenLoadingUser(error)
+        return {}
       }
-      setUserData(queryClientForInstance, userData)
 
-      return { userData, queryClientForInstance }
     }
 
-    loadUser().then(({ userData, queryClientForInstance }) => {
+    loadUser().then(({ userData, queryClientForInstance, instance }) => {
       queryClient.current = queryClientForInstance
-      setCurrentUser({ ...userData })
+      saltanaInstance.current = instance
+      currentUser.current = userData
+
       setIsLoading(false)
     })
 
-  }, [session])
+  }, [session, state])
 
+
+  if (errorWhenLoadingUser !== null) {
+    console.error(errorWhenLoadingUser)
+    return <ErrorPage statusCode={500} />
+  }
   return (
-    <CurrentUserContext.Provider value={{ user: currentUser, isLoading }}>
+    <CurrentUserContext.Provider value={{ user: currentUser.current, instance: saltanaInstance.current, isLoading }}>
       <QueryClientProvider client={queryClient.current}>{children}</QueryClientProvider>
     </CurrentUserContext.Provider>
   )

@@ -45,6 +45,7 @@ import LinkView from 'components/Dashboard/Creator/Links/LinkView'
 import LinkSlideOverView from 'components/Dashboard/Creator/Links/LinkSlideOverView'
 import useCurrentUser from '@/hooks/useCurrentUser'
 import EmptyLinks from 'components/Dashboard/Creator/EmptyLinks'
+import { GetServerSideProps } from 'next'
 const user = {
   name: 'Tom Cook',
   imageUrl:
@@ -202,7 +203,7 @@ function CreatorAddNewButton() {
     </Listbox>
   )
 }
-export default withUser(CreatorDashboardLinks)
+
 function CreatorDashboardLinks(props) {
   console.log("creator dashobard links props", props)
   const { user } = useCurrentUser()
@@ -456,3 +457,7 @@ function CreatorDashboardLinks(props) {
     </DashboardShell>
   )
 }
+
+
+export default withUser(CreatorDashboardLinks)
+export const getServerSideProps: GetServerSideProps = getServerSidePropsForCreatorDashboardPages()

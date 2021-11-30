@@ -660,12 +660,12 @@ function OrderNew2() {
 }
 
 export const CreatorDashboardOrders = () => {
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
   const ordersQuery = useApi(
     'orders',
     'list',
     {
-      receiverId: user.data?.id,
+      receiverId: user?.id,
       nbResultsPerPage: 100,
     },
     { enabled: user.isLoggedIn },

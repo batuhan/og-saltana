@@ -26,7 +26,7 @@ const Uploader = dynamic(
 )
 
 function CustomizeCreatorSpace() {
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
   const router = useRouter()
 
   const {
@@ -37,7 +37,7 @@ function CustomizeCreatorSpace() {
     formState: { errors, isSubmitting, isDirty },
   } = useForm({
     defaultValues: {
-      ..._.pick(user.data, [
+      ..._.pick(user, [
         'firstname',
         'lastname',
         'description',
@@ -45,7 +45,7 @@ function CustomizeCreatorSpace() {
         'displayName',
       ]),
       metadata: {
-        instant: _.pick(user.data?.metadata?.instant || {}, [
+        instant: _.pick(user?.metadata?.instant || {}, [
           'avatarUrl',
           'coverUrl',
         ]),

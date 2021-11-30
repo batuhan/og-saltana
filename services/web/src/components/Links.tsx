@@ -41,7 +41,7 @@ export function CurrentCreatorSpaceLink({ children, href = '', ...props }) {
 }
 
 export function DefaultLink({ children, ...props }) {
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
 
   if (!user) {
     // if a guest, go to homepage

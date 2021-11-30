@@ -478,16 +478,18 @@ export const CreatorDashboardAssets = () => {
 }
 
 export const getServerSideProps = getServerSidePropsForCreatorDashboardPages(
-  async ({ session, instance, queryClient }) => {
+  async ({ currentUser, instance, queryClient }) => {
     const query = {
-      ownerId: session.user.id,
+      ownerId: currentUser?.id,
       nbResultsPerPage: 100,
     }
     const assets = await instance.assets.list(query)
 
     queryClient.setQueryData(['assets', 'list', query], assets)
 
-    return {}
+    return {
+      queryClient
+    }
   },
 )
 

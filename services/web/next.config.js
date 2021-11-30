@@ -69,7 +69,7 @@ const CREATOR_SPACE_REWRITES = {
 
     ...addCreatorSpaceMatchers({
       source: '/',
-      destination: '/spaces/:domain/home',
+      destination: '/spaces/:domain/index',
     }),
     ...addCreatorSpaceMatchers({
       source: '/:link/:orderId',

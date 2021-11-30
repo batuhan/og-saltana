@@ -51,12 +51,12 @@ export async function getSaltanaInstanceFromContext({ req }) {
   }
 
   const instance = getSaltanaInstanceFor('clerk', token)
-  try {
-    await instance.auth.loginWithClerk() //@TODO: should not be here EVER
-  } catch (err) {
-    console.log('Error when verifying token from Clerk', err)
-    throw err
-  }
+  // try {
+  //   await instance.auth.loginWithClerk() //@TODO: should not be here EVER
+  // } catch (err) {
+  //   console.log('Error when verifying token from Clerk', err)
+  //   throw err
+  // }
 
   return instance
 }

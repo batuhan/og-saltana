@@ -226,7 +226,7 @@ function OrdersList({ data }) {
 }
 
 export default function MyPurchases() {
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
   const ordersQuery = useApi(
     'orders',
     'list',

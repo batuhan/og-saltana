@@ -16,12 +16,12 @@ export default function useAssets(data = {}, params = {}) {
 
 // My Assets
 export function useMyAssets(queryData = {}, params = {}) {
-  const { isLoggedIn, data } = useCurrentUser()
+  const { user } = useCurrentUser()
 
   return useAssets(
-    { ownerId: data.id },
+    { ownerId: user?.id },
     {
-      enabled: isLoggedIn && data?.id ? true : false,
+      enabled: user && user.id ? true : false,
       ...params,
     },
   )

@@ -12,7 +12,7 @@ const isLink = (routerQuery) => typeof routerQuery.link === 'string' && routerQu
 export default function LinkSlideOverView({ }) {
 
   const router = useRouter()
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
 
   const [open, setOpen] = useState(isLink(router.query))
 
@@ -20,7 +20,7 @@ export default function LinkSlideOverView({ }) {
     setOpen(isLink(router.query))
   }, [router.query])
 
-  const onClose = () => router.push(`/dashboard/${user.data.username}/links`)
+  const onClose = () => router.push(`/dashboard/${user.username}/links`)
   const linkId = router.query.link
   const link = useApi('links', 'read', linkId, {
     initialData: {},

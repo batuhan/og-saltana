@@ -16,10 +16,6 @@ const { performListQuery } = require('../util/listQueryBuilder')
 
 const { getCurrentUserId, getRealCurrentUserId } = require('../util/user')
 
-const {
-  getUser: getClerkUser,
-  diffClerkUserAndInternalUser,
-} = require('../external-services/clerk')
 const { query } = require('../models/Base')
 
 let responder
@@ -231,14 +227,19 @@ function start({ communication }) {
 
     return paginationMeta
   })
+
   responder.on('read', async (req) => {
     const platformId = req.platformId
     const env = req.env
     const { User } = await getModels({ platformId, env })
 
     const currentUserId = getCurrentUserId(req)
-    const userId = req.userId === 'me' ? currentUserId : req.userId
 
+    if (_.isEmpty(currentUserId) === true && req.userId === 'me') {
+      throw createError(403, 'You must be logged in to read your own user')
+    }
+
+    const userId = req.userId === 'me' ? currentUserId : req.userId
     const user = await User.query()
       .where('id', userId)
       .orWhere('username', userId)

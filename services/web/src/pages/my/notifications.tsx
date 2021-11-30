@@ -6,7 +6,7 @@ import DashboardShell from 'components/Dashboard/Common/Shell'
 import { NextSeo } from 'next-seo'
 
 export default function MyNotifications() {
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
   const ordersQuery = useApi(
     'orders',
     'list',

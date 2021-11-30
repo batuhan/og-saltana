@@ -34,7 +34,7 @@ function getUser(userId) {
 
 const fieldMap = {
   // clerkField: internalUserField
-  username: 'username',
+  // username: 'username',
   'emailAddresses.0.emailAddress': 'email',
   firstName: 'firstname',
   lastName: 'lastname',

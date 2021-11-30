@@ -108,67 +108,41 @@ async function checkClerkAuthToken({
 }) {
   const apmSpan = apm.startSpan(apmLabel)
 
-  const data = {
-    decodedToken: {},
-    isSaltanaAuthToken: true,
-    isTokenExpired: true,
-    isTokenValid: false,
-  }
-
   try {
     // verify & decode the token
     const decodedToken = await verifyClerkToken(authToken)
     const clerkUserId = decodedToken.sub
 
     if (!clerkUserId) {
-      throw Error('No Clerk User ID was given')
+      throw Error('No provider user ID in the given token')
     }
 
-    // fetch the internal user via authmean
-    const authMean = await authenticationRequester.send({
-      type: '_getAuthMean',
+    const { user, isNew, updateAttrs } = await authenticationRequester.send({
+      type: 'ssoLoginWithClerk',
       platformId,
       env,
       identifier: clerkUserId,
       provider: 'clerk',
     })
 
-    if (!authMean) {
-      log.debug(
-        'No auth mean found for the Clerk user, probably means there is no internal user',
-      )
+    // We'll have a way to cache the user's data in the future so
+    // it's good not to depend on the full user object.
+
+    return {
+      user: {
+        id: user.id,
+        roles: user.roles,
+      },
+      providerId: clerkUserId,
     }
-
-    const internalUserId = authMean?.userId || null
-
-    //decodedToken._internalUser = internalUser
-
-    data.decodedToken = {
-      ...decodedToken,
-      _providerSub: clerkUserId,
-      sub: internalUserId,
-    }
-    data.isSaltanaAuthToken = true
-    data.isTokenValid = true
-    data.isTokenExpired = false
   } catch (err) {
-    if (err && err?.name === 'TokenExpiredError') {
-      isTokenExpired = true
-      data.isTokenValid = true // token could be signed correctly and be expired
-    } else {
-      data.isTokenValid = false
-    }
-    // this might cause too much logging
     logError(err)
+    throw err
     // if (err && process.env.NODE_ENV === 'test') {
     //   logError(err)
     // }
   } finally {
     apmSpan && apmSpan.end()
-  }
-
-  return {
-    ...data,
   }
 }
 
@@ -187,12 +161,7 @@ async function checkAuthToken({
 }) {
   const apmSpan = apm.startSpan(apmLabel)
 
-  const data = {
-    decodedToken: {},
-    isSaltanaAuthToken: true,
-    isTokenExpired: true,
-    isTokenValid: false,
-  }
+  const data = {}
 
   const options = {}
 
@@ -205,21 +174,23 @@ async function checkAuthToken({
       env,
     })
 
-    jwt.verify(authToken, secret, options, (err, decoded) => {
-      if (err && err.name === 'TokenExpiredError') {
-        data.isTokenExpired = true
-      }
-      data.decodedToken = decoded
-      if (err && !isTokenExpired) {
-        throw err
-      }
-      data.isTokenValid = true
+    const decodedToken = await new Promise((resolve, reject) => {
+      jwt.verify(authToken, secret, options, (err, decoded) => {
+        if (err) {
+          return reject(err)
+        }
+        resolve(decoded)
+      })
     })
+
+    data.user = {
+      id: decodedToken.sub,
+      roles: decodedToken.roles,
+    }
   } catch (err) {
     if (err && process.env.NODE_ENV === 'test') {
       logError(err)
     }
-    data.isTokenValid = false
   } finally {
     apmSpan && apmSpan.end()
   }
@@ -227,6 +198,37 @@ async function checkAuthToken({
   return {
     ...data,
   }
+}
+
+const TOKEN_VALIDATORS = {
+  clerk: checkClerkAuthToken,
+  legacy: checkAuthToken,
+}
+
+/**
+ * Check if the passed JWT auth token is valid and not expired
+ * @param {String} token
+ * @param {String} tokenType
+ * @param {String} platformId
+ * @param {String} env
+ */
+async function tokenValidator({
+  token,
+  tokenType = 'legacy',
+  platformId,
+  env,
+}) {
+  const validator = TOKEN_VALIDATORS[tokenType]
+  if (!validator) {
+    throw Error(`Invalid token type: ${tokenType}`)
+  }
+  const validationResult = await validator({
+    authToken: token,
+    platformId,
+    env,
+  })
+
+  return validationResult
 }
 
 function loadStrategies(server) {
@@ -242,58 +244,29 @@ function loadStrategies(server) {
 
     const tokenType = _.get(req, 'authorization.tokenType', 'legacy')
 
-    const data = {
-      token: req.authorization.token,
-      tokenType,
-      decodedToken: {},
-      isSaltanaAuthToken: false,
-      isTokenExpired: true,
-      isTokenValid: false,
-    }
-
-    log.debug(`Auth token type: ${tokenType}`)
     try {
-      if (tokenType === 'clerk') {
-        // verify the token
-        // fetch the internal user id
-        const checkClerkResult = await checkClerkAuthToken({
-          authToken: req.authorization.token,
-          platformId: req.platformId,
-          env: req.env,
-          getModels: req.getModels,
-        })
+      const validatorResult = await tokenValidator({
+        tokenType,
+        token: req.authorization.token,
+        platformId: req.platformId,
+        env: req.env,
+      })
 
-        data.decodedToken = checkClerkResult.decodedToken
-        data.isSaltanaAuthToken = checkClerkResult.isSaltanaAuthToken
-        data.isTokenExpired = checkClerkResult.isTokenExpired
-        data.isTokenValid = checkClerkResult.isTokenValid
+      if (!validatorResult.user) {
+        debugger
       }
 
-      if (tokenType === 'legacy') {
-        const checkLegacyResult = await checkAuthToken({
-          authToken: req.authorization.token,
-          platformId: req.platformId,
-          env: req.env,
-        })
-
-        data.decodedToken = checkLegacyResult.decodedToken
-        data.isSaltanaAuthToken = checkLegacyResult.isSaltanaAuthToken
-        data.isTokenExpired = checkLegacyResult.isTokenExpired
-        data.isTokenValid = checkLegacyResult.isTokenValid
+      req.auth = {
+        sub: validatorResult.user.id,
+        roles: validatorResult.user.roles,
       }
 
-      if (data.isTokenExpired !== true) {
-        req.auth = data.decodedToken
-        req._saltanaAuthToken = data.isSaltanaAuthToken
-      }
+      req._saltanaAuthToken = true
 
-      log.debug(`Auth token is valid: ${data.isTokenValid}`)
-      log.debug(`Auth token is expired: ${data.isTokenExpired}`)
-      log.debug(`Saltana auth token: ${data.isSaltanaAuthToken}`)
-      log.debug(`Auth token decoded: ${JSON.stringify(data.decodedToken)}`)
       next()
     } catch (err) {
       logError(err)
+      req._saltanaAuthToken = false
       next(err)
     }
   })

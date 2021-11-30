@@ -24,32 +24,43 @@ const getServerSidePropsForUserDashboardPages =
     const token = parseTokenFromReq(context.req)
     const instance = getSaltanaInstanceFor('clerk', token)
 
-    const currentUser = await instance.users.read('me')
+    try {
+      const currentUser = await instance.users.read('me')
 
-    const queryClient = createQueryClient(instance)
+      const queryClient = createQueryClient(instance)
 
-    setUserData(queryClient, currentUser)
+      setUserData(queryClient, currentUser)
 
-    const coreState = {
-      currentUserId: currentUser?.id,
-      currentUser: currentUser,
-      token,
-      provider: 'clerk',
-    }
+      const coreState = {
+        currentUserId: currentUser?.id,
+        currentUser: currentUser,
+        token,
+        provider: 'clerk',
+      }
 
-    const props = await extendPropsFn({
-      coreState,
-      instance,
-      queryClient,
-      context,
-    })
-
-    return {
-      props: {
-        ...props,
+      const props = await extendPropsFn({
         coreState,
-        dehydratedState: dehydrate(queryClient),
-      },
+        instance,
+        queryClient,
+        context,
+      })
+
+      return {
+        props: {
+          ...props,
+          coreState,
+          dehydratedState: dehydrate(queryClient),
+        },
+      }
+    } catch (error) {
+      console.log('Error when getting props for user dashboard pages', error)
+
+      return {
+        props: {
+          coreState: {},
+          dehydratedState: {},
+        },
+      }
     }
   }
 

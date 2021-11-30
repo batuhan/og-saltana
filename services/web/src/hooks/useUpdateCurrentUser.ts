@@ -1,14 +1,12 @@
 import { useQueryClient, useMutation } from 'react-query'
-import { getSaltanaInstance } from '@/client/api'
 import useCurrentUser from './useCurrentUser'
 
 // Update current user
 export default function useUpdateCurrentUser(opts = {}) {
-  const user = useCurrentUser()
+  const { user, instance } = useCurrentUser()
   const queryClient = useQueryClient()
   const updateUserSettings = useMutation(
-    async (data) =>
-      (await getSaltanaInstance()).users.update(user.data.id, data),
+    async (data) => instance.users.update(user.id, data),
     {
       onSuccess: async () => {
         await queryClient.invalidateQueries('users')
@@ -16,7 +14,7 @@ export default function useUpdateCurrentUser(opts = {}) {
           await opts.onSuccess()
         }
       },
-    }
+    },
   )
 
   return updateUserSettings

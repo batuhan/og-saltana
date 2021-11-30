@@ -7,13 +7,3 @@ export async function isLinkSlugUnique(slug: string) {
   })
   return slugAvailabilityResponse
 }
-
-export async function isUsernameUnique(username: string) {
-  console.log('triggered username check')
-
-  const saltana = await getSaltanaInstance()
-  const usernameAvailabilityResponse = await saltana.users.checkAvailability({
-    username,
-  })
-  return usernameAvailabilityResponse
-}
