@@ -13,7 +13,7 @@ function TransactionLine({
   const [open, setOpen] = useState(false);
 
   return (
-    <tbody className="text-sm">
+    <>
       <tr>
         <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
           <div className="flex items-center text-gray-800">
@@ -42,11 +42,6 @@ function TransactionLine({
           </div>
         </td>
       </tr>
-      {/*
-      Example of content revealing when clicking the button on the right side:
-      Note that you must set a "colSpan" attribute on the <td> element,
-      and it should match the number of columns in your table
-      */}
       <tr id={`description-${id}`} role="region" className={`${!open && 'hidden'}`}>
         <td colSpan={10} className="px-2 first:pl-5 last:pr-5 py-3">
           <div className="flex items-center bg-gray-50 p-3 -mt-3">
@@ -57,16 +52,18 @@ function TransactionLine({
           </div>
         </td>
       </tr>
-    </tbody>
+    </>
   );
 }
 
 export default function OrderSummary({ totalAmount, transactions }) {
   return (
     <table className="table-auto w-full divide-y divide-gray-200">
-      {transactions.map((transaction) => (
-        <TransactionLine key={transaction.id} {...transaction} />
-      ))}
+      <tbody className="text-sm">
+        {transactions.map((transaction) => (
+          <TransactionLine {...transaction} key={transaction.id} />
+        ))}
+      </tbody>
     </table>
   )
 }

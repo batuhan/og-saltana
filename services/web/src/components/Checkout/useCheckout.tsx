@@ -19,7 +19,6 @@ import Logger from '@/common/logger'
 import { useRouter } from 'next/router'
 import { generateOrderLink } from '@/common/utils'
 import useCurrentUser from '@/hooks/useCurrentUser'
-import getStripe from '@/client/stripe'
 
 const log = Logger('useCheckout')
 // creates a hash for the cart contents
@@ -32,14 +31,13 @@ function hashifyCart(items = []) {
 const checkoutApi = axios.create({
   baseURL: '/api/methods/checkout',
 })
-
+export function validateEmail(email) {
+  const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
 const schema = yup.object().shape({
   email: yup.string().email().required(),
-  paymentIntent: yup.object().shape({
-    id: yup.string().required().min(5),
-    clientSecret: yup.string().required().min(5),
-  }),
-  validPaymentMethod: yup.mixed().oneOf([true]).required(),
+  validPaymentMethod: yup.mixed().oneOf([true, 'true']).required(),
 })
 
 export const CARD_OPTIONS = {
@@ -113,7 +111,8 @@ async function _confirmPaymentIntent({ stripe, paymentIntent, card, email }) {
 export default function useCheckout({ assetIds, paymentIntent }) {
   const { user } = useCurrentUser()
   const formMethods = useForm({
-    resolver: yupResolver(schema),
+    // resolver: yupResolver(schema),
+    mode: 'onChange',
     defaultValues: {
       email: user?.email || '',
       assetIds,
@@ -129,6 +128,7 @@ export default function useCheckout({ assetIds, paymentIntent }) {
   const [errorMessage, setErrorMessage] = useState(null)
   const [requiredFields, setRequiredFields] = useState([])
 
+  const [isPaymentMethodValid, setIsPaymentMethodValid] = useState(false)
   useEffect(() => {
     if (user?.id) {
       setRequiredFields(['whoami', 'saved-payment-methods'])
@@ -221,19 +221,21 @@ export default function useCheckout({ assetIds, paymentIntent }) {
       complete,
     })
 
-    if (error && error.message) {
-      formMethods.setError('validPaymentMethod', error)
-    } else {
-      formMethods.clearErrors('validPaymentMethod')
+    if (empty) {
+      return
     }
 
     formMethods.setValue('validPaymentMethod', complete, {
       shouldValidate: true,
     })
+
   }
 
   useEffect(() => {
-    formMethods.register('validPaymentMethod')
+    formMethods.register('validPaymentMethod', {
+      required: true,
+      validate: (value) => !!value
+    })
   }, [])
 
   const { transactions, totalAmount, currency } =
