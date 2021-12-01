@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken, withSession } from '@clerk/nextjs/edge'
 import buildLoginLink from '@/server/buildLoginLink'
 
-async function verifySession(req: NextRequest) {
+export default async function verifySession(req: NextRequest) {
   const token = req.cookies?.__session || null
 
   const resolvedUrl = req.nextUrl.href
@@ -20,5 +20,3 @@ async function verifySession(req: NextRequest) {
     return NextResponse.redirect(loginLink, 302)
   }
 }
-
-export default verifySession

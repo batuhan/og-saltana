@@ -1,5 +1,4 @@
 import { DefaultLink } from 'components/Links'
-import Link from 'next/link'
 import { NextSeo } from 'next-seo'
 
 export default function ErrorPage({ statusCode }) {
