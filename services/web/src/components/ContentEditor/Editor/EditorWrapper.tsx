@@ -140,7 +140,6 @@ import 'wix-rich-content-plugin-unsupported-blocks/dist/styles.min.css'
 // import { mockFileUploadFunc, mockImageNativeUploadFunc } from './fileUploadUtil'
 import { MockVerticalSearchModule } from './verticalEmbedUtil'
 
-const { Instagram, Twitter, TikTok } = LinkPreviewProviders
 const { event, booking, product } = verticalEmbedProviders
 
 const configs = {
@@ -155,7 +154,7 @@ const configs = {
   },
   linkPreview: {
     fetchData: mockFetchUrlPreviewData(),
-    exposeEmbedButtons: [Instagram, Twitter, TikTok],
+    exposeEmbedButtons: [LinkPreviewProviders.Instagram, LinkPreviewProviders.Twitter, LinkPreviewProviders.TikTok],
   },
   verticalEmbed: {
     exposeEmbedButtons: [product, event, booking],

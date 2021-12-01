@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken, withSession } from '@clerk/nextjs/edge'
-import _ from 'lodash'
-import { adminApi } from '@/server/apis'
 import buildLoginLink from '@/server/buildLoginLink'
-import COMMON_LINKS from '@/common/common-links'
-import { getSaltanaInstanceFor } from '@/common/api'
 
 async function verifySession(req: NextRequest) {
-  const token = _.get(req, 'cookies.__session', null)
+  const token = req.cookies?.__session || null
+
   const resolvedUrl = req.nextUrl.href
   const loginLink = buildLoginLink({ resolvedUrl })
 
@@ -16,7 +13,8 @@ async function verifySession(req: NextRequest) {
   }
 
   try {
-    await verifyToken(token)
+    const verifiedToken = await verifyToken(token)
+    console.log('verifiedToken', verifiedToken)
   } catch (err) {
     console.log('Error when verifying token from Clerk', err)
     return NextResponse.redirect(loginLink, 302)
