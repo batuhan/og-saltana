@@ -45,7 +45,6 @@
     "bcrypt": "^5.0.1",
     "big.js": "^6.1.1",
     "bluebird": "^3.7.2",
-    "canihazusername": "^2.2.0",
     "cheerio": "^1.0.0-rc.10",
     "clean-deep": "^3.4.0",
     "cote": "1.0.3",
