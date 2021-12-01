@@ -1,6 +1,0 @@
-471d22e75f8f3a54b3720f1e37ce284eace4904a 43868126 awscliv2.zip
-da26a5e2f6a9ad398b6a86dc01cd431f8a26b0d8 163987456 terraform-provider-aws_v3.12.0_x5
-eb7c67a5bd23db7283966766609a8343f29d9dc7 51994624 terraform-provider-helm_v1.3.2_x4
-49dee829e1cf591051559144ec3f077d3b40f10c 43667456 terraform-provider-k8s_v0.8.2
-4ff68a7e3afd9d65c325a71319aff8b0eba16a01 57017374 terraform-provider-rancher2_v1.12.0
-d56bd573c6b5a6307c8dfb4051013af3ce5f208f 56420772 terraform-provider-rke_v1.2.1
