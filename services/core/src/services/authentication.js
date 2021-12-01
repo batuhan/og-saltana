@@ -25,9 +25,12 @@ const { computeDate } = require('../util/time')
 
 const { setSearchParams } = require('../util/url')
 
+const {
+  verifyToken: verifyClerkToken,
+  diffClerkUserAndInternalUser,
+  getUser,
+} = require('../external-services/clerk')
 const { parseAuthorizationHeader, checkAuthToken } = require('../auth')
-
-const { magic } = require('../external-services/magic-auth')
 
 const {
   getRandomString,
@@ -50,7 +53,7 @@ let authorizationRequester
 let userPublisher
 let userRequester
 
-function start ({ communication, serverPort, isSystem }) {
+function start({ communication, serverPort, isSystem }) {
   const { getResponder, getRequester, getPublisher, COMMUNICATION_ID } =
     communication
 
@@ -80,56 +83,6 @@ function start ({ communication, serverPort, isSystem }) {
     namespace: COMMUNICATION_ID,
   })
 
-  responder.on('loginMagic', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { AuthMean, User } = await getModels({ platformId, env })
-
-    const { token } = req
-
-    const metadata = await magic.users.getMetadataByToken(token)
-
-    let user = await User.query().findOne({ email: metadata.email })
-    if (!user) {
-      user = await userRequester.send({
-        type: 'create',
-        platformId,
-        env,
-        _matchedPermissions: req._matchedPermissions,
-        userType: 'user',
-        username: `${metadata.email.split('@')[0]}-${nanoid(5)}`,
-        email: metadata.email,
-        password:
-          'F)bqjH<h+deMk>UPr$d%6OPq@+S>(,K_nr+&z8y/3SXrP7-=tk[J2@2YZT^|@>Hb',
-        platformData: {
-          authProvider: 'magic',
-          magicData: {
-            issuer: metadata.issuer,
-            publicAddress: metadata.publicAddress,
-          },
-        },
-      })
-    }
-
-    const authMean = await AuthMean.query().findOne({
-      provider: '_local_',
-      userId: user.id,
-    })
-    if (!authMean) {
-      console.log('failed authMean')
-      throw createError(403)
-    }
-
-    const result = await createLoginTokens({
-      platformId,
-      env,
-      user,
-      userAgent: req._userAgent,
-    })
-
-    return result
-  })
-
   responder.on('login', async (req) => {
     const platformId = req.platformId
     const env = req.env
@@ -150,10 +103,7 @@ function start ({ communication, serverPort, isSystem }) {
       throw createError(403)
     }
 
-    const isValid = await AuthMean.validatePassword(
-      password,
-      authMean.password
-    )
+    const isValid = await AuthMean.validatePassword(password, authMean.password)
     if (!isValid) {
       throw createError(403)
     }
@@ -193,7 +143,7 @@ function start ({ communication, serverPort, isSystem }) {
 
       if (!provider || !idToken) {
         throw createError(
-          'This refresh token cannot be used to logout from external authentication provider'
+          'This refresh token cannot be used to logout from external authentication provider',
         )
       }
 
@@ -546,7 +496,7 @@ function start ({ communication, serverPort, isSystem }) {
             { state },
             {
               exchangeBody: ssoConnection.tokenBodyParams || {},
-            }
+            },
           )
 
           userInfo = await fetchOAuth2UserInfo({ tokenSet, provider, client })
@@ -582,7 +532,7 @@ function start ({ communication, serverPort, isSystem }) {
             },
             {
               exchangeBody: ssoConnection.tokenBodyParams || {},
-            }
+            },
           )
 
           userInfo = await decodeJwtToken(tokenSet.id_token, {
@@ -602,7 +552,7 @@ function start ({ communication, serverPort, isSystem }) {
         const userMapping = Object.assign(
           {},
           userMapProperties || {},
-          userInfoMapping || {}
+          userInfoMapping || {},
         )
 
         const userAttrs = applySSOUserInfoMapping(userInfo, userMapping)
@@ -641,7 +591,7 @@ function start ({ communication, serverPort, isSystem }) {
                 roles:
                   _.get(config, 'saltana.roles.default') || User.defaultRoles,
               },
-              _.omit(userAttrs, ['id', 'role'])
+              _.omit(userAttrs, ['id', 'role']),
             )
             _.set(createAttrs, 'platformData.ssoProviders', [provider])
 
@@ -671,7 +621,7 @@ function start ({ communication, serverPort, isSystem }) {
             user = await User.query(trx).findById(authMean.userId)
             if (!user) {
               throw createError(
-                'User not found while referenced by an auth mean'
+                'User not found while referenced by an auth mean',
               )
             }
 
@@ -684,7 +634,7 @@ function start ({ communication, serverPort, isSystem }) {
                 if (!_.isEmpty(_.get(user, k))) return true
                 _.set(attrs, k, userAttrs[k])
               },
-              {}
+              {},
             )
             // Handle deep values
             _.forEach(userMapping, (v, k) => {
@@ -700,26 +650,20 @@ function start ({ communication, serverPort, isSystem }) {
               const rawPlatformData = {
                 ssoProviders: [provider],
               }
-              platformData = User.rawJsonbMerge(
-                'platformData',
-                rawPlatformData
-              )
+              platformData = User.rawJsonbMerge('platformData', rawPlatformData)
               updateAttrsBeforeFullDataMerge.platformData = rawPlatformData
             } else if (!ssoProviders.includes(provider)) {
               const rawPlatformData = {
                 ssoProviders: [provider].concat(ssoProviders),
               }
-              platformData = User.rawJsonbMerge(
-                'platformData',
-                rawPlatformData
-              )
+              platformData = User.rawJsonbMerge('platformData', rawPlatformData)
               updateAttrsBeforeFullDataMerge.platformData = rawPlatformData
             }
 
             if (updateAttrs.metadata) {
               updateAttrs.metadata = User.rawJsonbMerge(
                 'metadata',
-                updateAttrs.metadata
+                updateAttrs.metadata,
               )
             }
             if (platformData) {
@@ -728,14 +672,14 @@ function start ({ communication, serverPort, isSystem }) {
 
             user = await User.query(trx).patchAndFetchById(
               authMean.userId,
-              updateAttrs
+              updateAttrs,
             )
 
             authMean = await AuthMean.query(trx).patchAndFetchById(
               authMean.id,
               {
                 tokens: tokensToStore,
-              }
+              },
             )
           })
 
@@ -818,7 +762,9 @@ function start ({ communication, serverPort, isSystem }) {
     const redirectUrl = afterLogoutUrl || afterAuthenticationUrl
 
     try {
-      if (protocol !== 'openid') { throw createError('Logout is only allowed if the protocol is openid') }
+      if (protocol !== 'openid') {
+        throw createError('Logout is only allowed if the protocol is openid')
+      }
 
       const { data } = await getAuthenticationValue({
         platformId,
@@ -886,7 +832,7 @@ function start ({ communication, serverPort, isSystem }) {
 
     const isValid = await AuthMean.validatePassword(
       currentPassword,
-      authMean.password
+      authMean.password,
     )
     if (!isValid) {
       throw createError(422, 'Incorrect current password')
@@ -904,7 +850,7 @@ function start ({ communication, serverPort, isSystem }) {
         objectId: user.id,
         object: User.expose(user, { namespaces: ['*'] }),
       },
-      { platformId, env }
+      { platformId, env },
     ).catch(() => null)
 
     return { success: true }
@@ -921,7 +867,9 @@ function start ({ communication, serverPort, isSystem }) {
     const { username } = req
 
     const user = await User.query().findOne({ username })
-    if (!user && env === 'test') { throw createError(422, { public: '[TEST]: User does not exist.' }) } else if (!user) return { success: true } // prevent sniffing in live environment
+    if (!user && env === 'test') {
+      throw createError(422, { public: '[TEST]: User does not exist.' })
+    } else if (!user) return { success: true } // prevent sniffing in live environment
 
     const localAuthToken = await AuthMean.query().findOne({
       provider: '_local_',
@@ -956,10 +904,159 @@ function start ({ communication, serverPort, isSystem }) {
           expirationDate,
         },
       },
-      { platformId, env }
+      { platformId, env },
     )
 
     return { success: true }
+  })
+
+  responder.on(
+    '_getAuthMean',
+    async ({ platformId, env, identifier, provider }) => {
+      const { AuthMean } = await getModels({ platformId, env })
+
+      const authMean = await AuthMean.query()
+        .where('identifier', identifier)
+        .where('provider', provider)
+        .select('userId')
+        .first()
+
+      return authMean
+    },
+  )
+
+  // Difference of Clerk auth from other methods is that it doesn't require
+  // a SaltanaCore AuthToken, it just works with a token from Clerk
+  // returns
+  // This responder should be able to work without a middleware parsing out the token
+  responder.on('ssoLoginWithClerk', async (req) => {
+    const { platformId, provider, env, identifier } = req
+
+    // const { platformId, env, hasValidFormat } =
+    //   parsePublicPlatformId(publicPlatformId)
+
+    // const decodedToken = await verifyClerkToken(clerkToken)
+    // if (!hasValidFormat || provider !== 'clerk' || !decodedToken) {
+    //   throw createError(422)
+    // }
+
+    if (identifier === null) {
+      throw createError(402, 'No provider indentifier found to process')
+    }
+
+    const { AuthMean, User } = await getModels({
+      platformId,
+      env,
+    })
+
+    const knex = AuthMean.knex()
+
+    const config = await configRequester.send({
+      type: '_getConfig',
+      platformId,
+      env,
+      access: 'default',
+    })
+
+    const clerkUser = await getUser(identifier)
+    const { user, isNew, updateAttrs } = await transaction(
+      knex,
+      async (trx) => {
+        const authMean = await AuthMean.query(trx).findOne({
+          provider,
+          identifier,
+        })
+
+        if (!authMean) {
+          const createAttrs = {
+            ...diffClerkUserAndInternalUser(clerkUser),
+            id: await getObjectId({
+              prefix: User.idPrefix,
+              platformId,
+              env,
+            }),
+            roles: _.get(config, 'saltana.roles.default') || User.defaultRoles,
+          }
+          _.set(createAttrs, 'platformData.ssoProviders', [provider])
+
+          const user = await User.query(trx).insert(createAttrs)
+
+          const newAuthMean = await AuthMean.query(trx).insert({
+            id: await getObjectId({
+              prefix: AuthMean.idPrefix,
+              platformId,
+              env,
+            }),
+            provider,
+            identifier, // external provider user ID
+            userId: user.id,
+            //tokens: {},
+          })
+
+          return {
+            user,
+            isNew: true,
+          }
+        }
+
+        const user = await User.query(trx).findById(authMean.userId)
+        if (!user) {
+          throw createError(
+            'User not found while referenced by an auth mean; this should not happen',
+          )
+        }
+
+        const updateAttrs = diffClerkUserAndInternalUser(clerkUser, user)
+
+        if (updateAttrs.metadata) {
+          updateAttrs.metadata = User.rawJsonbMerge(
+            'metadata',
+            updateAttrs.metadata,
+          )
+        }
+
+        if (updateAttrs.platformData) {
+          updateAttrs.platformData = User.rawJsonbMerge(
+            'platformData',
+            updateAttrs.platformData,
+          )
+        }
+
+        const refetchedUser = await User.query(trx).patchAndFetchById(
+          authMean.userId,
+          updateAttrs,
+        )
+
+        // should only update last updated, maybe?
+        // await AuthMean.query(trx).patchAndFetchById(authMean.id, {
+        //   //  tokens: tokensToStore,
+        // })
+        return {
+          user: { ...refetchedUser },
+          isNew: false,
+          updateAttrs,
+        }
+      },
+    )
+
+    if (isNew) {
+      userPublisher.publish('userCreated', {
+        user,
+        eventDate: user.createdDate,
+        platformId,
+        env,
+      })
+    } else {
+      userPublisher.publish('userUpdated', {
+        newUser: user,
+        updateAttrs: updateAttrs,
+        eventDate: user.updatedDate,
+        platformId,
+        env,
+      })
+    }
+
+    return { user, isNew, updateAttrs }
   })
 
   responder.on('confirmPasswordReset', async (req) => {
@@ -1022,7 +1119,7 @@ function start ({ communication, serverPort, isSystem }) {
         objectId: user.id,
         object: User.expose(user, { namespaces: ['*'] }),
       },
-      { platformId, env }
+      { platformId, env },
     ).catch(() => null)
 
     return { success: true }
@@ -1090,7 +1187,7 @@ function start ({ communication, serverPort, isSystem }) {
           data: data || {},
         },
       },
-      { platformId, env }
+      { platformId, env },
     )
 
     return { success: true }
@@ -1173,7 +1270,7 @@ function start ({ communication, serverPort, isSystem }) {
       authToken.id,
       {
         reference: newReference,
-      }
+      },
     )
 
     if (!tokenAlreadyChecked) {
@@ -1191,7 +1288,7 @@ function start ({ communication, serverPort, isSystem }) {
             data: authToken.reference.data || {},
           },
         },
-        { platformId, env }
+        { platformId, env },
       )
     }
 
@@ -1220,7 +1317,7 @@ function start ({ communication, serverPort, isSystem }) {
     } else {
       throw createError(
         400,
-        'Please pass the parameters `apiKey` or `authorization`'
+        'Please pass the parameters `apiKey` or `authorization`',
       )
     }
   })
@@ -1234,7 +1331,7 @@ function start ({ communication, serverPort, isSystem }) {
     return secret
   })
 
-  async function refreshToken ({
+  async function refreshToken({
     requestRefreshToken,
     userAgent,
     platformId,
@@ -1261,7 +1358,7 @@ function start ({ communication, serverPort, isSystem }) {
       user,
       data: {
         loggedAt: Math.round(
-          new Date(refreshToken.createdDate).getTime() / 1000
+          new Date(refreshToken.createdDate).getTime() / 1000,
         ),
       },
       secret,
@@ -1273,7 +1370,7 @@ function start ({ communication, serverPort, isSystem }) {
     }
   }
 
-  async function impersonateToken ({
+  async function impersonateToken({
     req,
     platformId,
     env,
@@ -1366,7 +1463,7 @@ function start ({ communication, serverPort, isSystem }) {
         secret,
         data: {
           loggedAt: Math.round(
-            new Date(refreshToken.createdDate).getTime() / 1000
+            new Date(refreshToken.createdDate).getTime() / 1000,
           ),
           sourceUserId: sourceUser.id,
           roles: isTargetUserOrganization ? orgRoles : targetUser.roles,
@@ -1381,7 +1478,7 @@ function start ({ communication, serverPort, isSystem }) {
     }
   }
 
-  async function createLoginTokensFromCode ({
+  async function createLoginTokensFromCode({
     platformId,
     env,
     code,
@@ -1397,7 +1494,9 @@ function start ({ communication, serverPort, isSystem }) {
     })
     if (!authToken) throw createError(422, 'Invalid code')
     if (authToken.expirationDate < now) throw createError(403, 'Code expired')
-    if (authToken.reference.checked) { throw createError(422, 'Code already used') }
+    if (authToken.reference.checked) {
+      throw createError(422, 'Code already used')
+    }
 
     const user = await User.query().findById(authToken.userId)
     if (!user) throw createError(422, 'User does not exist')
@@ -1421,7 +1520,7 @@ function start ({ communication, serverPort, isSystem }) {
     return result
   }
 
-  async function parseAuthInformation ({ apiKey, token }) {
+  async function parseAuthInformation({ apiKey, token }) {
     const result = {
       valid: false,
       apiKey: null,
@@ -1441,11 +1540,12 @@ function start ({ communication, serverPort, isSystem }) {
     const env = parsedApiKey.env
 
     if (token) {
-      const { decodedToken, isTokenExpired } = await checkAuthToken({
-        authToken: token,
-        platformId,
-        env,
-      })
+      const { decodedToken, isTokenExpired, isTokenValid } =
+        await checkAuthToken({
+          authToken: token,
+          platformId,
+          env,
+        })
 
       result.valid = !!decodedToken
 
@@ -1459,7 +1559,7 @@ function start ({ communication, serverPort, isSystem }) {
   }
 }
 
-async function createRefreshToken ({
+async function createRefreshToken({
   user,
   userAgent,
   idToken,
@@ -1484,14 +1584,14 @@ async function createRefreshToken ({
     },
     expirationDate: computeDate(
       new Date().toISOString(),
-      refreshTokenExpiration || '14d'
+      refreshTokenExpiration || '14d',
     ),
   })
 
   return refreshToken
 }
 
-async function getAuthSecret ({ platformId, env }) {
+async function getAuthSecret({ platformId, env }) {
   const key = 'auth'
 
   const authData = await getPlatformEnvData(platformId, env, key)
@@ -1507,7 +1607,7 @@ async function getAuthSecret ({ platformId, env }) {
   return secret
 }
 
-function getTokenCheckResponse ({
+function getTokenCheckResponse({
   authToken,
   token,
   redirect,
@@ -1552,7 +1652,7 @@ function getTokenCheckResponse ({
     return getRedirectObjectFromAuthToken(
       authToken,
       status,
-      fallbackRedirectUrl
+      fallbackRedirectUrl,
     )
   } else {
     responseObject.status = status
@@ -1565,10 +1665,10 @@ function getTokenCheckResponse ({
   }
 }
 
-function getRedirectObjectFromAuthToken (
+function getRedirectObjectFromAuthToken(
   authToken,
   status,
-  fallbackRedirectUrl
+  fallbackRedirectUrl,
 ) {
   return getRedirectObject({
     redirectUrl: authToken.reference.redirectUrl || fallbackRedirectUrl,
@@ -1577,13 +1677,13 @@ function getRedirectObjectFromAuthToken (
   })
 }
 
-function getRedirectObject ({ redirectUrl, token, status }) {
+function getRedirectObject({ redirectUrl, token, status }) {
   // `_redirectUrl` is a special property to handle redirection,
   // please see server.js at the root of the project to have detailed explanations
   return { _redirectUrl: setSearchParams(redirectUrl, { token, status }) }
 }
 
-async function getSSOConnection ({ publicPlatformId, provider }) {
+async function getSSOConnection({ publicPlatformId, provider }) {
   const { platformId, env, hasValidFormat } =
     parsePublicPlatformId(publicPlatformId)
   if (!hasValidFormat) {
@@ -1599,7 +1699,7 @@ async function getSSOConnection ({ publicPlatformId, provider }) {
 
   const connectionConfig = _.get(
     privateConfig,
-    `saltana.ssoConnections.${provider}`
+    `saltana.ssoConnections.${provider}`,
   )
   if (!connectionConfig || !_.isPlainObject(connectionConfig)) {
     throw createError(422, 'Missing connection configuration')
@@ -1608,7 +1708,7 @@ async function getSSOConnection ({ publicPlatformId, provider }) {
   return connectionConfig
 }
 
-function isValidOAuth2Connection (ssoConnection, provider) {
+function isValidOAuth2Connection(ssoConnection, provider) {
   const {
     protocol,
     authorizationUrl,
@@ -1633,10 +1733,12 @@ function isValidOAuth2Connection (ssoConnection, provider) {
     userInfoUrl
   )
 
-  if (isBuiltInSSOProvider({ provider, ssoConnection })) { return validOAuthConnection } else return validCustomOAuthConnection
+  if (isBuiltInSSOProvider({ provider, ssoConnection })) {
+    return validOAuthConnection
+  } else return validCustomOAuthConnection
 }
 
-function isValidOpenIdConnection (ssoConnection, provider) {
+function isValidOpenIdConnection(ssoConnection, provider) {
   const {
     protocol,
     authorizationUrl,
@@ -1667,7 +1769,7 @@ function isValidOpenIdConnection (ssoConnection, provider) {
   else return validCustomConnection
 }
 
-function getPublicPlatformId ({ platformId, env }) {
+function getPublicPlatformId({ platformId, env }) {
   return `e${platformId}_${env}`
 }
 
@@ -1676,34 +1778,34 @@ function getPublicPlatformId ({ platformId, env }) {
  * @param {Object} ssoConnection
  * @param {String} provider
  */
-function addBuiltInSSOValues (ssoConnection, provider) {
+function addBuiltInSSOValues(ssoConnection, provider) {
   let newSsoConnection = Object.assign({}, ssoConnection)
   if (['oauth2', 'openid'].includes(ssoConnection.protocol)) {
     newSsoConnection = Object.assign(
       newSsoConnection,
-      oAuth2BuiltInConnections[provider]
+      oAuth2BuiltInConnections[provider],
     )
   }
 
   return newSsoConnection
 }
 
-function getJwksUrl ({ publicPlatformId, provider, serverPort }) {
+function getJwksUrl({ publicPlatformId, provider, serverPort }) {
   const apiUrl = getApiBaseUrl({ publicPlatformId, provider, serverPort })
   return `${apiUrl}/auth/sso/${publicPlatformId}/${provider}/jwks`
 }
 
-function getSSOLoginCallbackUrl ({ publicPlatformId, provider, serverPort }) {
+function getSSOLoginCallbackUrl({ publicPlatformId, provider, serverPort }) {
   const apiUrl = getApiBaseUrl({ publicPlatformId, provider, serverPort })
   return `${apiUrl}/auth/sso/${publicPlatformId}/${provider}/callback`
 }
 
-function getSSOLogoutCallbackUrl ({ publicPlatformId, provider, serverPort }) {
+function getSSOLogoutCallbackUrl({ publicPlatformId, provider, serverPort }) {
   const apiUrl = getApiBaseUrl({ publicPlatformId, provider, serverPort })
   return `${apiUrl}/auth/sso/${publicPlatformId}/${provider}/logout/callback`
 }
 
-async function getOAuthClient ({
+async function getOAuthClient({
   publicPlatformId,
   provider,
   ssoConnection,
@@ -1752,8 +1854,7 @@ async function getOAuthClient ({
       issuerParams.id_token_signed_response_alg = idTokenSignedResponseAlg
     }
     if (tokenEndpointAuthSigningAlg) {
-      issuerParams.token_endpoint_auth_signing_alg =
-        tokenEndpointAuthSigningAlg
+      issuerParams.token_endpoint_auth_signing_alg = tokenEndpointAuthSigningAlg
     }
   }
 
@@ -1772,7 +1873,7 @@ async function getOAuthClient ({
 // the server sending the authentication request
 // and the server receiving the response in callback request can be different
 // e.g. useful to store the state used in authorization code flow
-async function storeAuthenticationValue ({
+async function storeAuthenticationValue({
   platformId,
   env,
   provider,
@@ -1792,7 +1893,7 @@ async function storeAuthenticationValue ({
   return authToken.value
 }
 
-async function getAuthenticationValue ({
+async function getAuthenticationValue({
   platformId,
   env,
   provider,
@@ -1831,7 +1932,7 @@ async function getAuthenticationValue ({
       `Invalid state${result.error ? ': ' + result.error : ''}`,
       {
         public: { custom: { platformId, env, provider } },
-      }
+      },
     )
   }
 
@@ -1840,7 +1941,7 @@ async function getAuthenticationValue ({
   return result
 }
 
-function applySSOUserInfoMapping (userInfo, userInfoMapping) {
+function applySSOUserInfoMapping(userInfo, userInfoMapping) {
   const defaultUserInfoMapping = {
     email: 'email',
     firstname: 'given_name',
@@ -1854,7 +1955,7 @@ function applySSOUserInfoMapping (userInfo, userInfoMapping) {
   const mapProperties = Object.assign(
     {},
     defaultUserInfoMapping,
-    userInfoMapping || {}
+    userInfoMapping || {},
   )
 
   const userAttrs = {}
@@ -1867,7 +1968,7 @@ function applySSOUserInfoMapping (userInfo, userInfoMapping) {
   return userAttrs
 }
 
-async function createLoginTokens ({
+async function createLoginTokens({
   platformId,
   env,
   user,
@@ -1913,7 +2014,7 @@ async function createLoginTokens ({
   }
 }
 
-function getSSOLoginUrlClient ({ client, authorizationParams, ssoConnection }) {
+function getSSOLoginUrlClient({ client, authorizationParams, ssoConnection }) {
   let ssoLoginUrl = client.authorizationUrl(authorizationParams)
 
   if (
@@ -1922,14 +2023,14 @@ function getSSOLoginUrlClient ({ client, authorizationParams, ssoConnection }) {
   ) {
     ssoLoginUrl = setSearchParams(
       ssoLoginUrl,
-      ssoConnection.authorizationQueryParams
+      ssoConnection.authorizationQueryParams,
     )
   }
 
   return ssoLoginUrl
 }
 
-function getTokenTypeTransformationsToTry (provider) {
+function getTokenTypeTransformationsToTry(provider) {
   // Facebook only accepts capitalized token type value
   // example: returned token_type is 'bearer' but userinfo endpoint only accepts 'Bearer'
   if (provider === 'facebook') {
@@ -1941,7 +2042,7 @@ function getTokenTypeTransformationsToTry (provider) {
 
 // Note: tokenSet can be mutated by this function
 // when transformation of its token_type is required by provider
-async function fetchOAuth2UserInfo ({ tokenSet, provider, client }) {
+async function fetchOAuth2UserInfo({ tokenSet, provider, client }) {
   const tokenTypeTransformationsOrder =
     getTokenTypeTransformationsToTry(provider)
   const rawTokenType = tokenSet.token_type
@@ -1950,14 +2051,16 @@ async function fetchOAuth2UserInfo ({ tokenSet, provider, client }) {
     tokenTypeTransformationsOrder,
     (userInfo, transformation) => {
       const transformationFn = TOKEN_TYPE_TRANSFORMATIONS[transformation]
-      if (!transformationFn) { throw new Error(`Unknown token type transformation: ${transformation}`) }
+      if (!transformationFn) {
+        throw new Error(`Unknown token type transformation: ${transformation}`)
+      }
 
       if (userInfo) return userInfo
 
       tokenSet.token_type = transformationFn(rawTokenType)
       return client.userinfo(tokenSet).catch(() => null)
     },
-    null
+    null,
   )
 
   if (!userInfo) throw createError(422, 'Unable to retrieve user info')
@@ -1965,7 +2068,7 @@ async function fetchOAuth2UserInfo ({ tokenSet, provider, client }) {
   return userInfo
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 

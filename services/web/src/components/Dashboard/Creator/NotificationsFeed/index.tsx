@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react'
-import tw, { styled, css } from 'twin.macro'
 
 import { CheckIcon, ThumbUpIcon, UserIcon } from '@heroicons/react/solid'
 import _ from 'lodash'
+import classnames from '@/common/classnames'
 
 const timeline = [
   {
@@ -59,8 +59,8 @@ const timeline = [
 
 export default function CreatorDashboardNotificationsFeed() {
   return (
-    <div tw="flow-root  bg-white overflow-hidden shadow">
-      <ul tw="-mb-8">
+    <div className="flow-root  bg-white overflow-hidden shadow">
+      <ul className="-mb-8">
         {timeline.map(
           (
             {
@@ -73,44 +73,44 @@ export default function CreatorDashboardNotificationsFeed() {
               datetime,
               date,
             },
-            eventIdx
+            eventIdx,
           ) => (
             <li key={id}>
-              <div tw="relative pb-8">
+              <div className="relative pb-8">
                 {eventIdx !== timeline.length - 1 ? (
                   <span
-                    tw="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                    className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
                     aria-hidden="true"
                   />
                 ) : null}
-                <div tw="relative flex space-x-3">
+                <div className="relative flex space-x-3">
                   <div>
                     <span
-                      css={[
+                      className={classnames(
                         iconBackground,
-                        tw`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white`,
-                      ]}
+                        `h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white`,
+                      )}
                     >
                       a
                     </span>
                   </div>
-                  <div tw="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                  <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                     <div>
-                      <p tw="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500">
                         {content}{' '}
-                        <a href={href} tw="font-medium text-gray-900">
+                        <a href={href} className="font-medium text-gray-900">
                           {target}
                         </a>
                       </p>
                     </div>
-                    <div tw="text-right text-sm whitespace-nowrap text-gray-500">
+                    <div className="text-right text-sm whitespace-nowrap text-gray-500">
                       <time dateTime={datetime}>{date}</time>
                     </div>
                   </div>
                 </div>
               </div>
             </li>
-          )
+          ),
         )}
       </ul>
     </div>

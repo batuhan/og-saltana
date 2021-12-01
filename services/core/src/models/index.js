@@ -34,7 +34,7 @@ const models = {
   Workflow: require('./Workflow'),
   WorkflowLog: require('./WorkflowLog'),
 
-  InternalAvailability: require('./InternalAvailability')
+  InternalAvailability: require('./InternalAvailability'),
 }
 
 // map only models that can be exposed via event
@@ -51,7 +51,7 @@ const mapIdPrefixToModelNames = {
   [models.Order.idPrefix]: 'Order',
   [models.Transaction.idPrefix]: 'Transaction',
   [models.User.idPrefix]: 'User',
-  [models.User.organizationIdPrefix]: 'User'
+  [models.User.organizationIdPrefix]: 'User',
 }
 
 const getObjectTypeFromModelName = (modelName) => {
@@ -67,12 +67,14 @@ const cacheModels = {}
 // must run before establishing any Knex connections
 loadTypeParser()
 
-function loadTypeParser () {
+function loadTypeParser() {
   // https://github.com/tgriesser/knex/issues/387
   // converts PostgreSQL `bigint` into Javascript integers
   pg.types.setTypeParser(20, 'text', (value) => {
     if (Number.MAX_SAFE_INTEGER < value) {
-      throw new Error(`The value ${value} exceeds the JS max integer value ${Number.MAX_SAFE_INTEGER}`)
+      throw new Error(
+        `The value ${value} exceeds the JS max integer value ${Number.MAX_SAFE_INTEGER}`,
+      )
     }
 
     return parseInt(value, 10)
@@ -82,13 +84,8 @@ function loadTypeParser () {
 // SSL options are available since this Knex.js PR: https://github.com/knex/knex/pull/3410
 // using the library pg-connection-string
 // https://github.com/iceddev/pg-connection-string
-function getSSLOptions (configuration) {
-  const {
-    ssl,
-    sslcert,
-    sslkey,
-    sslca,
-  } = configuration
+function getSSLOptions(configuration) {
+  const { ssl, sslcert, sslkey, sslca } = configuration
 
   let sslOptions
 
@@ -107,7 +104,7 @@ function getSSLOptions (configuration) {
   return sslOptions
 }
 
-async function getConnection ({ platformId, env } = {}) {
+async function getConnection({ platformId, env } = {}) {
   if (!platformId) {
     throw new Error('Missing platformId when retrieving PostgreSQL connection')
   }
@@ -123,9 +120,16 @@ async function getConnection ({ platformId, env } = {}) {
   let sslOptions
 
   if (useRemoteStore) {
-    const postgresqlData = await getPlatformEnvData(platformId, env, 'postgresql')
+    const postgresqlData = await getPlatformEnvData(
+      platformId,
+      env,
+      'postgresql',
+    )
     if (!postgresqlData) {
-      throw createError(500, 'PostgreSQL missing environment variables', { platformId, env })
+      throw createError(500, 'PostgreSQL missing environment variables', {
+        platformId,
+        env,
+      })
     }
 
     connection = {
@@ -134,20 +138,26 @@ async function getConnection ({ platformId, env } = {}) {
       password: postgresqlData.password,
       database: postgresqlData.database,
       port: postgresqlData.port,
-      schema: postgresqlData.schema
+      schema: postgresqlData.schema,
     }
 
     sslOptions = getSSLOptions(postgresqlData)
 
     schema = postgresqlData.schema
   } else {
+    const isPlatformEnv = platformId && env
+
+    const _schema = isPlatformEnv
+      ? `s${platformId}_${env}`
+      : process.env.POSTGRES_SCHEMA || 'public'
+
     connection = {
       host: process.env.POSTGRES_HOST,
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       port: process.env.POSTGRES_PORT,
-      schema: 'public'
+      schema: _schema,
     }
 
     sslOptions = getSSLOptions({
@@ -157,18 +167,18 @@ async function getConnection ({ platformId, env } = {}) {
       sslca: process.env.POSTGRES_SSL_CA,
     })
 
-    schema = 'public'
+    schema = _schema
   }
 
   if (sslOptions) connection.ssl = sslOptions
 
   return {
     connection,
-    schema
+    schema,
   }
 }
 
-async function getModels ({ platformId, env } = {}) {
+async function getModels({ platformId, env } = {}) {
   if (!platformId) {
     throw new Error('Missing platformId when getting models')
   }
@@ -192,7 +202,7 @@ async function getModels ({ platformId, env } = {}) {
     // Set the schema automatically
     // https://github.com/Vincit/objection.js/issues/85
     class SchemaModel extends Model {
-      static get defaultSchema () {
+      static get defaultSchema() {
         return schema
       }
 
@@ -208,15 +218,24 @@ async function getModels ({ platformId, env } = {}) {
        * @param {String} [options.jsonbAccessor] - using native Postgres operator like `->'field'`
        * @return {Object} knex `raw` query object
        */
-      static rawJsonbMerge (baseObjectName, changesObject, { jsonbAccessor } = {}) {
-        if (typeof baseObjectName !== 'string') throw new Error('String column name expected')
-        if (!_.isObjectLike(changesObject)) throw new Error('changesObject expected as second argument')
+      static rawJsonbMerge(
+        baseObjectName,
+        changesObject,
+        { jsonbAccessor } = {},
+      ) {
+        if (typeof baseObjectName !== 'string')
+          throw new Error('String column name expected')
+        if (!_.isObjectLike(changesObject))
+          throw new Error('changesObject expected as second argument')
 
-        return raw(`${this.defaultSchema}.${mergeFunctionName}(${jsonbAccessor ? '(' : ''}"${
-          baseObjectName // We need double quotes for column names with caps like 'platformData'
-        }"${
-          jsonbAccessor ? `${jsonbAccessor})::jsonb` : ''
-        }, ?::jsonb)`, JSON.stringify(changesObject))
+        return raw(
+          `${this.defaultSchema}.${mergeFunctionName}(${
+            jsonbAccessor ? '(' : ''
+          }"${
+            baseObjectName // We need double quotes for column names with caps like 'platformData'
+          }"${jsonbAccessor ? `${jsonbAccessor})::jsonb` : ''}, ?::jsonb)`,
+          JSON.stringify(changesObject),
+        )
       }
 
       /**
@@ -233,23 +252,25 @@ async function getModels ({ platformId, env } = {}) {
        * @param {Object} [params.trx] - Knex transaction object
        * @return {Object} updated model
        */
-      static async updateJsonb ({
+      static async updateJsonb({
         modelId,
         baseObjectName,
         changesObject,
         replacingProperties,
-        trx
+        trx,
       }) {
         if (!modelId) throw new Error('modelId expected')
-        if (typeof baseObjectName !== 'string') throw new Error('String column name expected')
-        if (!_.isObjectLike(changesObject)) throw new Error('changesObject expected as second argument')
+        if (typeof baseObjectName !== 'string')
+          throw new Error('String column name expected')
+        if (!_.isObjectLike(changesObject))
+          throw new Error('changesObject expected as second argument')
         if (!trx) throw new Error('Transaction object trx expected')
 
         const beforeReplaceChanges = Object.assign({}, changesObject)
         const afterReplaceChanges = {}
 
         if (replacingProperties && Array.isArray(replacingProperties)) {
-          replacingProperties.forEach(prop => {
+          replacingProperties.forEach((prop) => {
             if (!_.isUndefined(changesObject[prop])) {
               beforeReplaceChanges[prop] = null
               afterReplaceChanges[prop] = changesObject[prop]
@@ -257,15 +278,19 @@ async function getModels ({ platformId, env } = {}) {
           })
         }
 
-        let updatedModel = await this.query(trx).patchAndFetchById(
-          modelId,
-          { [baseObjectName]: this.rawJsonbMerge(baseObjectName, beforeReplaceChanges) }
-        )
+        let updatedModel = await this.query(trx).patchAndFetchById(modelId, {
+          [baseObjectName]: this.rawJsonbMerge(
+            baseObjectName,
+            beforeReplaceChanges,
+          ),
+        })
         if (!_.isEmpty(afterReplaceChanges)) {
-          updatedModel = await this.query(trx).patchAndFetchById(
-            modelId,
-            { [baseObjectName]: this.rawJsonbMerge(baseObjectName, afterReplaceChanges) }
-          )
+          updatedModel = await this.query(trx).patchAndFetchById(modelId, {
+            [baseObjectName]: this.rawJsonbMerge(
+              baseObjectName,
+              afterReplaceChanges,
+            ),
+          })
         }
 
         return updatedModel
@@ -295,11 +320,11 @@ async function getModels ({ platformId, env } = {}) {
  * @return {Object} info.Model - can be null if no match, return the Objection.js model
  *                               useful to access model class methods or to query database
  */
-function getModelInfo ({ objectId, objectType, idPrefix, Models = models }) {
+function getModelInfo({ objectId, objectType, idPrefix, Models = models }) {
   const info = {
     idPrefix: null,
     objectType: null,
-    Model: null
+    Model: null,
   }
 
   let modelName
@@ -331,5 +356,5 @@ module.exports = Object.assign({}, models, {
   getConnection,
   getModels,
 
-  getModelInfo
+  getModelInfo,
 })

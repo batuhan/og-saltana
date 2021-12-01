@@ -1,10 +1,18 @@
 import { PlusIcon } from '@heroicons/react/outline'
-import CreatorSlugField from 'components/Dashboard/Common/Fields/CreatorSlugField'
+
+import CreatorPageSlug from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
+
 import useCreatorSpace from 'hooks/useCreatorSpace'
-import { NextSeo } from 'next-seo'
-import 'twin.macro'
 
 import { useFormContext } from 'react-hook-form'
+import React from 'react'
+import {
+  ButtonLink,
+  Card,
+  CardSection,
+  Text,
+  Stack,
+} from '@kiwicom/orbit-components'
 
 export default function CreatorDashboardLinkCustomizeScreen() {
   const methods = useFormContext()
@@ -13,131 +21,294 @@ export default function CreatorDashboardLinkCustomizeScreen() {
 
   return (
     <main>
-      <NextSeo title="Customize" />
-
-      <CreatorSlugField username={creator.data.username} {...methods} />
-
-      <div tw="space-y-6">
+      <div className="pt-8">
         <div>
-          <label
-            htmlFor="destination"
-            tw="block text-sm font-medium text-gray-700"
-          >
-            Destination
-          </label>
-          <div tw="mt-1">
-            <input
-              type="text"
-              {...methods.register('destination', {
-                required: true,
-              })}
-              id="destination"
-              tw="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
-            />
-          </div>
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Personal Information
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Use a permanent address where you can receive mail.
+          </p>
         </div>
-
-        <div>
-          <div tw="bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
-            <div tw="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
-              <div tw="ml-4 mt-2">
-                <h3 tw="text-lg leading-6 font-medium text-gray-900">
-                  Preview
-                </h3>
-              </div>
-              <div tw="ml-4 mt-2 flex-shrink-0">
-                <button
-                  type="button"
-                  tw="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Create new job
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <label
-            htmlFor="description"
-            tw="block text-sm font-medium text-gray-700"
-          >
-            Description
-          </label>
-          <div tw="mt-1">
-            <textarea
-              id="description"
-              name="description"
-              rows={3}
-              tw="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border border-gray-300 rounded-md"
-              defaultValue=""
-            />
-          </div>
-        </div>
-
-        <div tw="space-y-2">
-          <div tw="space-y-1">
+        <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <div className="sm:col-span-3">
             <label
-              htmlFor="add_team_members"
-              tw="block text-sm font-medium text-gray-700"
+              htmlFor="first-name"
+              className="block text-sm font-medium text-gray-700"
             >
-              Add Team Members
+              Title
             </label>
-            <p id="add_team_members_helper" tw="sr-only">
-              Search by email address
-            </p>
-            <div tw="flex">
-              <div tw="flex-grow">
-                <input
-                  type="text"
-                  name="add_team_members"
-                  id="add_team_members"
-                  tw="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Email address"
-                  aria-describedby="add_team_members_helper"
-                />
-              </div>
-              <span tw="ml-3">
-                <button
-                  type="button"
-                  tw="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-                >
-                  <PlusIcon
-                    tw="-ml-2 mr-1 h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  <span>Add</span>
-                </button>
-              </span>
+            <div className="mt-1">
+              <input
+                type="text"
+                name="first-name"
+                id="first-name"
+                autoComplete="given-name"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-3">
+            <label
+              htmlFor="country"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Country / Region
+            </label>
+            <div className="mt-1">
+              <select
+                id="country"
+                name="country"
+                autoComplete="country"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                <option>United States</option>
+                <option>Canada</option>
+                <option>Mexico</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="sm:col-span-6">
+            <label
+              htmlFor="street-address"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Street address
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                name="street-address"
+                id="street-address"
+                autoComplete="street-address"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label
+              htmlFor="city"
+              className="block text-sm font-medium text-gray-700"
+            >
+              City
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                name="city"
+                id="city"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label
+              htmlFor="state"
+              className="block text-sm font-medium text-gray-700"
+            >
+              State / Province
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                name="state"
+                id="state"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label
+              htmlFor="zip"
+              className="block text-sm font-medium text-gray-700"
+            >
+              ZIP / Postal
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                name="zip"
+                id="zip"
+                autoComplete="postal-code"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
             </div>
           </div>
         </div>
+      </div>
 
+      <div className="pt-8">
         <div>
-          <label htmlFor="tags" tw="block text-sm font-medium text-gray-700">
-            Tags
-          </label>
-          <input
-            type="text"
-            name="tags"
-            id="tags"
-            tw="mt-1 block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
-          />
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Notifications
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            We'll always let you know about important changes, but you pick what
+            else you want to hear about.
+          </p>
         </div>
+        <div className="mt-6">
+          <fieldset>
+            <legend className="text-base font-medium text-gray-900">
+              By Email
+            </legend>
+            <div className="mt-4 space-y-4">
+              <div className="relative flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="comments"
+                    name="comments"
+                    type="checkbox"
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label
+                    htmlFor="comments"
+                    className="font-medium text-gray-700"
+                  >
+                    Comments
+                  </label>
+                  <p className="text-gray-500">
+                    Get notified when someones posts a comment on a posting.
+                  </p>
+                </div>
+              </div>
+              <div className="relative flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="candidates"
+                    name="candidates"
+                    type="checkbox"
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label
+                    htmlFor="candidates"
+                    className="font-medium text-gray-700"
+                  >
+                    Candidates
+                  </label>
+                  <p className="text-gray-500">
+                    Get notified when a candidate applies for a job.
+                  </p>
+                </div>
+              </div>
+              <div className="relative flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="offers"
+                    name="offers"
+                    type="checkbox"
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor="offers" className="font-medium text-gray-700">
+                    Offers
+                  </label>
+                  <p className="text-gray-500">
+                    Get notified when a candidate accepts or rejects an offer.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset className="mt-6">
+            <div>
+              <legend className="text-base font-medium text-gray-900">
+                Push Notifications
+              </legend>
+              <p className="text-sm text-gray-500">
+                These are delivered via SMS to your mobile phone.
+              </p>
+            </div>
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center">
+                <input
+                  id="push-everything"
+                  name="push-notifications"
+                  type="radio"
+                  className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                />
+                <label
+                  htmlFor="push-everything"
+                  className="ml-3 block text-sm font-medium text-gray-700"
+                >
+                  Everything
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  id="push-email"
+                  name="push-notifications"
+                  type="radio"
+                  className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                />
+                <label
+                  htmlFor="push-email"
+                  className="ml-3 block text-sm font-medium text-gray-700"
+                >
+                  Same as email
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  id="push-nothing"
+                  name="push-notifications"
+                  type="radio"
+                  className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                />
+                <label
+                  htmlFor="push-nothing"
+                  className="ml-3 block text-sm font-medium text-gray-700"
+                >
+                  No push notifications
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
 
-        <div tw="flex justify-end">
-          <button
-            type="button"
-            tw="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+      <div className="mb-5">
+        <Card
+          actions={
+            <ButtonLink onClick={() => console.log('onClick')} size="small">
+              Expand all
+            </ButtonLink>
+          }
+          title="Custom Domains"
+        >
+          <CardSection
+            expandable
+            onClose={() => console.log('onClose')}
+            onExpand={() => console.log('onExpand')}
+            title="Yasmin Karenth – closed"
           >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            tw="ml-3 inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+            <Stack direction="column" spacing="XSmall">
+              <Text type="secondary">January 20, 1978</Text>
+              <Text type="secondary">yas.karenth@example.com</Text>
+            </Stack>
+          </CardSection>
+          <CardSection
+            expandable
+            onClose={() => console.log('onClose')}
+            onExpand={() => console.log('onExpand')}
+            title="Robin Kask – closed"
           >
-            Create this project
-          </button>
-        </div>
+            <Stack direction="column" spacing="XSmall">
+              <Text type="secondary">June 11, 1985</Text>
+              <Text type="secondary">robin2fly@example.com</Text>
+            </Stack>
+          </CardSection>
+        </Card>
       </div>
     </main>
   )

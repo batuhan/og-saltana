@@ -38,7 +38,7 @@ module.exports = function createService(deps) {
 
       ownerId,
       targetId,
-      assetId,
+      assetIds,
       transactionId,
 
       label,
@@ -68,8 +68,8 @@ module.exports = function createService(deps) {
 
     const data = {}
 
-    if (assetId) {
-      data.assetId = assetId
+    if (assetIds) {
+      data.assetIds = assetIds
     }
     if (transactionId) {
       data.transactionId = transactionId
@@ -80,7 +80,7 @@ module.exports = function createService(deps) {
     }
 
     const paginationResult = await documentRequester.communicate(req)(
-      documentParams
+      documentParams,
     )
 
     const currentUserId = getCurrentUserId(req)
@@ -179,7 +179,7 @@ module.exports = function createService(deps) {
 
     let asset
     switch (createAttrs.linkType) {
-      case 'asset':
+      case 'checkout':
         asset = await assetRequester.communicate(req)({
           ...req.asset,
           ownerId: createAttrs.ownerId,
@@ -190,7 +190,7 @@ module.exports = function createService(deps) {
           },
         })
 
-        createAttrs.assetId = asset.id
+        createAttrs.assetIds = [asset.id]
 
         break
       case 'embed':
@@ -220,14 +220,14 @@ module.exports = function createService(deps) {
     const document = await documentRequester.communicate(req)(docCreateParams)
     const link = Link.convertDocToLink(document)
 
-    if (createAttrs.linkType === 'asset' && createAttrs.assetId) {
-      await assetRequester.communicate(req)({
+    if (createAttrs.linkType === 'asset' && createAttrs.assetIds) {
+      /* await assetRequester.communicate(req)({
         type: 'update',
         platformData: {
           linkId: link.id,
         },
-        assetId: createAttrs.assetId,
-      })
+        assetIds: createAttrs.assetIds,
+      })*/
     }
 
     return Link.expose(link, { req })
@@ -236,7 +236,15 @@ module.exports = function createService(deps) {
   async function update(req) {
     const linkId = req.linkId
 
-    const fields = ['score', 'comment', 'metadata', 'platformData']
+    const fields = [
+      'content',
+      'destination',
+      'slug',
+      'linkType',
+      'metadata',
+      'assetIds',
+      'platformData',
+    ]
 
     const payload = _.pick(req, fields)
 
@@ -254,7 +262,8 @@ module.exports = function createService(deps) {
 
     const currentUserId = getCurrentUserId(req)
 
-    const isSelf = link.authorId && link.authorId !== currentUserId
+    const isSelf = link.ownerId && link.authorId !== currentUserId
+
     if (!req._matchedPermissions['link:edit:all'] && !isSelf) {
       throw createError(403)
     }

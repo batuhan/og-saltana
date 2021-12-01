@@ -19,9 +19,12 @@
     "baseUrl": "./src",
     "paths": {
       "@/client/*": ["lib/client/*"],
-      "@/server/*": ["lib/server/*"]
-    }
+      "@/common/*": ["lib/common/*"],
+      "@/server/*": ["lib/server/*"],
+      "@/hooks/*": ["hooks/*"]
+    },
+    "incremental": true
   },
   "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", ".yarn"]
+  "exclude": ["node_modules"]
 }

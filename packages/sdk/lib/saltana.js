@@ -89,7 +89,7 @@ export class Saltana {
       apiHost = Saltana.DEFAULT_HOST,
       apiProtocol = Saltana.DEFAULT_PROTOCOL,
       apiPort = Saltana.DEFAULT_PORT,
-      apiPath = Saltana.DEFAULT_PATH
+      apiPath = Saltana.DEFAULT_PATH,
     } = params
 
     this._api = {
@@ -166,6 +166,10 @@ export class Saltana {
     if (validTokenStore) {
       this._setApiField('tokenStore', tokenStore)
     }
+  }
+
+  setToken(provider, token) {
+    return this.getTokenStore().setTokens({ provider, token })
   }
 
   isValidTokenStore(tokenStore) {

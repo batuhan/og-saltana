@@ -2,324 +2,328 @@ const _ = require('lodash')
 
 let requester
 
-function init (server, { middlewares, helpers } = {}) {
-  const {
-    checkPermissions
-  } = middlewares
-  const {
-    wrapAction,
-    populateRequesterParams
-  } = helpers
+function init(server, { middlewares, helpers } = {}) {
+  const { checkPermissions } = middlewares
+  const { wrapAction, populateRequesterParams } = helpers
 
-  server.post({
-    name: 'auth.login',
-    path: '/auth/login'
-  }, checkPermissions(['auth:login']), wrapAction(async (req, res) => {
-    const fields = [
-      'username',
-      'password'
-    ]
+  server.post(
+    {
+      name: 'auth.login',
+      path: '/auth/login',
+    },
+    checkPermissions(['auth:login']),
+    wrapAction(async (req, res) => {
+      const fields = ['username', 'password']
 
-    const payload = _.pick(req.body, fields)
+      const payload = _.pick(req.body, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'login'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'login',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 
-  server.post({
-    name: 'auth.loginMagic',
-    path: '/auth/login/magic'
-  }, checkPermissions(['auth:login']), wrapAction(async (req, res) => {
-    const fields = [
-      'token',
-    ]
+  server.post(
+    {
+      name: 'auth.logout',
+      path: '/auth/logout',
+    },
+    wrapAction(async (req, res) => {
+      const { refreshToken, logoutFromExternalProvider } = req.body
 
-    const payload = _.pick(req.body, fields)
+      const params = populateRequesterParams(req)({
+        type: 'logout',
+        refreshToken,
+        logoutFromExternalProvider,
+      })
 
-    let params = populateRequesterParams(req)({
-      type: 'loginMagic'
-    })
+      return requester.send(params)
+    }),
+  )
 
-    params = Object.assign({}, params, payload)
+  server.post(
+    {
+      name: 'auth.createToken',
+      path: '/auth/token',
+    },
+    checkPermissions([], { optionalPermissions: ['auth:impersonate'] }),
+    wrapAction(async (req, res) => {
+      const fields = [
+        'grantType',
+        'refreshToken',
+        'code',
+        'userId',
+        'sourceUserId',
+        'roles',
+        'permissions',
+      ]
 
-    return requester.send(params)
-  }))
+      const payload = _.pick(req.body, fields)
 
-  server.post({
-    name: 'auth.logout',
-    path: '/auth/logout'
-  }, wrapAction(async (req, res) => {
-    const {
-      refreshToken,
-      logoutFromExternalProvider
-    } = req.body
+      let params = populateRequesterParams(req)({
+        type: 'createToken',
+      })
 
-    const params = populateRequesterParams(req)({
-      type: 'logout',
-      refreshToken,
-      logoutFromExternalProvider
-    })
+      params = Object.assign({}, params, payload)
 
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 
-  server.post({
-    name: 'auth.createToken',
-    path: '/auth/token'
-  }, checkPermissions([], { optionalPermissions: ['auth:impersonate'] }), wrapAction(async (req, res) => {
-    const fields = [
-      'grantType',
-      'refreshToken',
-      'code',
-      'userId',
-      'sourceUserId',
-      'roles',
-      'permissions'
-    ]
+  server.post(
+    {
+      name: 'auth.checkToken',
+      path: '/auth/token/check',
+    },
+    wrapAction(async (req, res) => {
+      const fields = ['tokenType', 'token', 'userAgent']
 
-    const payload = _.pick(req.body, fields)
+      const payload = _.pick(req.body, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'createToken'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'checkToken',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = Object.assign({}, params, payload)
 
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 
-  server.post({
-    name: 'auth.checkToken',
-    path: '/auth/token/check'
-  }, wrapAction(async (req, res) => {
-    const fields = [
-      'tokenType',
-      'token',
-      'userAgent'
-    ]
+  server.get(
+    {
+      name: 'auth.getJwks',
+      path: '/auth/sso/:platformId/:provider/jwks',
+    },
+    wrapAction(async (req, res) => {
+      const { platformId, provider } = req.params
 
-    const payload = _.pick(req.body, fields)
+      const params = populateRequesterParams(req)({
+        type: 'getJwks',
+        publicPlatformId: platformId,
+        provider,
+      })
 
-    let params = populateRequesterParams(req)({
-      type: 'checkToken'
-    })
+      return requester.send(params)
+    }),
+  )
 
-    params = Object.assign({}, params, payload)
+  server.post(
+    {
+      name: 'auth.ssoLoginWithClerk',
+      path: '/auth/login/clerk',
+    },
+    wrapAction(async (req, res) => {
+      const {
+        platformId,
+        env,
+        auth: { _providerSub },
+        authorization: { token },
+      } = req
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'ssoLoginWithClerk',
+        platformId,
+        token,
+        env,
+        provider: 'clerk',
+        identifier: _providerSub,
+      })
 
-  server.get({
-    name: 'auth.getJwks',
-    path: '/auth/sso/:platformId/:provider/jwks'
-  }, wrapAction(async (req, res) => {
-    const {
-      platformId,
-      provider
-    } = req.params
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'getJwks',
-      publicPlatformId: platformId,
-      provider
-    })
+  server.get(
+    {
+      name: 'auth.ssoLogin',
+      path: '/auth/sso/:platformId/:provider',
+    },
+    wrapAction(async (req, res) => {
+      const { platformId, provider } = req.params
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'ssoLogin',
+        publicPlatformId: platformId,
+        provider,
+      })
 
-  server.get({
-    name: 'auth.ssoLogin',
-    path: '/auth/sso/:platformId/:provider'
-  }, wrapAction(async (req, res) => {
-    const {
-      platformId,
-      provider
-    } = req.params
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'ssoLogin',
-      publicPlatformId: platformId,
-      provider
-    })
+  server.get(
+    {
+      name: 'auth.ssoLoginCallback',
+      path: '/auth/sso/:platformId/:provider/callback',
+    },
+    wrapAction(async (req, res) => {
+      const { platformId, provider } = req.params
+      const { state } = req.query || {}
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'ssoLoginCallback',
+        publicPlatformId: platformId,
+        provider,
+        originalUrl: req.url,
+        state,
+      })
 
-  server.get({
-    name: 'auth.ssoLoginCallback',
-    path: '/auth/sso/:platformId/:provider/callback'
-  }, wrapAction(async (req, res) => {
-    const {
-      platformId,
-      provider
-    } = req.params
-    const {
-      state
-    } = req.query || {}
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'ssoLoginCallback',
-      publicPlatformId: platformId,
-      provider,
-      originalUrl: req.url,
-      state
-    })
+  server.get(
+    {
+      name: 'auth.ssoLogoutCallback',
+      path: '/auth/sso/:platformId/:provider/logout/callback',
+    },
+    wrapAction(async (req, res) => {
+      const { platformId, provider } = req.params
+      const { state } = req.query
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'ssoLogoutCallback',
+        publicPlatformId: platformId,
+        provider,
+        state,
+      })
 
-  server.get({
-    name: 'auth.ssoLogoutCallback',
-    path: '/auth/sso/:platformId/:provider/logout/callback'
-  }, wrapAction(async (req, res) => {
-    const {
-      platformId,
-      provider
-    } = req.params
-    const {
-      state
-    } = req.query
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'ssoLogoutCallback',
-      publicPlatformId: platformId,
-      provider,
-      state
-    })
+  server.post(
+    {
+      name: 'password.changePassword',
+      path: '/password/change',
+    },
+    wrapAction(async (req, res) => {
+      const fields = ['currentPassword', 'newPassword']
 
-    return requester.send(params)
-  }))
+      const payload = _.pick(req.body, fields)
 
-  server.post({
-    name: 'password.changePassword',
-    path: '/password/change'
-  }, wrapAction(async (req, res) => {
-    const fields = [
-      'currentPassword',
-      'newPassword'
-    ]
+      let params = populateRequesterParams(req)({
+        type: 'changePassword',
+      })
 
-    const payload = _.pick(req.body, fields)
+      params = Object.assign({}, params, payload)
 
-    let params = populateRequesterParams(req)({
-      type: 'changePassword'
-    })
+      return requester.send(params)
+    }),
+  )
 
-    params = Object.assign({}, params, payload)
+  server.post(
+    {
+      name: 'password.requestPasswordReset',
+      path: '/password/reset/request',
+    },
+    checkPermissions(['password:reset']),
+    wrapAction(async (req, res) => {
+      const { username } = req.body
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'requestPasswordReset',
+        username,
+      })
 
-  server.post({
-    name: 'password.requestPasswordReset',
-    path: '/password/reset/request'
-  }, checkPermissions(['password:reset']), wrapAction(async (req, res) => {
-    const {
-      username
-    } = req.body
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'requestPasswordReset',
-      username
-    })
+  server.post(
+    {
+      name: 'password.confirmPasswordReset',
+      path: '/password/reset/confirm',
+    },
+    wrapAction(async (req, res) => {
+      const { resetToken, newPassword } = req.body
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'confirmPasswordReset',
+        resetToken,
+        newPassword,
+      })
 
-  server.post({
-    name: 'password.confirmPasswordReset',
-    path: '/password/reset/confirm'
-  }, wrapAction(async (req, res) => {
-    const {
-      resetToken,
-      newPassword
-    } = req.body
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'confirmPasswordReset',
-      resetToken,
-      newPassword
-    })
+  server.post(
+    {
+      name: 'token.requestCheck',
+      path: '/token/check/request',
+    },
+    checkPermissions(['token:check']),
+    wrapAction(async (req, res) => {
+      const fields = ['userId', 'expirationDate', 'redirectUrl', 'data']
 
-    return requester.send(params)
-  }))
+      const payload = _.pick(req.body, fields)
 
-  server.post({
-    name: 'token.requestCheck',
-    path: '/token/check/request'
-  }, checkPermissions(['token:check']), wrapAction(async (req, res) => {
-    const fields = [
-      'userId',
-      'expirationDate',
-      'redirectUrl',
-      'data'
-    ]
+      let params = populateRequesterParams(req)({
+        type: 'tokenRequestCheck',
+      })
 
-    const payload = _.pick(req.body, fields)
+      params = Object.assign({}, params, payload)
 
-    let params = populateRequesterParams(req)({
-      type: 'tokenRequestCheck'
-    })
+      params.tokenType = req.body.type
 
-    params = Object.assign({}, params, payload)
+      return requester.send(params)
+    }),
+  )
 
-    params.tokenType = req.body.type
+  server.get(
+    {
+      name: 'token.confirmCheck',
+      path: '/token/check/:token',
+    },
+    wrapAction(async (req, res) => {
+      const token = req.params.token
+      const { redirect } = req.query
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'tokenConfirmCheck',
+        token,
+        redirect,
+      })
 
-  server.get({
-    name: 'token.confirmCheck',
-    path: '/token/check/:token'
-  }, wrapAction(async (req, res) => {
-    const token = req.params.token
-    const {
-      redirect
-    } = req.query
+      return requester.send(params)
+    }),
+  )
 
-    const params = populateRequesterParams(req)({
-      type: 'tokenConfirmCheck',
-      token,
-      redirect
-    })
+  server.post(
+    {
+      name: 'auth.check',
+      path: '/auth/check',
+    },
+    wrapAction(async (req, res) => {
+      const { apiKey, authorization } = req.body
 
-    return requester.send(params)
-  }))
+      const params = populateRequesterParams(req)({
+        type: 'authCheck',
+        apiKey,
+        authorization,
+      })
 
-  server.post({
-    name: 'auth.check',
-    path: '/auth/check'
-  }, wrapAction(async (req, res) => {
-    const {
-      apiKey,
-      authorization
-    } = req.body
-
-    const params = populateRequesterParams(req)({
-      type: 'authCheck',
-      apiKey,
-      authorization
-    })
-
-    return requester.send(params)
-  }))
+      return requester.send(params)
+    }),
+  )
 }
 
-function start ({ communication }) {
+function start({ communication }) {
   const { getRequester } = communication
 
   requester = getRequester({
     name: 'Authentication route > Authentication Requester',
-    key: 'authentication'
+    key: 'authentication',
   })
 }
 
-function stop () {
+function stop() {
   requester.close()
   requester = null
 }
@@ -327,5 +331,5 @@ function stop () {
 module.exports = {
   init,
   start,
-  stop
+  stop,
 }

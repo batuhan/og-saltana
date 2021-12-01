@@ -7,13 +7,13 @@ const groupSchema = Joi.string().valid(
   'authorId',
   'targetId',
   'assetId',
-  'transactionId'
+  'transactionId',
 )
 
 const labelSchema = Joi.string().regex(/^\w+(:\w+)*$/)
 const labelWithWildcardSchema = Joi.string().regex(/^(\*|(\w+)(:(\w+|\*))*)$/)
 const multipleLabelsWithWildcardSchema = Joi.string().regex(
-  /^(\*|(\w+)(:(\w+|\*))*)(,(\*|(\w+)(:(\w+|\*))*))*$/
+  /^(\*|(\w+)(:(\w+|\*))*)(,(\*|(\w+)(:(\w+|\*))*))*$/,
 )
 
 const orderByFields = ['createdDate', 'updatedDate']
@@ -28,7 +28,7 @@ const linkTypeSchema = Joi.valid(
   'embed',
   'link-list',
   'content',
-  'redirect'
+  'redirect',
 )
 
 module.exports = function createValidation(deps) {
@@ -72,7 +72,7 @@ module.exports = function createValidation(deps) {
           multipleLabelsWithWildcardSchema,
           Joi.array().unique().items(labelWithWildcardSchema),
         ],
-      })
+      }),
     ),
   })
   schemas['2021-07-15'].triggerValidation = {
@@ -109,7 +109,7 @@ module.exports = function createValidation(deps) {
     params: objectIdParamsSchema,
     body: schemas['2021-07-15'].create.body.fork(
       ['linkType', 'assetId'],
-      (schema) => schema.forbidden()
+      (schema) => schema.forbidden(),
     ),
     //.fork('score', (schema) => schema.optional()),
   }
@@ -120,23 +120,23 @@ module.exports = function createValidation(deps) {
   const validationVersions = {
     '2021-07-15': [
       {
-        target: 'link.list',
+        target: 'domain.list',
         schema: schemas['2021-07-15'].list,
       },
       {
-        target: 'link.read',
+        target: 'domain.read',
         schema: schemas['2021-07-15'].read,
       },
       {
-        target: 'link.create',
+        target: 'domain.create',
         schema: schemas['2021-07-15'].create,
       },
       {
-        target: 'link.update',
+        target: 'domain.update',
         schema: schemas['2021-07-15'].update,
       },
       {
-        target: 'link.remove',
+        target: 'domain.remove',
         schema: schemas['2021-07-15'].remove,
       },
     ],

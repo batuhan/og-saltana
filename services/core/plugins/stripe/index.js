@@ -5,7 +5,5 @@ module.exports = {
   routes: require('./routes'),
   versions: require('./versions'),
 
-  permissions: [
-    'integrations:read_write:stripe'
-  ]
+  permissions: ['integrations:read_write:stripe'],
 }

@@ -1,16 +1,18 @@
 module.exports = {
   env: {
-    node: true
+    node: true,
   },
-
-  extends: 'standard',
-  plugins: [
-    'standard',
-    'promise'
+  extends: [
+    'airbnb',
+    'plugin:prettier/recommended',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'prettier',
+    'promise',
   ],
-
+  plugins: ['prettier'],
   rules: {
     'comma-dangle': 'off',
-    'multiline-ternary': 'off'
-  }
+    'multiline-ternary': 'off',
+  },
 }

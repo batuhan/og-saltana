@@ -22,12 +22,9 @@ const cors = corsMiddleware({
     'x-saltana-version',
     'authorization',
     'user-agent',
-    'x-saltana-organization-id'
+    'x-saltana-organization-id',
   ],
-  exposeHeaders: [
-    'x-saltana-version',
-    'x-request-id'
-  ]
+  exposeHeaders: ['x-saltana-version', 'x-request-id'],
 })
 
 const { getPlugins, loadPlugin } = require('../plugins')
@@ -73,7 +70,7 @@ const {
   registerValidationVersions,
   registerRequestChanges,
   registerResponseChanges,
-  registerObjectChanges
+  registerObjectChanges,
 } = versions
 
 const auth = require('../src/auth')
@@ -87,24 +84,17 @@ const {
   defaultSystemKeyHashFunction,
   setSystemKeyHashPassphrase,
   setSystemKeyHashWithFunction,
-  getSystemKeyHashFunction
+  getSystemKeyHashFunction,
 } = auth
 
 const {
-  environment: {
-    isValidEnvironment,
-    getDefaultEnvironment
-  }
+  environment: { isValidEnvironment, getDefaultEnvironment },
 } = utils
 
 const middlewares = require('../src/middlewares')
-console.log(5)
 const routes = require('../src/routes')
-console.log(6)
 const services = require('../src/services')
-console.log(7)
 const crons = require('../src/crons')
-console.log(8)
 
 const { name, version } = require('../package.json')
 
@@ -165,12 +155,12 @@ const saltanaTooling = {
 
   middlewares: {
     checkPermissions,
-    restifyAuthorizationParser
+    restifyAuthorizationParser,
   },
 
   routes: {
     getRouteRequestContext,
-    wrapAction
+    wrapAction,
   },
 
   // useful to create a new model
@@ -183,24 +173,30 @@ const saltanaTooling = {
   apm,
 }
 
-function loadServer () {
+function loadServer() {
   const server = restify.createServer({ name, version })
 
-  server.on('after', restify.plugins.metrics({ server }, (err, metrics, req/*, res, route */) => {
-    if (err) {
-      // do nothing
-    }
+  server.on(
+    'after',
+    restify.plugins.metrics(
+      { server },
+      (err, metrics, req /*, res, route */) => {
+        if (err) {
+          // do nothing
+        }
 
-    const requestContext = getLoggingContext(req)
-    const loggingParams = Object.assign({}, requestContext, {
-      metrics
-    })
+        const requestContext = getLoggingContext(req)
+        const loggingParams = Object.assign({}, requestContext, {
+          metrics,
+        })
 
-    // clean for garbage collection
-    req.apmSpans = {}
+        // clean for garbage collection
+        req.apmSpans = {}
 
-    logTrace(loggingParams, 'Metrics')
-  }))
+        logTrace(loggingParams, 'Metrics')
+      },
+    ),
+  )
 
   // create an object that can be used to store any APM spans
   server.use((req, res, next) => {
@@ -226,7 +222,7 @@ function loadServer () {
     'message',
     'code',
     'public',
-    'statusCode' // must be present because it is used by Restify to display custom error fields
+    'statusCode', // must be present because it is used by Restify to display custom error fields
   ]
   const indexedErrorFields = _.keyBy(allowedErrorFields)
 
@@ -240,10 +236,10 @@ function loadServer () {
 
   // If an error has the property `public`, the server will convert it into `data` and expose it
   // even if `expose` is false.
-  function getFormattedError (err, statusCode) {
+  function getFormattedError(err, statusCode) {
     const alt = serializeError(err)
 
-    Object.getOwnPropertyNames(alt).forEach(key => {
+    Object.getOwnPropertyNames(alt).forEach((key) => {
       if (!indexedErrorFields[key]) {
         delete alt[key]
       }
@@ -272,21 +268,21 @@ function loadServer () {
     return alt
   }
 
-  function logRequestError (req, res, err) {
+  function logRequestError(req, res, err) {
     const requestContext = getLoggingContext(req)
     const metrics = {
       statusCode: res.statusCode,
       method: req.method,
-      path: req.path()
+      path: req.path(),
     }
 
     logError(err, {
       custom: {
         metrics, // manually rebuild the metrics object to have the same fields as the real metrics
-        requestContext
+        requestContext,
       },
       enableApmLog: false, // disable APM logs here, as errors are already handled by APM connect middleware
-      message: 'Error'
+      message: 'Error',
     })
   }
 
@@ -300,10 +296,11 @@ function loadServer () {
       // https://tools.ietf.org/html/draft-ietf-httpbis-p7-auth-19#section-4.4
       const realm = 'SaltanaCore API'
       const realmAsUser = `${realm} as a user`
-      res.header('www-authenticate',
+      res.header(
+        'www-authenticate',
         // Returning Basic scheme first
         // http://test.greenbytes.de/tech/tc/httpauth/#multibasicunknown
-        `Basic realm="${realm}", Bearer realm="${realmAsUser}", SaltanaCore-v1 realm="${realmAsUser}"`
+        `Basic realm="${realm}", Bearer realm="${realmAsUser}", SaltanaCore-v1 realm="${realmAsUser}"`,
       )
     }
 
@@ -316,10 +313,12 @@ function loadServer () {
 
       const newError = getFormattedError(err, statusCode)
 
-      const keys = _.uniq(Object.getOwnPropertyNames(err).concat(Object.keys(newError)))
+      const keys = _.uniq(
+        Object.getOwnPropertyNames(err).concat(Object.keys(newError)),
+      )
 
       // copy newError into err
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (newError[key]) {
           err[key] = newError[key]
         } else {
@@ -349,7 +348,8 @@ function loadServer () {
   try {
     // plugins can use Saltana core dependencies if they provide a function
     const injectSaltanaTooling = (pluginObject) => {
-      if (typeof pluginObject === 'function') return pluginObject(saltanaTooling)
+      if (typeof pluginObject === 'function')
+        return pluginObject(saltanaTooling)
       else return pluginObject
     }
 
@@ -359,13 +359,13 @@ function loadServer () {
       // Comma-separated list of plugin absolute paths to load before starting server.
       .split(',')
       .filter(Boolean)
-      .map(s => s.trim())
+      .map((s) => s.trim())
     if (Array.isArray(toLoad) && toLoad.length) toLoad.forEach(loadPlugin)
 
     // Register all plugins
     const plugins = getPlugins()
 
-    plugins.forEach(plugin => {
+    plugins.forEach((plugin) => {
       if (plugin.routes) {
         const name = plugin.name
         routes.registerRoutes(name, plugin.routes)
@@ -375,28 +375,28 @@ function loadServer () {
       }
       if (plugin.versions) {
         if (plugin.versions.validation) {
-          plugin.versions.validation.forEach(v => {
+          plugin.versions.validation.forEach((v) => {
             registerValidationVersions(injectSaltanaTooling(v))
           })
         }
         if (plugin.versions.request) {
-          plugin.versions.request.forEach(change => {
+          plugin.versions.request.forEach((change) => {
             registerRequestChanges(injectSaltanaTooling(change))
           })
         }
         if (plugin.versions.response) {
-          plugin.versions.response.forEach(change => {
+          plugin.versions.response.forEach((change) => {
             registerResponseChanges(injectSaltanaTooling(change))
           })
         }
         if (plugin.versions.object) {
-          plugin.versions.object.forEach(change => {
+          plugin.versions.object.forEach((change) => {
             registerObjectChanges(injectSaltanaTooling(change))
           })
         }
       }
       if (plugin.permissions) {
-        plugin.permissions.forEach(permission => {
+        plugin.permissions.forEach((permission) => {
           registerPermission(injectSaltanaTooling(permission))
         })
       }
@@ -427,14 +427,18 @@ function loadServer () {
     const isStoreUrl = req.url.startsWith('/store/')
     const isRobotsTxtUrl = req.url === '/robots.txt'
     const isHomeUrl = req.url === '/'
-    const isTokenConfirmCheckUrl = req.url.startsWith('/token/check/') && req.url !== '/token/check/request'
+    const isTokenConfirmCheckUrl =
+      req.url.startsWith('/token/check/') && req.url !== '/token/check/request'
     const isSSOUrl = req.url.startsWith('/auth/sso')
 
-    const { spec: { optionalApiKey, manualAuth } } = req.getRoute() || { spec: {} }
+    const {
+      spec: { optionalApiKey, manualAuth },
+    } = req.getRoute() || { spec: {} }
     req._optionalApiKeyRoute = Boolean(optionalApiKey) // Authorization header may still be required (e.g. token)
     req._manualAuthRoute = Boolean(manualAuth) // no Authorization info required at all
 
-    req._allowMissingPlatformId = isSystemUrl ||
+    req._allowMissingPlatformId =
+      isSystemUrl ||
       isStoreUrl ||
       isRobotsTxtUrl ||
       isHomeUrl ||
@@ -480,7 +484,8 @@ function loadServer () {
       // Detect workflow requests, currently executed by same instance only.
       // Unlike HTTP host, req.connection is hard to spoof.
       // https://github.com/expressjs/express/issues/2518
-      const isLocal = req.connection.localAddress === req.connection.remoteAddress
+      const isLocal =
+        req.connection.localAddress === req.connection.remoteAddress
 
       if (rawWorkflowHeader && workflowKey === rawWorkflowHeader && isLocal) {
         // could be turned into an object with additional metadata in the future
@@ -490,7 +495,8 @@ function loadServer () {
       // If the header 'x-platform-id' or 'x-saltana-env' are present and allowed to be used
       // they override the platformId and env usually set by API key.
       // TODO: use API Key in tests to align with 'production' NODE_ENV (cf. test/auth.js getAccessTokenHeaders)
-      const usePlatformHeaders = TEST || Boolean(req._workflow) || isSystem(req._systemHash)
+      const usePlatformHeaders =
+        TEST || Boolean(req._workflow) || isSystem(req._systemHash)
 
       const rawPlatformIdHeader = req.headers['x-platform-id']
       const rawEnvHeader = req.headers['x-saltana-env']
@@ -516,7 +522,8 @@ function loadServer () {
 
     try {
       parseAuthorizationHeader(req)
-    } catch (err) { // still trying to parse authorization header for convenience when not required
+    } catch (err) {
+      // still trying to parse authorization header for convenience when not required
       if (!req._manualAuthRoute) {
         apmSpan && apmSpan.end()
         return next(err)
@@ -528,7 +535,7 @@ function loadServer () {
         try {
           const info = await getPlatformEnvData(req.platformId, req.env, [
             'plan', // can be set by some plugin
-            'version'
+            'version',
           ])
           req._plan = info ? info.plan : null
           req._platformVersion = info ? info.version : null
@@ -549,7 +556,7 @@ function loadServer () {
           await setPlanAndVersion({
             platformId: req.platformId,
             env: req.env,
-            errParams: [401, 'Invalid API Key']
+            errParams: [401, 'Invalid API Key'],
           })
         }
       }
@@ -560,7 +567,9 @@ function loadServer () {
       // - some plugin routes
       const shouldSetPlan = !req._plan && req.platformId && req.env
       if (shouldSetPlan) {
-        await setPlanAndVersion({ errParams: [400, 'Invalid platformId or env'] })
+        await setPlanAndVersion({
+          errParams: [400, 'Invalid platformId or env'],
+        })
       }
 
       if (!req.env) {
@@ -572,7 +581,11 @@ function loadServer () {
 
       if ((!req.platformId || !req.env) && !req._allowMissingPlatformId) {
         if (rawApiKey) throw createError(401, 'Invalid API key')
-        else throw createError(401, 'Please provide a secret or publishable API key')
+        else
+          throw createError(
+            401,
+            'Please provide a secret or publishable API key',
+          )
       }
 
       if (req.env && !isValidEnvironment(req.env)) {
@@ -596,13 +609,14 @@ function loadServer () {
 
       if (selectedVersion && !apiVersions.includes(selectedVersion)) {
         throw createError(400, `Invalid Saltana version '${selectedVersion}'`, {
-          public: { versionsAvailable: apiVersions }
+          public: { versionsAvailable: apiVersions },
         })
       }
 
       req._apiVersions = apiVersions
       req._latestVersion = apiVersions[0]
-      req._selectedVersion = selectedVersion || req._platformVersion || req._latestVersion
+      req._selectedVersion =
+        selectedVersion || req._platformVersion || req._latestVersion
 
       // Update the platform default API version if not set yet
       if (!req._platformVersion && platformId && env) {
@@ -634,7 +648,12 @@ function loadServer () {
       const toVersion = req._latestVersion
       const target = req.route.spec.name
 
-      await applyRequestChanges({ target, fromVersion, toVersion, params: { req } })
+      await applyRequestChanges({
+        target,
+        fromVersion,
+        toVersion,
+        params: { req },
+      })
 
       next()
     } catch (err) {
@@ -645,7 +664,7 @@ function loadServer () {
   // Dismiss polite bots
   server.get('/robots.txt', function (req, res, next) {
     res.set({
-      'Content-Type': 'text/plain'
+      'Content-Type': 'text/plain',
     })
     res.send('User-Agent: *\nDisallow: /')
     next() // need to call next to have metrics correctly populated
@@ -654,7 +673,7 @@ function loadServer () {
   server.get('/', (req, res, next) => {
     res.json({
       application: 'saltana-api',
-      version: 'stable'
+      version: 'stable',
     })
     next()
   })
@@ -666,13 +685,13 @@ function loadServer () {
       allowSystem,
       checkPermissions,
       restifyAuthorizationParser,
-      ...middlewares.getAll() // shared between all plugins and core server
+      ...middlewares.getAll(), // shared between all plugins and core server
     },
     helpers: {
       wrapAction,
       populateRequesterParams,
-      getRequestContext: getRouteRequestContext
-    }
+      getRequestContext: getRouteRequestContext,
+    },
   })
 
   // must be the last middleware before error middleware
@@ -683,7 +702,7 @@ function loadServer () {
   return server
 }
 
-function getAuthorizationParams (req) {
+function getAuthorizationParams(req) {
   return {
     _userId: req.auth && (req.auth.sub || req.auth.userId),
     _targetUserId: req.targetUserId,
@@ -709,18 +728,18 @@ function getAuthorizationParams (req) {
   }
 }
 
-function getRouteRequestContext (req) {
+function getRouteRequestContext(req) {
   return Object.assign({}, getAuthorizationParams(req))
 }
 
-function populateRequesterParams (req) {
+function populateRequesterParams(req) {
   return function (params) {
     const routeContext = getRouteRequestContext(req)
     return Object.assign(routeContext, params)
   }
 }
 
-function wrapAction (fn, { routeAction = true } = {}) {
+function wrapAction(fn, { routeAction = true } = {}) {
   return async (req, res, next) => {
     try {
       const apmSpan = apm.startSpan('Route action')
@@ -743,11 +762,7 @@ function wrapAction (fn, { routeAction = true } = {}) {
       // to return non-json response
       if (_.isObjectLike(result) && _.isObjectLike(result._rawResponse)) {
         const raw = result._rawResponse
-        res.send(
-          raw.statusCode || 200,
-          raw.content,
-          raw.headers || {}
-        )
+        res.send(raw.statusCode || 200, raw.content, raw.headers || {})
         next()
         return
       }
@@ -762,7 +777,12 @@ function wrapAction (fn, { routeAction = true } = {}) {
         const toVersion = req._selectedVersion
         const target = req.route.spec.name
 
-        const transformed = await applyResponseChanges({ target, fromVersion, toVersion, params: { req, result } })
+        const transformed = await applyResponseChanges({
+          target,
+          fromVersion,
+          toVersion,
+          params: { req, result },
+        })
         const { result: newResult } = transformed
 
         res.header('x-saltana-version', toVersion)
@@ -795,11 +815,7 @@ let stl // keeping track of server (last one if several were started)
  * @param {Boolean} [useFreePort = false] - if true, will find a free port by itself
  * @param {String}  [communicationEnv] - sets an environment for communication between services (useful for testing)
  */
-function start ({
-  useFreePort,
-  enableSignal = true,
-  communicationEnv
-} = {}) {
+function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
   return new Promise((resolve, reject) => {
     const server = loadServer()
     stl = server
@@ -817,7 +833,7 @@ function start ({
       app = server.listen(process.env.CORE_SERVER_PORT || 4100, onStarted)
     }
 
-    function onStarted (err) {
+    function onStarted(err) {
       if (err) return reject(err)
 
       if (enableSignal) {
@@ -831,7 +847,7 @@ function start ({
 
       const startParams = Object.assign({}, saltanaTooling, {
         serverPort,
-        saltanaIO
+        saltanaIO,
       })
 
       auth.start(startParams)
@@ -842,7 +858,7 @@ function start ({
 
       configRequester = communication.getRequester({
         name: 'Config requester',
-        key: 'config'
+        key: 'config',
       })
 
       // add testing function to server so tests can manipulate time
@@ -868,9 +884,9 @@ function start ({
  * @param {Object} [server] - Server to stop, defaults to server started last
  * @param {Number} [gracefulStopDuration] - in milliseconds
  */
-function stop ({
+function stop({
   server: serverToStop = stl,
-  gracefulStopDuration = 1000
+  gracefulStopDuration = 1000,
 } = {}) {
   return new Promise((resolve) => {
     ;(serverToStop.saltanaIO || serverToStop).close(() => {
@@ -891,5 +907,5 @@ function stop ({
 
 module.exports = {
   start,
-  stop
+  stop,
 }

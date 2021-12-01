@@ -70,7 +70,7 @@ function logError(
     env,
     enableApmLog = true,
     enableRoarr = true,
-  } = {}
+  } = {},
 ) {
   let defaultUser
   let defaultCustom
@@ -108,7 +108,7 @@ function logError(
         custom: newCustom,
         labels: newLabels,
       },
-      message || error.message
+      message || error.message,
     ) // message required for Roarr
   }
 
@@ -121,7 +121,7 @@ function logError(
       const omittedErrorFields = ['message', 'stack', 'statusCode', 'expose']
       errorData = _.pick(
         error,
-        _.difference(Object.keys(error), omittedErrorFields)
+        _.difference(Object.keys(error), omittedErrorFields),
       )
     }
 
@@ -142,4 +142,5 @@ function removeUndefinedValues(json) {
 module.exports = {
   logTrace,
   logError,
+  log: RoarrLogger,
 }

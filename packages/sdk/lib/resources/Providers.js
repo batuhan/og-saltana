@@ -5,6 +5,11 @@ const method = Resource.method
 export default class Providers extends Resource {}
 
 Providers.prototype.stripeRequest = method({
-  path: '/providers/stripe/request',
-  method: 'POST'
+  path: '/integrations/stripe/request',
+  method: 'POST',
+})
+
+Providers.prototype.stripeProcessPaymentIntent = method({
+  path: '/integrations/stripe/process-payment-intent',
+  method: 'POST',
 })

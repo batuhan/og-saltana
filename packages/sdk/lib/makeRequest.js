@@ -5,15 +5,11 @@ import {
   getOptionsFromArgs,
   addReadOnlyProperty,
   decodeJwtToken,
-  isPromise
+  isPromise,
 } from './utils'
 
-function getRequestOpts (requestArgs, spec, tokens) {
-  const {
-    path,
-    method = 'GET',
-    urlParams = []
-  } = spec
+function getRequestOpts(requestArgs, spec, tokens) {
+  const { path, method = 'GET', urlParams = [] } = spec
 
   // Don't mutate args externally.
   const args = [].slice.call(requestArgs)
@@ -23,12 +19,12 @@ function getRequestOpts (requestArgs, spec, tokens) {
   const urlData = {}
 
   // Check that all specified url params have been provided
-  urlParams.forEach(urlParam => {
+  urlParams.forEach((urlParam) => {
     const arg = args[0]
     if (typeof arg !== 'string') {
       throw new Error(
         `Saltana: "${urlParam}" must be a string, but got: ${typeof arg}` +
-        ` (on API request to ${requestMethod} ${path})`
+          ` (on API request to ${requestMethod} ${path})`
       )
     }
 
@@ -56,7 +52,7 @@ function getRequestOpts (requestArgs, spec, tokens) {
   if (args.length) {
     throw new Error(
       `Saltana: Unknown arguments (${args}). Did you mean to pass an options object?` +
-      ` (on API request to ${requestMethod} ${path})`
+        ` (on API request to ${requestMethod} ${path})`
     )
   }
 
@@ -70,11 +66,12 @@ function getRequestOpts (requestArgs, spec, tokens) {
     requestPath,
     queryParams,
     data,
-    headers
+    headers,
+    tokens,
   }
 }
 
-function handlePaginationMeta (res) {
+function handlePaginationMeta(res) {
   if (Array.isArray(res)) return res
 
   const cursorPagination = typeof res.hasNextPage !== 'undefined'
@@ -87,14 +84,14 @@ function handlePaginationMeta (res) {
       hasNextPage: res.hasNextPage,
       startCursor: res.startCursor,
       endCursor: res.endCursor,
-      nbResultsPerPage: res.nbResultsPerPage
+      nbResultsPerPage: res.nbResultsPerPage,
     }
   } else {
     paginationMeta = {
       nbResults: res.nbResults,
       nbPages: res.nbPages,
       page: res.page,
-      nbResultsPerPage: res.nbResultsPerPage
+      nbResultsPerPage: res.nbResultsPerPage,
     }
   }
 
@@ -109,103 +106,101 @@ function handlePaginationMeta (res) {
   return newResponse
 }
 
-function getTokens (self) {
-  return Promise.resolve()
-    .then(() => {
-      const apiKey = self._saltana.getApiField('key')
+function getTokens(self) {
+  return Promise.resolve().then(() => {
+    const apiKey = self._saltana.getApiField('key')
 
-      const needsAuthToken = !isSecretApiKey(apiKey)
-      if (!needsAuthToken) return
+    const needsAuthToken = !isSecretApiKey(apiKey)
+    if (!needsAuthToken) return
 
-      const tokenStore = self._saltana.getApiField('tokenStore')
-      const tokens = tokenStore.getTokens()
-      if (!tokens) return
+    const tokenStore = self._saltana.getApiField('tokenStore')
+    const tokens = tokenStore.getTokens()
+    if (!tokens) return
 
-      const beforeRefreshToken = self._saltana.getApiField('beforeRefreshToken')
+    const beforeRefreshToken = self._saltana.getApiField('beforeRefreshToken')
 
-      const canRefreshToken = !!tokens.refreshToken || beforeRefreshToken
-      if (!canRefreshToken) return tokens
+    const canRefreshToken = !!tokens.refreshToken || beforeRefreshToken
+    if (!canRefreshToken) return tokens
 
-      const accessToken = tokens.accessToken
-      const refreshToken = tokens.refreshToken
+    const accessToken = tokens.accessToken
+    const refreshToken = tokens.refreshToken
 
-      const parsedAccessToken = decodeJwtToken(accessToken)
-      const isExpiredToken = new Date(parsedAccessToken.exp * 1000) < new Date()
+    const parsedAccessToken = decodeJwtToken(accessToken)
+    const isExpiredToken = new Date(parsedAccessToken.exp * 1000) < new Date()
 
-      if (!isExpiredToken) {
-        return tokens
+    if (!isExpiredToken) {
+      return tokens
+    }
+
+    if (beforeRefreshToken) {
+      // wrap `beforeRefreshToken` so it can be a callback or a promise
+      const beforeRefreshTokenPromise = (tokens) => {
+        return new Promise((resolve, reject) => {
+          const callback = (err, newTokens) => {
+            if (err) reject(err)
+            else resolve(newTokens)
+          }
+
+          const returnedObject = beforeRefreshToken(tokens, callback)
+
+          if (isPromise(returnedObject)) {
+            returnedObject.then(resolve).catch(reject)
+          }
+        })
       }
 
-      if (beforeRefreshToken) {
-        // wrap `beforeRefreshToken` so it can be a callback or a promise
-        const beforeRefreshTokenPromise = (tokens) => {
-          return new Promise((resolve, reject) => {
-            const callback = (err, newTokens) => {
-              if (err) reject(err)
-              else resolve(newTokens)
-            }
+      return beforeRefreshTokenPromise(tokens)
+        .then((newTokens) => {
+          if (typeof newTokens !== 'object') {
+            throw new Error('Wrong result')
+          }
 
-            const returnedObject = beforeRefreshToken(tokens, callback)
+          tokenStore.setTokens(newTokens)
 
-            if (isPromise(returnedObject)) {
-              returnedObject
-                .then(resolve)
-                .catch(reject)
-            }
-          })
-        }
+          return newTokens
+        })
+        .catch(() => tokens)
+    } else {
+      return getNewAccessToken(self, refreshToken)
+        .then((accessToken) => {
+          const newTokens = Object.assign({}, tokens, { accessToken })
+          tokenStore.setTokens(newTokens)
 
-        return beforeRefreshTokenPromise(tokens)
-          .then(newTokens => {
-            if (typeof newTokens !== 'object') {
-              throw new Error('Wrong result')
-            }
+          return newTokens
+        })
+        .catch((err) => {
+          if (err.lastResponse && err.lastResponse.statusCode === 403) {
+            const error = Object.assign({}, err, {
+              message: 'User session expired',
+            })
+            self._saltana._emitError('userSessionExpired', error)
+            tokenStore.removeTokens()
+            throw error
+          }
 
-            tokenStore.setTokens(newTokens)
-
-            return newTokens
-          })
-          .catch(() => tokens)
-      } else {
-        return getNewAccessToken(self, refreshToken)
-          .then(accessToken => {
-            const newTokens = Object.assign({}, tokens, { accessToken })
-            tokenStore.setTokens(newTokens)
-
-            return newTokens
-          })
-          .catch((err) => {
-            if (err.lastResponse && err.lastResponse.statusCode === 403) {
-              const error = Object.assign({}, err, { message: 'User session expired' })
-              self._saltana._emitError('userSessionExpired', error)
-              tokenStore.removeTokens()
-              throw error
-            }
-
-            return tokens
-          })
-      }
-    })
+          return tokens
+        })
+    }
+  })
 }
 
-function getNewAccessToken (self, refreshToken) {
+function getNewAccessToken(self, refreshToken) {
   const requestParams = {
     path: '/auth/token',
     method: 'POST',
     data: {
       refreshToken,
-      grantType: 'refreshToken'
-    }
+      grantType: 'refreshToken',
+    },
   }
 
-  return self._request(requestParams)
-    .then(res => res.accessToken)
+  return self._request(requestParams).then((res) => res.accessToken)
 }
 
-export default function makeRequest (self, requestArgs, spec) {
+export default function makeRequest(self, requestArgs, spec) {
   return Promise.resolve()
     .then(() => getTokens(self))
-    .then(tokens => {
+    .then((tokens) => {
       const opts = getRequestOpts(requestArgs, spec, tokens)
 
       let requestParams = {
@@ -213,20 +208,23 @@ export default function makeRequest (self, requestArgs, spec) {
         method: opts.requestMethod,
         data: opts.data,
         queryParams: opts.queryParams,
-        options: { headers: opts.headers }
+        options: { headers: opts.headers, tokens: opts.tokens },
       }
 
       if (spec.beforeRequest) {
         requestParams = spec.beforeRequest(requestParams, self, tokens)
       }
 
-      return self._request(requestParams)
+      return self
+        ._request(requestParams)
         .then((res) => {
           if (spec.isList) {
             res = handlePaginationMeta(res)
           }
 
-          const response = spec.transformResponseData ? spec.transformResponseData(res) : res
+          const response = spec.transformResponseData
+            ? spec.transformResponseData(res)
+            : res
           return response
         })
         .then((res) => {

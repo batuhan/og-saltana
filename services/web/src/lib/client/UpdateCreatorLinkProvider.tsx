@@ -1,60 +1,59 @@
-import 'twin.macro'
 import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
-
-import { useMutation } from 'react-query'
+import { useMutation, useQueryClient } from 'react-query'
 import { getSaltanaInstance } from '@/client/api'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
+import HookFormDevTools from '@/client/devtools'
 
-const schema = yup.object().shape({
-  firstName: yup.string().required(),
-  age: yup.number().positive().integer().required(),
-})
+const validFields = [
+  'destination',
+  'slug',
+  'content',
+  'linkType',
+  'assetIds',
+  // 'username',
+]
 
 export default function UpdateCreatorLinkProvider({
   children,
   creator,
-  asset,
   link,
+  ...props
 }) {
-  console.log('got link', link)
+  const queryClient = useQueryClient()
+
+  const defaultValues = { content: '', ..._.pick(link.data, [...validFields]) }
+
   const methods = useForm({
-    defaultValues: {
-      link: _.pick(link.data, [
-        'destination',
-        'linkType',
-        'assetId',
-        'slug',
-        'content',
-        // 'username',
-      ]),
-      asset: _.pick(asset.data || {}, [
-        'name',
-        'price',
-        'categoryId',
-        'assetTypeId',
-      ]),
-    },
-    resolver: yupResolver(schema),
+    defaultValues,
+    //resolver: yupResolver(schema),
   })
+
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
   } = methods
 
-  const updateLink = useMutation(async (data) => {
-    const saltanaInstance = await getSaltanaInstance()
-    const [linkResult, assetResult] = await Promise.all([
-      saltanaInstance.links.update(data.link),
-      saltanaInstance.assets.update(data.asset),
-    ])
+  const updateLink = useMutation(
+    async (data) => {
+      const saltanaInstance = await getSaltanaInstance()
+      const linkResult = await saltanaInstance.links.update(link.data.id, {
+        ...defaultValues,
+        ..._.pick(data, validFields),
+      })
 
-    return { link: linkResult, asset: assetResult }
-  }, {})
+      return { ...linkResult }
+    },
+    {
+      onSuccess: (data, variables) => {
+        // queryClient.invalidateQueries('links')
+        queryClient.setQueryData(['links', 'read', link.data.id], data)
+        queryClient.invalidateQueries('links')
+      },
+    },
+  )
 
   async function onSubmit(data) {
     await updateLink.mutateAsync(data)
@@ -62,7 +61,10 @@ export default function UpdateCreatorLinkProvider({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)}>{children}</form>
+      <form onSubmit={handleSubmit(onSubmit)} {...props}>
+        {children}
+        <HookFormDevTools control={control} />
+      </form>
     </FormProvider>
   )
 }

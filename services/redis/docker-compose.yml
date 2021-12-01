@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:5.0.1-alpine
+    ports:
+      - '36379:6379'
+    volumes:
+      - redis-v5.0.1-data:/data
+
+volumes:
+  redis-v5.0.1-data:

@@ -47,7 +47,7 @@ module.exports = {
       'availability:read',
       'availability:create',
       'availability:edit',
-      'availability:remove'
+      'availability:remove',
     ]),
     readNamespaces: [],
     editNamespaces: [],
@@ -62,10 +62,10 @@ module.exports = {
     editNamespaces: [],
     parentId: null,
     customRole: false,
-  }
+  },
 }
 
-function getUserPermissions () {
+function getUserPermissions() {
   return _(publicPermissions)
     .union([
       'assessment:read',
@@ -113,16 +113,15 @@ function getUserPermissions () {
       'user:read',
       'user:edit',
       'user:remove',
-      'user:configOrganization'
+      'user:configOrganization',
+
+      'invoice:read',
     ])
-    .difference([
-      'auth:login',
-      'password:reset'
-    ])
+    .difference(['auth:login', 'password:reset'])
     .value()
 }
 
-function getPublicPermissions () {
+function getPublicPermissions() {
   return [
     // 'apiKey:list:all',
     // 'apiKey:read',
@@ -296,7 +295,7 @@ function getPublicPermissions () {
     'user:list:all',
     // 'user:read',
     'user:read:all',
-    'user:create'
+    'user:create',
     // 'user:create:all',
     // 'user:edit',
     // 'user:edit:all',

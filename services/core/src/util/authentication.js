@@ -5,29 +5,35 @@ const createError = require('http-errors')
 
 bluebird.promisifyAll(jwt)
 
-const {
-  convertToMs
-} = require('../util/time')
+const { convertToMs } = require('../util/time')
 
-async function createAccessToken ({
+async function createAccessToken({
   user,
   data = {},
   issuer,
   secret,
-  accessTokenExpiration
+  accessTokenExpiration,
 } = {}) {
-  const accessTokenExpirationMilliSeconds = convertToMs(accessTokenExpiration || '1h')
-  const accessTokenExpirationSeconds = Math.round(accessTokenExpirationMilliSeconds / 1000)
+  const accessTokenExpirationMilliSeconds = convertToMs(
+    accessTokenExpiration || '1h',
+  )
+  const accessTokenExpirationSeconds = Math.round(
+    accessTokenExpirationMilliSeconds / 1000,
+  )
 
   const roles = user.roles || []
 
-  const encodingToken = Object.assign({}, {
-    userId: user.id,
-    roles
-  }, data)
+  const encodingToken = Object.assign(
+    {},
+    {
+      userId: user.id,
+      roles,
+    },
+    data,
+  )
 
   const params = {
-    expiresIn: accessTokenExpirationSeconds
+    expiresIn: accessTokenExpirationSeconds,
   }
 
   if (issuer) {
@@ -39,7 +45,10 @@ async function createAccessToken ({
   return token
 }
 
-async function decodeJwtToken (token, { secret, issuer, onlyDecode = false } = {}) {
+async function decodeJwtToken(
+  token,
+  { secret, issuer, onlyDecode = false } = {},
+) {
   const options = {}
   if (issuer) {
     options.issuer = issuer
@@ -58,9 +67,11 @@ async function decodeJwtToken (token, { secret, issuer, onlyDecode = false } = {
  * @param {Object} options
  * @param {String} options.userAgent
  */
-async function canRefreshToken (refreshToken, { userAgent } = {}) {
-  if (!refreshToken.reference || !refreshToken.reference.userAgent) throw createError(500)
-  if (refreshToken.expirationDate < new Date().toISOString()) throw createError(403, 'Refresh token expired')
+async function canRefreshToken(refreshToken, { userAgent } = {}) {
+  if (!refreshToken.reference || !refreshToken.reference.userAgent)
+    throw createError(500)
+  if (refreshToken.expirationDate < new Date().toISOString())
+    throw createError(403, 'Refresh token expired')
 
   const isValidUA = checkUserAgent(userAgent, refreshToken.reference.userAgent)
   if (!isValidUA) throw createError(403, 'Cannot refresh this token')
@@ -68,7 +79,7 @@ async function canRefreshToken (refreshToken, { userAgent } = {}) {
   return isValidUA
 }
 
-function checkUserAgent (newUA, oldUA) {
+function checkUserAgent(newUA, oldUA) {
   const parsedNewUA = useragent.parse(newUA)
   const parsedOldUA = useragent.parse(oldUA)
 
@@ -83,18 +94,17 @@ function checkUserAgent (newUA, oldUA) {
   }
 
   // otherwise, check if the new useragent is an upgrade version of the old one
-  return parsedNewUA.family === parsedOldUA.family &&
+  return (
+    parsedNewUA.family === parsedOldUA.family &&
     (newMajor > oldMajor || (newMajor === oldMajor && newMinor >= oldMinor))
+  )
 }
 
-const builtInSSOProviders = [
-  'facebook',
-  'github',
-  'google'
-]
+const builtInSSOProviders = ['facebook', 'github', 'google']
 
-function isBuiltInSSOProvider ({ provider, ssoConnection = {} } = {}) {
-  if (typeof provider !== 'string') throw new Error('provider string expected in options object')
+function isBuiltInSSOProvider({ provider, ssoConnection = {} } = {}) {
+  if (typeof provider !== 'string')
+    throw new Error('provider string expected in options object')
   return builtInSSOProviders.includes(provider) && !ssoConnection.isCustom
 }
 
@@ -109,8 +119,8 @@ const oAuth2BuiltInConnections = {
       email: 'email',
       displayName: 'name',
       firstname: 'first_name',
-      lastname: 'last_name'
-    }
+      lastname: 'last_name',
+    },
   },
 
   // https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps
@@ -121,8 +131,8 @@ const oAuth2BuiltInConnections = {
     userInfoUrl: 'https://api.github.com/user',
     userInfoMapping: {
       displayName: 'name',
-      email: 'email'
-    }
+      email: 'email',
+    },
   },
 
   // https://developers.google.com/identity/protocols/oauth2/openid-connect#discovery
@@ -131,26 +141,25 @@ const oAuth2BuiltInConnections = {
     protocol: 'oauth2',
     authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenUrl: 'https://oauth2.googleapis.com/token',
-    scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    scope:
+      'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
     userInfoUrl: 'https://openidconnect.googleapis.com/v1/userinfo',
     userInfoMapping: {
       email: 'email',
       displayName: 'name',
       firstname: 'given_name',
       lastname: 'family_name',
-      'platformData.instant.emailVerified': 'email_verified'
-    }
-  }
+      'platformData.instant.emailVerified': 'email_verified',
+    },
+  },
 }
 
 module.exports = {
-
   createAccessToken,
   decodeJwtToken,
   canRefreshToken,
 
   builtInSSOProviders,
   isBuiltInSSOProvider,
-  oAuth2BuiltInConnections
-
+  oAuth2BuiltInConnections,
 }

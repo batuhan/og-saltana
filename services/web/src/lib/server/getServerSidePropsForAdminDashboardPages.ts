@@ -3,7 +3,6 @@ import {
   createQueryClient,
   setUserData,
 } from '@/client/api'
-import { getSession } from 'next-auth/client'
 
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
@@ -16,7 +15,7 @@ const getServerSidePropsForAdminDashboardPages =
       instance,
       queryClient,
       context,
-    }) => Promise.resolve({})
+    }) => Promise.resolve({}),
   ) =>
   async (context) => {
     const session = await getSession(context)

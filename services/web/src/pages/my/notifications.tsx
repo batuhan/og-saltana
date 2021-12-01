@@ -6,7 +6,7 @@ import DashboardShell from 'components/Dashboard/Common/Shell'
 import { NextSeo } from 'next-seo'
 
 export default function MyNotifications() {
-  const user = useCurrentUser()
+  const { user } = useCurrentUser()
   const ordersQuery = useApi(
     'orders',
     'list',
@@ -14,13 +14,13 @@ export default function MyNotifications() {
       payerId: user.user.id,
       nbResultsPerPage: 100,
     },
-    { initialData: [], enabled: user.isLoggedIn }
+    { initialData: [], enabled: user.isLoggedIn },
   )
 
   return (
     <DashboardShell>
       <NextSeo title="My Notifications" />
-      <div tw="relative min-h-screen bg-white">
+      <div className="relative min-h-screen bg-white">
         Oh no! You have no notifications yet...
       </div>
     </DashboardShell>

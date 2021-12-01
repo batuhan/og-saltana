@@ -1,56 +1,58 @@
 import React from 'react'
-import tw from 'twin.macro'
+
 import { useRouter } from 'next/router'
 import {
   CreatorDashboardLink,
   CreatorDashboardLinksLink,
 } from 'components/Links'
+import classNames from '@/common/classnames'
 
 const secondaryNavigation = []
 
 export default function CreatorDashboardLinkSidebar({ screens, linkId }) {
   return (
-    <nav aria-label="Sidebar">
-      <div tw="space-y-1">
-        {screens.map(({ name, path, current }) => (
-          <CreatorDashboardLinksLink key={name} href={`/${linkId}/${path}`}>
-            <a
-              css={[
-                'group',
-                current
-                  ? tw`bg-gray-100 text-gray-900`
-                  : tw`text-gray-600 hover:bg-gray-50 hover:text-gray-900`,
-                tw` flex items-center px-3 py-2 text-sm font-medium rounded-md`,
-              ]}
-              aria-current={current ? 'page' : undefined}
-            >
-              <span tw="truncate">{name}</span>
-            </a>
-          </CreatorDashboardLinksLink>
-        ))}
-      </div>
-      {secondaryNavigation.length > 0 && (
-        <div tw="mt-8">
-          <h3
-            tw="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"
-            id="projects-headline"
+    <>
+      <div>
+        <div className="sm:hidden">
+          <label htmlFor="tabs" className="sr-only">
+            Select a tab
+          </label>
+          <select
+            id="tabs"
+            name="tabs"
+            className="block w-full focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
+            defaultValue={screens.find(({ current }) => current).name}
           >
-            Projects
-          </h3>
-          <div tw="mt-1 space-y-1" aria-labelledby="projects-headline">
-            {secondaryNavigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="group"
-                tw=" flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50"
-              >
-                <span tw="truncate">{item.name}</span>
-              </a>
+            {screens.map(({ name, path, current }) => (
+              <option key={name}>{name}</option>
             ))}
+          </select>
+        </div>
+        <div className="hidden sm:block">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex" aria-label="Tabs">
+              {screens.map(({ name, path, current }) => (
+                <CreatorDashboardLinksLink
+                  key={name}
+                  href={`/${linkId}/${path}`}
+                >
+                  <a
+                    className={classNames(
+                      current
+                        ? `border-indigo-500 text-indigo-600`
+                        : `border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`,
+                      `w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm`,
+                    )}
+                    aria-current={current ? 'page' : undefined}
+                  >
+                    {name}
+                  </a>
+                </CreatorDashboardLinksLink>
+              ))}
+            </nav>
           </div>
         </div>
-      )}
-    </nav>
+      </div>
+    </>
   )
 }

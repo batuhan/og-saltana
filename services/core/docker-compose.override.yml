@@ -12,6 +12,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_ADMIN_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_SCHEMA: ${POSTGRES_SCHEMA}
       POSTGRES_SSL: ${POSTGRES_SSL}
       POSTGRES_SSL_CERT: ${POSTGRES_SSL_CERT}
       POSTGRES_SSL_KEY: ${POSTGRES_SSL_KEY}
@@ -26,23 +27,6 @@ services:
       REDIS_DBNUM_CORE: ${REDIS_DBNUM_CORE}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_TLS: ${REDIS_TLS}
-
-  # Use self-signed SSL certificates for testing
-  # For production, please refer to docs/ssl-database.md
-  postgresql:
-    build:
-      context: '.'
-      dockerfile: Dockerfile.postgresqlSSL
-    ports:
-      - '6543:5432'
-    command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - timescaledb-v1.7.1-pg12-data:/var/lib/postgresql/data/pgdata
 
   elasticsearch:
     build:

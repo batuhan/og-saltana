@@ -11,6 +11,9 @@ const MAIN_SITE_HAS_RULES = [
   },
 ]
 
+console.log('BASE_DOMAIN', BASE_DOMAIN)
+const path = require('path')
+
 const CREATOR_SPACE_HAS_RULES = [
   // Match only one item
   //  /^(https?:\/\/)?(www\.)?(saltana|vercel)\.com$/,
@@ -59,14 +62,15 @@ const CREATOR_SPACE_REWRITES = {
       source: '/robots.txt',
       destination: '/api/methods/get-robots/:domain',
     }),
-    ...addCreatorSpaceMatchers({
-      source: '/',
-      destination: '/spaces/:domain/',
-    }),
   ],
   afterFiles: [
     // These rewrites are checked after pages/public files
     // are checked but before dynamic routes
+
+    ...addCreatorSpaceMatchers({
+      source: '/',
+      destination: '/spaces/:domain/index',
+    }),
     ...addCreatorSpaceMatchers({
       source: '/:link/:orderId',
       destination: '/spaces/:domain/:link/:orderId',
@@ -83,12 +87,19 @@ const CREATOR_SPACE_REWRITES = {
       source: '/:link',
       destination: '/spaces/:domain/:link',
     }),
+    ...addCreatorSpaceMatchers({
+      source: '/',
+      destination: '/spaces/:domain',
+    }),
   ],
 }
 
 module.exports = {
   typescript: {
     ignoreBuildErrors: true,
+  },
+  env: {
+    computedBaseDomain: BASE_DOMAIN,
   },
   async redirects() {
     return [...CREATOR_SPACE_REDIRECTS]
@@ -97,10 +108,7 @@ module.exports = {
     return {
       beforeFiles: [
         ...CREATOR_SPACE_REWRITES.beforeFiles,
-        {
-          source: `/api/v1/:path*`,
-          destination: `${CORE_API_URL}/:path*`,
-        },
+
         {
           source: '/',
           has: MAIN_SITE_HAS_RULES,
@@ -122,18 +130,6 @@ module.exports = {
         },
       ],
     }
-  },
-  webpack: (config) => {
-    // Let Babel compile outside of src/.
-    const tsRule = config.module.rules.find(
-      (rule) => rule.test && rule.test.toString().includes('tsx|ts')
-    )
-    tsRule.include = undefined
-    tsRule.exclude = /node_modules/
-    // Unset client-side javascript that only works server-side
-    config.resolve.fallback = { fs: false, module: false }
-
-    return config
   },
   images: {
     domains: [

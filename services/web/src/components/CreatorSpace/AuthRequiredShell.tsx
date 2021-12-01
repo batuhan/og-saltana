@@ -1,0 +1,17 @@
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
+
+// import { generateOrderLink } from '@/common/utils'
+
+const AuthRequiredShell = ({ children }) => {
+  return (
+    <>
+      <SignedIn>{children}</SignedIn>
+
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
+  )
+}
+
+export default AuthRequiredShell

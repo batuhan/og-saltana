@@ -1,23 +1,28 @@
-import 'twin.macro'
 import DashboardShell from '../Common/Shell'
 import CreatorDashboardSettingsSidebar from './SettingsSidebar'
 
 export default function CreatorDashboardSettingsShell({ children }) {
   return (
     <DashboardShell>
-      <div tw="py-6">
-        <div tw="max-w-3xl mx-auto sm:px-6 lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-12 lg:gap-8">
-          <div tw="hidden lg:block lg:col-span-3 xl:col-span-2">
-            <nav
-              aria-label="Sidebar"
-              tw="sticky top-6 divide-y divide-gray-300"
-            >
-              <CreatorDashboardSettingsSidebar />
-            </nav>
+      <main>
+        <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+
+          {/* Page header */}
+          <div className="mb-8">
+            {/* Title */}
+            <h1 className="text-2xl md:text-3xl text-gray-800 font-bold">Account Settings ✨</h1>
           </div>
-          <main tw="lg:col-span-9 xl:col-span-10">{children}</main>
+
+          {/* Content */}
+          <div className="bg-white shadow-lg rounded-sm mb-8">
+            <div className="flex flex-col md:flex-row md:-mr-px">
+              <CreatorDashboardSettingsSidebar />
+              {children}
+            </div>
+          </div>
+
         </div>
-      </div>
+      </main>
     </DashboardShell>
   )
 }

@@ -1,18 +1,23 @@
+import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
+import { GetServerSideProps } from 'next'
+import CreatorOnboardingShell from '../../../components/Dashboard/Creator/Onboarding/Shell'
+
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationIcon } from '@heroicons/react/outline'
-import tw, { styled, css } from 'twin.macro'
+
 import { NextSeo } from 'next-seo'
 
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 
-import { GetServerSideProps } from 'next'
-import { getSession } from 'next-auth/client'
+
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
+import { requireSession } from "@clerk/nextjs/api";
 
 import DashboardShell from 'components/Dashboard/Common/Shell'
+import FormSubmitButton from 'components/FormSubmitButton'
+import GenericFormFieldError from 'components/GenericFormFieldError'
 import {
   createQueryClient,
   getSaltanaInstance,
@@ -20,19 +25,39 @@ import {
 } from '@/client/api'
 import useCurrentUser from 'hooks/useCurrentUser'
 import useUpdateCurrentUser from 'hooks/useUpdateCurrentUser'
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.umd'
+import * as Yup from 'yup'
+import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
+import CreatorSpaceHostname from 'components/Dashboard/Common/Inputs/CreatorSpaceHostname'
 
-export default function WelcomeCreator({ creatorId }) {
-  const user = useCurrentUser()
+
+const Link = ({ to, children, ...props }) => (
+  <a href={`${to}`} {...props}>
+    {children}
+  </a>
+)
+function CreatorOnboarding() {
   const router = useRouter()
+  const { user, instance } = useCurrentUser()
+
+  // form validation rules
+  const validationSchema = Yup.object().shape({
+    username: Yup.string().required('Username is required').min(3),
+    displayName: Yup.string().required('First name is required'),
+    description: Yup.string().required('Description is required'),
+  })
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
+    watch
   } = useForm({
-    defaultValues: _.pick(user.data, [
-      'firstname',
-      'lastname',
+    resolver: yupResolver(validationSchema),
+    criteriaMode: 'all',
+    defaultValues: _.pick(user, [
+      'displayName',
       'description',
       'username',
     ]),
@@ -45,222 +70,182 @@ export default function WelcomeCreator({ creatorId }) {
   const updateUserSettings = useUpdateCurrentUser({ onSuccess })
 
   async function onSubmit(data) {
-    await updateUserSettings.mutateAsync(data)
+
+    try {
+      const usernameAvailabilityResponse = await instance.users.checkAvailability({
+        username: data.username,
+      })
+    } catch (error) {
+      setError('username', {
+        message: 'This username is unavailable. If you are known with this username across the web, contact us, we might be able to help.',
+      }, { shouldFocus: true })
+
+      return
+    }
+
+    try {
+      const result = await updateUserSettings.mutateAsync(data)
+      console.log("we have a result I guess", result)
+    } catch (error) {
+      //@TODO: what errors?
+      console.log("got some errors from the api", error)
+    }
   }
-
   return (
-    <DashboardShell>
-      <NextSeo title="Complete your profile" />
-      <Transition.Root show as={Fragment}>
-        <Dialog as={Fragment} static open onClose={() => {}}>
-          <div tw="fixed z-10 inset-0 overflow-y-auto">
-            <div tw="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <Dialog.Overlay as={Fragment}>
-                  <div tw="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-                </Dialog.Overlay>
-              </Transition.Child>
+    <CreatorOnboardingShell>
+      <div className="max-w-md mx-auto">
+        <h1 className="text-3xl text-gray-800 font-bold mb-6">
+          Finish setting up your account ✨
+        </h1>
 
-              {/* This element is to trick the browser into centering the modal contents. */}
-              <span
-                tw="hidden sm:inline-block sm:align-middle sm:h-screen"
-                aria-hidden="true"
-              >
-                &#8203;
-              </span>
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <div tw="inline-block align-bottom bg-white rounded-lg px-5 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                  <form onSubmit={handleSubmit(onSubmit)}>
-                    <div tw="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                      <div tw="space-y-6">
-                        <div>
-                          <h1 tw="text-lg leading-8 font-extrabold text-gray-900">
-                            Finish setting up your account
-                          </h1>
-                          <p tw="mt-1 text-sm text-gray-500">
-                            Let’s get started by filling in the information
-                            below to create your new project.
-                          </p>
-                        </div>
+        <p className="mt-1 text-sm text-gray-500">
+          Let’s get started by filling in the information
+          below to create your new project.
+        </p>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <div className="space-y-6">
 
-                        <div>
-                          <label
-                            htmlFor="username"
-                            tw="block text-sm font-medium text-gray-700"
-                          >
-                            Username
-                          </label>
-                          <div tw="mt-1 flex rounded-md shadow-sm">
-                            <span tw="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                              saltana.com/
-                            </span>
-                            <input
-                              type="text"
-                              name="username"
-                              id="username"
-                              {...register('username', {
-                                required: true,
-                              })}
-                              tw="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300"
-                              placeholder="RickAstley"
-                            />
-                          </div>
-                        </div>
-                        <div tw="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                          <div tw="sm:col-span-3">
-                            <label
-                              htmlFor="firstname"
-                              tw="block text-sm font-medium text-gray-700"
-                            >
-                              First name
-                            </label>
-                            <div tw="mt-1">
-                              <input
-                                type="text"
-                                name="firstname"
-                                id="firstname"
-                                autoComplete="given-name"
-                                {...register('firstname', {
-                                  required: true,
-                                })}
-                                tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                              />
-                            </div>
-                            {errors.firstname && (
-                              <p tw="text-red-500 text-sm mt-2">
-                                First name is required :(
-                              </p>
-                            )}
-                          </div>
 
-                          <div tw="sm:col-span-3">
-                            <label
-                              htmlFor="lastname"
-                              tw="block text-sm font-medium text-gray-700"
-                            >
-                              Last name
-                            </label>
-                            <div tw="mt-1">
-                              <input
-                                type="text"
-                                name="lastname"
-                                id="lastname"
-                                {...register('lastname', {
-                                  required: true,
-                                })}
-                                autoComplete="family-name"
-                                tw="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                              />
-                            </div>
-                          </div>
-                        </div>
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Username
+                </label>
+                <CreatorSpaceHostname name="username" register={register} errors={errors} />
 
-                        <p
-                          tw="mt-2 text-sm text-gray-500"
-                          id="name-description"
-                        >
-                          Most creators prefer using the name they are most
-                          known with, sdfs
-                        </p>
-                        <div>
-                          <label
-                            htmlFor="description"
-                            tw="block text-sm font-medium text-gray-700"
-                          >
-                            Short description
-                          </label>
-                          <div tw="mt-1">
-                            <textarea
-                              id="description"
-                              name="description"
-                              rows={3}
-                              {...register('description', {
-                                required: true,
-                                minLength: 10,
-                              })}
-                              tw="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border border-gray-300 rounded-md"
-                              defaultValue=""
-                              placeholder="Senior Never Giving Upper"
-                            />
-                          </div>
-
-                          <p
-                            tw="mt-2 text-sm text-gray-500"
-                            id="name-description"
-                          >
-                            Displayed at the top of your links
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div tw="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                      <button
-                        type="submit"
-                        disabled={updateUserSettings.isLoading}
-                        tw="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                      >
-                        {updateUserSettings.isLoading
-                          ? 'Crafting your profile...'
-                          : 'Start using Saltana'}
-                      </button>
-                    </div>
-                  </form>
+              </div>
+              <div className="sm:col-span-3">
+                <label
+                  htmlFor="displayName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Display name
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="displayName"
+                    id="displayName"
+                    autoComplete="given-name"
+                    {...register('displayName', {
+                      required: true,
+                    })}
+                    className={`
+                                shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md
+                                ${errors.displayName && 'border-red-500'}
+                              `}
+                  />
                 </div>
-              </Transition.Child>
+                <GenericFormFieldError errors={errors} fieldName='displayName' />
+              </div>
+
+              <p
+                className="mt-2 text-sm text-gray-500"
+                id="name-description"
+              >
+                Most creators prefer using the name they are most
+                known with, sdfs
+
+                You'll be able to select a different display name if you prefer but your real name is used to verify your identity.
+              </p>
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Short description
+                </label>
+                <div className="mt-1">
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows={3}
+                    {...register('description', {
+                      required: true,
+                      minLength: 10,
+                    })}
+                    className={`block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border border-gray-300 rounded-md`}
+                    defaultValue=""
+                    placeholder="Senior Never Giving Upper"
+                  />
+                </div>
+                <GenericFormFieldError errors={errors} fieldName='description' />
+
+                <p
+                  className="mt-2 text-sm text-gray-500"
+                  id="name-description"
+                >
+                  Displayed at the top of your links
+                </p>
+              </div>
             </div>
           </div>
-        </Dialog>
-      </Transition.Root>
-    </DashboardShell>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <FormSubmitButton
+              type="submit"
+              isLoading={updateUserSettings.isLoading}
+              text="Start using Saltana"
+              textWhenLoading="Crafting your profile..."
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+            />
+          </div>
+        </form>
+
+      </div>
+    </CreatorOnboardingShell>
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const session = await getSession({ req })
-  if (!session) {
-    res.statusCode = 403
-    return { props: {} }
-  }
+export const getServerSideProps: GetServerSideProps = getServerSidePropsForCreatorDashboardPages()
+// export const getServerSideProps: GetServerSideProps = requireSession(async ({ req, res }) => {
+//   debugger
+//   const session = await getSession({ req })
+//   if (!session) {
+//     res.statusCode = 403
+//     return {
+//       redirect: {
+//         destination: `/login`,
+//         permanent: false, // @TODO: This should be true
+//       },
+//     }
+//   }
 
-  const instance = await getSaltanaInstance(session)
+//   const instance = await getSaltanaInstance(session)
 
-  const userData = await instance.users.read(session.user.id)
+//   const userData = await instance.users.read(session.user.id)
 
-  const queryClient = createQueryClient(session)
+//   const finishedOnboarding = _.get(userData.platformData, '_private.finishedOnboarding', false)
+//   const roles = _.get(userData, 'roles', [])
+//   const isCreator = roles.includes('provider')
 
-  setUserData(queryClient, userData)
+//   if (isCreator === false) {
+//     return {
+//       redirect: {
+//         destination: '/request-invite',
+//         permanent: false,
+//       },
+//     }
+//   }
 
-  if (
-    _.get(userData.platformData, '_private.finishedOnboarding', false) === true
-  ) {
-    return {
-      props: {
-        dehydratedState: dehydrate(queryClient),
-        creatorId: userData.id,
-      },
-    }
-  }
+//   if (
+//     finishedOnboarding === true
+//   ) {
+//     return {
+//       redirect: {
+//         destination: `/dashboard`,
+//         permanent: false, // @TODO: This should be true
+//       },
+//     }
+//   }
 
-  return {
-    props: {
-      dehydratedState: dehydrate(queryClient),
-      creatorId: userData.id,
-    },
-  }
-}
+//   return {
+//     props: {
+//       userData
+//     },
+//   }
+// })
+
+export default CreatorOnboarding

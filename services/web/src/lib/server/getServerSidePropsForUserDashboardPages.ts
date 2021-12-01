@@ -1,69 +1,66 @@
-import { getSession } from 'next-auth/client'
-
-import { dehydrate } from 'react-query/hydration'
-import _ from 'lodash'
 import {
   getSaltanaInstance,
   createQueryClient,
   setUserData,
-} from '../client/api'
-import buildLoginLink from './buildLoginLink'
+  setCreatorLinkData,
+} from '@/client/api'
 
+import { dehydrate } from 'react-query/hydration'
+import _ from 'lodash'
+import {
+  getSaltanaInstanceFor,
+  getSaltanaInstanceFromContext,
+  parseTokenFromReq,
+} from '@/common/api'
+import COMMON_LINKS from '@/common/common-links'
+
+// Login status and token validity check is done in the middleware
 const getServerSidePropsForUserDashboardPages =
   (
-    extendPropsFn = ({
-      commonProps,
-      session,
-      instance,
-      queryClient,
-      context,
-    }) => Promise.resolve({})
+    extendPropsFn = ({ coreState, instance, queryClient, context }) =>
+      Promise.resolve({}),
   ) =>
   async (context) => {
-    const { params } = context
-    const session = await getSession(context)
+    const token = parseTokenFromReq(context.req)
+    const instance = getSaltanaInstanceFor('clerk', token)
 
-    if (!session) {
+    try {
+      const currentUser = await instance.users.read('me')
+
+      const queryClient = createQueryClient(instance)
+
+      setUserData(queryClient, currentUser)
+
+      const coreState = {
+        currentUserId: currentUser?.id,
+        currentUser: currentUser,
+        token,
+        provider: 'clerk',
+      }
+
+      const props = await extendPropsFn({
+        coreState,
+        instance,
+        queryClient,
+        context,
+      })
+
       return {
-        redirect: {
-          destination: buildLoginLink(context),
-          permanent: false,
+        props: {
+          ...props,
+          coreState,
+          dehydratedState: dehydrate(queryClient),
         },
       }
-    }
+    } catch (error) {
+      console.log('Error when getting props for user dashboard pages', error)
 
-    const instance = await getSaltanaInstance(session)
-    const currentUser = await instance.users.read(session.user.id)
-
-    if (!currentUser) {
-      // @TODO: why?
       return {
-        notFound: true,
+        props: {
+          coreState: {},
+          dehydratedState: {},
+        },
       }
-    }
-
-    const queryClient = createQueryClient(session)
-    setUserData(queryClient, currentUser)
-
-    const commonProps = {
-      currentUser,
-      session,
-    }
-
-    const props = await extendPropsFn({
-      commonProps,
-      session,
-      instance,
-      queryClient,
-      context,
-    })
-
-    return {
-      props: {
-        ...commonProps,
-        ...props,
-        dehydratedState: dehydrate(queryClient),
-      },
     }
   }
 

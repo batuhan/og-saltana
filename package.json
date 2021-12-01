@@ -20,7 +20,7 @@
     "lint": "eslint --ext js,ts,tsx .",
     "bootstrap": "lerna bootstrap",
     "start": "yarn workspaces foreach -ip run start",
-    "dev": "concurrently '(cd ./packages/app && yarn dev)' '(cd ./packages/core && yarn dev)'",
+    "dev": "concurrently '(cd ./services/web && yarn && yarn dev)' '(cd ./services/core && yarn && yarn dev)'",
     "lint:l": "eslint --cache --report-unused-disable-directives .",
     "lint:fix": "eslint --cache --report-unused-disable-directives --fix .",
     "jest": "jest",
@@ -28,7 +28,11 @@
     "g:test": "yarn test \"$INIT_CWD\"",
     "postinstall": "husky install",
     "format": "prettier-eslint \"packages/**\"",
-    "update:sdks": "yarn pnpify --sdk"
+    "update:sdks": "yarn pnpify --sdk",
+    "devdeps:start": "docker start core_postgresql_1 core_elasticsearch_1 core_redis_1",
+    "env:spread": "echo \"./services/web/ ./services/core/ ./packages/common/\" | xargs -n 1 cp -v ./.env",
+    "env:sync": "sync-dotenv",
+    "env:build": "yarn run env:sync && yarn run env:spread"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
@@ -76,6 +80,7 @@
     "npm": ">=7"
   },
   "dependencies": {
-    "node-gyp": "^8.0.0"
+    "node-gyp": "^8.0.0",
+    "sync-dotenv": "2.6.2"
   }
 }
