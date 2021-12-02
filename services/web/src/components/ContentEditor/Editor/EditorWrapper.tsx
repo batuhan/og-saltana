@@ -145,7 +145,7 @@ const { event, booking, product } = verticalEmbedProviders
 const configs = {
   fileUpload: {
     accept: '*',
-    handleFileSelection: (...args) => console.trace(...args),
+    // handleFileSelection: (...args) => console.trace(...args),
   },
   giphy: {
     giphySdkApiKey:
@@ -298,6 +298,55 @@ interface Props {
 
 const _isMobile = false
 
+
+function getUppy(id, { allowedFileTypes }) {
+  return new Uppy({
+    id,
+    restrictions: {
+      allowedFileTypes: ['image/*'],
+    }
+  })
+    .use(Transloadit, {
+      params: {
+        auth: {
+          key: process.env.NEXT_PUBLIC_TRANSLOADIT_AUTH_KEY,
+        },
+        // It’s more secure to use a template_id and enable
+        // Signature Authentication
+        steps: {
+          resize: {
+            robot: '/image/resize',
+            width: 250,
+            height: 250,
+            resize_strategy: 'fit',
+            text: [
+              {
+                text: '© Transloadit.com',
+                size: 12,
+                font: 'Ubuntu',
+                color: '#eeeeee',
+                valign: 'bottom',
+                align: 'right',
+                x_offset: 16,
+                y_offset: -10,
+              },
+            ],
+          },
+        },
+      },
+      waitForEncoding: true,
+    })
+    .use(Webcam)
+    .use(DragDrop)
+    .use(Dropbox, defOpts)
+    .use(GoogleDrive, defOpts)
+    .use(Facebook, defOpts)
+    .use(Zoom, defOpts)
+    .use(Url, defOpts)
+    .use(ImageEditor, {
+      quality: 0.8,
+    })
+}
 function EditorWrapper({
   isMobile: _isMobile,
   toolbarSettings = { getToolbarSettings },
@@ -323,77 +372,25 @@ function EditorWrapper({
     ? props.pluginsToDisplay.map((plugin) => pluginsMap[plugin])
     : plugins
 
-  // const galleryPluginUpload = useUppy(() => {
-  //   const _uppy = new Uppy({
-  //     id: 'galleryPluginUpload',
-  //     restrictions: {
-  //       allowedFileTypes: ['image/*'],
-  //     }
-  //   })
-  //     .use(Transloadit, {
-  //       params: {
-  //         auth: {
-  //           key: process.env.NEXT_PUBLIC_TRANSLOADIT_AUTH_KEY,
-  //         },
-  //         // It’s more secure to use a template_id and enable
-  //         // Signature Authentication
-  //         steps: {
-  //           resize: {
-  //             robot: '/image/resize',
-  //             width: 250,
-  //             height: 250,
-  //             resize_strategy: 'fit',
-  //             text: [
-  //               {
-  //                 text: '© Transloadit.com',
-  //                 size: 12,
-  //                 font: 'Ubuntu',
-  //                 color: '#eeeeee',
-  //                 valign: 'bottom',
-  //                 align: 'right',
-  //                 x_offset: 16,
-  //                 y_offset: -10,
-  //               },
-  //             ],
-  //           },
-  //         },
-  //       },
-  //       waitForEncoding: true,
-  //     })
-  //     .use(Webcam)
-  //     .use(DragDrop)
-  //     .use(Dropbox, defOpts)
-  //     .use(GoogleDrive, defOpts)
-  //     .use(Facebook, defOpts)
-  //     .use(Zoom, defOpts)
-  //     .use(Url, defOpts)
-  //     .use(ImageEditor, {
-  //       quality: 0.8,
-  //     })
-  //     .on('transloadit:result', (stepName, result) => {
-  //       console.log(result, _uppy.getFile(result.localId))
-  //       if (props.onTransloaditResult) {
-  //         props.onTransloaditResult(_uppy.getFile(result.localId))
-  //       }
-  //     })
-  //   return _uppy
-  // })
+  const galleryPluginUpload = useUppy(() => {
+    return getUppy('ricos-gallery', { allowedFileTypes: ['image/*'] })
+  })
   // //(property) Helpers.handleFileSelection?: (index: number, multiple: boolean, updateEntity: UpdateEntityFunc<ImageComponentData[]>, removeEntity?: undefined, componentData?: ComponentData) => void
-  // function handleFileSelection(
-  //   index: number,
-  //   multiple: boolean,
-  //   updateEntity,
-  //   removeEntity?: undefined,
-  //   componentData?,
-  // ) {
-  //   console.log('upload', {
-  //     index,
-  //     multiple,
-  //     updateEntity,
-  //     removeEntity,
-  //     componentData,
-  //   })
-  // }
+  function handleFileSelection(
+    index: number,
+    multiple: boolean,
+    updateEntity,
+    removeEntity?: undefined,
+    componentData?,
+  ) {
+    console.log('upload request', {
+      index,
+      multiple,
+      updateEntity,
+      removeEntity,
+      componentData,
+    })
+  }
   return (
     <>
       <RicosEditor
@@ -413,7 +410,7 @@ function EditorWrapper({
         <RichContentEditor
           onFocus={onFocus}
           onBlur={onBlur}
-        // helpers={{ handleFileSelection }}
+          helpers={{ handleFileSelection }}
         />
       </RicosEditor>
       {/* <Uploader /> */}

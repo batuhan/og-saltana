@@ -205,6 +205,10 @@ export default function LinkView({ linkId }) {
           {filteredScreens.map((screenKey) => {
             const { Component, isOpen, name } = screens[screenKey]
 
+            if (name === 'Basic') {
+              return <Component linkId={linkId} key={`${linkId}-${screenKey}`} />
+            }
+
             return (<Disclosure as="div" key={`${linkId}-${screenKey}`} className="pt-6" defaultOpen={isOpen || false}>
               {({ open }) => (
                 <>
