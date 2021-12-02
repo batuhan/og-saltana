@@ -84,6 +84,77 @@ const defOpts = {
   companionAllowedHosts: Transloadit.COMPANION_PATTERN,
 }
 
+function getUppy(id, { allowMultipleUploads = true, allowedFileTypes, template_id, steps = {} }, pluginOpts) {
+
+  console.log('getUppy', { id, allowMultipleUploads, allowedFileTypes, template_id, steps, pluginOpts })
+  return new Uppy({
+    id,
+    restrictions: {
+      allowedFileTypes
+    },
+  })
+    .use(Transloadit, {
+      params: {
+        auth: {
+          key: process.env.NEXT_PUBLIC_TRANSLOADIT_AUTH_KEY,
+        },
+        // It’s more secure to use a template_id and enable
+        // Signature Authentication
+        steps
+      },
+      waitForEncoding: true,
+    })
+    .use(Webcam)
+    .use(DragDrop)
+    .use(Dropbox, defOpts)
+    .use(GoogleDrive, defOpts)
+    .use(Facebook, defOpts)
+    .use(Zoom, defOpts)
+    .use(Url, defOpts)
+    .use(ImageEditor, {
+      quality: 0.8,
+    })
+    .use(UppyDashboard, {
+      id: 'Dashboard',
+      target: 'body',
+      metaFields: [],
+      trigger: null,
+      inline: false,
+      width: 750,
+      height: 550,
+      thumbnailWidth: 280,
+      showLinkToFileUploadResult: true,
+      showProgressDetails: true,
+      hideUploadButton: false,
+      hideRetryButton: false,
+      hidePauseResumeButton: false,
+      hideCancelButton: false,
+      hideProgressAfterFinish: false,
+      doneButtonHandler: () => {
+        this.uppy.reset()
+        this.requestCloseModal()
+      },
+      note: null,
+      closeModalOnClickOutside: false,
+      closeAfterFinish: false,
+      disableStatusBar: false,
+      disableInformer: false,
+      disableThumbnailGenerator: false,
+      disablePageScrollWhenModalOpen: true,
+      animateOpenClose: true,
+      fileManagerSelectionType: 'files',
+      proudlyDisplayPoweredByUppy: true,
+      onRequestCloseModal: () => this.closeModal(),
+      showSelectedFiles: true,
+      showRemoveButtonAfterComplete: false,
+      browserBackButtonClose: false,
+      theme: 'light',
+      autoOpenFileEditor: true,
+      disableLocalFiles: false,
+      allowMultipleUploads
+    })
+}
+
 function Uploader({ uppy, showUploader }) {
 
   return (
@@ -142,9 +213,38 @@ import { MockVerticalSearchModule } from './verticalEmbedUtil'
 
 const { event, booking, product } = verticalEmbedProviders
 
+const handleFileSelection = (plugin, uppyOpts) => {
+  return (index: number,
+    multiple: boolean,
+    updateEntity,
+    removeEntity?: undefined,
+    componentData?,
+    ...args
+  ) => {
+    const uppy = getUppy(plugin, {
+      ...uppyOpts
+    }, {
+      plugin,
+      index,
+      multiple,
+      updateEntity,
+      removeEntity,
+      componentData,
+      args
+    })
+
+    const dashboard = uppy.getPlugin('Dashboard')
+    if (dashboard && typeof dashboard.openModal === 'function') {
+      dashboard.openModal()
+    }
+
+  }
+}
+
 const configs = {
   fileUpload: {
     accept: '*',
+    handleFileSelection: handleFileSelection('fileUpload', { allowMultipleUploads: false, allowedFileTypes: null, }),
     // handleFileSelection: (...args) => console.trace(...args),
   },
   giphy: {
@@ -299,54 +399,6 @@ interface Props {
 const _isMobile = false
 
 
-function getUppy(id, { allowedFileTypes }) {
-  return new Uppy({
-    id,
-    restrictions: {
-      allowedFileTypes: ['image/*'],
-    }
-  })
-    .use(Transloadit, {
-      params: {
-        auth: {
-          key: process.env.NEXT_PUBLIC_TRANSLOADIT_AUTH_KEY,
-        },
-        // It’s more secure to use a template_id and enable
-        // Signature Authentication
-        steps: {
-          resize: {
-            robot: '/image/resize',
-            width: 250,
-            height: 250,
-            resize_strategy: 'fit',
-            text: [
-              {
-                text: '© Transloadit.com',
-                size: 12,
-                font: 'Ubuntu',
-                color: '#eeeeee',
-                valign: 'bottom',
-                align: 'right',
-                x_offset: 16,
-                y_offset: -10,
-              },
-            ],
-          },
-        },
-      },
-      waitForEncoding: true,
-    })
-    .use(Webcam)
-    .use(DragDrop)
-    .use(Dropbox, defOpts)
-    .use(GoogleDrive, defOpts)
-    .use(Facebook, defOpts)
-    .use(Zoom, defOpts)
-    .use(Url, defOpts)
-    .use(ImageEditor, {
-      quality: 0.8,
-    })
-}
 function EditorWrapper({
   isMobile: _isMobile,
   toolbarSettings = { getToolbarSettings },
@@ -372,25 +424,7 @@ function EditorWrapper({
     ? props.pluginsToDisplay.map((plugin) => pluginsMap[plugin])
     : plugins
 
-  const galleryPluginUpload = useUppy(() => {
-    return getUppy('ricos-gallery', { allowedFileTypes: ['image/*'] })
-  })
-  // //(property) Helpers.handleFileSelection?: (index: number, multiple: boolean, updateEntity: UpdateEntityFunc<ImageComponentData[]>, removeEntity?: undefined, componentData?: ComponentData) => void
-  function handleFileSelection(
-    index: number,
-    multiple: boolean,
-    updateEntity,
-    removeEntity?: undefined,
-    componentData?,
-  ) {
-    console.log('upload request', {
-      index,
-      multiple,
-      updateEntity,
-      removeEntity,
-      componentData,
-    })
-  }
+
   return (
     <>
       <RicosEditor

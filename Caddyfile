@@ -12,11 +12,10 @@ dev.saltana.com {
 	reverse_proxy localhost:3000
 }
 
-
 code.dev.saltana.com {
         tls {
                 issuer zerossl e5146f5e6fbab517b361cdc06f789328
-        }	
+        }
 	reverse_proxy localhost:8080
 }
 

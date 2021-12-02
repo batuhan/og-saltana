@@ -8,13 +8,7 @@ import ContentEditor from 'components/ContentEditor/ContentEditor'
 import { useFormContext, useWatch } from 'react-hook-form'
 import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
 import { NextSeo } from 'next-seo'
-import {
-  Card,
-  CardSection,
-  InputField,
-  ListChoice,
-  Popover,
-} from '@kiwicom/orbit-components'
+
 import useAssetTypes from 'hooks/useAssetTypes'
 import useAssetCategories from 'hooks/useAssetCategories'
 import AssetCategorySelector from '../../Fields/AssetCategorySelector'

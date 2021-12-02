@@ -2,7 +2,6 @@ import { Fragment, useState } from 'react'
 import { Dialog, Menu, Transition, Popover, Listbox } from '@headlessui/react'
 import { ClockIcon, HomeIcon, MenuAlt1Icon, ViewListIcon, XIcon, BellIcon, MenuIcon, TrendingUpIcon, LinkIcon, CashIcon, ShareIcon, SwitchHorizontalIcon, AdjustmentsIcon } from '@heroicons/react/outline'
 import { ChevronRightIcon, DotsVerticalIcon, SearchIcon, SelectorIcon } from '@heroicons/react/solid'
-import Avatar from "boring-avatars";
 
 import { Logo } from 'components/Logo'
 // import Avatar from 'components/Avatar'

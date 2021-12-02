@@ -7,34 +7,14 @@ import Document, {
   Head,
 } from 'next/document'
 import React from 'react'
-import { ServerStyleSheet } from 'styled-components'
+import { createGetInitialProps } from '@mantine/next'
+
+const getInitialProps = createGetInitialProps()
 
 export default class MyDocument extends Document {
-  static async getInitialProps(ctx: DocumentContext) {
-    const sheet = new ServerStyleSheet()
-    const originalRenderPage = ctx.renderPage
+  static getInitialProps = getInitialProps;
 
-    try {
-      ctx.renderPage = () =>
-        originalRenderPage({
-          enhanceApp: (App: any) => (props: any) =>
-            sheet.collectStyles(<App {...props} />),
-        })
-      const initialProps = await Document.getInitialProps(ctx)
 
-      return {
-        ...initialProps,
-        styles: (
-          <>
-            {initialProps.styles}
-            {sheet.getStyleElement()}
-          </>
-        ),
-      }
-    } finally {
-      sheet.seal()
-    }
-  }
   render() {
     return (
       <Html >

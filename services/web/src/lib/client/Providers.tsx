@@ -3,47 +3,71 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { ReactQueryDevtools } from 'react-query/devtools'
 import { SaltanaCoreProvider } from './SaltanaCoreProvider'
 
-import { getTokens } from '@kiwicom/orbit-components'
 import { ThemeProvider } from 'styled-components'
 import { QueryClientProvider, useQuery } from 'react-query'
 import {
   sharedQueryClient,
 } from '@/common/api'
 
+import { MantineProvider, NormalizeCSS, GlobalStyles } from '@mantine/core'
+import { NotificationsProvider } from '@mantine/notifications'
+
 function Providers({ children, pageProps }) {
-  const tokens = getTokens()
 
   return (
-    <ThemeProvider theme={{ orbit: tokens }}>
+    <>
       <ClerkProvider>
         <SaltanaCoreProvider state={pageProps.coreState}>
           <Hydrate state={pageProps.dehydratedState}>
-            {children}
+
+            <MantineProvider
+              theme={{
+                /** Put your mantine theme override here */
+                colorScheme: 'light',
+              }}
+            >
+              <NormalizeCSS />
+              <GlobalStyles />
+              <NotificationsProvider>
+                {children}
+              </NotificationsProvider>
+            </MantineProvider>
             {process.env.NODE_ENV === 'development' && (
               <ReactQueryDevtools initialIsOpen={false} />
             )}
           </Hydrate>
         </SaltanaCoreProvider>
       </ClerkProvider>
-    </ThemeProvider>
+    </>
   )
 }
 
 export function ProvidersWithoutExternal({ children, pageProps }) {
-  const tokens = getTokens()
 
   return (
-    <ThemeProvider theme={{ orbit: tokens }}>
+    <>
       <QueryClientProvider client={sharedQueryClient}>{children}
 
         <Hydrate state={pageProps.dehydratedState}>
-          {children}
+
+          <MantineProvider
+            theme={{
+              /** Put your mantine theme override here */
+              colorScheme: 'light',
+            }}
+          >
+            <NormalizeCSS />
+            <GlobalStyles />
+            <NotificationsProvider>
+              {children}
+            </NotificationsProvider>
+          </MantineProvider>
           {process.env.NODE_ENV === 'development' && (
             <ReactQueryDevtools initialIsOpen={false} />
           )}
         </Hydrate>
       </QueryClientProvider>
-    </ThemeProvider>
+    </>
   )
 }
 export default Providers

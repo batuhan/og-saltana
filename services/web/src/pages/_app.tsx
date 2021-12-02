@@ -9,15 +9,20 @@ import '../styles/globals.scss'
 
 function App({ Component, pageProps }: AppProps) {
   return (
-    <Providers pageProps={pageProps}>
+    <>
       <Head>
         <meta content="IE=edge" httpEquiv="X-UA-Compatible" />
-        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <meta
+          name="viewport"
+          content="minimum-scale=1, initial-scale=1, width=device-width"
+        />
       </Head>
 
       <DefaultSeo {...SEO} />
-      <Component {...pageProps} />
-    </Providers>
+      <Providers pageProps={pageProps}>
+        <Component {...pageProps} />
+      </Providers>
+    </>
   )
 }
 

@@ -11,7 +11,7 @@ import 'prismjs/themes/prism-tomorrow.css'
 import 'rc-dropdown/assets/index.css'
 
 // used for rendering equations (optional)
-import 'katex/dist/katex.min.css'
+// import 'katex/dist/katex.min.css'
 
 export default function NotionBox({ recordMap }) {
   return <NotionRenderer recordMap={recordMap} fullPage darkMode={false} />
