@@ -8,7 +8,7 @@ import { ThemeProvider } from 'styled-components'
 import { QueryClientProvider, useQuery } from 'react-query'
 import {
   sharedQueryClient,
-} from './api'
+} from '@/common/api'
 
 function Providers({ children, pageProps }) {
   const tokens = getTokens()

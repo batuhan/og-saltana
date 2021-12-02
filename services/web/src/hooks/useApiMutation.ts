@@ -1,9 +1,7 @@
 import { useMutation } from 'react-query'
-import { getSaltanaInstance } from '@/client/api'
+import useCurrentUser from './useCurrentUser'
 
 export default function useApiMutation(resourceType, method, opts) {
-  return useMutation(async (data) => {
-    const saltanaInstance = await getSaltanaInstance()
-    return saltanaInstance[resourceType][method](data)
-  }, opts)
+  const { instance } = useCurrentUser()
+  return useMutation(async (data) => instance[resourceType][method](data), opts)
 }

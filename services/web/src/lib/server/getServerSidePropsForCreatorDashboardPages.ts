@@ -3,15 +3,11 @@ import {
   createQueryClient,
   setUserData,
   setCreatorLinkData,
-} from '@/client/api'
+} from '@/common/api'
 
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
-import {
-  getSaltanaInstanceFor,
-  getSaltanaInstanceFromContext,
-  parseTokenFromReq,
-} from '@/common/api'
+import { getSaltanaInstanceFor, parseTokenFromReq } from '@/common/api'
 import COMMON_LINKS from '@/common/common-links'
 import CreatorDashboardAssetScreen from 'components/Dashboard/Creator/Assets/AssetScreen'
 

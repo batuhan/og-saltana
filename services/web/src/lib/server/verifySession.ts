@@ -14,7 +14,12 @@ export default async function verifySession(req: NextRequest) {
 
   try {
     const verifiedToken = await verifyToken(token)
-    console.log('verifiedToken', verifiedToken)
+
+    const isExpiredToken = new Date(verifiedToken.exp * 1000) < new Date()
+
+    if (isExpiredToken) {
+      throw new Error('Token is expired')
+    }
   } catch (err) {
     console.log('Error when verifying token from Clerk', err)
     return NextResponse.redirect(loginLink, 302)

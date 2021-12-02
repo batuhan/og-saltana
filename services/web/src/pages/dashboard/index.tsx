@@ -1,5 +1,5 @@
 import { GetServerSideProps } from 'next'
-import { getSaltanaInstance } from '@/client/api'
+import { getSaltanaInstance } from '@/common/api'
 import buildLoginLink from '@/server/buildLoginLink'
 import useCurrentUser from '@/hooks/useCurrentUser'
 import React, { useEffect } from 'react'

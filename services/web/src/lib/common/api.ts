@@ -1,6 +1,8 @@
-import { verifyToken } from '@clerk/nextjs/edge'
+import { SessionResource } from '@clerk/types'
 import { createInstance } from '@saltana/sdk'
 import _ from 'lodash'
+import { QueryClient } from 'react-query'
+import { decode } from 'jsonwebtoken'
 
 function getApiBase() {
   const apiBase =
@@ -44,31 +46,28 @@ export const sharedSaltanaInstance = createInstance({
 export function parseTokenFromReq(req) {
   return req.cookies.__session // should be verified in the middleware
 }
-export async function getSaltanaInstanceFromContext({ req }) {
-  const token = parseTokenFromReq(req)
-  if (!token) {
-    return sharedSaltanaInstance
-  }
 
-  const instance = getSaltanaInstanceFor('clerk', token)
-  // try {
-  //   await instance.auth.loginWithClerk() //@TODO: should not be here EVER
-  // } catch (err) {
-  //   console.log('Error when verifying token from Clerk', err)
-  //   throw err
-  // }
+// export async function getSaltanaInstanceFromContext({ req }) {
+//   const token = parseTokenFromReq(req)
+//   if (!token) {
+//     return sharedSaltanaInstance
+//   }
 
-  return instance
-}
+//   const instance = getSaltanaInstanceFor('clerk', token)
+//   // try {
+//   //   await instance.auth.loginWithClerk() //@TODO: should not be here EVER
+//   // } catch (err) {
+//   //   console.log('Error when verifying token from Clerk', err)
+//   //   throw err
+//   // }
 
-export function getSaltanaInstanceFor(provider, token) {
-  if (!provider) {
-    throw new Error('provider is required')
-  }
-  if (!token) {
-    throw new Error('token is required')
-  }
+//   return instance
+// }
 
+const isTokenExpired = (exp: number): boolean =>
+  new Date(exp * 1000) < new Date()
+
+export function getSaltanaInstanceFor(provider: 'clerk', token: string) {
   const instance = createInstance({
     ...sharedSaltanaConfig,
   })
@@ -76,4 +75,117 @@ export function getSaltanaInstanceFor(provider, token) {
   instance.getTokenStore().setTokens({ token, provider })
 
   return instance
+}
+
+class TokenStore {
+  constructor({
+    session,
+    provider,
+    activeToken,
+  }: {
+    session: SessionResource
+    provider: 'clerk'
+    activeToken: string | undefined
+  }) {
+    this._provider = provider
+    this._session = session
+
+    if (session?.lastActiveToken || activeToken) {
+      this._token = {
+        token: session.lastActiveToken.getRawString(),
+        expiresAt: session.lastActiveToken.jwt.claims.exp,
+      }
+    } else if (activeToken) {
+      const decodedToken = decode(activeToken, { json: true })
+      this._token = {
+        token: activeToken,
+        expiresAt: decodedToken.exp,
+      }
+    }
+  }
+
+  _session: SessionResource | undefined
+  _provider: 'clerk'
+  _token: { token: string; expiresAt: number } | null
+
+  async getTokens() {
+    const { token, expiresAt } = this._token
+    if (token && !isTokenExpired(expiresAt)) {
+      return {
+        token,
+        provider: this._provider,
+      }
+    }
+
+    if (this._session) {
+      const newToken = await this._session.getToken()
+
+      const decodedToken = decode(token, { json: true })
+      this._token = {
+        token: newToken,
+        expiresAt: decodedToken.exp,
+      }
+      return this._token
+    }
+
+    return null
+  }
+
+  setTokens() {
+    throw new Error('Not implemented (TokenStore.setTokens)')
+  }
+
+  removeTokens() {
+    throw new Error('Not implemented (TokenStore.removeTokens)')
+  }
+}
+
+export async function getSaltanaInstance(session) {
+  if (!session) {
+    return sharedSaltanaInstance
+  }
+
+  const tokenStore = new TokenStore({ session, provider: 'clerk' })
+  const instance = createInstance({
+    ...sharedSaltanaConfig,
+    tokenStore,
+  })
+
+  return instance
+}
+
+const defaultQueryFn =
+  (instance) =>
+  ({ queryKey }) => {
+    const [resourceType, method, data] = queryKey
+
+    return instance[resourceType][method](data)
+  }
+
+export const getQueryClientSettings = (instance) => ({
+  defaultOptions: {
+    queries: {
+      queryFn: defaultQueryFn(instance),
+    },
+  },
+})
+
+export const createQueryClient = (instance) =>
+  new QueryClient(getQueryClientSettings(instance))
+
+export const sharedQueryClient = createQueryClient(sharedSaltanaInstance)
+
+export const setUserData = (queryClient, user) => {
+  queryClient.setQueryData(['users', 'read', user.id], user)
+  if (user.username) {
+    queryClient.setQueryData(['users', 'read', user.username], user)
+  }
+}
+
+export const setCreatorLinkData = (queryClient, link) => {
+  queryClient.setQueryData(
+    ['links', 'read', `${link.ownerId}:${link.slug}`],
+    link,
+  )
+  queryClient.setQueryData(['links', 'read', link.id], link)
 }

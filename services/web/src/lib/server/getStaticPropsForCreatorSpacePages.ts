@@ -2,7 +2,7 @@ import {
   createQueryClient,
   setUserData,
   setCreatorLinkData,
-} from '@/client/api'
+} from '@/common/api'
 import { sharedSaltanaInstance } from '@/common/api'
 
 import { dehydrate } from 'react-query/hydration'

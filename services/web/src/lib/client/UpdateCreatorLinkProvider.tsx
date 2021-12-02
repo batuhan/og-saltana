@@ -3,7 +3,7 @@ import useApiMutation from 'hooks/useApiMutation'
 import useCreatorSpace from 'hooks/useCreatorSpace'
 import _ from 'lodash'
 import { useMutation, useQueryClient } from 'react-query'
-import { getSaltanaInstance } from '@/client/api'
+import { getSaltanaInstance } from '@/common/api'
 import HookFormDevTools from '@/client/devtools'
 
 const validFields = [

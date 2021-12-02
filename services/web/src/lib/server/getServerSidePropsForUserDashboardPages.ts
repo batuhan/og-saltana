@@ -3,7 +3,7 @@ import {
   createQueryClient,
   setUserData,
   setCreatorLinkData,
-} from '@/client/api'
+} from '@/common/api'
 
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'
@@ -13,6 +13,7 @@ import {
   parseTokenFromReq,
 } from '@/common/api'
 import COMMON_LINKS from '@/common/common-links'
+import { errorMonitor } from 'events'
 
 // Login status and token validity check is done in the middleware
 const getServerSidePropsForUserDashboardPages =
@@ -57,6 +58,7 @@ const getServerSidePropsForUserDashboardPages =
 
       return {
         props: {
+          error: typeof error === 'string' ? error : 'API_CONN_ERROR',
           coreState: {},
           dehydratedState: {},
         },

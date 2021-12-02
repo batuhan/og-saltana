@@ -107,14 +107,18 @@ function handlePaginationMeta(res) {
 }
 
 function getTokens(self) {
-  return Promise.resolve().then(() => {
+  return Promise.resolve().then(async () => {
     const apiKey = self._saltana.getApiField('key')
 
     const needsAuthToken = !isSecretApiKey(apiKey)
     if (!needsAuthToken) return
 
     const tokenStore = self._saltana.getApiField('tokenStore')
-    const tokens = tokenStore.getTokens()
+
+    const isGetterPromise = tokenStore.getTokens instanceof Promise
+    const _tokens = tokenStore.getTokens()
+    const tokens = isGetterPromise ? await _tokens : _tokens
+
     if (!tokens) return
 
     const beforeRefreshToken = self._saltana.getApiField('beforeRefreshToken')

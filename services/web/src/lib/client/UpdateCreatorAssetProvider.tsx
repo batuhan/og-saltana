@@ -1,7 +1,7 @@
 import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import _ from 'lodash'
 import { useMutation } from 'react-query'
-import { getSaltanaInstance } from '@/client/api'
+import { getSaltanaInstance } from '@/common/api'
 
 const validFields = [
   'name',

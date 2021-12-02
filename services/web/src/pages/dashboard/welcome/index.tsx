@@ -22,7 +22,7 @@ import {
   createQueryClient,
   getSaltanaInstance,
   setUserData,
-} from '@/client/api'
+} from '@/common/api'
 import useCurrentUser from 'hooks/useCurrentUser'
 import useUpdateCurrentUser from 'hooks/useUpdateCurrentUser'
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.umd'

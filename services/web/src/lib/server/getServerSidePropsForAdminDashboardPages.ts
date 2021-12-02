@@ -2,7 +2,7 @@ import {
   getSaltanaInstance,
   createQueryClient,
   setUserData,
-} from '@/client/api'
+} from '@/common/api'
 
 import { dehydrate } from 'react-query/hydration'
 import _ from 'lodash'

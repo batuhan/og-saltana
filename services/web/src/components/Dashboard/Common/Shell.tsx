@@ -18,6 +18,7 @@ import { Disclosure } from '@headlessui/react'
 import { SignIn, SignedOut, UserButton, SignedIn } from "@clerk/nextjs";
 
 import classNames from '@/common/classnames'
+import AuthRequiredShell from 'components/AuthRequiredShell';
 const creatorNavigation = [
   {
     name: 'Links',
@@ -69,23 +70,23 @@ const userNavigation = [
 
 
 export default function WrappedDashboardShell(props) {
-  const { user, isLoading } = useCurrentUser()
-
   return (
-    <SignedIn>
-      {user ? <DashboardShell {...props} user={user} /> : 'Loading user...'}
-    </SignedIn>
+    <AuthRequiredShell>
+      <DashboardShell {...props} />
+    </AuthRequiredShell>
   )
 }
+
 function DashboardShell({
   children,
   container = true,
   subHeader = null,
-  user
 }) {
+  const currentUser = useCurrentUser()
+  const { user } = currentUser
+  console.log('currentUser', currentUser)
   const { signOut } = useClerk();
 
-  console.log("user", user)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const isRegularUserPath = router.pathname.startsWith('/my/')
@@ -96,11 +97,11 @@ function DashboardShell({
     return { ...item, current: isRegularUserPath ? false : router.pathname.endsWith(item.href) }
   })
 
-  const name = user.firstName
+  const name = user ? (user.firstName
     ? `${user.firstName} ${user.lastName} (${user.displayName})`
-    : user.email
+    : user.email) : null
 
-  const showCreatorNavigation = user.isCreator
+  const showCreatorNavigation = user?.isCreator || false
   return (
     <div className="min-h-full">
       <Transition.Root show={sidebarOpen} as={Fragment}>
@@ -235,7 +236,20 @@ function DashboardShell({
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="mt-6 h-0 flex-1 flex flex-col overflow-y-auto">
           {/* Creator spaces dropdown */}
-          <div className="px-3 relative inline-block text-left">
+          {showCreatorNavigation ? <div className="px-3 relative inline-block text-left">
+            <a href="https://saltana.com/" target="_blank" >
+              <div className="group w-full rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500">
+                <span className="flex w-full justify-between items-center">
+                  <span className="flex min-w-0 items-center justify-between space-x-3">
+
+                    <span className="flex-1 flex flex-col min-w-0">
+                      <span className="text-gray-900 text-sm font-medium ">Go to my space -{'>'}</span>
+                    </span>
+                  </span>
+                </span>
+              </div>
+            </a>
+          </div> : <div className="px-3 relative inline-block text-left">
             <a href="https://saltana.com/request-invite" target="_blank" >
               <div className="group w-full bg-yellow-200 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500">
                 <span className="flex w-full justify-between items-center">
@@ -248,7 +262,7 @@ function DashboardShell({
                 </span>
               </div>
             </a>
-          </div>
+          </div>}
           {/* Sidebar Search */}
           {showCreatorNavigation && <div className="px-3 mt-5">
             <label htmlFor="search" className="sr-only">

@@ -16,8 +16,8 @@ import {
   getSaltanaInstance,
   setUserData,
   sharedQueryClient,
-} from './api'
-export const CurrentUserContext = createContext({ user: null, instance: sharedSaltanaInstance, isLoaded: false })
+} from '@/common/api'
+export const CurrentUserContext = createContext({ user: null, instance: sharedSaltanaInstance, isLoading: true })
 
 const is =
   ({ userId, username }) =>
@@ -58,12 +58,13 @@ function SaltanaCoreProvider(props) {
   const saltanaInstance = useRef(initialInstance)
   const currentUser = useRef(state.currentUser || null)
 
-  const [isLoading, setIsLoading] = useState(state.currentUser === null)
+  console.log('SaltanaCoreProvider', typeof state?.currentUser, state.currentUser)
+  const [isLoading, setIsLoading] = useState(typeof state?.currentUser !== 'object')
   const [errorWhenLoadingUser, setErrorWhenLoadingUser] = useState(null)
 
   useEffect(() => {
     setIsLoading(true)
-    const hasUser = _hasUserAndToken(state, session)
+    const hasUser = _.get(session, 'user.id', null)
 
     if (hasUser === false) {
       queryClient.current = sharedQueryClient
