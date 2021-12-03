@@ -114,8 +114,7 @@ export default function CreatorDashboardLinkBasicScreen({ asset }) {
               Pricing
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              Update your billing information.Please note that updating your
-              location could affect your tax rates.
+              Your customers are charged the amount you specify here.
             </p>
           </div>
 

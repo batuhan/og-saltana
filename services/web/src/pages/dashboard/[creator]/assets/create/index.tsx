@@ -128,7 +128,7 @@ export default function CreatorDashboardCreateAsset(props) {
                     register={register}
                     control={control}
                     setValue={setValue}
-                    FIELD_NAME='typeId'
+                    FIELD_NAME='assetTypeId'
                   />
                 </div>
                 <GenericFormFieldError errors={errors} fieldName="assetTypeId" />
@@ -136,8 +136,6 @@ export default function CreatorDashboardCreateAsset(props) {
               </div>
               <div>
 
-              </div>
-              <div>
               </div>
               <AssetPriceField register={register}
                 priceFieldName={'price'}

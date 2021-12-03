@@ -11,6 +11,7 @@ import CreatorDashboardSettingsShell from 'components/Dashboard/Creator/Settings
 import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import { useState } from 'react'
 import classnames from '@/common/classnames'
+import { ColorInput } from '@mantine/core';
 
 const Editor = dynamic(
   () => import('components/ContentEditor/Editor/EditorWrapper'),
@@ -61,6 +62,7 @@ function CustomizeCreatorSpace() {
   const [isCoverUrlModalOpen, setCoverUrlModalOpen] = useState(false)
   const avatarUrl = watch('metadata.instant.avatarUrl')
   const coverUrl = watch('metadata.instant.coverUrl')
+  const mainColor = watch('metadata.instant.mainColor')
   const updateUserSettings = useUpdateCurrentUser({ onSuccess })
 
   async function onSubmit(data) {
@@ -117,6 +119,23 @@ function CustomizeCreatorSpace() {
                   id="displayName"
                   className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
                 />
+              </div>
+            </div>
+
+            <div className="sm:col-span-6">
+              <label
+                htmlFor="displayName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Main color
+              </label>
+              <div className="mt-1">
+                <ColorInput value={mainColor} onChange={(value) => {
+                  setValue(
+                    'metadata.instant.mainColor',
+                    value,
+                  )
+                }} />
               </div>
             </div>
 
