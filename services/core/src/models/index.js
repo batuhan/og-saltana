@@ -1,11 +1,9 @@
-const createError = require('http-errors')
 const _ = require('lodash')
 const { raw } = require('@saltana/objection')
 const pg = require('pg')
 const { extractDataFromObjectId } = require('@saltana/util-keys')
 
 const { getKnex } = require('./util')
-const { getPlatformEnvData } = require('../redis')
 const { mergeFunctionName } = require('../database')
 
 const models = {
@@ -115,60 +113,31 @@ async function getConnection({ platformId, env } = {}) {
   let connection
   let schema
 
-  const useRemoteStore = process.env.REMOTE_STORE === 'true'
-
   let sslOptions
 
-  if (useRemoteStore) {
-    const postgresqlData = await getPlatformEnvData(
-      platformId,
-      env,
-      'postgresql',
-    )
-    if (!postgresqlData) {
-      throw createError(500, 'PostgreSQL missing environment variables', {
-        platformId,
-        env,
-      })
-    }
+  const isPlatformEnv = platformId && env
 
-    connection = {
-      host: postgresqlData.host,
-      user: postgresqlData.user,
-      password: postgresqlData.password,
-      database: postgresqlData.database,
-      port: postgresqlData.port,
-      schema: postgresqlData.schema,
-    }
+  const _schema = isPlatformEnv
+    ? `s${platformId}_${env}`
+    : process.env.POSTGRES_SCHEMA || 'public'
 
-    sslOptions = getSSLOptions(postgresqlData)
-
-    schema = postgresqlData.schema
-  } else {
-    const isPlatformEnv = platformId && env
-
-    const _schema = isPlatformEnv
-      ? `s${platformId}_${env}`
-      : process.env.POSTGRES_SCHEMA || 'public'
-
-    connection = {
-      host: process.env.POSTGRES_HOST,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      port: process.env.POSTGRES_PORT,
-      schema: _schema,
-    }
-
-    sslOptions = getSSLOptions({
-      ssl: process.env.POSTGRES_SSL,
-      sslcert: process.env.POSTGRES_SSL_CERT,
-      sslkey: process.env.POSTGRES_SSL_KEY,
-      sslca: process.env.POSTGRES_SSL_CA,
-    })
-
-    schema = _schema
+  connection = {
+    host: process.env.POSTGRES_HOST,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: process.env.POSTGRES_DB,
+    port: process.env.POSTGRES_PORT,
+    schema: _schema,
   }
+
+  sslOptions = getSSLOptions({
+    ssl: process.env.POSTGRES_SSL,
+    sslcert: process.env.POSTGRES_SSL_CERT,
+    sslkey: process.env.POSTGRES_SSL_KEY,
+    sslca: process.env.POSTGRES_SSL_CA,
+  })
+
+  schema = _schema
 
   if (sslOptions) connection.ssl = sslOptions
 
