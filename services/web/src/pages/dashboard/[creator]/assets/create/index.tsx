@@ -139,7 +139,9 @@ export default function CreatorDashboardCreateAsset(props) {
               </div>
               <div>
               </div>
-              <AssetPriceField register={register} />
+              <AssetPriceField register={register}
+                priceFieldName={'price'}
+                currencyFieldName={'currency'} />
             </>
             <div>Deliverables for this asset can be added in the next page.</div>
             <div className="flex justify-end bg-black">
