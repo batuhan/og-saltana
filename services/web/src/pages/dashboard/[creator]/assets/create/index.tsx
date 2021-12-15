@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
-import DashboardShell from 'components/Dashboard/Common/Shell'
+import CreatorDashboardAssetsLayout from 'components/Dashboard/Creator/Assets/Layout'
 import useApiMutation from 'hooks/useApiMutation'
 import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import useCreatorSpace from 'hooks/useCreatorSpace'
@@ -41,8 +41,8 @@ export default function CreatorDashboardCreateAsset(props) {
   }
 
   return (
-    <DashboardShell>
-      <main className="max-w-lg mx-auto pt-10 pb-12 px-4 lg:pb-16">
+    <CreatorDashboardAssetsLayout>
+      <main className="max-w-2xl mx-auto pt-10 pb-12 px-4 lg:pb-16">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-6">
             <div>
@@ -81,7 +81,7 @@ export default function CreatorDashboardCreateAsset(props) {
                   htmlFor="description"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Description
+                  Describe your asset with one or two sentences
                 </label>
                 <div className="mt-1">
                   <textarea
@@ -97,7 +97,7 @@ export default function CreatorDashboardCreateAsset(props) {
                 <GenericFormFieldError errors={errors} fieldName="name" />
 
               </div>
-              <div>
+              {/* <div>
                 <label
                   htmlFor="categoryId"
                   className="block text-sm font-medium text-gray-700"
@@ -115,14 +115,14 @@ export default function CreatorDashboardCreateAsset(props) {
                 </div>
                 <GenericFormFieldError errors={errors} fieldName="categoryId" />
 
-              </div>
+              </div> */}
               <div>
-                <label
+                {/* <label
                   htmlFor="assetTypeId"
                   className="block text-sm font-medium text-gray-700"
                 >
                   assetTypeId
-                </label>
+                </label> */}
                 <div className="mt-1">
                   <AssetTypeSelector
                     register={register}
@@ -157,7 +157,7 @@ export default function CreatorDashboardCreateAsset(props) {
           </div>
         </form>
       </main>
-    </DashboardShell>
+    </CreatorDashboardAssetsLayout>
   )
 }
 

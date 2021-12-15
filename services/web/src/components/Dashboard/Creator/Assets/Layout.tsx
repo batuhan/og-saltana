@@ -85,11 +85,23 @@ function Sidebar() {
   )
 }
 
-export const CreatorDashboardAssetsLayout = ({ children }) => {
+export const CreatorDashboardAssetsLayout = ({ children, nav = undefined }) => {
   return (
     <DashboardShell>
       <NextSeo title="Assets" />
-      {children}
+      <main className="flex-1">
+
+        {/* Page title & actions */}
+        <div className="border-b border-gray-200 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-medium leading-6 text-gray-900 sm:truncate">Assets</h1>
+          </div>
+          <div className="mt-4 flex sm:mt-0 sm:ml-4">
+            {nav}
+          </div>
+        </div>
+        {children}
+      </main>
     </DashboardShell>
   )
 }

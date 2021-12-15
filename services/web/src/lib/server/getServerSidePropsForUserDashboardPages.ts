@@ -23,6 +23,19 @@ const getServerSidePropsForUserDashboardPages =
   ) =>
   async (context) => {
     const token = parseTokenFromReq(context.req)
+
+    if (!token) {
+      return {
+        props: {
+          ...(await extendPropsFn({
+            coreState: {},
+            instance: null,
+            queryClient: null,
+            context,
+          })),
+        },
+      }
+    }
     const instance = getSaltanaInstanceFor('clerk', token)
 
     try {

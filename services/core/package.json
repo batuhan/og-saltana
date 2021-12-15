@@ -34,7 +34,7 @@
     "release": "standard-version"
   },
   "dependencies": {
-    "@clerk/clerk-sdk-node": "^2.1.2",
+    "@clerk/clerk-sdk-node": "^2.3.0",
     "@elastic/elasticsearch": "^7.15.0",
     "@hapi/bourne": "^2.0.0",
     "@saltana/common": "*",
@@ -58,7 +58,7 @@
     "intl": "^1.2.5",
     "intl-format-cache": "^4.3.1",
     "intl-messageformat": "^4.4.0",
-    "joi": "^17.4.2",
+    "joi": "^17.5.0",
     "jose": "^3.20.3",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.5",
@@ -88,9 +88,9 @@
     "sinon": "^11.1.2",
     "socket.io": "^2.4.1",
     "socket.io-redis": "^5.4.0",
-    "stripe": "^8.191.0",
+    "stripe": "^8.193.0",
     "superagent": "~6.1.0",
-    "supports-color": "^9.1.0",
+    "supports-color": "^9.2.1",
     "useragent": "^2.3.0",
     "uuid": "^8.3.2",
     "virgen-acl": "^0.0.22",
@@ -99,7 +99,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5",
     "ava": "~3.15.0",
-    "body-parser": "^1.19.0",
+    "body-parser": "^1.19.1",
     "chalk": "^4.1.2",
     "commander": "^7.2.0",
     "eslint": "^7.32.0",

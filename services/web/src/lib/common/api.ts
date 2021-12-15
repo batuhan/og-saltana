@@ -68,6 +68,10 @@ const isTokenExpired = (exp: number): boolean =>
   new Date(exp * 1000) < new Date()
 
 export function getSaltanaInstanceFor(provider: 'clerk', token: string) {
+  if (!token) {
+    return sharedSaltanaInstance
+  }
+
   const instance = createInstance({
     ...sharedSaltanaConfig,
   })
@@ -159,6 +163,9 @@ const defaultQueryFn =
   ({ queryKey }) => {
     const [resourceType, method, data] = queryKey
 
+    if (data === undefined) {
+      // debugger
+    }
     return instance[resourceType][method](data)
   }
 

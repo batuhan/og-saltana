@@ -16,6 +16,15 @@ const getServerSidePropsForCreatorDashboardPages =
   (extendPropsFn = undefined) =>
   async (context) => {
     const token = parseTokenFromReq(context.req)
+
+    if (!token) {
+      return {
+        redirect: {
+          destination: `/login`,
+          permanent: false,
+        },
+      }
+    }
     const instance = getSaltanaInstanceFor('clerk', token)
 
     try {

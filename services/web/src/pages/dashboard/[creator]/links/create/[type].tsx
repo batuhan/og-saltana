@@ -58,6 +58,11 @@ export default function CreatorDashboardCreateSmartLink(props) {
                 Let’s get started by filling in the information below to create
                 your new link.
               </p>
+
+
+              <p className="mt-1 text-sm text-gray-500">
+
+              </p>
             </div>
 
             {typeData.createFields.includes('destination') && (

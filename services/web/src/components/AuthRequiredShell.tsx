@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs'
 
 // import { generateOrderLink } from '@/common/utils'
 

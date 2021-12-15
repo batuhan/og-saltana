@@ -1,24 +1,29 @@
-:focus,
-button:focus,
-.btn:focus,
-.btn-sm:focus,
-.form-input:focus,
-.form-textarea:focus,
-.form-multiselect:focus,
-.form-select:focus,
-.form-checkbox:focus,
-.form-radio:focus {
-    @apply outline-blue;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.form-input,
-.form-textarea,
-.form-multiselect,
-.form-select,
-.form-checkbox,
-.form-radio {
+@layer base {
+  :focus,
+  button:focus,
+  .btn:focus,
+  .btn-sm:focus,
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-multiselect:focus,
+  .form-select:focus,
+  .form-checkbox:focus,
+  .form-radio:focus {
+    @apply outline-blue-500;
+  }
 
+  .form-input,
+  .form-textarea,
+  .form-multiselect,
+  .form-select,
+  .form-checkbox,
+  .form-radio {
     &:focus {
-        box-shadow: none !important;
+      box-shadow: none !important;
     }
+  }
 }
