@@ -1,4 +1,6 @@
 const _ = require('lodash')
+const config = require('config')
+
 const createRatingService = require('../services/rating')
 const createRating = require('../models/Rating')
 

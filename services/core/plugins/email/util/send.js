@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const createError = require('http-errors')
+const config = require('config')
 
 const {
   generateText,

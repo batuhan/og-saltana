@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const config = require('config')
 
 const { sendEmail } = require('../util/send')
 
