@@ -30,7 +30,7 @@ function getRedisConnection() {
   const params = {
     host: config.get('ExternalServices.redis.host'),
     port: config.get('ExternalServices.redis.port'),
-    db: config.get('ExternalServices.redis.db'),
+    db: config.get('ExternalServices.redis.dbnum'),
     password: config.get('ExternalServices.redis.password') || undefined
   }
 

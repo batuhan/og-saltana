@@ -26,7 +26,9 @@
       "password": "password",
       "database": "saltana-core",
       "schema": "public",
-      "timescaleEnabled": false,
+      "timescale": {
+        "enabled": false
+      },
       "ssl": {
         "enabled": false,
         "cert": "",
