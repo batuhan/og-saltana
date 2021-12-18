@@ -4,10 +4,10 @@ const createError = require('http-errors')
 const {
   generateText,
   minifyHtml,
-  generateLocalEmailFile
+  generateLocalEmailFile,
 } = require('./content')
 
-const TEST = process.env.NODE_ENV === 'test'
+const TEST = config.get('Env') === 'test'
 
 /**
  * Send email using `html`/`text` as content
@@ -36,7 +36,7 @@ const TEST = process.env.NODE_ENV === 'test'
  * @return {Object}  result.html             - html that is sent (useful for test and debug)
  * @return {Object}  result.nodemailerInfo   - nodemailer return info
  */
-async function sendEmail ({
+async function sendEmail({
   transporter,
   defaults,
   html,
@@ -51,17 +51,18 @@ async function sendEmail ({
   headers,
   localHtmlBuild = false,
   localHtmlName = 'general',
-  forceSendingEmailInTestEnv = false
+  forceSendingEmailInTestEnv = false,
 }) {
   const result = {
     emailContext: {},
     localFilepath: null,
-    nodemailerInfo: null
+    nodemailerInfo: null,
   }
 
   defaults = defaults || {}
 
-  if (!defaults.from && !from) throw createError(400, 'Missing from email address')
+  if (!defaults.from && !from)
+    throw createError(400, 'Missing from email address')
   if (!to) throw createError(400, 'Missing to email address')
 
   let htmlToSend = html
@@ -82,7 +83,7 @@ async function sendEmail ({
     replyTo: replyTo || defaults.replyTo,
     cc: cc || defaults.cc,
     bcc: bcc || defaults.bcc,
-    headers
+    headers,
   }
 
   if (localHtmlBuild || (TEST && !forceSendingEmailInTestEnv)) {
@@ -100,14 +101,15 @@ async function sendEmail ({
     replyTo,
     cc,
     bcc,
-    headers
+    headers,
   }
 
   if (process.env.DEBUG_EMAILS) {
-    const stringifiedRecipients = _.isPlainObject(to) || Array.isArray(to) ? JSON.stringify(to) : to
+    const stringifiedRecipients =
+      _.isPlainObject(to) || Array.isArray(to) ? JSON.stringify(to) : to
     const originalRecipients = `[ORIGINAL RECIPIENTS: ${stringifiedRecipients}]`
 
-    message.subject = `[DEBUG] ${(message.subject || '')} ${originalRecipients}`
+    message.subject = `[DEBUG] ${message.subject || ''} ${originalRecipients}`
     message.to = process.env.DEBUG_EMAILS
     message.cc = null
     message.bcc = null
@@ -118,12 +120,14 @@ async function sendEmail ({
     result.emailContext.bcc = null
   }
 
-  const info = await transporter.sendMail(_.omitBy(message, (key) => _.isEmpty(key)))
+  const info = await transporter.sendMail(
+    _.omitBy(message, (key) => _.isEmpty(key)),
+  )
   result.nodemailerInfo = info
 
   return result
 }
 
 module.exports = {
-  sendEmail
+  sendEmail,
 }

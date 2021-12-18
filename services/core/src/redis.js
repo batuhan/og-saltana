@@ -1,13 +1,14 @@
 const redis = require('redis')
 const _ = require('lodash')
 const bluebird = require('bluebird')
+const config = require('config')
 
 bluebird.promisifyAll(redis)
 
 const { isValidPlatformId } = require('@saltana/util-keys')
 const { isValidEnvironment } = require('./util/environment')
 
-const isTestEnv = process.env.NODE_ENV === 'test'
+const isTestEnv = config.get('Env') === 'test'
 
 let client
 const dataKeys = [
@@ -25,22 +26,23 @@ const testDataKeys = [
   'custom2'
 ]
 
-function getRedisConnection () {
+function getRedisConnection() {
   const params = {
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-    db: process.env.REDIS_DBNUM_CORE,
-    password: process.env.REDIS_PASSWORD || undefined
+    host: config.get('ExternalServices.redis.host'),
+    port: config.get('ExternalServices.redis.port'),
+    db: config.get('ExternalServices.redis.db'),
+    password: config.get('ExternalServices.redis.password') || undefined
   }
 
-  if (process.env.REDIS_TLS === 'true') {
-    params.tls = { servername: process.env.REDIS_HOST }
+  const ssl = config.get('ExternalServices.redis.tls') || false
+  if (ssl) {
+    params.tls = { servername: config.get('ExternalServices.redis.host') }
   }
 
   return params
 }
 
-function isCompleteRedisConnection (connection) {
+function isCompleteRedisConnection(connection) {
   const {
     host,
     db
@@ -50,7 +52,7 @@ function isCompleteRedisConnection (connection) {
 }
 
 // Set exclusive to true to create a new client that won’t be reused (useful for pub/sub)
-function getRedisClient ({ exclusive = false } = {}) {
+function getRedisClient({ exclusive = false } = {}) {
   if (client && exclusive !== true) return client
 
   const params = getRedisConnection()
@@ -76,28 +78,28 @@ function getRedisClient ({ exclusive = false } = {}) {
   return client
 }
 
-async function getPlatforms () {
+async function getPlatforms() {
   const client = getRedisClient()
 
   const res = await client.smembersAsync('platforms')
   return res
 }
 
-async function hasPlatform (platformId) {
+async function hasPlatform(platformId) {
   const client = getRedisClient()
 
   const res = await client.sismemberAsync('platforms', platformId)
   return !!res
 }
 
-async function getPlatformId () {
+async function getPlatformId() {
   const client = getRedisClient()
 
   const res = await client.incrAsync('id:platforms')
   return '' + res // returns a string
 }
 
-async function setPlatformId (id) {
+async function setPlatformId(id) {
   if (typeof id === 'string') {
     const numberId = parseInt(id, 10)
 
@@ -115,7 +117,7 @@ async function setPlatformId (id) {
   await client.setAsync('id:platforms', id)
 }
 
-async function addPlatform (platformId) {
+async function addPlatform(platformId) {
   const client = getRedisClient()
 
   let id = platformId
@@ -127,7 +129,7 @@ async function addPlatform (platformId) {
   return { id }
 }
 
-async function removePlatform (platformId) {
+async function removePlatform(platformId) {
   const client = getRedisClient()
 
   const dataKeys = await client.keysAsync(`data:${platformId}:*`)
@@ -153,7 +155,7 @@ async function removePlatform (platformId) {
  * @returns {Object|String} Single data object,
  *   or object whose keys map to each data object/string when passing `key` array.
  */
-async function getPlatformEnvData (platformId, env, key) {
+async function getPlatformEnvData(platformId, env, key) {
   const client = _getClient({ platformId, env })
   let res
 
@@ -216,7 +218,7 @@ async function getPlatformEnvData (platformId, env, key) {
  *   like `{ auth: {…}, version: {…} }`.
  *   You can also pass string value(s) to directly store in redis (JSON.stringified too).
  */
-async function setPlatformEnvData (platformId, env, key, data) {
+async function setPlatformEnvData(platformId, env, key, data) {
   if (!_.isPlainObject(data) && typeof data !== 'string') {
     throw new Error('Data object or string expected')
   }
@@ -233,7 +235,7 @@ async function setPlatformEnvData (platformId, env, key, data) {
   }
 }
 
-function _getRedisDataKeys (keys, { data, platformId, env }) {
+function _getRedisDataKeys(keys, { data, platformId, env }) {
   const validKeys = dataKeys.concat(isTestEnv ? testDataKeys : [])
   const invalidKeys = _.difference(keys, validKeys)
   if (invalidKeys.length) throw new Error(`${invalidKeys.join(', ')} do(es) not exist.`)
@@ -246,7 +248,7 @@ function _getRedisDataKeys (keys, { data, platformId, env }) {
   return keys.map(k => `data:${platformId}:${env}:${k}`)
 }
 
-function _getClient ({ platformId, env } = {}) {
+function _getClient({ platformId, env } = {}) {
   if (!isValidEnvironment(env)) throw new Error('Missing environment')
   if (!isValidPlatformId(platformId)) throw new Error('Missing platformId')
 
@@ -258,7 +260,7 @@ function _getClient ({ platformId, env } = {}) {
  * @param {String} env
  * @param {String} key - can be the wildcard '*' to remove all keys
  */
-async function removePlatformEnvData (platformId, env, key) {
+async function removePlatformEnvData(platformId, env, key) {
   const client = _getClient({ platformId, env })
 
   if (key === '*') {
@@ -276,7 +278,7 @@ async function removePlatformEnvData (platformId, env, key) {
  * @param  {String} env
  * @returns {Object} Metrics object
  */
-async function getPlatformMetrics (platformId, env) {
+async function getPlatformMetrics(platformId, env) {
   const client = _getClient({ platformId, env })
 
   const res = await client.hgetallAsync(`metrics:${platformId}`)
@@ -291,7 +293,7 @@ async function getPlatformMetrics (platformId, env) {
  * @param  {String} env
  * @param  {Object} metrics
  */
-async function setPlatformMetrics (platformId, env, metrics = {}) {
+async function setPlatformMetrics(platformId, env, metrics = {}) {
   const client = _getClient({ platformId, env })
 
   const res = await client.hmsetAsync(`metrics:${platformId}:${env}:keys:objects`, metrics)
@@ -303,7 +305,7 @@ async function setPlatformMetrics (platformId, env, metrics = {}) {
  * @param {String} [platformId] - optional filter
  * @param {String} [env] - optional filter
  */
-async function getAllSaltanaTasks ({ platformId, env } = {}) {
+async function getAllSaltanaTasks({ platformId, env } = {}) {
   // Avoid loading tasks of all platforms in memory at once
   const platformRegex = new RegExp(`"platformId":"${platformId}"`)
   const envRegex = new RegExp(`"env":"${env}"`)
@@ -319,7 +321,7 @@ async function getAllSaltanaTasks ({ platformId, env } = {}) {
  * @param {String} env
  * @param {Object} task
  */
-async function setSaltanaTask ({ platformId, env, task }) {
+async function setSaltanaTask({ platformId, env, task }) {
   if (!task.id) {
     throw new Error('Expected Task ID')
   }
@@ -342,7 +344,7 @@ async function setSaltanaTask ({ platformId, env, task }) {
  * @param {String|String[]} taskId - Can be wildcard '*' string to remove all tasks
  * @returns {Array} taskIds removed, potentially needed to clean up saltana_tasks_execution_date
  */
-async function removeSaltanaTask ({ platformId, env, taskId }) {
+async function removeSaltanaTask({ platformId, env, taskId }) {
   if (!taskId) throw new Error('Expected Task ID or wildcard "*"')
 
   const client = _getClient({ platformId, env })
@@ -367,7 +369,7 @@ async function removeSaltanaTask ({ platformId, env, taskId }) {
  * @param {String} taskId
  * @param {String} executionDate
  */
-async function didSaltanaTaskExecute ({ taskId, executionDate }) {
+async function didSaltanaTaskExecute({ taskId, executionDate }) {
   if (!taskId) {
     throw new Error('Expected Task ID')
   }
@@ -385,7 +387,7 @@ async function didSaltanaTaskExecute ({ taskId, executionDate }) {
  * @param {String} executionDate
  * @param {String} [nbSavedDates = 5] - only keep this number of dates to save space
  */
-async function addSaltanaTaskExecutionDate ({ taskId, executionDate, nbSavedDates = 5 }) {
+async function addSaltanaTaskExecutionDate({ taskId, executionDate, nbSavedDates = 5 }) {
   if (!taskId) {
     throw new Error('Expected Task ID')
   }
@@ -406,7 +408,7 @@ async function addSaltanaTaskExecutionDate ({ taskId, executionDate, nbSavedDate
  * Remove Saltana task saved execution dates
  * @param {String|String[]} taskId
  */
-async function removeSaltanaTaskExecutionDates ({ taskId }) {
+async function removeSaltanaTaskExecutionDates({ taskId }) {
   if (!taskId) throw new Error('Expected Task ID(s)')
   const client = getRedisClient()
 
@@ -422,7 +424,7 @@ async function removeSaltanaTaskExecutionDates ({ taskId }) {
  * @param {Object} [redisClient] - redis client
  * @private
  */
-async function _scanAndFilterTasks ({ filterFn = _ => _, mapFn = _ => _, client }) {
+async function _scanAndFilterTasks({ filterFn = _ => _, mapFn = _ => _, client }) {
   let tasks = []
   const cl = client || getRedisClient()
 

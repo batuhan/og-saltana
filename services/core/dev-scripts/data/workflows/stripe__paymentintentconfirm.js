@@ -122,7 +122,7 @@ module.exports = {
         tokenEmail: '_.get(metadata, "data.email")',
         isRegistration: '_.get(metadata, "data.registration", false)',
         emailCheckLink:
-          '`${env.SALTANA_CORE_API_URL || "https://api.stelace.com"}/token/check/${metadata.token}?redirect=true`',
+          '`${env.SALTANA_CORE_API_URL || "https://api.sa,tana.com"}/token/check/${metadata.token}?redirect=true`',
       },
       run: [
         {

@@ -1,11 +1,14 @@
-require('@saltana/common').load()
+const config = require("config")
 
-const { IGNORED_LOCAL_PLUGINS, TESTS, SALTANA_PLUGINS_PATHS, INSTANT_DATA } = process.env
+const ignoredLocalPlugins = config.get('Plugins.ignored')
+const pluginsPaths = config.get('Plugins.paths')
+const instantData = config.get('LocalEnv.instantData')
+const testsFromConfig = config.get("TestEnv.tests")
 
 const fromEnvVar = (v = '') => v.split(',').filter(Boolean).map(s => s.trim())
 
-const pluginTestsToIgnore = fromEnvVar(IGNORED_LOCAL_PLUGINS).map(p => `!plugins/${p}/**/*`)
-const cliLoadedPluginTests = fromEnvVar(SALTANA_PLUGINS_PATHS).map(p => `${p}/**/*.spec.js`)
+const pluginTestsToIgnore = fromEnvVar(ignoredLocalPlugins).map(p => `!plugins/${p}/**/*`)
+const cliLoadedPluginTests = fromEnvVar(pluginsPaths).map(p => `${p}/**/*.spec.js`)
 
 let tests = []
 const seedTests = ['scripts/instantData.js']
@@ -14,10 +17,10 @@ const unitTests = ['test/unit/**/*.spec.js']
 
 let files = []
 
-if (INSTANT_DATA === 'true') files = [...seedTests]
+if (instantData === 'true') files = [...seedTests]
 else {
-  if (TESTS === 'integration') tests.push(...integrationTests)
-  else if (TESTS === 'unit') tests.push(...unitTests)
+  if (testsFromConfig === 'integration') tests.push(...integrationTests)
+  else if (testsFromConfig === 'unit') tests.push(...unitTests)
   else tests = [...unitTests, ...integrationTests]
 
   files = [

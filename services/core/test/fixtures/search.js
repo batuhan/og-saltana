@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const request = require('supertest')
 
 const { getAccessTokenHeaders } = require('../auth')
@@ -26,10 +24,10 @@ const fixturesParams = {
 module.exports = {
   fixturesParams,
   isElasticsearchReady,
-  initElasticsearch
+  initElasticsearch,
 }
 
-async function initElasticsearch ({ t }) {
+async function initElasticsearch({ t }) {
   const initNow = new Date().toISOString()
 
   const authorizationHeaders = await getAccessTokenHeaders({
@@ -41,9 +39,9 @@ async function initElasticsearch ({ t }) {
       'asset:edit:all',
       'asset:remove:all',
       'availability:create:all',
-      'transaction:create:all'
+      'transaction:create:all',
     ],
-    userId: fixturesParams.ownerId
+    userId: fixturesParams.ownerId,
   })
 
   const { body: asset1 } = await request(t.context.serverUrl)
@@ -53,12 +51,10 @@ async function initElasticsearch ({ t }) {
       name: 'Toyota',
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 0, longitude: 0 }
-      ],
+      locations: [{ latitude: 0, longitude: 0 }],
       // no currency, to test if search works without it
       active: true,
-      validated: true
+      validated: true,
     })
     .expect(200)
 
@@ -68,9 +64,7 @@ async function initElasticsearch ({ t }) {
     .patch(`/assets/${asset1.id}`)
     .set(authorizationHeaders)
     .send({
-      locations: [
-        { latitude: 10, longitude: 10 }
-      ]
+      locations: [{ latitude: 10, longitude: 10 }],
     })
     .expect(200)
 
@@ -81,12 +75,10 @@ async function initElasticsearch ({ t }) {
       name: 'Ford',
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MGsfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 1, longitude: 1 }
-      ],
+      locations: [{ latitude: 1, longitude: 1 }],
       // no currency, to test if search works without it
       active: true,
-      validated: true
+      validated: true,
     })
     .expect(200)
 
@@ -97,9 +89,7 @@ async function initElasticsearch ({ t }) {
     .set(authorizationHeaders)
     .send({
       name: 'Custom Ford',
-      locations: [
-        { latitude: 2, longitude: 2 }
-      ]
+      locations: [{ latitude: 2, longitude: 2 }],
     })
     .expect(200)
 
@@ -110,12 +100,10 @@ async function initElasticsearch ({ t }) {
       name: 'Ford',
       ownerId: '3135511d-719e-41a6-8753-36f188029eb1',
       assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 20, longitude: 20 }
-      ],
+      locations: [{ latitude: 20, longitude: 20 }],
       currency: 'EUR',
       active: true,
-      validated: true
+      validated: true,
     })
     .expect(200)
 
@@ -129,7 +117,7 @@ async function initElasticsearch ({ t }) {
       startDate: computeDate(initNow, '5 days'),
       endDate: computeDate(initNow, '7 days'),
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -145,7 +133,7 @@ async function initElasticsearch ({ t }) {
       assetTypeId: 'typ_MGsfQps1I3a1gJYz2I3a',
       locations: [],
       active: true,
-      validated: true
+      validated: true,
     })
     .expect(200)
 
@@ -164,17 +152,15 @@ async function initElasticsearch ({ t }) {
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_ZU9fQps1I3a1gJYz2I3a',
       quantity: 5,
-      locations: [
-        { latitude: 50, longitude: 50 }
-      ],
+      locations: [{ latitude: 50, longitude: 50 }],
       active: true,
       validated: true,
       price: fixturesParams.basePrice,
       description: 'I have a price',
       currency: 'USD',
       customAttributes: {
-        seatingCapacity: fixturesParams.lowSeatingCapacity
-      }
+        seatingCapacity: fixturesParams.lowSeatingCapacity,
+      },
     })
     .expect(200)
 
@@ -188,7 +174,7 @@ async function initElasticsearch ({ t }) {
       startDate: computeDate(initNow, '2 days'),
       endDate: computeDate(initNow, '5 days'),
       quantity: 0,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -200,7 +186,7 @@ async function initElasticsearch ({ t }) {
       startDate: computeDate(initNow, '7 days'),
       endDate: computeDate(initNow, '9 days'),
       quantity: 2,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -212,7 +198,7 @@ async function initElasticsearch ({ t }) {
       startDate: computeDate(initNow, '11 days'),
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -226,9 +212,7 @@ async function initElasticsearch ({ t }) {
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
       categoryId: 'ctgy_ejQQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 8, longitude: 8 }
-      ],
+      locations: [{ latitude: 8, longitude: 8 }],
       currency: 'USD',
       active: true,
       validated: true,
@@ -241,8 +225,8 @@ async function initElasticsearch ({ t }) {
         options: ['gps', 'convertible', 'sunroof'],
         automaticTransmission: true,
         make: 'Toyota',
-        customDescription: 'This is a modern car'
-      }
+        customDescription: 'This is a modern car',
+      },
     })
     .expect(200)
 
@@ -256,9 +240,7 @@ async function initElasticsearch ({ t }) {
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 10, longitude: 10 }
-      ],
+      locations: [{ latitude: 10, longitude: 10 }],
       currency: 'USD',
       active: true,
       validated: true,
@@ -269,8 +251,8 @@ async function initElasticsearch ({ t }) {
         customScore: 10000,
         licensePlate: '987654321',
         automaticTransmission: false,
-        make: 'Chevrolet'
-      }
+        make: 'Chevrolet',
+      },
     })
     .expect(200)
 
@@ -283,13 +265,12 @@ async function initElasticsearch ({ t }) {
       name: 'A new car model',
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 1, longitude: 1 }
-      ],
+      locations: [{ latitude: 1, longitude: 1 }],
       currency: 'USD',
       active: true,
       validated: true,
-      description: 'My description is unique. Somehow, I will be booked by a car lover.',
+      description:
+        'My description is unique. Somehow, I will be booked by a car lover.',
       customAttributes: {
         seatingCapacity: fixturesParams.uniqueSeatingCapacity,
         customScore: 1,
@@ -297,8 +278,8 @@ async function initElasticsearch ({ t }) {
         options: ['sunroof'],
         automaticTransmission: false,
         make: 'Toyota',
-        customDescription: ''
-      }
+        customDescription: '',
+      },
     })
     .expect(200)
 
@@ -317,9 +298,9 @@ async function initElasticsearch ({ t }) {
       validated: true,
       customAttributes: {
         seatingCapacity: fixturesParams.lowSeatingCapacity,
-        customScore: 1200
+        customScore: 1200,
       },
-      price: fixturesParams.basePrice + 9
+      price: fixturesParams.basePrice + 9,
     })
     .expect(200)
 
@@ -338,9 +319,9 @@ async function initElasticsearch ({ t }) {
       validated: true,
       customAttributes: {
         seatingCapacity: fixturesParams.lowSeatingCapacity,
-        customScore: null
+        customScore: null,
       },
-      price: fixturesParams.basePrice + 0.9
+      price: fixturesParams.basePrice + 0.9,
     })
     .expect(200)
 
@@ -353,15 +334,13 @@ async function initElasticsearch ({ t }) {
       name: 'Großes Auto', // 'Big car' in German
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 90, longitude: 90 }
-      ],
+      locations: [{ latitude: 90, longitude: 90 }],
       currency: 'USD',
       active: true,
       validated: true,
       price: fixturesParams.basePrice + 7,
       // 'Someday, I will be booked by a car lover.' in German
-      description: 'Eines Tages werde ich von einem Autoliebhaber gebucht.'
+      description: 'Eines Tages werde ich von einem Autoliebhaber gebucht.',
     })
     .expect(200)
 
@@ -374,14 +353,13 @@ async function initElasticsearch ({ t }) {
       name: 'Ein neues modell', // 'A new model' in German
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 90, longitude: 90 }
-      ],
+      locations: [{ latitude: 90, longitude: 90 }],
       currency: 'USD',
       active: true,
       validated: true,
       // 'My description is unique. Somehow, I will be booked by a car lover.' in German
-      description: 'Meine Beschreibung ist einzigartig. Irgendwie werde ich von einem Autoliebhaber gebucht.'
+      description:
+        'Meine Beschreibung ist einzigartig. Irgendwie werde ich von einem Autoliebhaber gebucht.',
     })
     .expect(200)
 
@@ -394,15 +372,13 @@ async function initElasticsearch ({ t }) {
       name: '大車', // 'Big car' in Chinese
       ownerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 90, longitude: 90 }
-      ],
+      locations: [{ latitude: 90, longitude: 90 }],
       currency: 'USD',
       active: true,
       validated: true,
       price: fixturesParams.basePrice + 7,
       // 'Someday, I will be booked by a car lover.' in Chinese
-      description: '總有一天，我會被汽車愛好者預訂。'
+      description: '總有一天，我會被汽車愛好者預訂。',
     })
     .expect(200)
 
@@ -415,14 +391,12 @@ async function initElasticsearch ({ t }) {
       name: '一個新的模型', // 'A new model' in Chinese
       ownerId: 'd61a76e5-8e8b-4660-8e3f-8ae0834c9662',
       assetTypeId: 'typ_MnkfQps1I3a1gJYz2I3a',
-      locations: [
-        { latitude: 90, longitude: 90 }
-      ],
+      locations: [{ latitude: 90, longitude: 90 }],
       currency: 'USD',
       active: true,
       validated: true,
       // 'My description is unique. Somehow, I will be booked by a car lover.' in Chinese
-      description: '我的描述很獨特。 不知何故，我將被汽車愛好者預訂。'
+      description: '我的描述很獨特。 不知何故，我將被汽車愛好者預訂。',
     })
     .expect(200)
 
@@ -442,14 +416,15 @@ async function initElasticsearch ({ t }) {
     active: true,
     validated: true,
     customAttributes: {
-      customDescription: 'elasticsearch pagination'
-    }
+      customDescription: 'elasticsearch pagination',
+    },
   }
 
-  const unavailableCreateParams = Object.assign({}, createParams, {
+  const unavailableCreateParams = {
+    ...createParams,
     name: 'Asset with zero quantity',
-    quantity: 0
-  })
+    quantity: 0,
+  }
 
   for (let i = 0; i < nbUnavailableAssets; i++) {
     await request(t.context.serverUrl)
@@ -459,10 +434,11 @@ async function initElasticsearch ({ t }) {
       .expect(200)
   }
 
-  const availableCreateParams = Object.assign({}, createParams, {
+  const availableCreateParams = {
+    ...createParams,
     name: 'Asset with one quantity',
-    quantity: 1
-  })
+    quantity: 1,
+  }
 
   for (let i = 0; i < nbAvailableAssets; i++) {
     const { body: availableAsset } = await request(t.context.serverUrl)
@@ -475,7 +451,7 @@ async function initElasticsearch ({ t }) {
   }
 
   // let Elasticsearch synchronize the assets
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise((resolve) => setTimeout(resolve, 2000))
 
   return initNow
 }

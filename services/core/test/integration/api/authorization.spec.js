@@ -1,12 +1,10 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
 const { before, beforeEach, after } = require('../../lifecycle')
 const { getAccessTokenHeaders, getSystemKey } = require('../../auth')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'authorization' })(t)
   await beforeEach()(t)
 })
@@ -14,17 +12,17 @@ test.before(async t => {
 test.after(after())
 
 test('permissions can be checked', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:list:all'],
+  })
 
-  const platformId = t.context.platformId
+  const { platformId } = t.context
 
   const { body: permissionsObject } = await request(t.context.serverUrl)
     .post('/permissions/check')
     .send({
-      permissions: [
-        'category:list',
-        'category:list:all'
-      ]
+      permissions: ['category:list', 'category:list:all'],
     })
     .set(authorizationHeaders)
     .expect(200)
@@ -36,9 +34,7 @@ test('permissions can be checked', async (t) => {
   const { body: permissionsObject2 } = await request(t.context.serverUrl)
     .post('/permissions/check')
     .send({
-      permissions: [
-        'unknownPermission'
-      ]
+      permissions: ['unknownPermission'],
     })
     .set(authorizationHeaders)
     .expect(200)
@@ -51,16 +47,16 @@ test('permissions can be checked', async (t) => {
     .send({
       permissions: [
         'category:list:all', // 'public' role permission
-        'role:create:all'
-      ]
+        'role:create:all',
+      ],
     })
     .set({
       'x-platform-id': platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
-  t.true(permissionsObject3['category:list:all'],)
+  t.true(permissionsObject3['category:list:all'])
   t.false(permissionsObject3['role:create:all'])
 
   // at least one permission to check is needed
@@ -68,18 +64,21 @@ test('permissions can be checked', async (t) => {
     .post('/permissions/check')
     .set({
       'x-platform-id': platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 })
 
 test('cannot access/create/modify a resource only with platformData:edit:all permission', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['platformData:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['platformData:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .post('/categories')
     .send({
-      name: 'Random category'
+      name: 'Random category',
     })
     .set(authorizationHeaders)
     .expect(403)
@@ -88,18 +87,19 @@ test('cannot access/create/modify a resource only with platformData:edit:all per
 })
 
 test('uses system features but checks provided permissions with optional header', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: [] }) // no permissions
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: [],
+  }) // no permissions
   const systemKey = getSystemKey()
 
   // can create a category because it's from the system
   await request(t.context.serverUrl)
     .post('/categories')
     .send({
-      name: 'Random category'
+      name: 'Random category',
     })
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-system-key': systemKey
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-system-key': systemKey })
     .expect(200)
 
   // cannot create a category because even if it's from the system,
@@ -108,12 +108,13 @@ test('uses system features but checks provided permissions with optional header'
   await request(t.context.serverUrl)
     .post('/categories')
     .send({
-      name: 'Random category'
+      name: 'Random category',
     })
-    .set(Object.assign({}, authorizationHeaders, {
+    .set({
+      ...authorizationHeaders,
       'x-saltana-system-key': systemKey,
-      'x-saltana-system-permissions': 'check'
-    }))
+      'x-saltana-system-permissions': 'check',
+    })
     .expect(403)
 
   t.pass()

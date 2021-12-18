@@ -1,9 +1,9 @@
-const { createInstance } = require('@saltana/sdk/dist/saltana.node')
+const { createInstance } = require('@saltana/sdk')
+const config = require('config')
 
-const apiHost = process.env.SALTANA_CORE_API_HOST || "dev.saltana.com"
+const apiHost = config.get('Public.api.host')
 
-const apiKey = process.env.SALTANA_SECRET_API_KEY || "seck_test_wakWA41rBTUXs1Y5oNRjeY5o"
-
+const apiKey = config.get('ApiSecretKey')
 const admin = createInstance({ apiHost, apiKey })
 
 const workflows = require('./data/workflows')

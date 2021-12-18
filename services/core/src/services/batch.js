@@ -1,23 +1,22 @@
 const _ = require('lodash')
 const bluebird = require('bluebird')
 const request = require('superagent')
+const config = require('config')
 
 let apiBase
 
 let responder
 
-function start ({ communication, serverPort }) {
-  const {
-    getResponder
-  } = communication
+function start({ communication, serverPort }) {
+  const { getResponder } = communication
 
   responder = getResponder({
     name: 'Batch Responder',
-    key: 'batch'
+    key: 'batch',
   })
 
-  const isTestEnv = process.env.NODE_ENV === 'test'
-  const apiUrl = process.env.SALTANA_CORE_API_URL
+  const isTestEnv = config.get('Env') === 'test'
+  const apiUrl = config.get('Cote.baseUrl')
 
   // in test environment, all batch steps are sent to the same server than the one receiving the batch request
   // that's because in parallel testing, hosts are dynamic
@@ -33,7 +32,7 @@ function start ({ communication, serverPort }) {
       method,
       objects,
 
-      rawHeaders
+      rawHeaders,
     } = req
 
     // cannot reuse directly rawHeaders
@@ -51,7 +50,7 @@ function start ({ communication, serverPort }) {
 
       // used for test
       'x-platform-id',
-      'x-saltana-env'
+      'x-saltana-env',
     ]
 
     const batchHeaders = _.pick(rawHeaders, allowedHeaders)
@@ -65,34 +64,38 @@ function start ({ communication, serverPort }) {
 
     // batch steps order isn't guaranteed because we're using `.map()` to have the smallest execution duration
     // (instead of `.mapSeries()`)
-    await bluebird.map(objects, async (obj, index) => {
-      let endpointUri
-      if (objectType === 'asset') {
-        endpointUri = `/assets/${obj.objectId}`
-      } else if (objectType === 'user') {
-        endpointUri = `/users/${obj.objectId}`
-      }
-      const endpointUrl = `${apiBase}${endpointUri}`
-      try {
-        await request[method.toLowerCase()](endpointUrl)
-          .send(obj.payload)
-          .set(batchHeaders)
-
-        // preserve initial order and use _.compact below
-        completed[index] = obj.objectId
-      } catch (err) {
-        errors[index] = {
-          objectId: obj.objectId,
-          error: err.response.body
+    await bluebird.map(
+      objects,
+      async (obj, index) => {
+        let endpointUri
+        if (objectType === 'asset') {
+          endpointUri = `/assets/${obj.objectId}`
+        } else if (objectType === 'user') {
+          endpointUri = `/users/${obj.objectId}`
         }
+        const endpointUrl = `${apiBase}${endpointUri}`
+        try {
+          await request[method.toLowerCase()](endpointUrl)
+            .send(obj.payload)
+            .set(batchHeaders)
 
-        // the error status code is the first error status code
-        if (!statusCode || index < errorIndex) {
-          statusCode = err.status
-          errorIndex = index
+          // preserve initial order and use _.compact below
+          completed[index] = obj.objectId
+        } catch (err) {
+          errors[index] = {
+            objectId: obj.objectId,
+            error: err.response.body,
+          }
+
+          // the error status code is the first error status code
+          if (!statusCode || index < errorIndex) {
+            statusCode = err.status
+            errorIndex = index
+          }
         }
-      }
-    }, { concurrency: 4 })
+      },
+      { concurrency: 4 },
+    )
 
     if (!statusCode) {
       statusCode = 200
@@ -114,18 +117,18 @@ function start ({ communication, serverPort }) {
     return {
       _rawResponse: {
         statusCode,
-        content: exposedResult
-      }
+        content: exposedResult,
+      },
     }
   })
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

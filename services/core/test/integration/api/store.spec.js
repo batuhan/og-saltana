@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -16,38 +14,35 @@ const {
 
 const instanceEnv = getEnvironments()[0] || 'test'
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'store' })(t)
   await beforeEach()(t)
 })
 // test.beforeEach(beforeEach()) // Concurrent tests are much faster
 test.after(after())
 
-const isNonEmptyIntegerString = (value) => !!(
-  value &&
-  typeof value === 'string' &&
-  '' + parseInt(value, 10) === value
-)
+const isNonEmptyIntegerString = (value) =>
+  !!(value && typeof value === 'string' && `${parseInt(value, 10)}` === value)
 
 // Must run serially as it has impact on all env data keys
 test.serial('gets, updates and removes platform env data', async (t) => {
   const systemKey = getSystemKey()
 
-  const platformId = t.context.platformId
+  const { platformId } = t.context
 
   const connection = {
     host: 'example.com',
     port: 5432,
     user: 'user',
     password: null,
-    database: 'test'
+    database: 'test',
   }
   const connection2 = {
     host: 'example2.com',
     port: 5432,
     user: 'user',
     password: null,
-    database: 'test'
+    database: 'test',
   }
 
   const { body: beforeCreateData } = await request(t.context.serverUrl)
@@ -80,7 +75,7 @@ test.serial('gets, updates and removes platform env data', async (t) => {
     .set({ 'x-saltana-system-key': systemKey })
     .send({
       custom: { randomData: true },
-      custom2: { randomData2: true }
+      custom2: { randomData2: true },
     })
     .expect(200)
 
@@ -115,10 +110,10 @@ test('gets, sets and removes platform env data by key', async (t) => {
     port: 5432,
     user: 'user',
     password: null,
-    database: 'test'
+    database: 'test',
   }
 
-  const platformId = t.context.platformId
+  const { platformId } = t.context
 
   const { body: beforeCreateData } = await request(t.context.serverUrl)
     .get(`/store/platforms/${platformId}/data/${instanceEnv}/custom`)
@@ -167,17 +162,17 @@ test('gets, sets and removes platform env data by key', async (t) => {
 test('sync elasticsearch', async (t) => {
   const systemKey = getSystemKey()
 
-  const platformId = t.context.platformId
+  const { platformId } = t.context
 
   const result = await request(t.context.serverUrl)
     .post(`/store/platforms/${platformId}/elasticsearch/sync`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   const obj = result.body
 
@@ -187,13 +182,17 @@ test('sync elasticsearch', async (t) => {
 test('sync cache', async (t) => {
   const systemKey = getSystemKey()
 
-  const platformId = t.context.platformId
+  const { platformId } = t.context
 
-  const { body: { cache: { ok: beforeCheck } } } = await request(t.context.serverUrl)
+  const {
+    body: {
+      cache: { ok: beforeCheck },
+    },
+  } = await request(t.context.serverUrl)
     .get(`/store/platforms/${platformId}/check`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
@@ -204,7 +203,7 @@ test('sync cache', async (t) => {
     .post(`/store/platforms/${platformId}/cache/sync`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': 'test'
+      'x-saltana-env': 'test',
     })
     .expect(200)
 
@@ -212,15 +211,19 @@ test('sync cache', async (t) => {
     .post(`/store/platforms/${platformId}/cache/sync`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': 'live'
+      'x-saltana-env': 'live',
     })
     .expect(200)
 
-  const { body: { cache: { ok: afterCheck } } } = await request(t.context.serverUrl)
+  const {
+    body: {
+      cache: { ok: afterCheck },
+    },
+  } = await request(t.context.serverUrl)
     .get(`/store/platforms/${platformId}/check`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
@@ -231,15 +234,19 @@ test('sync cache', async (t) => {
     .delete(`/store/platforms/${platformId}/cache`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
-  const { body: { cache: { ok: checkAfterDelete } } } = await request(t.context.serverUrl)
+  const {
+    body: {
+      cache: { ok: checkAfterDelete },
+    },
+  } = await request(t.context.serverUrl)
     .get(`/store/platforms/${platformId}/check`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
@@ -249,20 +256,24 @@ test('sync cache', async (t) => {
 test('creates a platform, init and reset databases', async (t) => {
   const systemKey = getSystemKey()
 
-  const { body: { id: platformId } } = await request(t.context.serverUrl)
+  const {
+    body: { id: platformId },
+  } = await request(t.context.serverUrl)
     .post('/store/platforms')
     .set({ 'x-saltana-system-key': systemKey })
     .expect(200)
 
   t.true(isNonEmptyIntegerString(platformId))
 
-  const env = t.context.env
+  const { env } = t.context
 
   const areDatabasesUp = async ({ postgresql, elasticsearch }) => {
     const postgresqlStatus = postgresql ? 200 : 500
     const elasticsearchStatus = postgresql
-      // index not found, queries to PostgreSQL still work, so this isn't an error status 500
-      ? (elasticsearch ? 200 : 404)
+      ? // index not found, queries to PostgreSQL still work, so this isn't an error status 500
+        elasticsearch
+        ? 200
+        : 404
       : 500
 
     await request(t.context.serverUrl)
@@ -270,7 +281,7 @@ test('creates a platform, init and reset databases', async (t) => {
       .set({
         'x-saltana-system-key': systemKey,
         'x-platform-id': platformId,
-        'x-saltana-env': env
+        'x-saltana-env': env,
       })
       .expect(postgresqlStatus)
 
@@ -280,7 +291,7 @@ test('creates a platform, init and reset databases', async (t) => {
       .set({
         'x-saltana-system-key': systemKey,
         'x-platform-id': platformId,
-        'x-saltana-env': env
+        'x-saltana-env': env,
       })
       .expect(elasticsearchStatus)
   }
@@ -304,7 +315,7 @@ test('creates a platform, init and reset databases', async (t) => {
     .post(`/store/platforms/${platformId}/init`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': env
+      'x-saltana-env': env,
     })
     .expect(200)
 
@@ -315,7 +326,7 @@ test('creates a platform, init and reset databases', async (t) => {
     .post(`/store/platforms/${platformId}/elasticsearch/drop`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': env
+      'x-saltana-env': env,
     })
     .expect(200)
 
@@ -326,7 +337,7 @@ test('creates a platform, init and reset databases', async (t) => {
     .post(`/store/platforms/${platformId}/database/drop`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': env
+      'x-saltana-env': env,
     })
     .expect(200)
 
@@ -338,7 +349,7 @@ test('creates a platform, init and reset databases', async (t) => {
     .post(`/store/platforms/${platformId}/database/migrate`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': env
+      'x-saltana-env': env,
     })
     .expect(200)
 
@@ -348,7 +359,7 @@ test('creates a platform, init and reset databases', async (t) => {
     .post(`/store/platforms/${platformId}/elasticsearch/init`)
     .set({
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': env
+      'x-saltana-env': env,
     })
     .expect(200)
 
@@ -361,7 +372,9 @@ test('establishes SSL connection with PostgreSQL', async (t) => {
   const systemKey = getSystemKey()
 
   const createPlatform = async () => {
-    const { body: { id: platformId } } = await request(t.context.serverUrl)
+    const {
+      body: { id: platformId },
+    } = await request(t.context.serverUrl)
       .post('/store/platforms')
       .set({ 'x-saltana-system-key': systemKey })
       .expect(200)
@@ -371,9 +384,12 @@ test('establishes SSL connection with PostgreSQL', async (t) => {
     return platformId
   }
 
-  const env = t.context.env
+  const { env } = t.context
 
-  const setPostgreSQLConnection = async ({ platformId, ...sslOptions } = {}) => {
+  const setPostgreSQLConnection = async ({
+    platformId,
+    ...sslOptions
+  } = {}) => {
     await request(t.context.serverUrl)
       .put(`/store/platforms/${platformId}/data/${env}/postgresql`)
       .set({ 'x-saltana-system-key': systemKey })
@@ -386,7 +402,7 @@ test('establishes SSL connection with PostgreSQL', async (t) => {
       .post(`/store/platforms/${platformId}/database/migrate`)
       .set({
         'x-saltana-system-key': systemKey,
-        'x-saltana-env': env
+        'x-saltana-env': env,
       })
       .expect(status)
   }
@@ -396,7 +412,7 @@ test('establishes SSL connection with PostgreSQL', async (t) => {
       .post(`/store/platforms/${platformId}/database/drop`)
       .set({
         'x-saltana-system-key': systemKey,
-        'x-saltana-env': env
+        'x-saltana-env': env,
       })
       .expect(200)
   }
@@ -433,13 +449,13 @@ test('establishes SSL connection with PostgreSQL', async (t) => {
   // bad values
   await testSSLConnection(500, {
     sslcert: getPgSSLCACertificate(),
-    sslca: getPgSSLServerCertificate()
+    sslca: getPgSSLServerCertificate(),
   })
 
   // correct fields
   await testSSLConnection(200, {
     sslcert: getPgSSLServerCertificate(),
-    sslca: getPgSSLCACertificate()
+    sslca: getPgSSLCACertificate(),
   })
 
   t.pass()

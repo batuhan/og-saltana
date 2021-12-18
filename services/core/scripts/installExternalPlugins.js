@@ -3,7 +3,6 @@
  * and development as well.
  */
 
-require('@saltana/common').load()
 const shell = require('shelljs')
 const path = require('path')
 const script = require('commander')
@@ -18,9 +17,12 @@ const packageFile = path.join(__dirname, '../package.json')
 const installedPluginsDir = path.join(__dirname, '../plugins/installed')
 
 const { getInstalledPluginsNames } = require('../plugins')
-const installs = (process.env.INSTALLED_PLUGINS || '').split(',').filter(Boolean)
 
-const log = console.log
+const installs = (process.env.INSTALLED_PLUGINS || '')
+  .split(',')
+  .filter(Boolean)
+
+const { log } = console
 
 if (installs.length) {
   const list = installs.join(' ')
@@ -38,7 +40,7 @@ if (installs.length) {
 
   // We copy installed plugins from `node_modules` to `plugins/installed` directory
   // so we can run their tests with AVA along with other core server tests
-  getInstalledPluginsNames().forEach(p => {
+  getInstalledPluginsNames().forEach((p) => {
     // Getting plugin root directory
     log(`Copying ${p} plugin tests and files to plugins/installed directory`)
     const pluginDirectory = path.dirname(require.resolve(`${p}/package.json`))

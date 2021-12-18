@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -16,24 +14,22 @@ const {
   checkCursorPaginatedListObject,
 } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'event' })(t)
   await beforeEach()(t)
 })
 // test.beforeEach(beforeEach()) // Concurrent tests are much faster
 test.after(after())
 
-const dateFilterErrorRegexp = /createdDate value cannot be lower than \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/i
+const dateFilterErrorRegexp =
+  /createdDate value cannot be lower than \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/i
 
 // run this test serially because there is no filter and some other tests create events
 // that can turn the check on `count` property incorrect
 test.serial('get events history with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
   const groupByValues = ['hour', 'day', 'month']
@@ -55,13 +51,12 @@ test.serial('get events history with pagination', async (t) => {
 test.serial('get events history', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -78,7 +73,7 @@ test.serial('get events history', async (t) => {
       t,
       obj: dayObj,
       groupBy,
-      results: events
+      results: events,
     })
   }
 })
@@ -86,17 +81,16 @@ test.serial('get events history', async (t) => {
 test('get events history with filters', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
   const objectType = 'transaction'
   const objectId = 'trn_Wm1fQps1I3a1gJYz2I3a'
   const filters = `objectType=${objectType}&objectId=${objectId}`
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -112,17 +106,14 @@ test('get events history with filters', async (t) => {
     t,
     obj,
     groupBy,
-    results: events
+    results: events,
   })
 })
 
 test('get events history with date filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
   const now = new Date().toISOString()
@@ -132,7 +123,9 @@ test('get events history with date filter', async (t) => {
   const minCreatedDate = computeDate(now, '-10d')
   const filters = `objectType=${objectType}&objectId=${objectId}&createdDate[gte]=${minCreatedDate}`
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -148,30 +141,32 @@ test('get events history with date filter', async (t) => {
     t,
     obj,
     groupBy,
-    results: events
+    results: events,
   })
 })
 
 test('fails to get events history with redundant relational operators', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-    ]
+    permissions: ['event:stats:all'],
   })
 
   const now = new Date().toISOString()
   const date = computeDate(now, '-10d')
 
   const { body: error1 } = await request(t.context.serverUrl)
-    .get(`/events/history?groupBy=day&createdDate[gt]=${date}&createdDate[gte]=${date}`)
+    .get(
+      `/events/history?groupBy=day&createdDate[gt]=${date}&createdDate[gte]=${date}`,
+    )
     .set(authorizationHeaders)
     .expect(400)
 
   t.true(error1.message.includes('optional exclusive peers'))
 
   const { body: error2 } = await request(t.context.serverUrl)
-    .get(`/events/history?groupBy=day&createdDate[lt]=${date}&createdDate[lte]=${date}`)
+    .get(
+      `/events/history?groupBy=day&createdDate[lt]=${date}&createdDate[lte]=${date}`,
+    )
     .set(authorizationHeaders)
     .expect(400)
 
@@ -180,55 +175,57 @@ test('fails to get events history with redundant relational operators', async (t
 
 // run this test serially because there is no filter and some other tests create events
 // that can turn the check on `count` property incorrect
-test.serial('can apply filters only with created date within the retention log period', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
-  })
+test.serial(
+  'can apply filters only with created date within the retention log period',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t,
+      permissions: ['event:stats:all', 'event:list:all'],
+    })
 
-  const now = new Date().toISOString()
+    const now = new Date().toISOString()
 
-  const objectType = 'transaction'
-  const objectId = 'trn_Wm1fQps1I3a1gJYz2I3a'
-  const oldCreatedDate = computeDate(now, '-1y')
-  const filters = `objectType=${objectType}&objectId=${objectId}&createdDate[gte]=${oldCreatedDate}`
+    const objectType = 'transaction'
+    const objectId = 'trn_Wm1fQps1I3a1gJYz2I3a'
+    const oldCreatedDate = computeDate(now, '-1y')
+    const filters = `objectType=${objectType}&objectId=${objectId}&createdDate[gte]=${oldCreatedDate}`
 
-  const groupBy = 'day'
+    const groupBy = 'day'
 
-  await request(t.context.serverUrl)
-    .get(`/events/history?groupBy=${groupBy}&${filters}`)
-    .set(authorizationHeaders)
-    .expect(400)
+    await request(t.context.serverUrl)
+      .get(`/events/history?groupBy=${groupBy}&${filters}`)
+      .set(authorizationHeaders)
+      .expect(400)
 
-  const minCreatedDate = computeDate(now, '-10d')
+    const minCreatedDate = computeDate(now, '-10d')
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
-    .get(`/events?createdDate[gte]=${minCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const {
+      body: { results: events },
+    } = await request(t.context.serverUrl)
+      .get(`/events?createdDate[gte]=${minCreatedDate}`)
+      .set(authorizationHeaders)
+      .expect(200)
 
-  const { body: obj } = await request(t.context.serverUrl)
-    .get(`/events/history?groupBy=${groupBy}&createdDate[gte]=${minCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const { body: obj } = await request(t.context.serverUrl)
+      .get(
+        `/events/history?groupBy=${groupBy}&createdDate[gte]=${minCreatedDate}`,
+      )
+      .set(authorizationHeaders)
+      .expect(200)
 
-  checkCursorPaginatedHistoryObject({
-    t,
-    obj,
-    groupBy,
-    results: events
-  })
-})
+    checkCursorPaginatedHistoryObject({
+      t,
+      obj,
+      groupBy,
+      results: events,
+    })
+  },
+)
 
 test('can apply type filter beyond the retention log period', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-    ]
+    permissions: ['event:stats:all'],
   })
 
   const now = new Date().toISOString()
@@ -257,13 +254,16 @@ test('can apply type filter beyond the retention log period', async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('get simple events stats with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:stats:all'],
+  })
 
   await checkOffsetPaginationScenario({
     t,
     endpointUrl: '/events/stats?groupBy=type',
     authorizationHeaders,
-    orderBy: 'count'
+    orderBy: 'count',
   })
 })
 
@@ -272,13 +272,12 @@ test.serial('get simple events stats with pagination', async (t) => {
 test.serial('get simple events stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -294,20 +293,19 @@ test.serial('get simple events stats', async (t) => {
     t,
     obj,
     groupBy,
-    results: events
+    results: events,
   })
 })
 
 test('get simple events stats with nested groupBy', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -323,20 +321,19 @@ test('get simple events stats with nested groupBy', async (t) => {
     t,
     obj,
     groupBy,
-    results: events
+    results: events,
   })
 })
 
 test('get aggregated field stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -346,7 +343,9 @@ test('get aggregated field stats', async (t) => {
   const avgPrecision = 5
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/events/stats?groupBy=${groupBy}&field=${field}&avgPrecision=${avgPrecision}`)
+    .get(
+      `/events/stats?groupBy=${groupBy}&field=${field}&avgPrecision=${avgPrecision}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -356,24 +355,23 @@ test('get aggregated field stats', async (t) => {
     groupBy,
     field,
     avgPrecision,
-    results: events
+    results: events,
   })
 })
 
 test('get aggregated field stats with filters', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
   const objectType = 'transaction'
   const objectId = 'trn_Wm1fQps1I3a1gJYz2I3a'
   const filters = `objectType=${objectType}&objectId=${objectId}`
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -391,23 +389,22 @@ test('get aggregated field stats with filters', async (t) => {
     obj,
     groupBy,
     field,
-    results: events
+    results: events,
   })
 })
 
 test('get aggregated field stats with deeply nested properties', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
   const objectType = 'transaction'
   const filters = `objectType=${objectType}`
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -425,7 +422,7 @@ test('get aggregated field stats with deeply nested properties', async (t) => {
     obj,
     groupBy,
     field,
-    results: events
+    results: events,
   })
 
   const groupBy2 = 'object.metadata.otherObject.arrayStatuses[0]'
@@ -441,23 +438,22 @@ test('get aggregated field stats with deeply nested properties', async (t) => {
     obj: obj2,
     groupBy: groupBy2,
     field: field2,
-    results: events
+    results: events,
   })
 })
 
 test('get aggregated field stats with complex filters', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
+    permissions: ['event:stats:all', 'event:list:all'],
   })
 
   const objectType = 'asset'
   const filters = `objectType=${objectType}&metadata[nested][string]=true`
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -475,20 +471,22 @@ test('get aggregated field stats with complex filters', async (t) => {
     obj,
     groupBy,
     field,
-    results: events
+    results: events,
   })
 
   const supersetOf = {
     someTags: ['Brown'],
     nested: { object: true },
-    name: 'DMC-12'
+    name: 'DMC-12',
   }
 
-  const encode = obj => encodeURIComponent(JSON.stringify(obj))
+  const encode = (obj) => encodeURIComponent(JSON.stringify(obj))
 
   const filters2 = `objectType=${objectType}&metadata=${encode(supersetOf)}`
 
-  const { body: { results: events2 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events2 },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters2}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -503,19 +501,21 @@ test('get aggregated field stats with complex filters', async (t) => {
     obj: obj2,
     groupBy,
     field,
-    results: events2
+    results: events2,
   })
 
   const assetSupersetOf = {
     customAttributes: {
-      seatingCapacity: 4
+      seatingCapacity: 4,
     },
-    validated: true
+    validated: true,
   }
 
   const filters3 = `objectType=${objectType}&object=${encode(assetSupersetOf)}`
 
-  const { body: { results: events3 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events3 },
+  } = await request(t.context.serverUrl)
     .get(`/events?${filters3}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -530,16 +530,14 @@ test('get aggregated field stats with complex filters', async (t) => {
     obj: obj3,
     groupBy,
     field,
-    results: events3
+    results: events3,
   })
 })
 
 test('fails to get aggregated stats with non-number field', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all'
-    ]
+    permissions: ['event:stats:all'],
   })
 
   const objectType = 'transaction'
@@ -553,15 +551,15 @@ test('fails to get aggregated stats with non-number field', async (t) => {
     .set(authorizationHeaders)
     .expect(422)
 
-  t.true(error.message.includes(`Non-number value was found for field "${field}"`))
+  t.true(
+    error.message.includes(`Non-number value was found for field "${field}"`),
+  )
 })
 
 test('aggregation works even if the specified nested property does not exist', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all'
-    ]
+    permissions: ['event:stats:all'],
   })
 
   const groupBy = 'object.unknown'
@@ -578,64 +576,74 @@ test('aggregation works even if the specified nested property does not exist', a
 
 // run this test serially because some other tests create events
 // that can turn the check on `count` property incorrect
-test.serial('get events stats with date filter only works within the rentention log period', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'event:stats:all',
-      'event:list:all'
-    ]
-  })
+test.serial(
+  'get events stats with date filter only works within the rentention log period',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t,
+      permissions: ['event:stats:all', 'event:list:all'],
+    })
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
-    .get('/events')
-    .set(authorizationHeaders)
-    .expect(200)
+    const {
+      body: { results: events },
+    } = await request(t.context.serverUrl)
+      .get('/events')
+      .set(authorizationHeaders)
+      .expect(200)
 
-  const groupBy = 'type'
+    const groupBy = 'type'
 
-  const now = new Date().toISOString()
+    const now = new Date().toISOString()
 
-  const invalidMinCreatedDate = computeDate(now, '-200d')
-  const validMinCreatedDate = computeDate(now, '-10d')
-  const encode = obj => encodeURIComponent(JSON.stringify(obj))
+    const invalidMinCreatedDate = computeDate(now, '-200d')
+    const validMinCreatedDate = computeDate(now, '-10d')
+    const encode = (obj) => encodeURIComponent(JSON.stringify(obj))
 
-  await request(t.context.serverUrl)
-    .get(`/events/stats?groupBy=${groupBy}&createdDate[gte]=${invalidMinCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(400)
+    await request(t.context.serverUrl)
+      .get(
+        `/events/stats?groupBy=${groupBy}&createdDate[gte]=${invalidMinCreatedDate}`,
+      )
+      .set(authorizationHeaders)
+      .expect(400)
 
-  await request(t.context.serverUrl)
-    .get(`/events/stats?groupBy=${groupBy}&createdDate=${encode({ gte: invalidMinCreatedDate })}`)
-    .set(authorizationHeaders)
-    .expect(400)
+    await request(t.context.serverUrl)
+      .get(
+        `/events/stats?groupBy=${groupBy}&createdDate=${encode({
+          gte: invalidMinCreatedDate,
+        })}`,
+      )
+      .set(authorizationHeaders)
+      .expect(400)
 
-  const { body: error } = await request(t.context.serverUrl)
-    .get(`/events/stats?groupBy=${groupBy}&createdDate=${invalidMinCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(400)
+    const { body: error } = await request(t.context.serverUrl)
+      .get(
+        `/events/stats?groupBy=${groupBy}&createdDate=${invalidMinCreatedDate}`,
+      )
+      .set(authorizationHeaders)
+      .expect(400)
 
-  t.true(dateFilterErrorRegexp.test(error.message))
+    t.true(dateFilterErrorRegexp.test(error.message))
 
-  const { body: obj } = await request(t.context.serverUrl)
-    .get(`/events/stats?groupBy=${groupBy}&createdDate[gte]=${validMinCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const { body: obj } = await request(t.context.serverUrl)
+      .get(
+        `/events/stats?groupBy=${groupBy}&createdDate[gte]=${validMinCreatedDate}`,
+      )
+      .set(authorizationHeaders)
+      .expect(200)
 
-  checkOffsetPaginatedStatsObject({
-    t,
-    obj,
-    groupBy,
-    results: events.filter(e => e.createdDate >= validMinCreatedDate)
-  })
-})
+    checkOffsetPaginatedStatsObject({
+      t,
+      obj,
+      groupBy,
+      results: events.filter((e) => e.createdDate >= validMinCreatedDate),
+    })
+  },
+)
 
 test('get events stats only within retention log period', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:stats:all',
-    ]
+    permissions: ['event:stats:all'],
   })
 
   const groupBy = 'type'
@@ -650,7 +658,10 @@ test('get events stats only within retention log period', async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list events with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -660,7 +671,10 @@ test.serial('list events with pagination', async (t) => {
 })
 
 test('list events with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/events?id=evt_WWRfQps1I3a1gJYz2I3a')
@@ -672,7 +686,10 @@ test('list events with id filter', async (t) => {
 })
 
 test('list events with filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:list:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -683,7 +700,7 @@ test('list events with filters', async (t) => {
 
   const obj1 = result1.body
 
-  obj1.results.forEach(event => {
+  obj1.results.forEach((event) => {
     t.true(['asset'].includes(event.objectType))
   })
 
@@ -695,7 +712,7 @@ test('list events with filters', async (t) => {
   const obj2 = result2.body
 
   t.true(obj2.results.length >= 1)
-  obj2.results.forEach(event => {
+  obj2.results.forEach((event) => {
     t.true(['ast_lCfxJNs10rP1g2Mww0rP'].includes(event.objectId))
   })
 
@@ -707,7 +724,7 @@ test('list events with filters', async (t) => {
   const obj3 = result3.body
 
   t.true(obj3.results.length >= 1)
-  obj3.results.forEach(event => {
+  obj3.results.forEach((event) => {
     t.is(event.objectType, 'asset')
   })
 
@@ -719,7 +736,7 @@ test('list events with filters', async (t) => {
   const obj4 = result4.body
 
   t.true(obj4.results.length >= 1)
-  obj4.results.forEach(event => {
+  obj4.results.forEach((event) => {
     t.is(event.emitter, 'custom')
   })
 
@@ -732,13 +749,13 @@ test('list events with filters', async (t) => {
 
   const obj5 = result5.body
 
-  obj5.results.forEach(event => {
+  obj5.results.forEach((event) => {
     t.true(['asset'].includes(event.objectType))
     t.true(event.createdDate >= minCreatedDate)
   })
 
   const futureDate = computeDate(now, '5y')
-  const encode = obj => encodeURIComponent(JSON.stringify(obj))
+  const encode = (obj) => encodeURIComponent(JSON.stringify(obj))
 
   const { body: obj5b } = await request(t.context.serverUrl)
     .get(`/events?createdDate=${encode({ gte: futureDate })}`) // alternative list query syntax
@@ -746,7 +763,7 @@ test('list events with filters', async (t) => {
     .expect(200)
 
   t.is(obj5b.results.length, 1)
-  obj5b.results.forEach(event => {
+  obj5b.results.forEach((event) => {
     t.true(event.createdDate >= futureDate)
   })
 
@@ -755,7 +772,7 @@ test('list events with filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj6.results.forEach(event => {
+  obj6.results.forEach((event) => {
     t.true(['random'].includes(event.emitterId))
   })
 
@@ -764,19 +781,22 @@ test('list events with filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj7.results.forEach(event => {
+  obj7.results.forEach((event) => {
     t.is(event.type, 'future_event')
   })
 })
 
 test('list events with date filter only works within the rentention log period', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:list:all'],
+  })
 
   const now = new Date().toISOString()
 
   const invalidMinCreatedDate = computeDate(now, '-200d')
   const validMinCreatedDate = computeDate(now, '-10d')
-  const encode = obj => encodeURIComponent(JSON.stringify(obj))
+  const encode = (obj) => encodeURIComponent(JSON.stringify(obj))
 
   const { body: error1 } = await request(t.context.serverUrl)
     .get(`/events?createdDate[gte]=${invalidMinCreatedDate}`)
@@ -804,13 +824,16 @@ test('list events with date filter only works within the rentention log period',
     .set(authorizationHeaders)
     .expect(200)
 
-  obj.results.forEach(event => {
+  obj.results.forEach((event) => {
     t.true(event.createdDate >= validMinCreatedDate)
   })
 })
 
 test('list events only within retention log period by default', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/events?type=compressed_event')
@@ -821,7 +844,10 @@ test('list events only within retention log period by default', async (t) => {
 })
 
 test('list events with metadata object filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:list:all'],
+  })
 
   const { body: obj1 } = await request(t.context.serverUrl)
     .get('/events?metadata[name]=DMC-12')
@@ -829,7 +855,7 @@ test('list events with metadata object filters', async (t) => {
     .expect(200)
 
   t.is(obj1.results.length, 1)
-  obj1.results.forEach(event => {
+  obj1.results.forEach((event) => {
     t.is(event.metadata.name, 'DMC-12')
   })
 
@@ -839,7 +865,7 @@ test('list events with metadata object filters', async (t) => {
     .expect(200)
 
   t.is(obj2.results.length, 2)
-  obj2.results.forEach(event => {
+  obj2.results.forEach((event) => {
     t.is(event.metadata.nested.string, 'true')
   })
 
@@ -849,7 +875,7 @@ test('list events with metadata object filters', async (t) => {
     .expect(200)
 
   t.is(obj3.results.length, 1)
-  obj3.results.forEach(event => {
+  obj3.results.forEach((event) => {
     t.is(event.metadata.name, 'DMC-12')
     t.is(event.metadata.nested.string, 'true')
   })
@@ -864,12 +890,14 @@ test('list events with metadata object filters', async (t) => {
   const supersetOf = {
     someTags: ['Brown'],
     nested: { object: true },
-    name: 'DMC-12'
+    name: 'DMC-12',
   }
-  const encode = obj => encodeURIComponent(JSON.stringify(obj))
-  const checkEvent = event => {
+  const encode = (obj) => encodeURIComponent(JSON.stringify(obj))
+  const checkEvent = (event) => {
     t.is(event.metadata.name, 'DMC-12')
-    t.true(supersetOf.someTags.every(t => event.metadata.someTags.includes(t)))
+    t.true(
+      supersetOf.someTags.every((t) => event.metadata.someTags.includes(t)),
+    )
     t.is(event.metadata.nested.object, supersetOf.nested.object)
   }
 
@@ -905,12 +933,12 @@ test('list events with metadata object filters', async (t) => {
 
   const assetSupersetOf = {
     customAttributes: {
-      seatingCapacity: 4
+      seatingCapacity: 4,
     },
-    validated: true
+    validated: true,
   }
 
-  const checkAssetEvent = event => {
+  const checkAssetEvent = (event) => {
     t.is(event.object.customAttributes.seatingCapacity, 4)
     t.is(event.object.validated, true)
   }
@@ -925,7 +953,10 @@ test('list events with metadata object filters', async (t) => {
 })
 
 test('finds an event', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['event:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['event:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/events/evt_WWRfQps1I3a1gJYz2I3a')
@@ -940,7 +971,7 @@ test('finds an event', async (t) => {
 test('creates an event', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['event:create:all']
+    permissions: ['event:create:all'],
   })
 
   const { body: event } = await request(t.context.serverUrl)
@@ -949,8 +980,8 @@ test('creates an event', async (t) => {
     .send({
       type: 'asset_viewed',
       metadata: {
-        assetId: 'ast_2l7fQps1I3a1gJYz2I3a'
-      }
+        assetId: 'ast_2l7fQps1I3a1gJYz2I3a',
+      },
     })
     .expect(200)
 
@@ -964,10 +995,7 @@ test('creates an event', async (t) => {
 test('creates an event with an objectId', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:read:all',
-      'event:create:all'
-    ]
+    permissions: ['asset:read:all', 'event:create:all'],
   })
 
   const assetId = 'ast_2l7fQps1I3a1gJYz2I3a'
@@ -982,7 +1010,7 @@ test('creates an event with an objectId', async (t) => {
     .set(authorizationHeaders)
     .send({
       type: 'asset_viewed',
-      objectId: assetId
+      objectId: assetId,
     })
     .expect(200)
 
@@ -1001,10 +1029,7 @@ test('creates an event with an objectId', async (t) => {
 test('creates an event with an emitterId', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:read:all',
-      'event:create:all'
-    ]
+    permissions: ['asset:read:all', 'event:create:all'],
   })
 
   const assetId = 'ast_2l7fQps1I3a1gJYz2I3a'
@@ -1020,7 +1045,7 @@ test('creates an event with an emitterId', async (t) => {
     .send({
       type: 'asset_viewed',
       objectId: assetId,
-      emitterId: 'random-emitter'
+      emitterId: 'random-emitter',
     })
     .expect(200)
 
@@ -1039,7 +1064,7 @@ test('creates an event with an emitterId', async (t) => {
 test('cannot create an event with a core format type', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['event:create:all']
+    permissions: ['event:create:all'],
   })
 
   await request(t.context.serverUrl)
@@ -1048,8 +1073,8 @@ test('cannot create an event with a core format type', async (t) => {
     .send({
       type: 'asset__viewed',
       metadata: {
-        assetId: 'ast_2l7fQps1I3a1gJYz2I3a'
-      }
+        assetId: 'ast_2l7fQps1I3a1gJYz2I3a',
+      },
     })
     .expect(422)
 
@@ -1069,7 +1094,7 @@ test('fails to create an event if missing or invalid parameters', async (t) => {
     .post('/events')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1081,7 +1106,7 @@ test('fails to create an event if missing or invalid parameters', async (t) => {
     .post('/events')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -1094,13 +1119,13 @@ test('fails to create an event if missing or invalid parameters', async (t) => {
     .post('/events')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       type: true,
       objectId: true,
       emitterId: true,
-      metadata: true
+      metadata: true,
     })
     .expect(400)
 
@@ -1120,7 +1145,7 @@ test.serial('2019-05-20: list events with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['event:list:all']
+    permissions: ['event:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -1134,7 +1159,7 @@ test('2019-05-20: list events with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['event:list:all']
+    permissions: ['event:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

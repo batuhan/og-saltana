@@ -4,8 +4,11 @@ const _ = require('lodash')
 const apm = require('elastic-apm-node')
 const crypto = require('crypto')
 
+const config = require('config')
+
 const { parseKey } = require('@saltana/util-keys')
 
+const Uuid = require('uuid')
 const { logError, log } = require('../server/logger')
 
 const Base = require('./models/Base')
@@ -21,12 +24,11 @@ const { parsePermission } = require('./permissions')
 const systemNamespaces = ['system', 'saltana']
 const protectedNamespaces = ['private', 'protected']
 
-const Uuid = require('uuid')
 let localInstanceKey
 
 // default system hash variables
 let systemKeyHashFunction = defaultSystemKeyHashFunction
-let systemHash = systemKeyHashFunction(process.env.SYSTEM_KEY)
+let systemHash = systemKeyHashFunction(config.get('SystemKey'))
 
 let systemHashPassphrase
 
@@ -138,7 +140,7 @@ async function checkClerkAuthToken({
   } catch (err) {
     logError(err)
     throw err
-    // if (err && process.env.NODE_ENV === 'test') {
+    // if (err && config.get('Env') === 'test') {
     //   logError(err)
     // }
   } finally {
@@ -188,7 +190,7 @@ async function checkAuthToken({
       roles: decodedToken.roles,
     }
   } catch (err) {
-    if (err && process.env.NODE_ENV === 'test') {
+    if (err && config.get('Env') === 'test') {
       logError(err)
     }
   } finally {
@@ -326,8 +328,8 @@ function checkPermissions(
 
       const sources = []
 
-      const platformId = req.platformId
-      const env = req.env
+      const { platformId } = req
+      const { env } = req
       const plan = req._plan // can be set by some plugin
       const computeAccessParams = { platformId, env, plan, permissionsToCheck }
 
@@ -910,7 +912,7 @@ function parseAuthorizationHeader(req, { noThrowIfError = false } = {}) {
 
     default:
       if (noThrowIfError) return
-      else throwInvalid()
+      throwInvalid()
   }
 
   if (apiKey) validApiKeyFormat = _.get(parseKey(apiKey), 'hasValidFormat')
@@ -927,7 +929,7 @@ function parseAuthorizationHeader(req, { noThrowIfError = false } = {}) {
   ) {
     console.log('Decoded token', jwt.decode(token))
     if (noThrowIfError) return
-    else throw createError(401)
+    throw createError(401)
   }
 
   if (apiKey) {
@@ -947,6 +949,7 @@ function parseAuthorizationHeader(req, { noThrowIfError = false } = {}) {
   if (apiKey && token) {
     req.headers.authorization = `Bearer ${token}`
   }
+
   function throwInvalid() {
     throw createError(401, 'Invalid Authorization Header format')
   }

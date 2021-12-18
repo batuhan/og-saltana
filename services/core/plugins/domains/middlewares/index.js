@@ -1,7 +1,7 @@
 const debug = require('debug')('saltana:api')
 
 function testMiddleware(req, res, next) {
-  if (process.env.NODE_ENV === 'test') {
+  if (config.get('Env') === 'test') {
     req.workingTestMiddleware = true
     debug('Domain plugin test middleware is working fine')
   }

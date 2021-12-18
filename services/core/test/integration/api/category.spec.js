@@ -1,10 +1,12 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
 const { before, beforeEach, after } = require('../../lifecycle')
-const { getAccessToken, getAccessTokenHeaders, getSystemKey } = require('../../auth')
+const {
+  getAccessToken,
+  getAccessTokenHeaders,
+  getSystemKey,
+} = require('../../auth')
 const {
   getObjectEvent,
   testEventMetadata,
@@ -21,7 +23,9 @@ test.before(async (t) => {
 test.after(after())
 
 test('gets an error if missing publishable key', async (t) => {
-  const accessToken = await getAccessToken({ permissions: ['category:list:all'] })
+  const accessToken = await getAccessToken({
+    permissions: ['category:list:all'],
+  })
 
   const { body: error } = await request(t.context.serverUrl)
     .get('/categories')
@@ -38,42 +42,53 @@ test('gets an error if missing publishable key', async (t) => {
 })
 
 test('gets objects with livemode attribute', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:list:all'],
+  })
 
-  const { body: { results: testCategories } } = await request(t.context.serverUrl)
+  const {
+    body: { results: testCategories },
+  } = await request(t.context.serverUrl)
     .get('/categories')
     .set(authorizationHeaders)
     .expect(200)
 
-  testCategories.forEach(cat => {
+  testCategories.forEach((cat) => {
     t.false(cat.livemode)
   })
 
-  const { body: { results: liveCategories } } = await request(t.context.serverUrl)
+  const {
+    body: { results: liveCategories },
+  } = await request(t.context.serverUrl)
     .get('/categories')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-env': 'live'
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-env': 'live' })
     .expect(200)
 
-  liveCategories.forEach(cat => {
+  liveCategories.forEach((cat) => {
     t.true(cat.livemode)
   })
 })
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list categories', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
     endpointUrl: '/categories',
-    authorizationHeaders
+    authorizationHeaders,
   })
 })
 
 test('list categories with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/categories?id=ctgy_ejQQps1I3a1gJYz2I3a')
@@ -85,7 +100,10 @@ test('list categories with id filter', async (t) => {
 })
 
 test('list categories with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   const now = new Date().toISOString()
   const minCreatedDate = computeDate(now, '-10d')
@@ -95,7 +113,7 @@ test('list categories with advanced filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj1.results.forEach(category => {
+  obj1.results.forEach((category) => {
     t.true(category.createdDate >= minCreatedDate)
   })
 
@@ -106,13 +124,16 @@ test('list categories with advanced filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj2.results.forEach(category => {
+  obj2.results.forEach((category) => {
     t.true(category.parentId >= parentId)
   })
 })
 
 test('finds an category', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
@@ -126,14 +147,17 @@ test('finds an category', async (t) => {
 })
 
 test('creates an category', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/categories')
     .set(authorizationHeaders)
     .send({
       name: 'Electric',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -146,12 +170,9 @@ test('creates an category', async (t) => {
 test('creates an category with platform data', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'category:create:all',
-      'platformData:edit:all'
-    ],
+    permissions: ['category:create:all', 'platformData:edit:all'],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const result = await request(t.context.serverUrl)
@@ -162,15 +183,15 @@ test('creates an category with platform data', async (t) => {
       metadata: {
         dummy: true,
         _custom: {
-          test: true
-        }
+          test: true,
+        },
       },
       platformData: {
         test: true,
         _custom: {
-          ok: true
-        }
-      }
+          ok: true,
+        },
+      },
     })
     .expect(200)
 
@@ -188,22 +209,26 @@ test('creates an category with platform data', async (t) => {
       metadata: {
         dummy: true,
         _custom: {
-          test: true
-        }
+          test: true,
+        },
       },
       platformData: {
         test: true,
         _custom: {
-          ok: true
+          ok: true,
         },
-        _extra: {}
-      }
+        _extra: {},
+      },
     })
     .expect(403)
 })
 
 test('cannot create a category with reserved namespaces', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:create:all'], editNamespaces: ['*'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:create:all'],
+    editNamespaces: ['*'],
+  })
 
   await request(t.context.serverUrl)
     .post('/categories')
@@ -211,8 +236,8 @@ test('cannot create a category with reserved namespaces', async (t) => {
     .send({
       name: 'Electric',
       metadata: {
-        _private: {}
-      }
+        _private: {},
+      },
     })
     .expect(403)
 
@@ -222,8 +247,8 @@ test('cannot create a category with reserved namespaces', async (t) => {
     .send({
       name: 'Electric',
       metadata: {
-        _protected: {}
-      }
+        _protected: {},
+      },
     })
     .expect(403)
 
@@ -231,7 +256,11 @@ test('cannot create a category with reserved namespaces', async (t) => {
 })
 
 test('cannot create a category with reserved system namespaces', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:create:all'], editNamespaces: ['*'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:create:all'],
+    editNamespaces: ['*'],
+  })
 
   await request(t.context.serverUrl)
     .post('/categories')
@@ -240,9 +269,9 @@ test('cannot create a category with reserved system namespaces', async (t) => {
       name: 'Electric',
       metadata: {
         _saltana: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(403)
 
@@ -253,9 +282,9 @@ test('cannot create a category with reserved system namespaces', async (t) => {
       name: 'Electric',
       metadata: {
         _system: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(403)
 
@@ -270,15 +299,15 @@ test('can create a category with reserved system namespaces if it is the system'
     .set({
       'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'Electric',
       metadata: {
         _saltana: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(200)
 
@@ -289,15 +318,15 @@ test('can create a category with reserved system namespaces if it is the system'
     .set({
       'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'Electric',
       metadata: {
         _system: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(200)
 
@@ -305,14 +334,17 @@ test('can create a category with reserved system namespaces if it is the system'
 })
 
 test('updates an category', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:edit:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .patch('/categories/ctgy_N1FQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
       name: 'Sport car',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -327,12 +359,9 @@ test('updates an category', async (t) => {
 test('updates an category with platform data', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'category:edit:all',
-      'platformData:edit:all'
-    ],
+    permissions: ['category:edit:all', 'platformData:edit:all'],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const patchPayload = {
@@ -340,15 +369,15 @@ test('updates an category with platform data', async (t) => {
     metadata: {
       dummy: true,
       _custom: {
-        test: true
-      }
+        test: true,
+      },
     },
     platformData: {
       test: true,
       _custom: {
-        ok: true
-      }
-    }
+        ok: true,
+      },
+    },
   }
 
   const { body: category } = await request(t.context.serverUrl)
@@ -376,7 +405,11 @@ test('updates an category with platform data', async (t) => {
 })
 
 test('cannot update an category with reserved namespaces', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:edit:all'], editNamespaces: ['*'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:edit:all'],
+    editNamespaces: ['*'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
@@ -384,8 +417,8 @@ test('cannot update an category with reserved namespaces', async (t) => {
     .send({
       name: 'Electric',
       metadata: {
-        _private: {}
-      }
+        _private: {},
+      },
     })
     .expect(403)
 
@@ -395,8 +428,8 @@ test('cannot update an category with reserved namespaces', async (t) => {
     .send({
       name: 'Electric',
       metadata: {
-        _protected: {}
-      }
+        _protected: {},
+      },
     })
     .expect(403)
 
@@ -404,13 +437,16 @@ test('cannot update an category with reserved namespaces', async (t) => {
 })
 
 test('cannot create a circular hierarchy when updating the parent category', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/categories/ctgy_WW5Qps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      parentId: 'ctgy_UVdQps1I3a1gJYz2I3a'
+      parentId: 'ctgy_UVdQps1I3a1gJYz2I3a',
     })
     .expect(422)
 
@@ -418,7 +454,11 @@ test('cannot create a circular hierarchy when updating the parent category', asy
 })
 
 test('cannot update a category with reserved system namespaces', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:edit:all'], editNamespaces: ['*'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:edit:all'],
+    editNamespaces: ['*'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/categories/ctgy_WW5Qps1I3a1gJYz2I3a')
@@ -427,9 +467,9 @@ test('cannot update a category with reserved system namespaces', async (t) => {
       name: 'Electric',
       metadata: {
         _saltana: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(403)
 
@@ -440,9 +480,9 @@ test('cannot update a category with reserved system namespaces', async (t) => {
       name: 'Electric',
       metadata: {
         _system: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(403)
 
@@ -457,15 +497,15 @@ test('can update a category with reserved system namespaces if it is the system'
     .set({
       'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'Electric',
       metadata: {
         _saltana: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(200)
 
@@ -476,15 +516,15 @@ test('can update a category with reserved system namespaces if it is the system'
     .set({
       'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'Electric',
       metadata: {
         _system: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     })
     .expect(200)
 
@@ -497,15 +537,15 @@ test('removes an category', async (t) => {
     permissions: [
       'category:read:all',
       'category:create:all',
-      'category:remove:all'
-    ]
+      'category:remove:all',
+    ],
   })
 
   const { body: category } = await request(t.context.serverUrl)
     .post('/categories')
     .set(authorizationHeaders)
     .send({
-      name: 'Category to remove'
+      name: 'Category to remove',
     })
     .expect(200)
 
@@ -525,7 +565,10 @@ test('removes an category', async (t) => {
 })
 
 test('cannot remove an category whose assets are still associated with', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:remove:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:remove:all'],
+  })
 
   await request(t.context.serverUrl)
     .delete('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
@@ -536,7 +579,10 @@ test('cannot remove an category whose assets are still associated with', async (
 })
 
 test('cannot remove an category if it has children categories', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['category:remove:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['category:remove:all'],
+  })
 
   await request(t.context.serverUrl)
     .delete('/categories/ctgy_WW5Qps1I3a1gJYz2I3a')
@@ -559,7 +605,7 @@ test('fails to create an category if missing or invalid parameters', async (t) =
     .post('/categories')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -571,7 +617,7 @@ test('fails to create an category if missing or invalid parameters', async (t) =
     .post('/categories')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -584,13 +630,13 @@ test('fails to create an category if missing or invalid parameters', async (t) =
     .post('/categories')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
       parentId: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -610,7 +656,7 @@ test('fails to update an category if missing or invalid parameters', async (t) =
     .patch('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -622,13 +668,13 @@ test('fails to update an category if missing or invalid parameters', async (t) =
     .patch('/categories/ctgy_ejQQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
       parentId: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -651,10 +697,10 @@ test.serial('generates category__* events', async (t) => {
       'category:create:all',
       'category:edit:all',
       'category:remove:all',
-      'event:list:all'
+      'event:list:all',
     ],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const { body: category } = await request(t.context.serverUrl)
@@ -665,9 +711,9 @@ test.serial('generates category__* events', async (t) => {
       metadata: {
         test1: true,
         _custom: {
-          hasDataInNamespace: true
-        }
-      }
+          hasDataInNamespace: true,
+        },
+      },
     })
     .expect(200)
 
@@ -677,9 +723,9 @@ test.serial('generates category__* events', async (t) => {
     metadata: {
       test2: true,
       _custom: {
-        hasAdditionalDataInNamespace: true
-      }
-    }
+        hasAdditionalDataInNamespace: true,
+      },
+    },
   }
 
   const { body: categoryUpdated } = await request(t.context.serverUrl)
@@ -688,9 +734,11 @@ test.serial('generates category__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -698,36 +746,44 @@ test.serial('generates category__* events', async (t) => {
   const categoryCreatedEvent = getObjectEvent({
     events,
     eventType: 'category__created',
-    objectId: category.id
+    objectId: category.id,
   })
   await testEventMetadata({ event: categoryCreatedEvent, object: category, t })
   t.is(categoryCreatedEvent.object.name, category.name)
   t.is(categoryCreatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.not(categoryCreatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.not(
+    categoryCreatedEvent.object.metadata._custom.hasAdditionalDataInNamespace,
+    true,
+  )
 
   const categoryUpdatedEvent = getObjectEvent({
     events,
     eventType: 'category__updated',
-    objectId: categoryUpdated.id
+    objectId: categoryUpdated.id,
   })
   await testEventMetadata({
     event: categoryUpdatedEvent,
     object: categoryUpdated,
     t,
-    patchPayload
+    patchPayload,
   })
   t.is(categoryUpdatedEvent.object.name, categoryUpdated.name)
   t.is(categoryUpdatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.is(categoryUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.is(
+    categoryUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace,
+    true,
+  )
 
   await request(t.context.serverUrl)
     .delete(`/categories/${categoryUpdated.id}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -735,9 +791,13 @@ test.serial('generates category__* events', async (t) => {
   const categoryDeletedEvent = getObjectEvent({
     events: eventsAfterDelete,
     eventType: 'category__deleted',
-    objectId: categoryUpdated.id
+    objectId: categoryUpdated.id,
   })
-  await testEventMetadata({ event: categoryDeletedEvent, object: categoryUpdated, t })
+  await testEventMetadata({
+    event: categoryDeletedEvent,
+    object: categoryUpdated,
+    t,
+  })
 })
 
 // //////// //
@@ -748,7 +808,7 @@ test('2019-05-20: gets objects with livemode attribute', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['category:list:all']
+    permissions: ['category:list:all'],
   })
 
   const { body: testCategories } = await request(t.context.serverUrl)
@@ -756,18 +816,16 @@ test('2019-05-20: gets objects with livemode attribute', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  testCategories.forEach(cat => {
+  testCategories.forEach((cat) => {
     t.false(cat.livemode)
   })
 
   const { body: liveCategories } = await request(t.context.serverUrl)
     .get('/categories')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-env': 'live'
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-env': 'live' })
     .expect(200)
 
-  liveCategories.forEach(cat => {
+  liveCategories.forEach((cat) => {
     t.true(cat.livemode)
   })
 })
@@ -776,7 +834,7 @@ test('2019-05-20: list asset categories', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['category:list:all']
+    permissions: ['category:list:all'],
   })
 
   const result = await request(t.context.serverUrl)

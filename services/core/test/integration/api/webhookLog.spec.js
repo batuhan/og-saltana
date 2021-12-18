@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const express = require('express')
@@ -28,7 +26,7 @@ let createdWebhooks
 
 /* eslint-disable no-template-curly-in-string */
 
-async function createWebhookLogs (t) {
+async function createWebhookLogs(t) {
   if (createdWebhooks) return createdWebhooks
 
   const authorizationHeaders = await getAccessTokenHeaders({
@@ -39,7 +37,7 @@ async function createWebhookLogs (t) {
       'category:create:all',
       'entry:create:all',
       'message:create:all',
-    ]
+    ],
   })
 
   // should create webhooks that listen to events that are not triggered by any tests below
@@ -50,7 +48,7 @@ async function createWebhookLogs (t) {
     .send({
       name: 'Webhook for message creation',
       event: 'message__created',
-      targetUrl: userWebhookUrl + 'messageCreation',
+      targetUrl: `${userWebhookUrl}messageCreation`,
     })
     .expect(200)
 
@@ -60,14 +58,11 @@ async function createWebhookLogs (t) {
     .send({
       name: 'Webhook for entry creation',
       event: 'entry__created',
-      targetUrl: userWebhookUrl + 'entryCreation',
+      targetUrl: `${userWebhookUrl}entryCreation`,
     })
     .expect(200)
 
-  createdWebhooks = _.keyBy([
-    messageWebhook,
-    entryWebhook,
-  ], 'event')
+  createdWebhooks = _.keyBy([messageWebhook, entryWebhook], 'event')
 
   await request(t.context.serverUrl)
     .post('/messages')
@@ -91,15 +86,15 @@ async function createWebhookLogs (t) {
         content: 'Random content',
         nestedContent: {
           random1: {
-            random2: 'hello'
+            random2: 'hello',
           },
-          random3: 'bye'
-        }
-      }
+          random3: 'bye',
+        },
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, defaultTestDelay))
+  await new Promise((resolve) => setTimeout(resolve, defaultTestDelay))
 }
 
 test.before(async (t) => {
@@ -113,7 +108,8 @@ test.before(async (t) => {
   userServer.post('*', function (req, res) {
     const webhookName = req.path.replace('/', '')
 
-    if (!Array.isArray(userServerCalls[webhookName])) userServerCalls[webhookName] = []
+    if (!Array.isArray(userServerCalls[webhookName]))
+      userServerCalls[webhookName] = []
     userServerCalls[webhookName].unshift(req.body)
 
     res.json({ ok: true })
@@ -142,7 +138,10 @@ test.after(async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list webhook logs', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhookLog:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhookLog:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -152,9 +151,14 @@ test.serial('list webhook logs', async (t) => {
 })
 
 test('list webhook logs with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhookLog:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhookLog:list:all'],
+  })
 
-  const { body: { results: webhookLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: webhookLogs },
+  } = await request(t.context.serverUrl)
     .get('/webhook-logs')
     .set(authorizationHeaders)
     .expect(200)
@@ -171,17 +175,19 @@ test('list webhook logs with id filter', async (t) => {
 })
 
 test('list webhook logs with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhookLog:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhookLog:list:all'],
+  })
 
   const now = new Date().toISOString()
   const minDate = computeDate(now, '-10d')
 
-  const {
-    entry__created: entryWorkflow,
-    message__created: messageWorkflow,
-  } = createdWebhooks
+  const { entry__created: entryWorkflow, message__created: messageWorkflow } =
+    createdWebhooks
 
-  const params = `createdDate[gte]=${encodeURIComponent(minDate)}` +
+  const params =
+    `createdDate[gte]=${encodeURIComponent(minDate)}` +
     `&webhookId[]=${entryWorkflow.id}` +
     `&webhookId[]=${messageWorkflow.id}`
 
@@ -192,7 +198,9 @@ test('list webhook logs with advanced filters', async (t) => {
 
   const checkResultsFn = (t, webhookLog) => {
     t.true(webhookLog.createdDate >= minDate)
-    t.true([entryWorkflow.id, messageWorkflow.id].includes(webhookLog.webhookId))
+    t.true(
+      [entryWorkflow.id, messageWorkflow.id].includes(webhookLog.webhookId),
+    )
   }
 
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
@@ -201,13 +209,12 @@ test('list webhook logs with advanced filters', async (t) => {
 test('finds a webhook log', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'webhookLog:list:all',
-      'webhookLog:read:all'
-    ]
+    permissions: ['webhookLog:list:all', 'webhookLog:read:all'],
   })
 
-  const { body: { results: webhookLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: webhookLogs },
+  } = await request(t.context.serverUrl)
     .get('/webhook-logs')
     .set(authorizationHeaders)
     .expect(200)

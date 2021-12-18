@@ -203,7 +203,7 @@ module.exports = function createService(deps) {
       const errorMessage = 'Stripe error'
       const errObject = { expose: true }
 
-      const reveal = !(process.env.NODE_ENV === 'production' && env === 'live')
+      const reveal = !(config.get('Env') === 'production' && env === 'live')
       const errDetails = {
         stripeMethod: method,
         stripeError: err,

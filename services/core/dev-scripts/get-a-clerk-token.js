@@ -1,9 +1,10 @@
-const { createInstance } = require('@saltana/sdk/dist/saltana.node')
+const { createInstance } = require('@saltana/sdk')
+// eslint-disable-next-line import/no-extraneous-dependencies
+const config = require('config')
 
-const apiHost = process.env.SALTANA_CORE_API_HOST || 'dev.saltana.com'
+const apiHost = config.get('Public.api.host')
 
-const apiKey =
-  process.env.SALTANA_SECRET_API_KEY || 'seck_test_wakWA41rBTUXs1Y5oNRjeY5o'
+const apiKey = config.get('ApiSecretKey')
 
 const admin = createInstance({ apiHost, apiKey })
 
@@ -13,6 +14,7 @@ async function init() {
   const existingAssetTypes = await admin.assetTypes.list()
 
   if (existingAssetTypes.length > 0) {
+    // eslint-disable-next-line no-console
     console.error('There are existing assetTypes')
     return
   }

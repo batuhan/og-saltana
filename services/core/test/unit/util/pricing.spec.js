@@ -1,28 +1,26 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 
 const {
   roundPrice,
   isValidCustomDurationConfig,
   getDurationPrice,
-  getPriceAfterFees
+  getPriceAfterFees,
 } = require('../../../src/util/pricing')
 
 test('rounds price to cents', (t) => {
   const tests = [
     {
       nb: 2.46,
-      expected: 2.5
+      expected: 2.5,
     },
     {
       nb: 15.6547,
-      expected: 15
+      expected: 15,
     },
     {
       nb: 789.78956,
-      expected: 789
-    }
+      expected: 789,
+    },
   ]
 
   tests.forEach(({ nb, expected }) => {
@@ -35,17 +33,17 @@ test('check if the custom pricing config is valid', (t) => {
     duration: {
       breakpoints: [
         { nbUnits: 1, price: 10 },
-        { nbUnits: 10, price: 100 }
-      ]
-    }
+        { nbUnits: 10, price: 100 },
+      ],
+    },
   }
   const config2 = {
     duration: {
       breakpoints: [
         { nbUnits: 2, price: 20 },
-        { nbUnits: 10, price: 100 }
-      ]
-    }
+        { nbUnits: 10, price: 100 },
+      ],
+    },
   }
 
   t.true(isValidCustomDurationConfig(config1.duration))
@@ -57,9 +55,9 @@ test('gets the price with custom duration config', (t) => {
     duration: {
       breakpoints: [
         { nbUnits: 1, price: 50 },
-        { nbUnits: 2, price: 40 }
-      ]
-    }
+        { nbUnits: 2, price: 40 },
+      ],
+    },
   }
 
   const tests = [
@@ -68,19 +66,19 @@ test('gets the price with custom duration config', (t) => {
         timeUnitPrice: 50,
         nbTimeUnits: 3,
         customConfig: config,
-        array: true
+        array: true,
       },
-      expected: [50, 90, 130]
+      expected: [50, 90, 130],
     },
     {
       input: {
         timeUnitPrice: 10,
         nbTimeUnits: 3,
         customConfig: config,
-        array: false
+        array: false,
       },
-      expected: 130
-    }
+      expected: 130,
+    },
   ]
 
   tests.forEach(({ input, expected }) => {
@@ -95,7 +93,7 @@ test('applies takerFeesPercent and ownerFeesPercent to ownerPrice', (t) => {
         ownerPrice: 100,
         currency: 'EUR',
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       expected: {
         ownerFees: 5,
@@ -103,15 +101,15 @@ test('applies takerFeesPercent and ownerFeesPercent to ownerPrice', (t) => {
         ownerNetIncome: 95,
         takerFees: 15,
         takerFeesPercent: 15,
-        takerPrice: 115
-      }
+        takerPrice: 115,
+      },
     },
     {
       input: {
         ownerPrice: 0,
         currency: 'EUR',
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       expected: {
         ownerFees: 0,
@@ -119,15 +117,15 @@ test('applies takerFeesPercent and ownerFeesPercent to ownerPrice', (t) => {
         ownerNetIncome: 0,
         takerFees: 0,
         takerFeesPercent: 15,
-        takerPrice: 0
-      }
+        takerPrice: 0,
+      },
     },
     {
       input: {
         ownerPrice: 0,
         currency: 'EUR',
         ownerFees: 0,
-        takerFees: 0
+        takerFees: 0,
       },
       expected: {
         ownerFees: 0,
@@ -135,9 +133,9 @@ test('applies takerFeesPercent and ownerFeesPercent to ownerPrice', (t) => {
         ownerNetIncome: 0,
         takerFees: 0,
         takerFeesPercent: 0,
-        takerPrice: 0
-      }
-    }
+        takerPrice: 0,
+      },
+    },
   ]
 
   tests.forEach(({ input, expected }) => {

@@ -6,6 +6,7 @@ const versions = require('./src/versions')
 
 const logger = require('./server/logger')
 const testTools = require('./test')
+
 const utils = {
   authentication: require('./src/util/authentication'),
   availability: require('./src/util/availability'),

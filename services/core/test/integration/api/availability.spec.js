@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -13,7 +11,7 @@ const {
   checkCursorPaginationScenario,
 } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'availability' })(t)
   await beforeEach()(t)
 })
@@ -23,7 +21,10 @@ test.after(after())
 // availability graph logic is tested in unit test
 // test/unit/util/availability.spec.js
 test('get availabilities graph', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:list:all'],
+  })
 
   const { body: graph } = await request(t.context.serverUrl)
     .get('/availabilities/graph?assetId=ast_0TYM7rs1OwP1gQRuCOwP')
@@ -34,7 +35,7 @@ test('get availabilities graph', async (t) => {
   t.true(typeof graph.totalUsedQuantity === 'number')
   t.true(Array.isArray(graph.graphDates))
 
-  graph.graphDates.forEach(graphDate => {
+  graph.graphDates.forEach((graphDate) => {
     t.true(typeof graphDate.date === 'string')
     t.true(typeof graphDate.usedQuantity === 'number')
     t.true(typeof graphDate.availableQuantity === 'number')
@@ -43,7 +44,10 @@ test('get availabilities graph', async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list availabilities with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -53,7 +57,10 @@ test.serial('list availabilities with pagination', async (t) => {
 })
 
 test('creates an availability with a fixed quantity', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:create:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -68,7 +75,7 @@ test('creates an availability with a fixed quantity', async (t) => {
       startDate,
       endDate,
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -82,7 +89,10 @@ test('creates an availability with a fixed quantity', async (t) => {
 })
 
 test('creates an availability with a relative quantity', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:create:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -97,7 +107,7 @@ test('creates an availability with a relative quantity', async (t) => {
       startDate,
       endDate,
       quantity: '+1',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -111,7 +121,10 @@ test('creates an availability with a relative quantity', async (t) => {
 })
 
 test('creates an availability with fixed quantity recurring available periods', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:create:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -129,7 +142,7 @@ test('creates an availability with fixed quantity recurring available periods', 
       recurringPattern: '0 0 * * 2',
       recurringDuration: { d: 2 },
       recurringTimezone: 'Europe/London',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -146,7 +159,10 @@ test('creates an availability with fixed quantity recurring available periods', 
 })
 
 test('creates an availability with relative quantity recurring available periods', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:create:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -164,7 +180,7 @@ test('creates an availability with relative quantity recurring available periods
       recurringPattern: '0 0 * * 2',
       recurringDuration: { d: 2 },
       recurringTimezone: 'Europe/London',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -181,7 +197,10 @@ test('creates an availability with relative quantity recurring available periods
 })
 
 test('fails to create a recurring period availability with a very distant end date', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:create:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -199,7 +218,7 @@ test('fails to create a recurring period availability with a very distant end da
       recurringPattern: null,
       recurringTimezone: null,
       recurringDuration: null,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -214,7 +233,7 @@ test('fails to create a recurring period availability with a very distant end da
       recurringPattern: '0 0 * * 2',
       recurringDuration: { d: 2 },
       recurringTimezone: 'Europe/London',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -222,7 +241,10 @@ test('fails to create a recurring period availability with a very distant end da
 })
 
 test('fails to create an availability with invalid recurring periods parameters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:create:all'],
+  })
 
   const now = new Date().toISOString()
 
@@ -240,7 +262,7 @@ test('fails to create an availability with invalid recurring periods parameters'
       recurringPattern: '* * * * 2', // pattern in seconds while duration in days (overlapped periods)
       recurringTimezone: 'Europe/London',
       recurringDuration: { d: 2 },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -255,7 +277,7 @@ test('fails to create an availability with invalid recurring periods parameters'
       recurringPattern: '0 0 * * 2',
       recurringTimezone: 'Europe/Unknown', // invalid timezone
       recurringDuration: { d: 2 },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(400)
 
@@ -268,7 +290,7 @@ test('fails to create an availability with invalid recurring periods parameters'
       endDate,
       quantity: '+1',
       recurringPattern: '0 0 * * 2', // missing recurring parameters
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(400)
 
@@ -276,7 +298,10 @@ test('fails to create an availability with invalid recurring periods parameters'
 })
 
 test('updates an availability with a fixed quantity', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:edit:all'],
+  })
 
   const now = new Date().toISOString()
   const startDate = computeDate(now, '1 day')
@@ -287,7 +312,7 @@ test('updates an availability with a fixed quantity', async (t) => {
     .send({
       startDate,
       quantity: 0,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -301,7 +326,10 @@ test('updates an availability with a fixed quantity', async (t) => {
 })
 
 test('updates an availability with a relative quantity', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:edit:all'],
+  })
 
   const now = new Date().toISOString()
   const startDate = computeDate(now, '1 day')
@@ -314,7 +342,7 @@ test('updates an availability with a relative quantity', async (t) => {
     .send({
       startDate,
       quantity: '+2',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -328,7 +356,10 @@ test('updates an availability with a relative quantity', async (t) => {
 })
 
 test('updates an availability with recurring available periods parameters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:edit:all'],
+  })
 
   const now = new Date().toISOString()
   const startDate = computeDate(now, '1 day')
@@ -342,7 +373,7 @@ test('updates an availability with recurring available periods parameters', asyn
       recurringPattern: '0 0 * * 2',
       recurringTimezone: 'Europe/London',
       recurringDuration: { d: 2 },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -359,7 +390,10 @@ test('updates an availability with recurring available periods parameters', asyn
 })
 
 test('fails to update an availability with invalid recurring periods', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['availability:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['availability:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/availabilities/avl_m7Gq0Fe13L71hW6Cn3L6')
@@ -369,7 +403,7 @@ test('fails to update an availability with invalid recurring periods', async (t)
       recurringPattern: '* * * * *', // pattern in seconds while duration in days (overlapped periods)
       recurringTimezone: 'Europe/London',
       recurringDuration: { d: 2 },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -381,7 +415,7 @@ test('fails to update an availability with invalid recurring periods', async (t)
       recurringPattern: '0 0 * * 2',
       recurringTimezone: 'Europe/Unknown', // invalid timezone
       recurringDuration: { d: 2 },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(400)
 
@@ -391,7 +425,7 @@ test('fails to update an availability with invalid recurring periods', async (t)
     .send({
       quantity: '+1',
       recurringPattern: '0 0 * * 2', // missing recurring parameters
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(400)
 
@@ -401,10 +435,7 @@ test('fails to update an availability with invalid recurring periods', async (t)
 test('fails to update an availability with a very distant end date', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'availability:create:all',
-      'availability:edit:all'
-    ]
+    permissions: ['availability:create:all', 'availability:edit:all'],
   })
 
   const now = new Date().toISOString()
@@ -417,7 +448,7 @@ test('fails to update an availability with a very distant end date', async (t) =
     .send({
       quantity: '+1',
       endDate,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -432,7 +463,7 @@ test('fails to update an availability with a very distant end date', async (t) =
       recurringPattern: '0 0 * * 2',
       recurringDuration: { d: 2 },
       recurringTimezone: 'Europe/London',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -442,7 +473,7 @@ test('fails to update an availability with a very distant end date', async (t) =
     .send({
       quantity: '+1',
       endDate,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -455,8 +486,8 @@ test('removes an availability', async (t) => {
     permissions: [
       'availability:list:all',
       'availability:create:all',
-      'availability:remove:all'
-    ]
+      'availability:remove:all',
+    ],
   })
 
   const now = new Date().toISOString()
@@ -469,7 +500,7 @@ test('removes an availability', async (t) => {
       startDate: computeDate(now, '-4 days'),
       endDate: computeDate(now, '-2 days'),
       quantity: 0,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -482,12 +513,14 @@ test('removes an availability', async (t) => {
 
   t.is(payload.id, availability.id)
 
-  const { body: { results: availabilityAfterRemoval } } = await request(t.context.serverUrl)
+  const {
+    body: { results: availabilityAfterRemoval },
+  } = await request(t.context.serverUrl)
     .get('/availabilities?assetId=ast_0TYM7rs1OwP1gQRuCOwP')
     .set(authorizationHeaders)
     .expect(200)
 
-  t.falsy(availabilityAfterRemoval.find(av => av.id === availability.id))
+  t.falsy(availabilityAfterRemoval.find((av) => av.id === availability.id))
 })
 
 // ////////// //
@@ -503,7 +536,7 @@ test('fails to create an availability if missing or invalid parameters', async (
     .post('/availabilities')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -515,7 +548,7 @@ test('fails to create an availability if missing or invalid parameters', async (
     .post('/availabilities')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -531,7 +564,7 @@ test('fails to create an availability if missing or invalid parameters', async (
     .post('/availabilities')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       assetId: true,
@@ -542,14 +575,17 @@ test('fails to create an availability if missing or invalid parameters', async (
       recurringTimezone: true,
       recurringDuration: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
   error = result.body
   t.true(error.message.includes('"startDate" must be a string'))
   t.true(error.message.includes('"endDate" must be a string'))
-  t.regex(error.message, /"quantity" .* fails to match the signed number pattern/)
+  t.regex(
+    error.message,
+    /"quantity" .* fails to match the signed number pattern/,
+  )
   t.true(error.message.includes('"recurringPattern" must be a string'))
   t.true(error.message.includes('"recurringTimezone" must be a string'))
   t.true(error.message.includes('"recurringDuration" must be of type object'))
@@ -566,7 +602,7 @@ test('fails to update an availability if missing or invalid parameters', async (
     .patch('/availabilities/avl_ZnRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -578,7 +614,7 @@ test('fails to update an availability if missing or invalid parameters', async (
     .patch('/availabilities/avl_ZnRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       startDate: 10,
@@ -588,7 +624,7 @@ test('fails to update an availability if missing or invalid parameters', async (
       recurringTimezone: true,
       recurringDuration: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -615,10 +651,10 @@ test.serial('generates availability__* events', async (t) => {
       'availability:create:all',
       'availability:edit:all',
       'availability:remove:all',
-      'event:list:all'
+      'event:list:all',
     ],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const assetId = 'ast_0TYM7rs1OwP1gQRuCOwP'
@@ -636,7 +672,7 @@ test.serial('generates availability__* events', async (t) => {
       startDate,
       endDate,
       quantity: 1,
-      metadata: { _custom: { hasDataInNamespace: true } }
+      metadata: { _custom: { hasDataInNamespace: true } },
     })
     .expect(200)
 
@@ -644,7 +680,7 @@ test.serial('generates availability__* events', async (t) => {
     startDate,
     endDate: newEndDate,
     quantity: 2,
-    metadata: { _custom: { hasAdditionalDataInNamespace: true } }
+    metadata: { _custom: { hasAdditionalDataInNamespace: true } },
   }
 
   const { body: availabilityUpdated } = await request(t.context.serverUrl)
@@ -653,9 +689,11 @@ test.serial('generates availability__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -663,12 +701,12 @@ test.serial('generates availability__* events', async (t) => {
   const availabilityCreatedEvent = getObjectEvent({
     events,
     eventType: 'availability__created',
-    objectId: availability.id
+    objectId: availability.id,
   })
   await testEventMetadata({
     event: availabilityCreatedEvent,
     object: availability,
-    t
+    t,
   })
   /* // EXAMPLE: testEventMetadata replaces
   t.truthy(availabilityCreatedEvent)
@@ -682,19 +720,26 @@ test.serial('generates availability__* events', async (t) => {
   t.is(availabilityCreatedEvent.object.quantity, availability.quantity)
   t.is(availabilityCreatedEvent.object.startDate, availability.startDate)
   t.is(availabilityCreatedEvent.object.endDate, availability.endDate)
-  t.is(availabilityCreatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.not(availabilityCreatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.is(
+    availabilityCreatedEvent.object.metadata._custom.hasDataInNamespace,
+    true,
+  )
+  t.not(
+    availabilityCreatedEvent.object.metadata._custom
+      .hasAdditionalDataInNamespace,
+    true,
+  )
 
   const availabilityUpdatedEvent = getObjectEvent({
     events,
     eventType: 'availability__updated',
-    objectId: availabilityUpdated.id
+    objectId: availabilityUpdated.id,
   })
   await testEventMetadata({
     event: availabilityUpdatedEvent,
     object: availabilityUpdated,
     t,
-    patchPayload
+    patchPayload,
   })
   /* // EXAMPLE: testEventMetadata replaces
   t.truthy(availabilityUpdatedEvent)
@@ -710,17 +755,26 @@ test.serial('generates availability__* events', async (t) => {
   t.is(availabilityUpdatedEvent.object.quantity, availabilityUpdated.quantity)
   t.is(availabilityUpdatedEvent.object.startDate, availabilityUpdated.startDate)
   t.is(availabilityUpdatedEvent.object.endDate, availabilityUpdated.endDate)
-  t.is(availabilityUpdatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.is(availabilityUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.is(
+    availabilityUpdatedEvent.object.metadata._custom.hasDataInNamespace,
+    true,
+  )
+  t.is(
+    availabilityUpdatedEvent.object.metadata._custom
+      .hasAdditionalDataInNamespace,
+    true,
+  )
 
   await request(t.context.serverUrl)
     .delete(`/availabilities/${availabilityUpdated.id}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -728,12 +782,12 @@ test.serial('generates availability__* events', async (t) => {
   const availabilityDeletedEvent = getObjectEvent({
     events: eventsAfterDelete,
     eventType: 'availability__deleted',
-    objectId: availabilityUpdated.id
+    objectId: availabilityUpdated.id,
   })
   await testEventMetadata({
     event: availabilityDeletedEvent,
     object: availabilityUpdated,
-    t
+    t,
   })
 })
 
@@ -746,7 +800,7 @@ test.serial('2019-05-20: list availabilities with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['availability:list:all']
+    permissions: ['availability:list:all'],
   })
 
   await checkOffsetPaginationScenario({

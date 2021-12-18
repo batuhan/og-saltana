@@ -2,18 +2,19 @@ const { Roarr: log } = require('roarr')
 const { serializeError } = require('serialize-error')
 const apm = require('elastic-apm-node')
 const _ = require('lodash')
+const config = require('config')
 
 const params = {
   application: 'saltana-core',
 }
 
-if (process.env.INSTANCE_ID) {
-  params.instanceId = process.env.INSTANCE_ID
+if (config.get('InstanceId')) {
+  params.instanceId = config.get('InstanceId')
 }
 
 const RoarrLogger = log.child(params)
 
-// const PROD = process.env.NODE_ENV === 'production'
+// const PROD = config.get('Env') === 'production'
 
 /**
  * This function is only used to log metrics in server.js
@@ -88,16 +89,11 @@ function logError(
     defaultLabels.env = env
   }
 
-  const newUser =
-    defaultUser || user ? Object.assign({}, defaultUser, user) : undefined
+  const newUser = defaultUser || user ? { ...defaultUser, ...user } : undefined
   const newCustom =
-    defaultCustom || custom
-      ? Object.assign({}, defaultCustom, custom)
-      : undefined
+    defaultCustom || custom ? { ...defaultCustom, ...custom } : undefined
   const newLabels =
-    defaultLabels || labels
-      ? Object.assign({}, defaultLabels, labels)
-      : undefined
+    defaultLabels || labels ? { ...defaultLabels, ...labels } : undefined
 
   // TODO: remove the comment only once we align APM error logs with Logstash's
   if (/* !PROD && */ enableRoarr) {
@@ -128,7 +124,7 @@ function logError(
     // passed context overrides default context properties
     apm.captureError(error, {
       user: removeUndefinedValues(newUser),
-      custom: removeUndefinedValues(Object.assign({ errorData }, newCustom)),
+      custom: removeUndefinedValues({ errorData, ...newCustom }),
       labels: removeUndefinedValues(newLabels),
       message,
     })

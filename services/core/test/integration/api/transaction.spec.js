@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
@@ -19,7 +17,7 @@ const {
 } = require('../../util')
 const { getObjectEvent, testEventMetadata } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'transaction' })(t)
   await beforeEach()(t)
 })
@@ -27,17 +25,20 @@ test.before(async t => {
 test.after(after())
 
 const timeoutForTransactionsCancellation = () => {
-  return new Promise(resolve => setTimeout(resolve, 5000))
+  return new Promise((resolve) => setTimeout(resolve, 5000))
 }
 
 const createEmptyTransaction = async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:create:all'],
+  })
 
   const { body: transaction } = await request(t.context.serverUrl)
     .post('/transactions')
     .set(authorizationHeaders)
     .send({
-      takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c'
+      takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
     })
     .expect(200)
 
@@ -47,11 +48,17 @@ const createEmptyTransaction = async (t) => {
 let nbCreatedTransactionsWithAsset = 0
 
 const createTransactionWithAsset = async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:create:all'],
+  })
 
   const now = new Date().toISOString()
 
-  const startDate = computeDate(now, (nbCreatedTransactionsWithAsset + 1) * 5 + ' days')
+  const startDate = computeDate(
+    now,
+    `${(nbCreatedTransactionsWithAsset + 1) * 5} days`,
+  )
   nbCreatedTransactionsWithAsset += 1
 
   const { body: transaction } = await request(t.context.serverUrl)
@@ -61,7 +68,7 @@ const createTransactionWithAsset = async (t) => {
       assetId: 'ast_0KAm3He1ze11iSSR4ze0',
       takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       startDate,
-      duration: { d: 5 }
+      duration: { d: 5 },
     })
     .expect(200)
 
@@ -70,7 +77,10 @@ const createTransactionWithAsset = async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list transactions with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -83,7 +93,7 @@ test('list transactions for the current user', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:list'],
-    userId: '7308ffc8-a046-4965-bb4a-b1184a42325c'
+    userId: '7308ffc8-a046-4965-bb4a-b1184a42325c',
   })
 
   await request(t.context.serverUrl)
@@ -92,7 +102,9 @@ test('list transactions for the current user', async (t) => {
     .expect(403)
 
   await request(t.context.serverUrl)
-    .get('/transactions?ownerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id')
+    .get(
+      '/transactions?ownerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id',
+    )
     .set(authorizationHeaders)
     .expect(403)
 
@@ -107,7 +119,9 @@ test('list transactions for the current user', async (t) => {
     .expect(200)
 
   await request(t.context.serverUrl)
-    .get('/transactions?ownerId=7308ffc8-a046-4965-bb4a-b1184a42325c&takerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id')
+    .get(
+      '/transactions?ownerId=7308ffc8-a046-4965-bb4a-b1184a42325c&takerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -115,7 +129,10 @@ test('list transactions for the current user', async (t) => {
 })
 
 test('list transactions with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/transactions?id=trn_a3BfQps1I3a1gJYz2I3a')
@@ -127,10 +144,15 @@ test('list transactions with id filter', async (t) => {
 })
 
 test('list transactions with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:list:all'],
+  })
 
   const result1 = await request(t.context.serverUrl)
-    .get('/transactions?ownerId=fd7b4ea9-a899-4dba-b9b0-ef8537a70efe,ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c')
+    .get(
+      '/transactions?ownerId=fd7b4ea9-a899-4dba-b9b0-ef8537a70efe,ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -139,7 +161,9 @@ test('list transactions with advanced filters', async (t) => {
   t.is(obj1.results.length, 4)
 
   const result2 = await request(t.context.serverUrl)
-    .get('/transactions?takerId[]=fd7b4ea9-a899-4dba-b9b0-ef8537a70efe&assetId=ast_0TYM7rs1OwP1gQRuCOwP')
+    .get(
+      '/transactions?takerId[]=fd7b4ea9-a899-4dba-b9b0-ef8537a70efe&assetId=ast_0TYM7rs1OwP1gQRuCOwP',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -149,7 +173,10 @@ test('list transactions with advanced filters', async (t) => {
 })
 
 test('list transactions with pricing filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/transactions?ownerAmount[lte]=500&platformAmount[gt]=10')
@@ -169,7 +196,7 @@ test('previews a transaction', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:preview:all'],
-    userId: 'user-external-id' // asset owner can preview her own asset
+    userId: 'user-external-id', // asset owner can preview her own asset
   })
 
   const now = new Date().toISOString()
@@ -183,7 +210,7 @@ test('previews a transaction', async (t) => {
       startDate,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -208,7 +235,7 @@ test('creates a transaction', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -222,7 +249,7 @@ test('creates a transaction', async (t) => {
       startDate,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -248,7 +275,7 @@ test('creates a transaction on a zero quantity asset', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -262,7 +289,7 @@ test('creates a transaction on a zero quantity asset', async (t) => {
       startDate,
       duration: { d: 1 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -285,7 +312,7 @@ test('creates a time based transaction without end date or duration', async (t) 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -298,7 +325,7 @@ test('creates a time based transaction without end date or duration', async (t) 
       assetId: 'ast_g29VxDs1DEa1gEk9KDEa',
       startDate,
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -321,7 +348,7 @@ test('fails to create a transaction on an asset that is not active or not valida
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -335,7 +362,7 @@ test('fails to create a transaction on an asset that is not active or not valida
       startDate,
       duration: { d: 4 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -347,7 +374,7 @@ test('fails to create a transaction due to asset unavailability', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -361,7 +388,7 @@ test('fails to create a transaction due to asset unavailability', async (t) => {
       startDate,
       duration: { d: 4 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -373,14 +400,14 @@ test('creates a transaction without any information besides the taker', async (t
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const result = await request(t.context.serverUrl)
     .post('/transactions')
     .set(authorizationHeaders)
     .send({
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -402,7 +429,7 @@ test('creates a transaction without assigning an asset', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -415,7 +442,7 @@ test('creates a transaction without assigning an asset', async (t) => {
       startDate,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -438,7 +465,7 @@ test('creates a transaction by specifying the end date', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -452,7 +479,7 @@ test('creates a transaction by specifying the end date', async (t) => {
       startDate,
       endDate,
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -473,11 +500,8 @@ test('creates a transaction by specifying the end date', async (t) => {
 test('creates a transaction on an asset that does not have an owner', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'transaction:create:all',
-      'asset:create:all'
-    ],
-    userId: null
+    permissions: ['transaction:create:all', 'asset:create:all'],
+    userId: null,
   })
 
   const now = new Date().toISOString()
@@ -500,7 +524,7 @@ test('creates a transaction on an asset that does not have an owner', async (t) 
       startDate,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -521,15 +545,12 @@ test('creates a transaction by specifying pricing', async (t) => {
   const notEnoughPermissionsAuthorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:create:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'transaction:create:all',
-      'transaction:config:all'
-    ],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    permissions: ['transaction:create:all', 'transaction:config:all'],
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -544,7 +565,7 @@ test('creates a transaction by specifying pricing', async (t) => {
       duration: { d: 3 },
       quantity: 1,
       value: 500,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(403)
 
@@ -557,7 +578,7 @@ test('creates a transaction by specifying pricing', async (t) => {
       duration: { d: 3 },
       quantity: 1,
       value: 500,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -582,7 +603,7 @@ test('creates a transaction by specifying pricing', async (t) => {
       quantity: 1,
       value: 500,
       ownerAmount: 400,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -606,7 +627,7 @@ test('creates a transaction by specifying pricing', async (t) => {
       duration: { d: 3 },
       quantity: 1,
       ownerAmount: 600,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -629,8 +650,8 @@ test('sets pricing on transaction without attaching any asset', async (t) => {
     permissions: [
       'transaction:create:all',
       'transaction:edit:all',
-      'transaction:config:all'
-    ]
+      'transaction:config:all',
+    ],
   })
 
   const { body: transaction } = await request(t.context.serverUrl)
@@ -638,7 +659,7 @@ test('sets pricing on transaction without attaching any asset', async (t) => {
     .set(authorizationHeaders)
     .send({
       value: 1000,
-      ownerAmount: 900
+      ownerAmount: 900,
     })
     .expect(200)
 
@@ -651,7 +672,7 @@ test('sets pricing on transaction without attaching any asset', async (t) => {
     .patch(`/transactions/${transaction.id}`)
     .set(authorizationHeaders)
     .send({
-      takerAmount: 1500
+      takerAmount: 1500,
     })
     .expect(200)
 
@@ -666,7 +687,7 @@ test('updates a transaction', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -682,7 +703,7 @@ test('updates a transaction', async (t) => {
       startDate,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -703,7 +724,7 @@ test('updates the transaction status', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all', 'transaction:config:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const status = 'unknown status'
@@ -714,7 +735,7 @@ test('updates the transaction status', async (t) => {
     .patch(`/transactions/${transaction.id}`)
     .set(authorizationHeaders)
     .send({
-      status
+      status,
     })
     .expect(200)
 
@@ -726,8 +747,12 @@ test('cannot trigger a transition that does not exist', async (t) => {
   // use a different user because the owner cannot book her own asset
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['transaction:edit:all', 'transaction:config:all', 'transaction:transition:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    permissions: [
+      'transaction:edit:all',
+      'transaction:config:all',
+      'transaction:transition:all',
+    ],
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const status = 'unknown status'
@@ -736,7 +761,7 @@ test('cannot trigger a transition that does not exist', async (t) => {
     .patch('/transactions/trn_a3BfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      status
+      status,
     })
     .expect(200)
 
@@ -747,7 +772,7 @@ test('cannot trigger a transition that does not exist', async (t) => {
     .post('/transactions/trn_a3BfQps1I3a1gJYz2I3a/transitions')
     .set(authorizationHeaders)
     .send({
-      name: 'pay'
+      name: 'pay',
     })
     .expect(422)
 })
@@ -757,7 +782,7 @@ test('cannot update the transaction status if the permission "transaction:config
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const transaction = await createEmptyTransaction(t)
@@ -768,7 +793,7 @@ test('cannot update the transaction status if the permission "transaction:config
     .patch(`/transactions/${transaction.id}`)
     .set(authorizationHeaders)
     .send({
-      status
+      status,
     })
     .expect(403)
 
@@ -780,14 +805,14 @@ test('cannot detach an asset from a transaction', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   await request(t.context.serverUrl)
     .patch('/transactions/trn_a3BfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      assetId: null
+      assetId: null,
     })
     .expect(400)
 
@@ -800,7 +825,7 @@ test('updates a transaction on a zero quantity asset', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -816,7 +841,7 @@ test('updates a transaction on a zero quantity asset', async (t) => {
       startDate,
       duration: { d: 1 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -837,7 +862,7 @@ test('fails to update a transaction on an asset that is not active or not valida
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -853,7 +878,7 @@ test('fails to update a transaction on an asset that is not active or not valida
       startDate,
       duration: { d: 4 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -865,7 +890,7 @@ test('fails to update a transaction due to asset unavailability', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -881,7 +906,7 @@ test('fails to update a transaction due to asset unavailability', async (t) => {
       startDate,
       duration: { d: 4 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -893,7 +918,7 @@ test('updates a transaction without assigning an asset', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -908,7 +933,7 @@ test('updates a transaction without assigning an asset', async (t) => {
       startDate,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -929,7 +954,7 @@ test('updates a transaction by specifying the end date', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const transaction = await createEmptyTransaction(t)
@@ -945,7 +970,7 @@ test('updates a transaction by specifying the end date', async (t) => {
       startDate,
       endDate,
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -966,7 +991,7 @@ test('updates a transaction multiple times with different information', async (t
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all', 'transaction:config:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -984,7 +1009,7 @@ test('updates a transaction multiple times with different information', async (t
       startDate: startDate1,
       duration: { d: 3 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -1005,7 +1030,7 @@ test('updates a transaction multiple times with different information', async (t
     .set(authorizationHeaders)
     .send({
       duration: { d: 2 },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -1016,7 +1041,9 @@ test('updates a transaction multiple times with different information', async (t
   t.false(updatedTransaction1.value === updatedTransaction2.value)
   t.false(updatedTransaction1.ownerAmount === updatedTransaction2.ownerAmount)
   t.false(updatedTransaction1.takerAmount === updatedTransaction2.takerAmount)
-  t.false(updatedTransaction1.platformAmount === updatedTransaction2.platformAmount)
+  t.false(
+    updatedTransaction1.platformAmount === updatedTransaction2.platformAmount,
+  )
   t.is(updatedTransaction2.metadata.dummy, true)
 
   const startDate2 = computeDate(now, '2 days')
@@ -1030,7 +1057,7 @@ test('updates a transaction multiple times with different information', async (t
       startDate: startDate2,
       duration: { d: 1 },
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -1041,7 +1068,9 @@ test('updates a transaction multiple times with different information', async (t
   t.false(updatedTransaction2.value === updatedTransaction3.value)
   t.false(updatedTransaction2.ownerAmount === updatedTransaction3.ownerAmount)
   t.false(updatedTransaction2.takerAmount === updatedTransaction3.takerAmount)
-  t.false(updatedTransaction2.platformAmount === updatedTransaction3.platformAmount)
+  t.false(
+    updatedTransaction2.platformAmount === updatedTransaction3.platformAmount,
+  )
   t.is(updatedTransaction3.metadata.dummy, true)
 })
 
@@ -1050,15 +1079,12 @@ test('updates a transaction by specifying pricing', async (t) => {
   const notEnoughPermissionsAuthorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:edit:all'],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'transaction:edit:all',
-      'transaction:config:all'
-    ],
-    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178'
+    permissions: ['transaction:edit:all', 'transaction:config:all'],
+    userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
   })
 
   const now = new Date().toISOString()
@@ -1075,7 +1101,7 @@ test('updates a transaction by specifying pricing', async (t) => {
       duration: { d: 3 },
       value: 500,
       quantity: 1,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(403)
 
@@ -1088,7 +1114,7 @@ test('updates a transaction by specifying pricing', async (t) => {
       duration: { d: 3 },
       quantity: 1,
       value: 500,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -1113,7 +1139,7 @@ test('updates a transaction by specifying pricing', async (t) => {
       quantity: 1,
       value: 500,
       ownerAmount: 400,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -1137,7 +1163,7 @@ test('updates a transaction by specifying pricing', async (t) => {
       duration: { d: 3 },
       quantity: 1,
       ownerAmount: 600,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -1154,7 +1180,10 @@ test('updates a transaction by specifying pricing', async (t) => {
 })
 
 test('confirms a transaction', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createTransactionWithAsset(t)
 
@@ -1162,19 +1191,24 @@ test('confirms a transaction', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'confirm'
+      name: 'confirm',
     })
     .expect(200)
 
   t.is(updatedTransaction.id, transaction.id)
 
-  const confirmationStep = updatedTransaction.statusHistory.find(step => step.status === 'confirmed')
+  const confirmationStep = updatedTransaction.statusHistory.find(
+    (step) => step.status === 'confirmed',
+  )
   t.truthy(confirmationStep)
   t.truthy(confirmationStep.date)
 })
 
 test('cannot confirm a transaction that has no associated asset', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createEmptyTransaction(t)
 
@@ -1182,7 +1216,7 @@ test('cannot confirm a transaction that has no associated asset', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'confirm'
+      name: 'confirm',
     })
     .expect(422)
 
@@ -1190,7 +1224,10 @@ test('cannot confirm a transaction that has no associated asset', async (t) => {
 })
 
 test('confirms and pays a transaction', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createTransactionWithAsset(t)
 
@@ -1198,19 +1235,24 @@ test('confirms and pays a transaction', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'confirmAndPay'
+      name: 'confirmAndPay',
     })
     .expect(200)
 
   t.is(updatedTransaction.id, transaction.id)
 
-  const confirmationAndPaymentStep = updatedTransaction.statusHistory.find(step => step.status === 'pending-acceptance')
+  const confirmationAndPaymentStep = updatedTransaction.statusHistory.find(
+    (step) => step.status === 'pending-acceptance',
+  )
   t.truthy(confirmationAndPaymentStep)
   t.truthy(confirmationAndPaymentStep.date)
 })
 
 test('pays for a transaction', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createTransactionWithAsset(t)
 
@@ -1218,19 +1260,24 @@ test('pays for a transaction', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'pay'
+      name: 'pay',
     })
     .expect(200)
 
   t.is(updatedTransaction.id, transaction.id)
 
-  const paymentStep = updatedTransaction.statusHistory.find(step => step.status === 'pending-acceptance')
+  const paymentStep = updatedTransaction.statusHistory.find(
+    (step) => step.status === 'pending-acceptance',
+  )
   t.truthy(paymentStep)
   t.truthy(paymentStep.date)
 })
 
 test('cannot pay for a transaction that has no associated asset', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createEmptyTransaction(t)
 
@@ -1238,7 +1285,7 @@ test('cannot pay for a transaction that has no associated asset', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'pay'
+      name: 'pay',
     })
     .expect(422)
 
@@ -1248,22 +1295,23 @@ test('cannot pay for a transaction that has no associated asset', async (t) => {
 test('pays an accepted transaction and cancels the overlapped transactions that exceeds the asset quantity', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'transaction:transition:all',
-      'transaction:list:all'
-    ]
+    permissions: ['transaction:transition:all', 'transaction:list:all'],
   })
 
   const { body: updatedTransaction } = await request(t.context.serverUrl)
     .post('/transactions/trn_ZVZfQps1I3a1gJYz2I3a/transitions')
     .set(authorizationHeaders)
     .send({
-      name: 'pay'
+      name: 'pay',
     })
     .expect(200)
 
   t.is(updatedTransaction.id, 'trn_ZVZfQps1I3a1gJYz2I3a')
-  t.truthy(updatedTransaction.statusHistory.find(step => step.status === 'validated'))
+  t.truthy(
+    updatedTransaction.statusHistory.find(
+      (step) => step.status === 'validated',
+    ),
+  )
 
   await timeoutForTransactionsCancellation()
 
@@ -1277,13 +1325,16 @@ test('pays an accepted transaction and cancels the overlapped transactions that 
 
   t.is(transactions.length, 2)
 
-  transactions.forEach(transaction => {
+  transactions.forEach((transaction) => {
     t.truthy(transaction.cancelledDate)
   })
 })
 
 test('accepts a transaction', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createTransactionWithAsset(t)
 
@@ -1291,19 +1342,24 @@ test('accepts a transaction', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'accept'
+      name: 'accept',
     })
     .expect(200)
 
   t.is(updatedTransaction.id, transaction.id)
 
-  const acceptationStep = updatedTransaction.statusHistory.find(step => step.status === 'accepted')
+  const acceptationStep = updatedTransaction.statusHistory.find(
+    (step) => step.status === 'accepted',
+  )
   t.truthy(acceptationStep)
   t.truthy(acceptationStep.date)
 })
 
 test('cannot accept a transaction that has no associated asset', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createEmptyTransaction(t)
 
@@ -1311,7 +1367,7 @@ test('cannot accept a transaction that has no associated asset', async (t) => {
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
-      name: 'accept'
+      name: 'accept',
     })
     .expect(422)
 
@@ -1321,23 +1377,22 @@ test('cannot accept a transaction that has no associated asset', async (t) => {
 test('accepts a paid transaction and cancels the overlapped transactions that exceeds the asset quantity', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'transaction:transition:all',
-      'transaction:list:all'
-    ]
+    permissions: ['transaction:transition:all', 'transaction:list:all'],
   })
 
   const { body: updatedTransaction } = await request(t.context.serverUrl)
     .post('/transactions/trn_RjhfQps1I3a1gJYz2I3a/transitions')
     .set(authorizationHeaders)
     .send({
-      name: 'accept'
+      name: 'accept',
     })
     .expect(200)
 
   t.is(updatedTransaction.id, 'trn_RjhfQps1I3a1gJYz2I3a')
 
-  const validationStep = updatedTransaction.statusHistory.find(step => step.status === 'validated')
+  const validationStep = updatedTransaction.statusHistory.find(
+    (step) => step.status === 'validated',
+  )
   t.truthy(validationStep)
   t.truthy(validationStep.date)
 
@@ -1353,13 +1408,16 @@ test('accepts a paid transaction and cancels the overlapped transactions that ex
 
   t.is(transactions.length, 2)
 
-  transactions.forEach(transaction => {
+  transactions.forEach((transaction) => {
     t.truthy(transaction.cancelledDate)
   })
 })
 
 test('cancels a transaction', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['transaction:transition:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['transaction:transition:all'],
+  })
 
   const transaction = await createTransactionWithAsset(t)
 
@@ -1369,14 +1427,16 @@ test('cancels a transaction', async (t) => {
     .send({
       name: 'cancel',
       data: {
-        cancellationReason: 'declinedByOwner'
-      }
+        cancellationReason: 'declinedByOwner',
+      },
     })
     .expect(200)
 
   t.is(updatedTransaction.id, transaction.id)
 
-  const cancellationStep = updatedTransaction.statusHistory.find(step => step.status === 'cancelled')
+  const cancellationStep = updatedTransaction.statusHistory.find(
+    (step) => step.status === 'cancelled',
+  )
 
   t.truthy(cancellationStep)
   t.truthy(cancellationStep.date)
@@ -1389,7 +1449,7 @@ test('cannot trigger a transaction transition if the current user is not include
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:transition'],
-    userId: 'anotherUser'
+    userId: 'anotherUser',
   })
 
   const transaction = await createTransactionWithAsset(t)
@@ -1397,7 +1457,7 @@ test('cannot trigger a transaction transition if the current user is not include
   await request(t.context.serverUrl)
     .post(`/transactions/${transaction.id}/transitions`)
     .send({
-      name: 'pay'
+      name: 'pay',
     })
     .set(authorizationHeaders)
     .expect(403)
@@ -1409,7 +1469,7 @@ test('can process a transaction if the current user is not included in the trans
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['transaction:transition:all'],
-    userId: 'anotherUser'
+    userId: 'anotherUser',
   })
 
   const transaction = await createTransactionWithAsset(t)
@@ -1417,7 +1477,7 @@ test('can process a transaction if the current user is not included in the trans
   await request(t.context.serverUrl)
     .post(`/transactions/${transaction.id}/transitions`)
     .send({
-      name: 'pay'
+      name: 'pay',
     })
     .set(authorizationHeaders)
     .expect(200)
@@ -1428,11 +1488,8 @@ test('can process a transaction if the current user is not included in the trans
 test('asset quantity changes when transaction is validated (asset type is non time based and non infinite stock)', async (t) => {
   const createAssetAuthorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:create:all',
-      'assetType:create:all'
-    ],
-    userId: 'user1'
+    permissions: ['asset:create:all', 'assetType:create:all'],
+    userId: 'user1',
   })
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
@@ -1441,9 +1498,9 @@ test('asset quantity changes when transaction is validated (asset type is non ti
       'transaction:create:all',
       'transaction:edit:all',
       'transaction:transition:all',
-      'transaction:config:all'
+      'transaction:config:all',
     ],
-    userId: 'user2' // another user (otherwise owner cannot book the asset)
+    userId: 'user2', // another user (otherwise owner cannot book the asset)
   })
 
   const { body: assetType } = await request(t.context.serverUrl)
@@ -1453,7 +1510,7 @@ test('asset quantity changes when transaction is validated (asset type is non ti
       name: 'Asset type example',
       timeBased: false,
       infiniteStock: false,
-      unavailableWhen: ['accepted'] // customize the transaction statuses that make asset unavailable
+      unavailableWhen: ['accepted'], // customize the transaction statuses that make asset unavailable
     })
     .expect(200)
 
@@ -1465,7 +1522,7 @@ test('asset quantity changes when transaction is validated (asset type is non ti
       assetTypeId: assetType.id,
       quantity: 10,
       price: 1000,
-      currency: 'USD'
+      currency: 'USD',
     })
     .expect(200)
 
@@ -1477,7 +1534,7 @@ test('asset quantity changes when transaction is validated (asset type is non ti
     .set(authorizationHeaders)
     .send({
       assetId: asset.id,
-      quantity: 2
+      quantity: 2,
     })
     .expect(200)
 
@@ -1489,12 +1546,14 @@ test('asset quantity changes when transaction is validated (asset type is non ti
     })
     .expect(200)
 
-  const { body: assetAfterTransaction1Acceptation } = await request(t.context.serverUrl)
+  const { body: assetAfterTransaction1Acceptation } = await request(
+    t.context.serverUrl,
+  )
     .get(`/assets/${asset.id}`)
     .set(createAssetAuthorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   t.is(assetAfterTransaction1Acceptation.quantity, 8)
 
@@ -1504,17 +1563,19 @@ test('asset quantity changes when transaction is validated (asset type is non ti
     .send({
       name: 'cancel',
       data: {
-        cancellationReason: 'noReason'
-      }
+        cancellationReason: 'noReason',
+      },
     })
     .expect(200)
 
-  const { body: assetAfterTransaction1Cancellation } = await request(t.context.serverUrl)
+  const { body: assetAfterTransaction1Cancellation } = await request(
+    t.context.serverUrl,
+  )
     .get(`/assets/${asset.id}`)
     .set(createAssetAuthorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   t.is(assetAfterTransaction1Cancellation.quantity, 10)
 
@@ -1524,7 +1585,7 @@ test('asset quantity changes when transaction is validated (asset type is non ti
     .set(authorizationHeaders)
     .send({
       assetId: asset.id,
-      quantity: 4
+      quantity: 4,
     })
     .expect(200)
 
@@ -1532,16 +1593,18 @@ test('asset quantity changes when transaction is validated (asset type is non ti
     .patch(`/transactions/${transaction2.id}`)
     .set(authorizationHeaders)
     .send({
-      status: 'accepted'
+      status: 'accepted',
     })
     .expect(200)
 
-  const { body: assetAfterTransaction2Acceptation } = await request(t.context.serverUrl)
+  const { body: assetAfterTransaction2Acceptation } = await request(
+    t.context.serverUrl,
+  )
     .get(`/assets/${asset.id}`)
     .set(createAssetAuthorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   t.is(assetAfterTransaction2Acceptation.quantity, 6)
 
@@ -1549,16 +1612,18 @@ test('asset quantity changes when transaction is validated (asset type is non ti
     .patch(`/transactions/${transaction2.id}`)
     .set(authorizationHeaders)
     .send({
-      status: 'cancelled'
+      status: 'cancelled',
     })
     .expect(200)
 
-  const { body: assetAfterTransaction2Cancellation } = await request(t.context.serverUrl)
+  const { body: assetAfterTransaction2Cancellation } = await request(
+    t.context.serverUrl,
+  )
     .get(`/assets/${asset.id}`)
     .set(createAssetAuthorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   t.is(assetAfterTransaction2Cancellation.quantity, 10)
 })
@@ -1576,7 +1641,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
     .post('/transactions/preview')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1588,7 +1653,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
     .post('/transactions/preview')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -1601,7 +1666,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
     .post('/transactions/preview')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       assetId: true,
@@ -1610,7 +1675,7 @@ test('fails to preview a transaction if missing or invalid parameters', async (t
       duration: true,
       quantity: 'invalid',
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -1633,7 +1698,7 @@ test('fails to create a transaction if missing or invalid parameters', async (t)
     .post('/transactions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1645,7 +1710,7 @@ test('fails to create a transaction if missing or invalid parameters', async (t)
     .post('/transactions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       assetId: true,
@@ -1655,7 +1720,7 @@ test('fails to create a transaction if missing or invalid parameters', async (t)
       quantity: 'invalid',
       takerId: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -1679,7 +1744,7 @@ test('fails to update a transaction if missing or invalid parameters', async (t)
     .patch('/transactions/trn_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1691,7 +1756,7 @@ test('fails to update a transaction if missing or invalid parameters', async (t)
     .patch('/transactions/trn_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       assetId: true,
@@ -1701,7 +1766,7 @@ test('fails to update a transaction if missing or invalid parameters', async (t)
       quantity: 'invalid',
       status: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -1725,7 +1790,7 @@ test('fails to create a transaction transition if missing or invalid parameters'
     .post('/transactions/trn_UEZfQps1I3a1gJYz2I3a/transitions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1737,7 +1802,7 @@ test('fails to create a transaction transition if missing or invalid parameters'
     .post('/transactions/trn_UEZfQps1I3a1gJYz2I3a/transitions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -1750,11 +1815,11 @@ test('fails to create a transaction transition if missing or invalid parameters'
     .post('/transactions/trn_UEZfQps1I3a1gJYz2I3a/transitions')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
-      data: true
+      data: true,
     })
     .expect(400)
 
@@ -1771,7 +1836,7 @@ test('fails to create a transaction transition if missing or invalid parameters'
 test.serial('generates transaction__* events', async (t) => {
   const { Event } = await getModels({
     platformId: t.context.platformId,
-    env: t.context.env
+    env: t.context.env,
   })
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
@@ -1781,11 +1846,11 @@ test.serial('generates transaction__* events', async (t) => {
       'transaction:config:all',
       'transaction:transition:all',
       'platformData:edit:all',
-      'event:list:all'
+      'event:list:all',
     ],
     userId: 'c12ca46b-995c-487c-a940-d9e41e0ff178',
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const now = new Date().toISOString()
@@ -1803,13 +1868,15 @@ test.serial('generates transaction__* events', async (t) => {
       duration: { d: 3 },
       quantity: 1,
       metadata: { dummy: true },
-      platformData: { _custom: { test: 'ok' } }
+      platformData: { _custom: { test: 'ok' } },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterCreate } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterCreate },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1820,19 +1887,25 @@ test.serial('generates transaction__* events', async (t) => {
   const transactionCreatedEvent = getObjectEvent({
     events: filteredEventsAfterCreate,
     eventType: 'transaction__created',
-    objectId: transaction.id
+    objectId: transaction.id,
   })
-  await testEventMetadata({ event: transactionCreatedEvent, object: transaction, t })
+  await testEventMetadata({
+    event: transactionCreatedEvent,
+    object: transaction,
+    t,
+  })
   t.is(transactionCreatedEvent.object.assetId, transaction.assetId)
   t.is(transactionCreatedEvent.object.startDate, transaction.startDate)
   t.deepEqual(transactionCreatedEvent.object.duration, transaction.duration)
   t.is(transactionCreatedEvent.object.quantity, transaction.quantity)
-  t.deepEqual(transactionCreatedEvent.object.platformData, { _custom: { test: 'ok' } })
+  t.deepEqual(transactionCreatedEvent.object.platformData, {
+    _custom: { test: 'ok' },
+  })
 
   const patchPayload = {
     duration: { d: 2 },
     status: 'booked',
-    platformData: { _custom: { test: 'ko' } }
+    platformData: { _custom: { test: 'ko' } },
   }
 
   // check update transaction events
@@ -1842,44 +1915,53 @@ test.serial('generates transaction__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterUpdate } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterUpdate },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
 
-  const filteredEventsAfterUpdate = _.differenceBy(eventsAfterUpdate, oldEvents, 'id')
+  const filteredEventsAfterUpdate = _.differenceBy(
+    eventsAfterUpdate,
+    oldEvents,
+    'id',
+  )
   oldEvents = eventsAfterUpdate
 
   const transactionUpdatedEvent = getObjectEvent({
     events: filteredEventsAfterUpdate,
     eventType: 'transaction__updated',
-    objectId: transactionUpdated.id
+    objectId: transactionUpdated.id,
   })
   await testEventMetadata({
     event: transactionUpdatedEvent,
     object: transactionUpdated,
     t,
-    patchPayload
+    patchPayload,
   })
   t.is(transactionUpdatedEvent.object.assetId, transactionUpdated.assetId)
   t.is(transactionUpdatedEvent.object.startDate, transactionUpdated.startDate)
-  t.deepEqual(transactionUpdatedEvent.object.duration, transactionUpdated.duration)
+  t.deepEqual(
+    transactionUpdatedEvent.object.duration,
+    transactionUpdated.duration,
+  )
   t.is(transactionUpdatedEvent.object.quantity, transactionUpdated.quantity)
   t.is(transactionUpdatedEvent.object.status, transactionUpdated.status)
-  t.deepEqual(transactionUpdatedEvent.object.platformData, { _custom: { test: 'ko' } })
+  t.deepEqual(transactionUpdatedEvent.object.platformData, {
+    _custom: { test: 'ko' },
+  })
 
-  const eventsTypesToTestAfterUpdate = [
-    'transaction__status_changed'
-  ]
+  const eventsTypesToTestAfterUpdate = ['transaction__status_changed']
 
   const eventsAfterUpdateObject = {}
-  eventsTypesToTestAfterUpdate.forEach(eventType => {
+  eventsTypesToTestAfterUpdate.forEach((eventType) => {
     eventsAfterUpdateObject[eventType] = getObjectEvent({
       events: filteredEventsAfterUpdate,
       eventType,
-      objectId: transactionUpdated.id
+      objectId: transactionUpdated.id,
     })
   })
 
@@ -1890,43 +1972,62 @@ test.serial('generates transaction__* events', async (t) => {
     const event = eventsAfterUpdateObject[eventType]
     if (!event) t.fail(`No ${eventType} event found`)
 
-    await testEventMetadata({ event, object: transactionUpdated, t, patchPayload: deltas[eventType] })
+    await testEventMetadata({
+      event,
+      object: transactionUpdated,
+      t,
+      patchPayload: deltas[eventType],
+    })
   }
 
   // check cancel transaction event
-  const { body: transactionAfterCancellation } = await request(t.context.serverUrl)
+  const { body: transactionAfterCancellation } = await request(
+    t.context.serverUrl,
+  )
     .post(`/transactions/${transaction.id}/transitions`)
     .set(authorizationHeaders)
     .send({
       name: 'cancel',
       data: {
-        cancellationReason: 'declinedByOwner'
-      }
+        cancellationReason: 'declinedByOwner',
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterCancellation } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterCancellation },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
 
-  const filteredEventsAfterCancellation = _.differenceBy(eventsAfterCancellation, oldEvents, 'id')
+  const filteredEventsAfterCancellation = _.differenceBy(
+    eventsAfterCancellation,
+    oldEvents,
+    'id',
+  )
   oldEvents = eventsAfterCancellation
 
   const transactionStatusChangedEvent = getObjectEvent({
     events: filteredEventsAfterCancellation,
     eventType: 'transaction__status_changed',
-    objectId: transactionAfterCancellation.id
+    objectId: transactionAfterCancellation.id,
   })
   await testEventMetadata({
     event: transactionStatusChangedEvent,
     object: transactionAfterCancellation,
-    t
+    t,
   })
-  t.is(transactionStatusChangedEvent.object.name, transactionAfterCancellation.name)
-  t.is(transactionStatusChangedEvent.object.type, transactionAfterCancellation.type)
+  t.is(
+    transactionStatusChangedEvent.object.name,
+    transactionAfterCancellation.name,
+  )
+  t.is(
+    transactionStatusChangedEvent.object.type,
+    transactionAfterCancellation.type,
+  )
 })
 
 // //////// //
@@ -1938,7 +2039,7 @@ test.serial('2019-05-20: list transactions with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['transaction:list:all']
+    permissions: ['transaction:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -1952,7 +2053,7 @@ test('2019-05-20: list transactions with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['transaction:list:all']
+    permissions: ['transaction:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -1968,7 +2069,7 @@ test('2019-05-20: list transactions with pricing filters', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['transaction:list:all']
+    permissions: ['transaction:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

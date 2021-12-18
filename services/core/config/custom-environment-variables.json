@@ -1,0 +1,75 @@
+{
+  "Env": "NODE_ENV",
+  "SystemKey": "CORE_SYSTEM_KEY",
+  "SystemHashFnPassphrase": "SYSTEM_HASH_FUNCTION_PASSPHRASE",
+  "ApiSecretKey": "CORE_API_SECRET_KEY",
+  "InstanceEnv": "CORE_INSTANCE_ENV",
+  "DebugEnabled": "CORE_EXPLICITLY_ENABLE_DEBUG_MODE",
+  "DebugEmails": "CORE_DEBUG_EMAILS",
+  "Public": {
+    "api": {
+      "host": "PUBLIC_API_HOST"
+    }
+  },
+  "Cote": {
+    "port": "CORE_SERVER_PORT",
+    "baseUrl": "CORE_API_URL",
+    "env": "COTE_ENV",
+    "logging": "COTE_LOGGING"
+  },
+  "Plugins": {
+    "paths": "CORE_PLUGIN_PATHS",
+    "ignored": "CORE_IGNORED_LOCAL_PLUGINS",
+    "installed": "CORE_INSTALLED_PLUGINS"
+  },
+  "ExternalServices": {
+    "pgsql": {
+      "host": "POSTGRES_HOST",
+      "port": "POSTGRES_PORT",
+      "username": "POSTGRES_USER",
+      "password": "POSTGRES_PASSWORD",
+      "database": "POSTGRES_DB",
+      "timescaleEnabled": "POSTGRES_TIMESCALE_ENABLED",
+      "ssl": {
+        "enabled": "POSTGRES_SSL",
+        "cert": "POSTGRES_SSL_CERT",
+        "key": "POSTGRES_SSL_KEY",
+        "ca": "POSTGRES_SSL_CA"
+      },
+      "adminUser": "POSTGRES_ADMIN_USER"
+    },
+    "stripe": {
+      "secretKey": "STRIPE_SECRET_KEY",
+      "webhookSecret": "STRIPE_WEBHOOK_SECRET",
+      "paymentDescription": "STRIPE_PAYMENT_DESCRIPTION"
+    },
+    "clerk": {
+      "jwksLink": "CLERK_JWKS_LINK",
+      "apiKey": "CLERK_API_KEY"
+    },
+    "elasticsearch": {
+      "host": "ELASTIC_SEARCH_HOST",
+      "protocol": "ELASTIC_SEARCH_PROTOCOL",
+      "port": "ELASTIC_SEARCH_PORT",
+      "user": "ELASTIC_SEARCH_USER",
+      "password": "ELASTIC_SEARCH_PASSWORD",
+      "apm": {
+        "enabled": "ELASTIC_APM_ENABLED",
+        "serverUrl": "ELASTIC_APM_SERVER_URL",
+        "secretToken": "ELASTIC_APM_SECRET_TOKEN"
+      }
+    },
+    "redis": {
+      "host": "REDIS_HOST",
+      "port": "REDIS_PORT",
+      "dbnum": "REDIS_DBNUM_CORE",
+      "password": "REDIS_PASSWORD",
+      "tls": "REDIS_TLS"
+    },
+    "cloudflare": {
+      "apiToken": "CLOUDFLARE_API_TOKEN",
+      "zoneId": "CLOUDFLARE_ZONE_ID",
+      "accountId": "CLOUDFLARE_ACCOUNT_ID"
+    }
+  }
+}

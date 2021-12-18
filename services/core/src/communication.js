@@ -3,22 +3,40 @@ const apm = require('elastic-apm-node')
 const Uuid = require('uuid')
 const _ = require('lodash')
 const request = require('superagent')
+const config = require('config')
 const createError = require('http-errors')
 
 const CustomRequester = require('./cote/CustomRequester')
 const CustomResponder = require('./cote/CustomResponder')
 
 const COMMUNICATION_ID = Uuid.v4()
-let serverPort = process.env.CORE_SERVER_PORT || 4100
+let serverPort = config.get('Cote.port')
 
-let environment = process.env.COTE_ENV
+let environment = config.get('Cote.env')
 
 const coteEnvInstances = {}
 
 Cote.CustomRequester = CustomRequester
 Cote.CustomResponder = CustomResponder
 
-function getRequester (params) {
+// eslint-disable-next-line no-underscore-dangle
+function _getCote(env) {
+  let cote = coteEnvInstances[env]
+  if (!cote) {
+    const enableLogging = config.get('Cote.logging') === 'true' || config.get('Cote.logging') === true
+
+    cote = Cote({
+      environment: env,
+      log: enableLogging,
+    })
+
+    coteEnvInstances[env] = cote
+  }
+
+  return cote
+}
+
+function getRequester(params) {
   const cloneParams = _.cloneDeep(params)
   const env = cloneParams.env || environment
 
@@ -29,7 +47,7 @@ function getRequester (params) {
   return new cote.CustomRequester(cloneParams)
 }
 
-function getResponder (params) {
+function getResponder(params) {
   const cloneParams = _.cloneDeep(params)
   const env = cloneParams.env || environment
 
@@ -40,7 +58,7 @@ function getResponder (params) {
   return new cote.CustomResponder(cloneParams)
 }
 
-function getPublisher (params) {
+function getPublisher(params) {
   const cloneParams = _.cloneDeep(params)
   const env = cloneParams.env || environment
 
@@ -51,7 +69,7 @@ function getPublisher (params) {
   return new cote.Publisher(cloneParams)
 }
 
-function getSubscriber (params) {
+function getSubscriber(params) {
   const cloneParams = _.cloneDeep(params)
   const env = cloneParams.env || environment
 
@@ -62,7 +80,7 @@ function getSubscriber (params) {
   return new cote.Subscriber(cloneParams)
 }
 
-function getSockend (io, params) {
+function getSockend(io, params) {
   const cloneParams = _.cloneDeep(params)
   const env = cloneParams.env || environment
 
@@ -73,37 +91,21 @@ function getSockend (io, params) {
   return new cote.Sockend(io, cloneParams)
 }
 
-function setEnvironment (env) {
+function setEnvironment(env) {
   environment = env
 }
 
-function _getCote (env) {
-  let cote = coteEnvInstances[env]
-  if (!cote) {
-    const enableLogging = process.env.COTE_LOGGING === 'true'
 
-    cote = Cote({
-      environment: env,
-      log: enableLogging
-    })
-
-    coteEnvInstances[env] = cote
-  }
-
-  return cote
-}
-
-function handleRemoteNotFoundError (err) {
+function handleRemoteNotFoundError(err) {
   if (err && err.statusCode === 404) {
     return null
-  } else {
-    throw err
   }
+  throw err
 }
 
 // will be used to generate the API base URL in testing (dynamic port)
 // in Saltana API internal request
-function setServerPort (port) {
+function setServerPort(port) {
   serverPort = port
 }
 
@@ -122,19 +124,23 @@ function setServerPort (port) {
  *   Can only be used with list endpoints. Returns last read page object with merged `results` array.
  *   Iterator stops when reaching this number of results, that cannot exceed 10000.
  */
-async function saltanaApiRequest (endpointUri, {
-  platformId,
-  env,
-  method = 'GET', // superagent default
-  payload,
-  headers,
+async function saltanaApiRequest(
+  endpointUri,
+  {
+    platformId,
+    env,
+    method = 'GET', // superagent default
+    payload,
+    headers,
 
-  asyncIterator,
-  leafThroughResults,
-}) {
+    asyncIterator,
+    leafThroughResults,
+  },
+) {
   let apmSpan
   let pageApmSpan
-  if (apm.currentTransaction) apmSpan = apm.startSpan('Internal HTTP API request')
+  if (apm.currentTransaction)
+    apmSpan = apm.startSpan('Internal HTTP API request')
 
   const apiBaseUrl = getApiBaseUrl({ serverPort })
 
@@ -144,22 +150,26 @@ async function saltanaApiRequest (endpointUri, {
     'x-saltana-system-key': process.env.SYSTEM_KEY,
 
     // force the new version to have cursor pagination
-    'x-saltana-version': '2020-08-10'
+    'x-saltana-version': '2020-08-10',
   }
 
-  const headersToSend = Object.assign({}, defaultHeaders, headers || {})
+  const headersToSend = { ...defaultHeaders, ...(headers || {}) }
 
   const endpointUrl = `${apiBaseUrl}${endpointUri}`
-  const saltanaRequest = (params) => request[method.toLowerCase()](endpointUrl, params)
-    .set(headersToSend)
-    .catch(propagateSaltanaApiError)
+  const saltanaRequest = (params) =>
+    request[method.toLowerCase()](endpointUrl, params)
+      .set(headersToSend)
+      .catch(propagateSaltanaApiError)
 
   if (leafThroughResults) {
     const MAX_ARRAY_SIZE = 10000
-    if (!_.isFinite(leafThroughResults) || leafThroughResults > MAX_ARRAY_SIZE) {
-      throw createError(`Can’t automatically leaf through pages beyond ${
-        MAX_ARRAY_SIZE
-      }. Please use asyncIterator, or pass a number below ${MAX_ARRAY_SIZE}.`)
+    if (
+      !_.isFinite(leafThroughResults) ||
+      leafThroughResults > MAX_ARRAY_SIZE
+    ) {
+      throw createError(
+        `Can’t automatically leaf through pages beyond ${MAX_ARRAY_SIZE}. Please use asyncIterator, or pass a number below ${MAX_ARRAY_SIZE}.`,
+      )
     }
     const results = []
     const nbResultsPerPage = 100 // maximum value
@@ -173,7 +183,8 @@ async function saltanaApiRequest (endpointUri, {
     }
     if (apmSpan) apmSpan.end()
     return Object.assign(lastPage, { results })
-  } else if (asyncIterator) {
+  }
+  if (asyncIterator) {
     return iterator
   }
 
@@ -181,14 +192,14 @@ async function saltanaApiRequest (endpointUri, {
   if (apmSpan) apmSpan.end()
   return result
 
-  function iterator (params = {}) {
+  function iterator(params = {}) {
     const state = {
-      hasPreviousPage: false
+      hasPreviousPage: false,
     }
 
     return {
       [Symbol.asyncIterator]: () => ({
-        next () {
+        next() {
           if (state.done) {
             if (apmSpan) apmSpan.end()
             return Promise.resolve({ done: true })
@@ -198,7 +209,7 @@ async function saltanaApiRequest (endpointUri, {
             pageApmSpan = apm.startSpan('Paging through Internal HTTP API')
           }
 
-          return saltanaRequest(Object.assign({}, params, { startingAfter: state.endCursor }))
+          return saltanaRequest({ ...params, startingAfter: state.endCursor })
             .then(({ body: response }) => {
               if (!hasNextPage(response)) state.done = true
 
@@ -209,19 +220,19 @@ async function saltanaApiRequest (endpointUri, {
             .finally(() => {
               if (pageApmSpan) pageApmSpan.end()
             })
-        }
-      })
+        },
+      }),
     }
   }
 
-  function hasNextPage (response) {
+  function hasNextPage(response) {
     return response.hasNextPage
   }
 }
 
-function getApiBaseUrl ({ serverPort }) {
-  const isTestEnv = process.env.NODE_ENV === 'test'
-  const apiUrl = process.env.SALTANA_CORE_API_URL
+function getApiBaseUrl({ serverPort }) {
+  const isTestEnv = config.get('Env') === 'test'
+  const apiUrl = config.get('Cote.baeUrl')
   let apiBase
 
   // in test environment, all batch steps are sent to the same server than the one receiving the batch request
@@ -238,15 +249,15 @@ function getApiBaseUrl ({ serverPort }) {
 // this function handles error from Saltana API to propagate
 // the correct data and error status
 // Without it, errors will be considered to be status 500
-function propagateSaltanaApiError (err) {
+function propagateSaltanaApiError(err) {
   if (err.response) {
-    const status = err.response.status
+    const { status } = err.response
     const sourceError = err.response.body
 
     throw createError(status, sourceError.message, {
       code: sourceError.code,
       public: sourceError.data,
-      _sourceStack: sourceError._stack
+      _sourceStack: sourceError._stack,
     })
   } else {
     throw err
@@ -267,5 +278,5 @@ module.exports = {
   setServerPort,
   saltanaApiRequest,
   getApiBaseUrl,
-  propagateSaltanaApiError
+  propagateSaltanaApiError,
 }

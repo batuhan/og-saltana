@@ -1,4 +1,3 @@
-require('@saltana/common').load()
 require('../src/secure-env').config()
 
 const restify = require('restify')
@@ -11,6 +10,9 @@ const Uuid = require('uuid')
 const corsMiddleware = require('restify-cors-middleware2')
 const socketIO = require('socket.io')
 const apm = require('elastic-apm-node')
+
+const config = require('config')
+
 const { isActive: isApmActive, addRequestContext } = require('./apm')
 const { applyIntlPolyfill } = require('../src/util/intl')
 
@@ -32,6 +34,7 @@ const { getPlugins, loadPlugin } = require('../plugins')
 const { getLoggingContext } = require('../src/util/logging')
 
 const polyfills = require('../src/util/polyfills')
+
 polyfills.initErrors()
 
 const Base = require('../src/models/Base')
@@ -74,6 +77,7 @@ const {
 } = versions
 
 const auth = require('../src/auth')
+
 const {
   loadStrategies,
   checkPermissions,
@@ -98,8 +102,8 @@ const crons = require('../src/crons')
 
 const { name, version } = require('../package.json')
 
-const PROD = process.env.NODE_ENV === 'production'
-const TEST = process.env.NODE_ENV === 'test'
+const PROD = config.get('Env') === 'production'
+const TEST = config.get('Env') === 'test'
 
 /*
 SYSTEM_HASH_FUNCTION_PASSPHRASE is a sensitive information
@@ -180,15 +184,13 @@ function loadServer() {
     'after',
     restify.plugins.metrics(
       { server },
-      (err, metrics, req /*, res, route */) => {
+      (err, metrics, req /* , res, route */) => {
         if (err) {
           // do nothing
         }
 
         const requestContext = getLoggingContext(req)
-        const loggingParams = Object.assign({}, requestContext, {
-          metrics,
-        })
+        const loggingParams = { ...requestContext, metrics }
 
         // clean for garbage collection
         req.apmSpans = {}
@@ -350,12 +352,12 @@ function loadServer() {
     const injectSaltanaTooling = (pluginObject) => {
       if (typeof pluginObject === 'function')
         return pluginObject(saltanaTooling)
-      else return pluginObject
+      return pluginObject
     }
 
     // Let external plugins self-load using command line for tests.
     // Please refer to docs/plugins.md.
-    const toLoad = (process.env.SALTANA_PLUGINS_PATHS || '')
+    const toLoad = (config.get('Plugins.paths') || '')
       // Comma-separated list of plugin absolute paths to load before starting server.
       .split(',')
       .filter(Boolean)
@@ -367,7 +369,7 @@ function loadServer() {
 
     plugins.forEach((plugin) => {
       if (plugin.routes) {
-        const name = plugin.name
+        const { name } = plugin
         routes.registerRoutes(name, plugin.routes)
       }
       if (plugin.middlewares) {
@@ -729,7 +731,7 @@ function getAuthorizationParams(req) {
 }
 
 function getRouteRequestContext(req) {
-  return Object.assign({}, getAuthorizationParams(req))
+  return { ...getAuthorizationParams(req) }
 }
 
 function populateRequesterParams(req) {
@@ -830,7 +832,7 @@ function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
     if (useFreePort) {
       app = server.listen(onStarted)
     } else {
-      app = server.listen(process.env.CORE_SERVER_PORT || 4100, onStarted)
+      app = server.listen(config.get('Cote.port'), onStarted)
     }
 
     function onStarted(err) {
@@ -845,10 +847,7 @@ function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
 
       communication.setServerPort(serverPort)
 
-      const startParams = Object.assign({}, saltanaTooling, {
-        serverPort,
-        saltanaIO,
-      })
+      const startParams = { ...saltanaTooling, serverPort, saltanaIO }
 
       auth.start(startParams)
       services.start(startParams)

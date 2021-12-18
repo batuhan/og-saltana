@@ -1,12 +1,15 @@
-const CronJob = require('cron').CronJob
+const { CronJob } = require('cron')
 const Redlock = require('redlock')
+const config = require('config')
 
 const { logError } = require('../../server/logger')
 const { getRedisClient } = require('../redis')
 
-const { checkReindexing: esCheckReindexing } = require('../elasticsearch-reindex')
+const {
+  checkReindexing: esCheckReindexing,
+} = require('../elasticsearch-reindex')
 
-const isTestEnv = process.env.NODE_ENV === 'test'
+const isTestEnv = config.get('Env') === 'test'
 const lockResource = 'locks:esCheckReindexing'
 let communicationId
 
@@ -22,10 +25,10 @@ const job = new CronJob(
   checkReindexing,
   null,
   null,
-  'UTC'
+  'UTC',
 )
 
-async function checkReindexing () {
+async function checkReindexing() {
   try {
     // use redlock to ensure the cron process is handled only by one server at a time
     // even within a distributed system
@@ -50,7 +53,7 @@ async function checkReindexing () {
   }
 }
 
-function start ({ communication }) {
+function start({ communication }) {
   const { COMMUNICATION_ID } = communication
   communicationId = COMMUNICATION_ID
 
@@ -58,22 +61,19 @@ function start ({ communication }) {
     client = getRedisClient()
   }
   if (!redlock) {
-    redlock = new Redlock(
-      [client],
-      {
-        retryCount: 3
-      }
-    )
+    redlock = new Redlock([client], {
+      retryCount: 3,
+    })
   }
 
   job.start()
 }
 
-function stop () {
+function stop() {
   job.stop()
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

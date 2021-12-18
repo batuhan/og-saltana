@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -16,7 +14,7 @@ const {
   checkCursorPaginatedListObject,
 } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'entry' })(t)
   await beforeEach()(t)
 })
@@ -25,7 +23,10 @@ test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list entries with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -35,7 +36,10 @@ test.serial('list entries with pagination', async (t) => {
 })
 
 test('list entries with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/entries?id=ent_4KquHhs1WeG1hK71uWeG')
@@ -47,14 +51,17 @@ test('list entries with id filter', async (t) => {
 })
 
 test('list entries with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:list:all'],
+  })
 
   const { body: obj1 } = await request(t.context.serverUrl)
     .get('/entries?collection=website,email')
     .set(authorizationHeaders)
     .expect(200)
 
-  obj1.results.forEach(entry => {
+  obj1.results.forEach((entry) => {
     t.true(['website', 'email'].includes(entry.collection))
   })
 
@@ -63,7 +70,7 @@ test('list entries with advanced filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj2.results.forEach(entry => {
+  obj2.results.forEach((entry) => {
     t.true(['website', 'email'].includes(entry.collection))
     t.true(['en-US', 'zh-Hans-CN'].includes(entry.locale))
     t.is(entry.locale, 'en-US')
@@ -74,14 +81,17 @@ test('list entries with advanced filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj3.results.forEach(entry => {
+  obj3.results.forEach((entry) => {
     t.true(['website', 'email'].includes(entry.collection))
     t.true(['home', 'signup'].includes(entry.name))
   })
 })
 
 test('finds an entry', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:read:all'],
+  })
 
   const { body: entry } = await request(t.context.serverUrl)
     .get('/entries/ent_4KquHhs1WeG1hK71uWeG')
@@ -92,17 +102,20 @@ test('finds an entry', async (t) => {
 })
 
 test('creates an entry', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:create:all'],
+  })
 
   const fields = {
     title: 'Random title',
     content: 'Random content',
     nestedContent: {
       random1: {
-        random2: 'hello'
+        random2: 'hello',
       },
-      random3: 'bye'
-    }
+      random3: 'bye',
+    },
   }
 
   const { body: entry } = await request(t.context.serverUrl)
@@ -114,8 +127,8 @@ test('creates an entry', async (t) => {
       name: 'nameExample',
       fields,
       metadata: {
-        metadataField: true
-      }
+        metadataField: true,
+      },
     })
     .expect(200)
 
@@ -127,17 +140,20 @@ test('creates an entry', async (t) => {
 })
 
 test('creates an entry with a long locale', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:create:all'],
+  })
 
   const fields = {
     title: 'Random title',
     content: 'Random content',
     nestedContent: {
       random1: {
-        random2: 'hello'
+        random2: 'hello',
       },
-      random3: 'bye'
-    }
+      random3: 'bye',
+    },
   }
 
   const { body: entry } = await request(t.context.serverUrl)
@@ -149,8 +165,8 @@ test('creates an entry with a long locale', async (t) => {
       name: 'nameExample',
       fields,
       metadata: {
-        metadataField: true
-      }
+        metadataField: true,
+      },
     })
     .expect(200)
 
@@ -162,17 +178,20 @@ test('creates an entry with a long locale', async (t) => {
 })
 
 test('fails to create a duplicated entry', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:create:all'],
+  })
 
   const fields = {
     title: 'Random title',
     content: 'Random content',
     nestedContent: {
       random1: {
-        random2: 'hello'
+        random2: 'hello',
       },
-      random3: 'bye'
-    }
+      random3: 'bye',
+    },
   }
 
   const payload = {
@@ -181,8 +200,8 @@ test('fails to create a duplicated entry', async (t) => {
     name: 'duplicatedName',
     fields,
     metadata: {
-      metadataField: true
-    }
+      metadataField: true,
+    },
   }
 
   const { body: entry } = await request(t.context.serverUrl)
@@ -209,7 +228,7 @@ test('fails to create a duplicated entry', async (t) => {
   const { body: error2 } = await request(t.context.serverUrl)
     .post('/entries')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { collection: 'anotherCollection' }))
+    .send({ ...payload, collection: 'anotherCollection' })
     .expect(422)
 
   t.true(error2.message.includes(entry.id))
@@ -217,10 +236,13 @@ test('fails to create a duplicated entry', async (t) => {
 })
 
 test('updates an entry', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['entry:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['entry:edit:all'],
+  })
 
   const newNestedContent = {
-    test: 'test'
+    test: 'test',
   }
 
   const { body: entry } = await request(t.context.serverUrl)
@@ -230,11 +252,11 @@ test('updates an entry', async (t) => {
       collection: 'random',
       fields: {
         newField: true,
-        nestedContent: newNestedContent
+        nestedContent: newNestedContent,
       },
       metadata: {
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(200)
 
@@ -249,10 +271,7 @@ test('updates an entry', async (t) => {
 test('fails to update a duplicated entry', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'entry:create:all',
-      'entry:edit:all'
-    ]
+    permissions: ['entry:create:all', 'entry:edit:all'],
   })
 
   const fields = {
@@ -260,10 +279,10 @@ test('fails to update a duplicated entry', async (t) => {
     content: 'Random content',
     nestedContent: {
       random1: {
-        random2: 'hello'
+        random2: 'hello',
       },
-      random3: 'bye'
-    }
+      random3: 'bye',
+    },
   }
 
   const payload = {
@@ -272,8 +291,8 @@ test('fails to update a duplicated entry', async (t) => {
     name: 'duplicatedNameForUpdate',
     fields,
     metadata: {
-      metadataField: true
-    }
+      metadataField: true,
+    },
   }
 
   const { body: entry } = await request(t.context.serverUrl)
@@ -291,7 +310,7 @@ test('fails to update a duplicated entry', async (t) => {
   const { body: entry2 } = await request(t.context.serverUrl)
     .post('/entries')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { locale: 'fr' })) // only locale is different
+    .send({ ...payload, locale: 'fr' }) // only locale is different
     .expect(200)
 
   const { body: error } = await request(t.context.serverUrl)
@@ -306,7 +325,11 @@ test('fails to update a duplicated entry', async (t) => {
   const { body: error2 } = await request(t.context.serverUrl)
     .patch(`/entries/${entry2.id}`)
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { locale: payload.locale, collection: 'anotherCollection' }))
+    .send({
+      ...payload,
+      locale: payload.locale,
+      collection: 'anotherCollection',
+    })
     .expect(422)
 
   t.true(error2.message.includes(entry.id))
@@ -316,10 +339,7 @@ test('fails to update a duplicated entry', async (t) => {
 test('removes an entry', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'entry:read:all',
-      'entry:remove:all'
-    ]
+    permissions: ['entry:read:all', 'entry:remove:all'],
   })
 
   await request(t.context.serverUrl)
@@ -355,7 +375,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/entries')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -367,7 +387,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/entries')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -382,14 +402,14 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/entries')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       collection: true,
       locale: true,
       name: true,
       fields: true,
-      metadata: true
+      metadata: true,
     })
     .expect(400)
 
@@ -410,7 +430,7 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
     .patch('/entries/ent_4KquHhs1WeG1hK71uWeG')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -422,13 +442,13 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
     .patch('/entries/ent_4KquHhs1WeG1hK71uWeG')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       collection: true,
       name: true,
       fields: true,
-      metadata: true
+      metadata: true,
     })
     .expect(400)
 
@@ -451,10 +471,10 @@ test.serial('generates entry__* events', async (t) => {
       'entry:create:all',
       'entry:edit:all',
       'entry:remove:all',
-      'event:list:all'
+      'event:list:all',
     ],
     readNamespaces: ['*'],
-    editNamespaces: ['*']
+    editNamespaces: ['*'],
   })
 
   const { body: entry } = await request(t.context.serverUrl)
@@ -465,21 +485,21 @@ test.serial('generates entry__* events', async (t) => {
       locale: 'fr',
       name: 'home',
       fields: {
-        test: 'test'
+        test: 'test',
       },
       metadata: {
-        dummy: false
-      }
+        dummy: false,
+      },
     })
     .expect(200)
 
   const patchPayload = {
     fields: {
-      content: 'test content'
+      content: 'test content',
     },
     metadata: {
-      dummy: true
-    }
+      dummy: true,
+    },
   }
 
   const { body: entryUpdated } = await request(t.context.serverUrl)
@@ -488,9 +508,11 @@ test.serial('generates entry__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -498,7 +520,7 @@ test.serial('generates entry__* events', async (t) => {
   const entryCreatedEvent = getObjectEvent({
     events,
     eventType: 'entry__created',
-    objectId: entry.id
+    objectId: entry.id,
   })
   await testEventMetadata({ event: entryCreatedEvent, object: entry, t })
   t.is(entryCreatedEvent.object.collection, entry.collection)
@@ -510,13 +532,13 @@ test.serial('generates entry__* events', async (t) => {
   const entryUpdatedEvent = getObjectEvent({
     events,
     eventType: 'entry__updated',
-    objectId: entryUpdated.id
+    objectId: entryUpdated.id,
   })
   await testEventMetadata({
     event: entryUpdatedEvent,
     object: entryUpdated,
     t,
-    patchPayload
+    patchPayload,
   })
   t.is(entryUpdatedEvent.object.fields.content, entryUpdated.fields.content)
   t.is(entryUpdatedEvent.object.metadata.dummy, true)
@@ -526,9 +548,11 @@ test.serial('generates entry__* events', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -536,7 +560,7 @@ test.serial('generates entry__* events', async (t) => {
   const entryDeletedEvent = getObjectEvent({
     events: eventsAfterDelete,
     eventType: 'entry__deleted',
-    objectId: entryUpdated.id
+    objectId: entryUpdated.id,
   })
   await testEventMetadata({ event: entryDeletedEvent, object: entryUpdated, t })
 })
@@ -550,7 +574,7 @@ test.serial('2019-05-20: list entries with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['entry:list:all']
+    permissions: ['entry:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -564,7 +588,7 @@ test('2019-05-20: list entries with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['entry:list:all']
+    permissions: ['entry:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

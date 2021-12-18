@@ -2,7 +2,6 @@
 
 // Objective: migrate platforms from PostgreSQL to TimescaleDB
 
-require('@saltana/common').load()
 require('./src/secure-env').config() // load credentials from AWS SSM
 
 const _ = require('lodash')
@@ -16,10 +15,11 @@ const { getConnection } = require('./src/models')
 const { getKnex } = require('./src/models/util')
 const { getPlatforms, setPlatformEnvData } = require('./src/redis')
 
-const log = console.log
+const { log } = console
 let errors = 0
 
-const timescaleDBConnection = process.env.TIMESCALE_HOST &&
+const timescaleDBConnection =
+  process.env.TIMESCALE_HOST &&
   process.env.TIMESCALE_PORT &&
   process.env.TIMESCALE_DB &&
   process.env.TIMESCALE_USER &&
@@ -31,7 +31,10 @@ if (!timescaleDBConnection) {
 
 script
   .option('-d, --drop', 'Drop TimescaleDB schema if exists.')
-  .option('-u, --update', 'Update database connection into Redis. WARNING: it’s irreversible!')
+  .option(
+    '-u, --update',
+    'Update database connection into Redis. WARNING: it’s irreversible!',
+  )
   .parse(process.argv)
 
 const options = script.opts()
@@ -39,7 +42,7 @@ const options = script.opts()
 const dropSchema = options.drop === true
 const updateConnection = options.update === true
 
-async function run () {
+async function run() {
   const platformIds = await getPlatforms()
   const lastPlatformId = await _.maxBy(platformIds, _.parseInt)
 
@@ -73,7 +76,7 @@ async function run () {
   process.exit(0)
 }
 
-async function migrateToTimescaleDB ({ platformId, env }) {
+async function migrateToTimescaleDB({ platformId, env }) {
   const schema = await getSchema({ platformId, env })
   const pgKnex = await getPostgresKnex({ platformId, env })
   const timescaleKnex = await getTimescaleKnex({ platformId, env })
@@ -94,26 +97,28 @@ async function migrateToTimescaleDB ({ platformId, env }) {
   }
 }
 
-async function updateDBConnection ({ platformId, env }) {
+async function updateDBConnection({ platformId, env }) {
   const schema = await getSchema({ platformId, env })
   const timescaleKnex = await getTimescaleKnex({ platformId, env })
   const timescaleConnection = await getTimescaleConnection({ platformId, env })
 
   const existingSchema = await existsSchema({ knex: timescaleKnex, schema })
-  if (!existingSchema) throw new Error(`Platform ${platformId} ${env} not migrated yet`)
+  if (!existingSchema)
+    throw new Error(`Platform ${platformId} ${env} not migrated yet`)
 
   await setPlatformEnvData(platformId, env, 'postgresql', timescaleConnection)
 }
 
-async function getPostgresConnection ({ platformId, env }) {
+async function getPostgresConnection({ platformId, env }) {
   const { connection } = await getConnection({ platformId, env })
 
-  const missingConnection = !connection || ['host', 'port', 'database'].some(p => !connection[p])
+  const missingConnection =
+    !connection || ['host', 'port', 'database'].some((p) => !connection[p])
   if (missingConnection) return null
-  else return connection
+  return connection
 }
 
-async function getTimescaleConnection ({ platformId, env }) {
+async function getTimescaleConnection({ platformId, env }) {
   const pgConnection = await getPostgresConnection({ platformId, env })
   if (!pgConnection) return
 
@@ -123,33 +128,33 @@ async function getTimescaleConnection ({ platformId, env }) {
     user: process.env.TIMESCALE_USER,
     password: process.env.TIMESCALE_PASSWORD,
     database: process.env.TIMESCALE_DB,
-    port: process.env.TIMESCALE_PORT
+    port: process.env.TIMESCALE_PORT,
   }
 }
 
-async function getSchema ({ platformId, env }) {
+async function getSchema({ platformId, env }) {
   const pgConnection = await getPostgresConnection({ platformId, env })
   return pgConnection.schema
 }
 
-function getDumpFilenames (schema) {
+function getDumpFilenames(schema) {
   return {
     preData: `${schema}_pre-data.dump`,
     data: `${schema}_data.dump`,
   }
 }
 
-async function getPostgresKnex ({ platformId, env }) {
+async function getPostgresKnex({ platformId, env }) {
   const pgConnection = await getPostgresConnection({ platformId, env })
   return getKnex(pgConnection)
 }
 
-async function getTimescaleKnex ({ platformId, env }) {
+async function getTimescaleKnex({ platformId, env }) {
   const pgConnection = await getTimescaleConnection({ platformId, env })
   return getKnex(pgConnection)
 }
 
-async function addDateColumn ({ knex, schema }) {
+async function addDateColumn({ knex, schema }) {
   debug('Creating date columns')
 
   // Using `knex.raw` with transaction
@@ -183,15 +188,8 @@ async function addDateColumn ({ knex, schema }) {
 // https://gist.github.com/vielhuber/96eefdb3aff327bdf8230d753aaee1e1
 // pg_dump and pg_restore with password
 
-async function dump ({ pgConnection }) {
-  const {
-    host,
-    user,
-    password,
-    database,
-    port,
-    schema,
-  } = pgConnection
+async function dump({ pgConnection }) {
+  const { host, user, password, database, port, schema } = pgConnection
 
   debug('Dumping database')
 
@@ -211,20 +209,13 @@ async function dump ({ pgConnection }) {
   `)
 }
 
-async function restore ({ timescaleConnection, knex }) {
-  const {
-    host,
-    user,
-    password,
-    database,
-    port,
-    schema,
-  } = timescaleConnection
+async function restore({ timescaleConnection, knex }) {
+  const { host, user, password, database, port, schema } = timescaleConnection
 
   debug('Restoring database')
 
   if (dropSchema) {
-    const existingSchema = await existsSchema({ knex: knex, schema })
+    const existingSchema = await existsSchema({ knex, schema })
     if (existingSchema) {
       await removeContinuousAggregates({ knex, schema })
     }
@@ -248,12 +239,14 @@ async function restore ({ timescaleConnection, knex }) {
   `)
 }
 
-async function existsSchema ({ knex, schema }) {
-  const { rowCount } = await knex.raw(`SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${schema}'`)
+async function existsSchema({ knex, schema }) {
+  const { rowCount } = await knex.raw(
+    `SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${schema}'`,
+  )
   return rowCount !== 0
 }
 
-function removeDumpFiles (schema) {
+function removeDumpFiles(schema) {
   const filenames = getDumpFilenames(schema)
 
   debug('Removing temporary dump files')
@@ -262,7 +255,7 @@ function removeDumpFiles (schema) {
   fs.unlinkSync(path.join(__dirname, filenames.data))
 }
 
-async function createHyperTables ({ knex, schema }) {
+async function createHyperTables({ knex, schema }) {
   debug('Creating hypertables')
 
   const createHypertable = (table) => `
@@ -276,7 +269,7 @@ async function createHyperTables ({ knex, schema }) {
   })
 }
 
-async function addCompressionPolicies ({ knex, schema }) {
+async function addCompressionPolicies({ knex, schema }) {
   debug('Adding compression policies')
 
   const addCompressionPolicy = (table, segmentBy, duration = '31 days') => `
@@ -295,7 +288,7 @@ async function addCompressionPolicies ({ knex, schema }) {
   })
 }
 
-async function createContinuousAggregates ({ knex, schema }) {
+async function createContinuousAggregates({ knex, schema }) {
   debug('Creating continuous aggregates')
 
   const createContinuousAggregate = ({
@@ -325,99 +318,117 @@ async function createContinuousAggregates ({ knex, schema }) {
   `
 
   await knex.transaction(async (trx) => {
-    await trx.raw(createContinuousAggregate({
-      viewName: 'event_hourly',
-      schema,
-      table: 'event',
-      interval: '1 hour',
-      timeBucketLabel: 'hour',
-      refreshLag: '1 hour',
-      refreshInterval: '1 hour',
-      secondaryColumn: 'type',
-    }))
-    await trx.raw(createContinuousAggregate({
-      viewName: 'event_daily',
-      schema,
-      table: 'event',
-      interval: '1 day',
-      timeBucketLabel: 'day',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type',
-    }))
-    await trx.raw(createContinuousAggregate({
-      viewName: 'event_monthly',
-      schema,
-      table: 'event',
-      interval: '30 day',
-      timeBucketLabel: 'month',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type',
-    }))
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'event_hourly',
+        schema,
+        table: 'event',
+        interval: '1 hour',
+        timeBucketLabel: 'hour',
+        refreshLag: '1 hour',
+        refreshInterval: '1 hour',
+        secondaryColumn: 'type',
+      }),
+    )
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'event_daily',
+        schema,
+        table: 'event',
+        interval: '1 day',
+        timeBucketLabel: 'day',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'event_monthly',
+        schema,
+        table: 'event',
+        interval: '30 day',
+        timeBucketLabel: 'month',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
 
-    await trx.raw(createContinuousAggregate({
-      viewName: 'webhookLog_hourly',
-      schema,
-      table: 'webhookLog',
-      interval: '1 hour',
-      timeBucketLabel: 'hour',
-      refreshLag: '1 hour',
-      refreshInterval: '1 hour',
-    }))
-    await trx.raw(createContinuousAggregate({
-      viewName: 'webhookLog_daily',
-      schema,
-      table: 'webhookLog',
-      interval: '1 day',
-      timeBucketLabel: 'day',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-    }))
-    await trx.raw(createContinuousAggregate({
-      viewName: 'webhookLog_monthly',
-      schema,
-      table: 'webhookLog',
-      interval: '30 day',
-      timeBucketLabel: 'month',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-    }))
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'webhookLog_hourly',
+        schema,
+        table: 'webhookLog',
+        interval: '1 hour',
+        timeBucketLabel: 'hour',
+        refreshLag: '1 hour',
+        refreshInterval: '1 hour',
+      }),
+    )
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'webhookLog_daily',
+        schema,
+        table: 'webhookLog',
+        interval: '1 day',
+        timeBucketLabel: 'day',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+      }),
+    )
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'webhookLog_monthly',
+        schema,
+        table: 'webhookLog',
+        interval: '30 day',
+        timeBucketLabel: 'month',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+      }),
+    )
 
-    await trx.raw(createContinuousAggregate({
-      viewName: 'workflowLog_hourly',
-      schema,
-      table: 'workflowLog',
-      interval: '1 hour',
-      timeBucketLabel: 'hour',
-      refreshLag: '1 hour',
-      refreshInterval: '1 hour',
-      secondaryColumn: 'type',
-    }))
-    await trx.raw(createContinuousAggregate({
-      viewName: 'workflowLog_daily',
-      schema,
-      table: 'workflowLog',
-      interval: '1 day',
-      timeBucketLabel: 'day',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type',
-    }))
-    await trx.raw(createContinuousAggregate({
-      viewName: 'workflowLog_monthly',
-      schema,
-      table: 'workflowLog',
-      interval: '30 day',
-      timeBucketLabel: 'month',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type',
-    }))
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'workflowLog_hourly',
+        schema,
+        table: 'workflowLog',
+        interval: '1 hour',
+        timeBucketLabel: 'hour',
+        refreshLag: '1 hour',
+        refreshInterval: '1 hour',
+        secondaryColumn: 'type',
+      }),
+    )
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'workflowLog_daily',
+        schema,
+        table: 'workflowLog',
+        interval: '1 day',
+        timeBucketLabel: 'day',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
+    await trx.raw(
+      createContinuousAggregate({
+        viewName: 'workflowLog_monthly',
+        schema,
+        table: 'workflowLog',
+        interval: '30 day',
+        timeBucketLabel: 'month',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
   })
 }
 
-async function removeContinuousAggregates ({ knex, schema }) {
+async function removeContinuousAggregates({ knex, schema }) {
   debug('Removing continuous aggregates')
 
   const removeContinuousAggregate = (viewName, schema) => `
@@ -439,18 +450,18 @@ async function removeContinuousAggregates ({ knex, schema }) {
   })
 }
 
-async function addIndexes ({ knex, schema }) {
+async function addIndexes({ knex, schema }) {
   debug('Adding indexes')
 
   await knex.transaction(async (trx) => {
-    await trx.schema.withSchema(schema).alterTable('apiKey', table => {
+    await trx.schema.withSchema(schema).alterTable('apiKey', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'apiKey_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'apiKey_updatedDate_id_index')
       table.unique('key', 'apiKey_key_unique')
     })
 
-    await trx.schema.withSchema(schema).alterTable('assessment', table => {
+    await trx.schema.withSchema(schema).alterTable('assessment', (table) => {
       table.string('id').primary().alter()
       table.index('assetId', 'assessment_assetId_index')
       table.index('ownerId', 'assessment_ownerId_index')
@@ -459,7 +470,7 @@ async function addIndexes ({ knex, schema }) {
       table.index('receiverId', 'assessment_receiverId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('asset', table => {
+    await trx.schema.withSchema(schema).alterTable('asset', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'asset_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'asset_updatedDate_id_index')
@@ -469,50 +480,58 @@ async function addIndexes ({ knex, schema }) {
       table.index('customAttributes', 'asset_customAttributes_gin_index', 'GIN')
     })
 
-    await trx.schema.withSchema(schema).alterTable('assetType', table => {
+    await trx.schema.withSchema(schema).alterTable('assetType', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'assetType_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'assetType_updatedDate_id_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('authMean', table => {
+    await trx.schema.withSchema(schema).alterTable('authMean', (table) => {
       table.string('id').primary().alter()
       table.index('identifier', 'authMean_identifier_index')
       table.index('userId', 'authMean_userId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('authToken', table => {
+    await trx.schema.withSchema(schema).alterTable('authToken', (table) => {
       table.string('id').primary().alter()
       table.unique('value', 'authToken_value_unique')
       table.index('userId', 'authToken_userId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('availability', table => {
+    await trx.schema.withSchema(schema).alterTable('availability', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'availability_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'availability_updatedDate_id_index')
       table.index('assetId', 'availability_assetId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('category', table => {
+    await trx.schema.withSchema(schema).alterTable('category', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'category_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'category_updatedDate_id_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('config', table => {
+    await trx.schema.withSchema(schema).alterTable('config', (table) => {
       table.string('id').primary().alter()
       table.unique('access', 'config_access_unique')
     })
 
-    await trx.schema.withSchema(schema).alterTable('customAttribute', table => {
-      table.string('id').primary().alter()
-      table.index(['createdDate', 'id'], 'customAttribute_createdDate_id_index')
-      table.index(['updatedDate', 'id'], 'customAttribute_updatedDate_id_index')
-      table.unique('name', 'customAttribute_name_unique')
-    })
+    await trx.schema
+      .withSchema(schema)
+      .alterTable('customAttribute', (table) => {
+        table.string('id').primary().alter()
+        table.index(
+          ['createdDate', 'id'],
+          'customAttribute_createdDate_id_index',
+        )
+        table.index(
+          ['updatedDate', 'id'],
+          'customAttribute_updatedDate_id_index',
+        )
+        table.unique('name', 'customAttribute_name_unique')
+      })
 
-    await trx.schema.withSchema(schema).alterTable('document', table => {
+    await trx.schema.withSchema(schema).alterTable('document', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'document_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'document_updatedDate_id_index')
@@ -522,7 +541,7 @@ async function addIndexes ({ knex, schema }) {
       table.index('data', 'document_data_gin_index', 'GIN')
     })
 
-    await trx.schema.withSchema(schema).alterTable('entry', table => {
+    await trx.schema.withSchema(schema).alterTable('entry', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'entry_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'entry_updatedDate_id_index')
@@ -531,7 +550,7 @@ async function addIndexes ({ knex, schema }) {
       table.unique(['locale', 'name'], 'entry_locale_name_unique')
     })
 
-    await trx.schema.withSchema(schema).alterTable('event', table => {
+    await trx.schema.withSchema(schema).alterTable('event', (table) => {
       table.index('id', 'event_id_index') // no longer primary key
       table.index(['createdTimestamp', 'id'], 'event_createdTimestamp_id_index')
       table.index('type', 'event_type_index')
@@ -543,14 +562,19 @@ async function addIndexes ({ knex, schema }) {
       table.index('metadata', 'event_metadata_gin_index', 'GIN')
     })
 
-    await trx.schema.withSchema(schema).alterTable('internalAvailability', table => {
-      table.string('id').primary().alter()
-      table.index('assetId', 'internalAvailability_asset_index')
-      table.index('transactionId', 'internalAvailability_transactionId_index')
-      table.index(['assetId', 'datesRange'], 'internalAvailability_assetId_datesRange_index')
-    })
+    await trx.schema
+      .withSchema(schema)
+      .alterTable('internalAvailability', (table) => {
+        table.string('id').primary().alter()
+        table.index('assetId', 'internalAvailability_asset_index')
+        table.index('transactionId', 'internalAvailability_transactionId_index')
+        table.index(
+          ['assetId', 'datesRange'],
+          'internalAvailability_assetId_datesRange_index',
+        )
+      })
 
-    await trx.schema.withSchema(schema).alterTable('message', table => {
+    await trx.schema.withSchema(schema).alterTable('message', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'message_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'message_updatedDate_id_index')
@@ -560,21 +584,21 @@ async function addIndexes ({ knex, schema }) {
       table.index('receiverId', 'message_receiverId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('order', table => {
+    await trx.schema.withSchema(schema).alterTable('order', (table) => {
       table.string('id').primary().alter()
       table.index('lines', 'order_lines_gin_index', 'GIN')
       table.index('moves', 'order_moves_gin_index', 'GIN')
       table.index('payerId', 'order_payerId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('role', table => {
+    await trx.schema.withSchema(schema).alterTable('role', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'role_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'role_updatedDate_id_index')
       table.index('value', 'role_value_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('task', table => {
+    await trx.schema.withSchema(schema).alterTable('task', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'task_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'task_updatedDate_id_index')
@@ -582,7 +606,7 @@ async function addIndexes ({ knex, schema }) {
       table.index('eventObjectId', 'task_eventObjectId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('transaction', table => {
+    await trx.schema.withSchema(schema).alterTable('transaction', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'transaction_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'transaction_updatedDate_id_index')
@@ -592,7 +616,7 @@ async function addIndexes ({ knex, schema }) {
       table.index('assetId', 'transaction_assetId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('user', table => {
+    await trx.schema.withSchema(schema).alterTable('user', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'user_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'user_updatedDate_id_index')
@@ -602,31 +626,37 @@ async function addIndexes ({ knex, schema }) {
       table.index('roles', 'user_roles_gin_index', 'GIN')
     })
 
-    await trx.schema.withSchema(schema).alterTable('webhook', table => {
+    await trx.schema.withSchema(schema).alterTable('webhook', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'webhook_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'webhook_updatedDate_id_index')
       table.index('event', 'webhook_event_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('webhookLog', table => {
+    await trx.schema.withSchema(schema).alterTable('webhookLog', (table) => {
       table.index('id', 'webhookLog_id_index') // no longer primary key
-      table.index(['createdTimestamp', 'id'], 'webhookLog_createdTimestamp_id_index')
+      table.index(
+        ['createdTimestamp', 'id'],
+        'webhookLog_createdTimestamp_id_index',
+      )
       table.index('status', 'webhookLog_status_index')
       table.index('webhookId', 'webhookLog_webhookId_index')
       table.index('eventId', 'webhookLog_eventId_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('workflow', table => {
+    await trx.schema.withSchema(schema).alterTable('workflow', (table) => {
       table.string('id').primary().alter()
       table.index(['createdDate', 'id'], 'workflow_createdDate_id_index')
       table.index(['updatedDate', 'id'], 'workflow_updatedDate_id_index')
       table.index('event', 'workflow_event_index')
     })
 
-    await trx.schema.withSchema(schema).alterTable('workflowLog', table => {
+    await trx.schema.withSchema(schema).alterTable('workflowLog', (table) => {
       table.index('id', 'workflowLog_id_index') // no longer primary key
-      table.index(['createdTimestamp', 'id'], 'workflowLog_createdTimestamp_id_index')
+      table.index(
+        ['createdTimestamp', 'id'],
+        'workflowLog_createdTimestamp_id_index',
+      )
       table.index('type', 'workflowLog_type_index')
       table.index('workflowId', 'workflowLog_workflowId_index')
       table.index('eventId', 'workflowLog_eventId_index')
@@ -635,7 +665,7 @@ async function addIndexes ({ knex, schema }) {
   })
 }
 
-async function refreshKnexMigrations ({ knex, schema }) {
+async function refreshKnexMigrations({ knex, schema }) {
   debug('Refreshing knex migrations table')
 
   const refreshKnexMigration = (table, name) => `
@@ -645,18 +675,20 @@ async function refreshKnexMigrations ({ knex, schema }) {
     VALUES ('${name}', 1, NOW())
   `
 
-  await knex.raw(refreshKnexMigration('knex_migrations', '20200713111032_init.js'))
+  await knex.raw(
+    refreshKnexMigration('knex_migrations', '20200713111032_init.js'),
+  )
 }
 
-function minifyMultiLines (str) {
+function minifyMultiLines(str) {
   return str
     .split('\n')
-    .map(line => line.trim())
-    .filter(line => !!line)
+    .map((line) => line.trim())
+    .filter((line) => !!line)
     .join(' ')
 }
 
-function execMultiLines (str) {
+function execMultiLines(str) {
   execSync(minifyMultiLines(str))
 }
 

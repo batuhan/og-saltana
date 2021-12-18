@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const _ = require('lodash')
 const { CronTime } = require('cron')
@@ -12,35 +10,65 @@ const {
   isValidCronPattern,
   isValidTimezone,
   computeRecurringDates,
-  computeRecurringPeriods
+  computeRecurringPeriods,
 } = require('../../../src/util/time')
 
 test('detects period intersections', (t) => {
   const dates1 = [
-    { startDate: '2018-01-01T00:00:00.000Z', endDate: '2018-01-05T00:00:00.000Z' },
-    { startDate: '2018-01-05T00:00:00.000Z', endDate: '2018-01-08T00:00:00.000Z' }
+    {
+      startDate: '2018-01-01T00:00:00.000Z',
+      endDate: '2018-01-05T00:00:00.000Z',
+    },
+    {
+      startDate: '2018-01-05T00:00:00.000Z',
+      endDate: '2018-01-08T00:00:00.000Z',
+    },
   ]
-  const newDates1 = { startDate: '2018-01-15T00:00:00.000Z', endDate: '2018-01-19T00:00:00.000Z' }
+  const newDates1 = {
+    startDate: '2018-01-15T00:00:00.000Z',
+    endDate: '2018-01-19T00:00:00.000Z',
+  }
 
   t.false(isIntersection(dates1, newDates1))
 
   const dates2 = [
-    { startDate: '2018-01-01T00:00:00.000Z', endDate: '2018-01-05T00:00:00.000Z' },
-    { startDate: '2018-01-05T00:00:00.000Z', endDate: '2018-01-08T00:00:00.000Z' }
+    {
+      startDate: '2018-01-01T00:00:00.000Z',
+      endDate: '2018-01-05T00:00:00.000Z',
+    },
+    {
+      startDate: '2018-01-05T00:00:00.000Z',
+      endDate: '2018-01-08T00:00:00.000Z',
+    },
   ]
-  const newDates2 = { startDate: '2018-01-07T00:00:00.000Z', endDate: '2018-01-19T00:00:00.000Z' }
+  const newDates2 = {
+    startDate: '2018-01-07T00:00:00.000Z',
+    endDate: '2018-01-19T00:00:00.000Z',
+  }
 
   t.true(isIntersection(dates2, newDates2))
 })
 
 test('computes a date based on a string duration', (t) => {
-  t.is(computeDate('2018-01-01T00:00:00.000Z', '2d'), '2018-01-03T00:00:00.000Z')
-  t.is(computeDate('2018-01-01T00:00:00.000Z', '15m'), '2018-01-01T00:15:00.000Z')
+  t.is(
+    computeDate('2018-01-01T00:00:00.000Z', '2d'),
+    '2018-01-03T00:00:00.000Z',
+  )
+  t.is(
+    computeDate('2018-01-01T00:00:00.000Z', '15m'),
+    '2018-01-01T00:15:00.000Z',
+  )
 })
 
 test('computes a date based on an object duration', (t) => {
-  t.is(computeDate('2018-01-01T00:00:00.000Z', { d: 2 }), '2018-01-03T00:00:00.000Z')
-  t.is(computeDate('2018-01-01T00:00:00.000Z', { m: 15 }), '2018-01-01T00:15:00.000Z')
+  t.is(
+    computeDate('2018-01-01T00:00:00.000Z', { d: 2 }),
+    '2018-01-03T00:00:00.000Z',
+  )
+  t.is(
+    computeDate('2018-01-01T00:00:00.000Z', { m: 15 }),
+    '2018-01-01T00:15:00.000Z',
+  )
 })
 
 test('truncate date', (t) => {
@@ -59,13 +87,28 @@ test('get rounded date', (t) => {
   t.is(getRoundedDate('2018-01-01T19:00:00.000Z'), '2018-01-02T00:00:00.000Z')
 
   // round to nearest minute
-  t.is(getRoundedDate('2018-01-01T00:00:00.000Z', { nbMinutes: 1 }), '2018-01-01T00:00:00.000Z')
-  t.is(getRoundedDate('2018-01-01T00:00:00.001Z', { nbMinutes: 1 }), '2018-01-01T00:00:00.000Z')
-  t.is(getRoundedDate('2018-01-01T00:00:50.000Z', { nbMinutes: 1 }), '2018-01-01T00:01:00.000Z')
+  t.is(
+    getRoundedDate('2018-01-01T00:00:00.000Z', { nbMinutes: 1 }),
+    '2018-01-01T00:00:00.000Z',
+  )
+  t.is(
+    getRoundedDate('2018-01-01T00:00:00.001Z', { nbMinutes: 1 }),
+    '2018-01-01T00:00:00.000Z',
+  )
+  t.is(
+    getRoundedDate('2018-01-01T00:00:50.000Z', { nbMinutes: 1 }),
+    '2018-01-01T00:01:00.000Z',
+  )
 
   // round to 5 minutes
-  t.is(getRoundedDate('2018-01-01T00:00:50.000Z', { nbMinutes: 5 }), '2018-01-01T00:00:00.000Z')
-  t.is(getRoundedDate('2018-01-01T00:03:10.000Z', { nbMinutes: 5 }), '2018-01-01T00:05:00.000Z')
+  t.is(
+    getRoundedDate('2018-01-01T00:00:50.000Z', { nbMinutes: 5 }),
+    '2018-01-01T00:00:00.000Z',
+  )
+  t.is(
+    getRoundedDate('2018-01-01T00:03:10.000Z', { nbMinutes: 5 }),
+    '2018-01-01T00:05:00.000Z',
+  )
 })
 
 test('validates the timezone', (t) => {
@@ -84,9 +127,9 @@ test('detects valid and invalid cron patterns', (t) => {
     '* * * * *',
     '0 * * * *',
     '8 8 8 8 5',
-    '0-10 1-10 1-10 0-6 0-1'
+    '0-10 1-10 1-10 0-6 0-1',
   ]
-  const validPatternsWithSeconds = validPatterns.map(p => `* ${p}`)
+  const validPatternsWithSeconds = validPatterns.map((p) => `* ${p}`)
   const invalidPatterns = [
     '* * *',
     '* * * * * * *',
@@ -94,23 +137,35 @@ test('detects valid and invalid cron patterns', (t) => {
     '* * * * 0*',
     '* * * 1/0 *',
     '* 2-1 * * *',
-    '* /4 * * *'
+    '* /4 * * *',
   ]
-  const invalidPatternsWithSeconds = invalidPatterns.map(p => `* ${p}`)
+  const invalidPatternsWithSeconds = invalidPatterns.map((p) => `* ${p}`)
 
-  validPatterns.forEach(pattern => t.true(isValidCronPattern(pattern)))
-  invalidPatterns.forEach(pattern => t.false(isValidCronPattern(pattern)))
-  validPatternsWithSeconds.forEach(pattern => t.false(isValidCronPattern(pattern)))
-  invalidPatternsWithSeconds.forEach(pattern => t.false(isValidCronPattern(pattern), pattern))
+  validPatterns.forEach((pattern) => t.true(isValidCronPattern(pattern)))
+  invalidPatterns.forEach((pattern) => t.false(isValidCronPattern(pattern)))
+  validPatternsWithSeconds.forEach((pattern) =>
+    t.false(isValidCronPattern(pattern)),
+  )
+  invalidPatternsWithSeconds.forEach((pattern) =>
+    t.false(isValidCronPattern(pattern), pattern),
+  )
 
-  validPatternsWithSeconds.forEach(pattern => t.true(isValidCronPattern(pattern, { allowSeconds: true })))
-  validPatterns.forEach(pattern => t.true(isValidCronPattern(pattern, { allowSeconds: true })))
-  invalidPatterns.forEach(pattern => t.false(isValidCronPattern(pattern, { allowSeconds: true })))
-  invalidPatternsWithSeconds.forEach(pattern => t.false(isValidCronPattern(pattern, { allowSeconds: true })))
+  validPatternsWithSeconds.forEach((pattern) =>
+    t.true(isValidCronPattern(pattern, { allowSeconds: true })),
+  )
+  validPatterns.forEach((pattern) =>
+    t.true(isValidCronPattern(pattern, { allowSeconds: true })),
+  )
+  invalidPatterns.forEach((pattern) =>
+    t.false(isValidCronPattern(pattern, { allowSeconds: true })),
+  )
+  invalidPatternsWithSeconds.forEach((pattern) =>
+    t.false(isValidCronPattern(pattern, { allowSeconds: true })),
+  )
 })
 
-const padDayOrMonth = n => _.padStart(n + 1, 2, '0')
-const padTime = t => _.padStart(t, 2, '0')
+const padDayOrMonth = (n) => _.padStart(n + 1, 2, '0')
+const padTime = (t) => _.padStart(t, 2, '0')
 
 /**
  * @param {Function} expectedDatesFn - Accepts an object with the following arguments:
@@ -126,7 +181,7 @@ const testOverMonths = (expectedDatesFn, frequency = 'day', options = {}) => {
   const patterns = {
     day: '0 0 * * *',
     hour: '0 * * * *',
-    minute: '* * * * *'
+    minute: '* * * * *',
   }
 
   const pattern = patterns[frequency]
@@ -145,7 +200,7 @@ const testOverMonths = (expectedDatesFn, frequency = 'day', options = {}) => {
     const recurringDates = computeRecurringDates(pattern, {
       startDate,
       endDate,
-      ...options
+      ...options,
       // timezone: 'UTC' // should be the default
     })
 
@@ -156,18 +211,22 @@ const testOverMonths = (expectedDatesFn, frequency = 'day', options = {}) => {
 test('computes recurring dates with UTC by default, ignoring any local DST shift', (t) => {
   const getExpectedDates = ({ m, daysOfMonth, endDate, frequency = 'day' }) => {
     if (frequency === 'day') {
-      return _.range(daysOfMonth).map(padDayOrMonth)
-        .map(d => `2018-${m}-${d}T00:00:00.000Z`)
-    } else if (frequency === 'hour') {
-      const dates = _.range(daysOfMonth).map(padDayOrMonth)
-        .map(d => `2018-${m}-${d}`)
+      return _.range(daysOfMonth)
+        .map(padDayOrMonth)
+        .map((d) => `2018-${m}-${d}T00:00:00.000Z`)
+    }
+    if (frequency === 'hour') {
+      const dates = _.range(daysOfMonth)
+        .map(padDayOrMonth)
+        .map((d) => `2018-${m}-${d}`)
 
       return dates.reduce((expected, d) => {
-        const time = _.range(0, 24).map(padTime)
-          .map(h => `${h}:00:00.000Z`)
+        const time = _.range(0, 24)
+          .map(padTime)
+          .map((h) => `${h}:00:00.000Z`)
 
-        const fullDates = time.map(t => `${d}T${t}`)
-        return expected.concat(fullDates).filter(d => d < endDate)
+        const fullDates = time.map((t) => `${d}T${t}`)
+        return expected.concat(fullDates).filter((d) => d < endDate)
       }, [])
     }
   }
@@ -177,20 +236,38 @@ test('computes recurring dates with UTC by default, ignoring any local DST shift
     t.deepEqual(recurringDates, expectedDates)
   })
 
-  testOverMonths(({ m, daysOfMonth, recurringDates }) => {
-    const expectedDates = getExpectedDates({ m, daysOfMonth })
-    t.deepEqual(recurringDates, expectedDates)
-  }, 'day', { timezone: null })
+  testOverMonths(
+    ({ m, daysOfMonth, recurringDates }) => {
+      const expectedDates = getExpectedDates({ m, daysOfMonth })
+      t.deepEqual(recurringDates, expectedDates)
+    },
+    'day',
+    { timezone: null },
+  )
 
   testOverMonths(({ m, daysOfMonth, recurringDates, endDate }) => {
-    const expectedDates = getExpectedDates({ m, daysOfMonth, frequency: 'hour', endDate })
+    const expectedDates = getExpectedDates({
+      m,
+      daysOfMonth,
+      frequency: 'hour',
+      endDate,
+    })
     t.deepEqual(recurringDates, expectedDates)
   }, 'hour')
 
-  testOverMonths(({ m, daysOfMonth, recurringDates, endDate }) => {
-    const expectedDates = getExpectedDates({ m, daysOfMonth, frequency: 'hour', endDate })
-    t.deepEqual(recurringDates, expectedDates)
-  }, 'hour', { timezone: null })
+  testOverMonths(
+    ({ m, daysOfMonth, recurringDates, endDate }) => {
+      const expectedDates = getExpectedDates({
+        m,
+        daysOfMonth,
+        frequency: 'hour',
+        endDate,
+      })
+      t.deepEqual(recurringDates, expectedDates)
+    },
+    'hour',
+    { timezone: null },
+  )
 })
 
 test('computes recurring dates with custom timezone', (t) => {
@@ -198,40 +275,48 @@ test('computes recurring dates with custom timezone', (t) => {
   const recurringDates = computeRecurringDates('0 0 * * *', {
     startDate: '2018-01-01T00:00:00.000Z',
     endDate: '2018-01-05T00:00:00.000Z',
-    timezone
+    timezone,
   })
 
   t.deepEqual(recurringDates, [
     '2018-01-01T23:00:00.000Z',
     '2018-01-02T23:00:00.000Z',
     '2018-01-03T23:00:00.000Z',
-    '2018-01-04T23:00:00.000Z'
+    '2018-01-04T23:00:00.000Z',
   ])
 
-  const extractHour = date => date.match(/T(\d{2})/)[1]
-  const monthHours = dates => dates.reduce((h, d) => h.add(extractHour(d)), new Set())
+  const extractHour = (date) => date.match(/T(\d{2})/)[1]
+  const monthHours = (dates) =>
+    dates.reduce((h, d) => h.add(extractHour(d)), new Set())
 
-  testOverMonths(({ m, recurringDates }) => {
-    const month = parseInt(m, 10)
-    const hours = monthHours(recurringDates) // Set
-    if (month < 3 || month > 10) { // no DST
-      t.is(hours.size, 1)
-      t.true(hours.has('23'))
-    } else if (month === 3 || month === 10) { // DST switch during the month
-      t.is(hours.size, 2)
-      t.true(hours.has('22'))
-      t.true(hours.has('23'))
-    } else { // DST
-      t.is(hours.size, 1)
-      t.true(hours.has('22'))
-    }
-  }, 'day', { timezone })
+  testOverMonths(
+    ({ m, recurringDates }) => {
+      const month = parseInt(m, 10)
+      const hours = monthHours(recurringDates) // Set
+      if (month < 3 || month > 10) {
+        // no DST
+        t.is(hours.size, 1)
+        t.true(hours.has('23'))
+      } else if (month === 3 || month === 10) {
+        // DST switch during the month
+        t.is(hours.size, 2)
+        t.true(hours.has('22'))
+        t.true(hours.has('23'))
+      } else {
+        // DST
+        t.is(hours.size, 1)
+        t.true(hours.has('22'))
+      }
+    },
+    'day',
+    { timezone },
+  )
 })
 
 test('computes recurring dates with fancy pattern', (t) => {
   const recurringDates = computeRecurringDates('0-5 4,6 * * 1,5', {
     startDate: '2018-01-01T00:00:00.000Z',
-    endDate: '2018-01-08T00:00:00.000Z'
+    endDate: '2018-01-08T00:00:00.000Z',
   })
 
   t.deepEqual(recurringDates, [
@@ -259,7 +344,7 @@ test('computes recurring dates with fancy pattern', (t) => {
     '2018-01-05T06:02:00.000Z',
     '2018-01-05T06:03:00.000Z',
     '2018-01-05T06:04:00.000Z',
-    '2018-01-05T06:05:00.000Z'
+    '2018-01-05T06:05:00.000Z',
   ])
 })
 
@@ -267,12 +352,21 @@ test('computes recurring periods', (t) => {
   const recurringPeriods = computeRecurringPeriods('0 0 * * 2-4', {
     startDate: '2018-01-01T00:00:00.000Z',
     endDate: '2018-01-08T00:00:00.000Z',
-    duration: '1d'
+    duration: '1d',
   })
 
   t.deepEqual(recurringPeriods, [
-    { startDate: '2018-01-02T00:00:00.000Z', endDate: '2018-01-03T00:00:00.000Z' },
-    { startDate: '2018-01-03T00:00:00.000Z', endDate: '2018-01-04T00:00:00.000Z' },
-    { startDate: '2018-01-04T00:00:00.000Z', endDate: '2018-01-05T00:00:00.000Z' }
+    {
+      startDate: '2018-01-02T00:00:00.000Z',
+      endDate: '2018-01-03T00:00:00.000Z',
+    },
+    {
+      startDate: '2018-01-03T00:00:00.000Z',
+      endDate: '2018-01-04T00:00:00.000Z',
+    },
+    {
+      startDate: '2018-01-04T00:00:00.000Z',
+      endDate: '2018-01-05T00:00:00.000Z',
+    },
   ])
 })

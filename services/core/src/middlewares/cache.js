@@ -1,9 +1,7 @@
 const _ = require('lodash')
 
-module.exports = cache
-
 function cache (directives = 'max-age=60') {
-  const middleware = (req, res, next) => {
+  return (req, res, next) => {
     if (typeof directives !== 'string') return next()
     res.header('cache-control', directives)
 
@@ -16,5 +14,6 @@ function cache (directives = 'max-age=60') {
     res.setHeader('vary', newVaryHeader) // replacing the header
     next()
   }
-  return middleware
 }
+
+module.exports = cache

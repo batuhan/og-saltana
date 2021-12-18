@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
@@ -20,7 +18,7 @@ const {
 
 const { encodeBase64 } = require('../../../src/util/encoding')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'user' })(t)
   await beforeEach()(t)
 })
@@ -33,7 +31,7 @@ test('checks if the username is available', async (t) => {
     .get('/users/check-availability?username=admin')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
@@ -45,7 +43,7 @@ test('checks if the username is available', async (t) => {
     .get('/users/check-availability?username=noone')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
@@ -56,7 +54,10 @@ test('checks if the username is available', async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list users with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -66,7 +67,10 @@ test.serial('list users with pagination', async (t) => {
 })
 
 test('list users with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/users?id=usr_WHlfQps1I3a1gJYz2I3a')
@@ -78,7 +82,10 @@ test('list users with id filter', async (t) => {
 })
 
 test('list users with query filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const query = 'user2'
 
@@ -90,17 +97,14 @@ test('list users with query filter', async (t) => {
   checkCursorPaginatedListObject(t, obj)
   t.is(obj.results.length, 1)
 
-  obj.results.forEach(user => {
-    const fields = [
-      'displayName',
-      'firstname',
-      'lastname',
-      'username',
-      'email'
-    ]
+  obj.results.forEach((user) => {
+    const fields = ['displayName', 'firstname', 'lastname', 'username', 'email']
 
-    const matchQuery = fields.some(field => {
-      return user[field] && user[field].toLowerCase().replace(/\s/gi, '').includes(query)
+    const matchQuery = fields.some((field) => {
+      return (
+        user[field] &&
+        user[field].toLowerCase().replace(/\s/gi, '').includes(query)
+      )
     })
 
     t.true(matchQuery)
@@ -108,31 +112,42 @@ test('list users with query filter', async (t) => {
 })
 
 test('list users without type should only return natural users', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/users')
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, user) => t.true(!user.roles.includes('organization'))
+  const checkResultsFn = (t, user) =>
+    t.true(!user.roles.includes('organization'))
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
 })
 
 test('list organization users', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/users?type=organization')
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, user) => t.true(user.roles.includes('organization'))
+  const checkResultsFn = (t, user) =>
+    t.true(user.roles.includes('organization'))
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
 })
 
 test('list users and organizations', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/users?type=all')
@@ -155,7 +170,10 @@ test('list users and organizations', async (t) => {
 })
 
 test('list users and organizations filtering by IDs without providing type', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/users?id[]=usr_WHlfQps1I3a1gJYz2I3a&id[]=org_xC3ZlGs1Jo71gb2G0Jo7')
@@ -163,13 +181,20 @@ test('list users and organizations filtering by IDs without providing type', asy
     .expect(200)
 
   const checkResultsFn = (t, user) => {
-    t.true(['usr_WHlfQps1I3a1gJYz2I3a', 'org_xC3ZlGs1Jo71gb2G0Jo7'].includes(user.id))
+    t.true(
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'org_xC3ZlGs1Jo71gb2G0Jo7'].includes(
+        user.id,
+      ),
+    )
   }
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
 })
 
 test('list members of an organization using userOrganizationId filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const orgId = 'org_yiBSnhs1zaP1hh8rczaP'
   const { body: obj } = await request(t.context.serverUrl)
@@ -177,13 +202,17 @@ test('list members of an organization using userOrganizationId filter', async (t
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, user) => t.true(Object.keys(user.organizations).includes(orgId))
+  const checkResultsFn = (t, user) =>
+    t.true(Object.keys(user.organizations).includes(orgId))
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
   t.is(obj.results.length, 3)
 })
 
 test('list user belonging to every listed using userOrganizationId filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:list:all'],
+  })
 
   const orgIds = ['org_xC3ZlGs1Jo71gb2G0Jo7', 'org_yiBSnhs1zaP1hh8rczaP']
   const { body: obj } = await request(t.context.serverUrl)
@@ -192,14 +221,17 @@ test('list user belonging to every listed using userOrganizationId filter', asyn
     .expect(200)
 
   const checkResultsFn = (t, user) => {
-    t.true(orgIds.every(id => Object.keys(user.organizations).includes(id)))
+    t.true(orgIds.every((id) => Object.keys(user.organizations).includes(id)))
   }
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
   t.is(obj.results.length, 1)
 })
 
 test('finds a user', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/users/usr_WHlfQps1I3a1gJYz2I3a')
@@ -213,7 +245,11 @@ test('finds a user', async (t) => {
 })
 
 test('finds own user (display private and protected namespace)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:read:all'], userId: 'usr_QVQfQps1I3a1gJYz2I3a' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:read:all'],
+    userId: 'usr_QVQfQps1I3a1gJYz2I3a',
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/users/usr_QVQfQps1I3a1gJYz2I3a')
@@ -234,7 +270,11 @@ test('finds own user (display private and protected namespace)', async (t) => {
 })
 
 test('finds a user from a transaction (display protected namespace)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:read:all'], userId: 'usr_Y0tfQps1I3a1gJYz2I3a' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:read:all'],
+    userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/users/usr_QVQfQps1I3a1gJYz2I3a')
@@ -255,7 +295,11 @@ test('finds a user from a transaction (display protected namespace)', async (t) 
 })
 
 test('finds a user with no relation (display neither private nor protected namespace)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:read:all'], userId: '43b7c248-4cca-43ff-95b6-f44a088e2ef2' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:read:all'],
+    userId: '43b7c248-4cca-43ff-95b6-f44a088e2ef2',
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/users/usr_QVQfQps1I3a1gJYz2I3a')
@@ -280,7 +324,7 @@ test('creates a user', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: _.uniqueId('randomUser'),
@@ -288,10 +332,10 @@ test('creates a user', async (t) => {
       metadata: {
         _private: {
           firstname: 'Random',
-          lastname: 'RANDOM'
+          lastname: 'RANDOM',
         },
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(200)
 
@@ -307,12 +351,12 @@ test('cannot use a existing username to create a user', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'admin',
       password: 'adminPassword',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -322,11 +366,8 @@ test('cannot use a existing username to create a user', async (t) => {
 test('creates a user with roles if the config permission is provided', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:create:all',
-      'user:config:all'
-    ],
-    readNamespaces: ['private'] // need the private namespace to read the username
+    permissions: ['user:create:all', 'user:config:all'],
+    readNamespaces: ['private'], // need the private namespace to read the username
   })
 
   const result = await request(t.context.serverUrl)
@@ -335,7 +376,7 @@ test('creates a user with roles if the config permission is provided', async (t)
     .send({
       username: _.uniqueId('randomUser'),
       password: _.uniqueId('randomPassword'),
-      roles: ['dev']
+      roles: ['dev'],
     })
     .expect(200)
 
@@ -346,7 +387,10 @@ test('creates a user with roles if the config permission is provided', async (t)
 })
 
 test('creates a user with roles if the roles are in whitelist', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/config')
@@ -354,9 +398,9 @@ test('creates a user with roles if the roles are in whitelist', async (t) => {
     .send({
       saltana: {
         roles: {
-          default: ['provider']
-        }
-      }
+          default: ['provider'],
+        },
+      },
     })
 
   const username = _.uniqueId('randomUser')
@@ -366,12 +410,12 @@ test('creates a user with roles if the roles are in whitelist', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username,
       password,
-      roles: ['provider']
+      roles: ['provider'],
     })
     .expect(200)
 
@@ -381,18 +425,21 @@ test('creates a user with roles if the roles are in whitelist', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username,
       password,
-      roles: ['custom']
+      roles: ['custom'],
     })
     .expect(422)
 })
 
 test('creates a user with the config default roles', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/config')
@@ -400,16 +447,16 @@ test('creates a user with the config default roles', async (t) => {
     .send({
       saltana: {
         roles: {
-          default: ['provider']
-        }
-      }
+          default: ['provider'],
+        },
+      },
     })
 
   const { body: user } = await request(t.context.serverUrl)
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: _.uniqueId('randomUser'),
@@ -425,12 +472,12 @@ test('cannot create a user with roles if missing config permission', async (t) =
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: _.uniqueId('randomUser'),
       password: _.uniqueId('randomPassword'),
-      roles: ['dev']
+      roles: ['dev'],
     })
     .expect(403)
 
@@ -440,10 +487,7 @@ test('cannot create a user with roles if missing config permission', async (t) =
 test('cannot create a user with an unknown role', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:create:all',
-      'user:config:all'
-    ]
+    permissions: ['user:create:all', 'user:config:all'],
   })
 
   await request(t.context.serverUrl)
@@ -452,7 +496,7 @@ test('cannot create a user with an unknown role', async (t) => {
     .send({
       username: _.uniqueId('randomUser'),
       password: _.uniqueId('randomPassword'),
-      roles: ['unknown']
+      roles: ['unknown'],
     })
     .expect(422)
 
@@ -464,11 +508,8 @@ test('creates an organization', async (t) => {
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create',
-      'user:read:all'
-    ],
-    userId
+    permissions: ['organization:create', 'user:read:all'],
+    userId,
   })
 
   const { body: organization } = await request(t.context.serverUrl)
@@ -477,8 +518,8 @@ test('creates an organization', async (t) => {
     .send({
       type: 'organization',
       metadata: {
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(200)
 
@@ -499,11 +540,8 @@ test('creates an organization with orgOwnerId parameter', async (t) => {
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create:all',
-      'user:read:all'
-    ],
-    userId
+    permissions: ['organization:create:all', 'user:read:all'],
+    userId,
   })
 
   const { body: organization } = await request(t.context.serverUrl)
@@ -513,8 +551,8 @@ test('creates an organization with orgOwnerId parameter', async (t) => {
       type: 'organization',
       orgOwnerId: userId,
       metadata: {
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(200)
 
@@ -535,9 +573,7 @@ test('creates an organization with orgOwnerId parameter', async (t) => {
 test('cannot create an organization with username and password', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ]
+    permissions: ['organization:create'],
   })
 
   await request(t.context.serverUrl)
@@ -546,7 +582,7 @@ test('cannot create an organization with username and password', async (t) => {
     .send({
       type: 'organization',
       username: 'random1',
-      password: 'secretPassword'
+      password: 'secretPassword',
     })
     .expect(400)
 
@@ -556,22 +592,21 @@ test('cannot create an organization with username and password', async (t) => {
 test('creates a child organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ],
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    permissions: ['organization:create'],
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
 
   const { body: organization } = await request(t.context.serverUrl)
     .post('/users')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7',
+    })
     .send({
       type: 'organization',
       organizations: {
-        org_xC3ZlGs1Jo71gb2G0Jo7: {}
-      }
+        org_xC3ZlGs1Jo71gb2G0Jo7: {},
+      },
     })
     .expect(200)
 
@@ -581,21 +616,20 @@ test('creates a child organization', async (t) => {
 test('cannot create a child organization if the current user does not belong to the parent one', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ]
+    permissions: ['organization:create'],
   })
 
   await request(t.context.serverUrl)
     .post('/users')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7',
+    })
     .send({
       type: 'organization',
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
-      }
+        org_toMLWis1EpB1gwNcfEpB: {},
+      },
     })
     .expect(403)
 
@@ -605,23 +639,19 @@ test('cannot create a child organization if the current user does not belong to 
 test('cannot create a child organization if providing an invalid parent organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ]
+    permissions: ['organization:create'],
   })
 
   const parentOrgId = 'usr_T2VfQps1I3a1gJYz2I3a'
 
   const { body: error } = await request(t.context.serverUrl)
     .post('/users')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': parentOrgId
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-organization-id': parentOrgId })
     .send({
       type: 'organization',
       organizations: {
-        usr_T2VfQps1I3a1gJYz2I3a: {}
-      }
+        usr_T2VfQps1I3a1gJYz2I3a: {},
+      },
     })
     .expect(403)
 
@@ -632,9 +662,7 @@ test('cannot create a child organization if providing an invalid parent organiza
 test('cannot update a child organization rights in parent org or join other organizations', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:configOrganization:all'
-    ]
+    permissions: ['user:configOrganization:all'],
   })
 
   const parentOrgId = 'org_toMLWis1EpB1gwNcfEpB'
@@ -642,9 +670,7 @@ test('cannot update a child organization rights in parent org or join other orga
 
   const { body: error } = await request(t.context.serverUrl)
     .put(`/users/${childOrgId}/organizations/${parentOrgId}`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': childOrgId
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-organization-id': childOrgId })
     .send({ roles: ['user'] })
     .expect(403)
 
@@ -666,22 +692,21 @@ test('cannot update a child organization rights in parent org or join other orga
 test('creates an organization if the user belongs to an ancestor organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ]
+    permissions: ['organization:create'],
   })
 
   const { body: organization } = await request(t.context.serverUrl)
     .post('/users')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_toMLWis1EpB1gwNcfEpB'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_toMLWis1EpB1gwNcfEpB',
+    })
     .send({
       type: 'organization',
       organizations: {
         // creating a child of this org (and grand-child of org_toMLWis1EpB1gwNcfEpB)
-        org_yiBSnhs1zaP1hh8rczaP: {}
-      }
+        org_yiBSnhs1zaP1hh8rczaP: {},
+      },
     })
     .expect(200)
 
@@ -692,22 +717,21 @@ test('creates an organization if the user belongs to an ancestor organization', 
 test('cannot create an organization that references a parent organization if the user belongs only to the child organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ],
-    userId: 'usr_Y0tfQps1I3a1gJYz2I3a'
+    permissions: ['organization:create'],
+    userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
   })
 
   await request(t.context.serverUrl)
     .post('/users')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_yiBSnhs1zaP1hh8rczaP'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_yiBSnhs1zaP1hh8rczaP',
+    })
     .send({
       type: 'organization',
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
-      }
+        org_toMLWis1EpB1gwNcfEpB: {},
+      },
     })
     .expect(403)
 
@@ -717,9 +741,7 @@ test('cannot create an organization that references a parent organization if the
 test('cannot create an organization with the permission "user:create"', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:create'
-    ]
+    permissions: ['user:create'],
   })
 
   await request(t.context.serverUrl)
@@ -728,8 +750,8 @@ test('cannot create an organization with the permission "user:create"', async (t
     .send({
       type: 'organization',
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
-      }
+        org_toMLWis1EpB1gwNcfEpB: {},
+      },
     })
     .expect(403)
 
@@ -739,9 +761,7 @@ test('cannot create an organization with the permission "user:create"', async (t
 test('cannot create a user with the permission "organization:create"', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'organization:create'
-    ]
+    permissions: ['organization:create'],
   })
 
   await request(t.context.serverUrl)
@@ -749,7 +769,7 @@ test('cannot create a user with the permission "organization:create"', async (t)
     .set(authorizationHeaders)
     .send({
       username: 'random1',
-      password: 'secretPassword'
+      password: 'secretPassword',
     })
     .expect(403)
 
@@ -757,13 +777,16 @@ test('cannot create a user with the permission "organization:create"', async (t)
 })
 
 test('updates a user', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:edit:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -775,7 +798,11 @@ test('updates a user', async (t) => {
 })
 
 test('update own private namespace', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:edit:all'], userId: 'usr_WHlfQps1I3a1gJYz2I3a' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:edit:all'],
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
+  })
 
   const result = await request(t.context.serverUrl)
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
@@ -784,10 +811,10 @@ test('update own private namespace', async (t) => {
       metadata: {
         _private: {
           firstname: 'Random',
-          lastname: 'RANDOM'
+          lastname: 'RANDOM',
         },
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(200)
 
@@ -800,7 +827,10 @@ test('update own private namespace', async (t) => {
 })
 
 test('cannot update the private namespace for another user', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
@@ -809,10 +839,10 @@ test('cannot update the private namespace for another user', async (t) => {
       metadata: {
         _private: {
           firstname: 'Random',
-          lastname: 'RANDOM'
+          lastname: 'RANDOM',
         },
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(403)
 
@@ -822,18 +852,15 @@ test('cannot update the private namespace for another user', async (t) => {
 test('updates a user with new roles if the "user:config:all" permission is provided', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:edit:all',
-      'user:config:all'
-    ],
-    readNamespaces: ['private'] // need the private namespace to read the username
+    permissions: ['user:edit:all', 'user:config:all'],
+    readNamespaces: ['private'], // need the private namespace to read the username
   })
 
   const result = await request(t.context.serverUrl)
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      roles: ['dev']
+      roles: ['dev'],
     })
     .expect(200)
 
@@ -848,10 +875,10 @@ test('cannot update a user with new roles if "user:config:all" permission is mis
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      roles: ['dev']
+      roles: ['dev'],
     })
     .expect(403)
 
@@ -861,17 +888,14 @@ test('cannot update a user with new roles if "user:config:all" permission is mis
 test('cannot update a user with an unknown role', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:edit:all',
-      'user:config:all'
-    ]
+    permissions: ['user:edit:all', 'user:config:all'],
   })
 
   await request(t.context.serverUrl)
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      roles: ['unknown']
+      roles: ['unknown'],
     })
     .expect(422)
 
@@ -882,7 +906,7 @@ test('updates a user username', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['user:edit:all'],
-    userId: 'usr_T2VfQps1I3a1gJYz2I3a'
+    userId: 'usr_T2VfQps1I3a1gJYz2I3a',
   })
 
   const newUsername = _.uniqueId('newUsername')
@@ -891,7 +915,7 @@ test('updates a user username', async (t) => {
     .patch('/users/usr_T2VfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
-      username: newUsername
+      username: newUsername,
     })
     .expect(200)
 
@@ -901,20 +925,19 @@ test('updates a user username', async (t) => {
 test('updates an organization if the user is a member', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:edit'
-    ],
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    permissions: ['user:edit'],
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
 
   const { body: organization } = await request(t.context.serverUrl)
     .patch('/users/org_xC3ZlGs1Jo71gb2G0Jo7')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_xC3ZlGs1Jo71gb2G0Jo7',
+    })
     .send({
       firstname: 'Firstname',
-      lastname: 'Lastname'
+      lastname: 'Lastname',
     })
     .expect(200)
 
@@ -929,11 +952,8 @@ test('transfers organization ownership as an owner', async (t) => {
   const organizationId = 'org_xC3ZlGs1Jo71gb2G0Jo7'
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:read:all',
-      'user:edit'
-    ],
-    userId
+    permissions: ['user:read:all', 'user:edit'],
+    userId,
   })
 
   const { body: firstOwnerBeforeTransfers } = await request(t.context.serverUrl)
@@ -943,10 +963,13 @@ test('transfers organization ownership as an owner', async (t) => {
 
   // Current owner is always expected to have dev rights by default
   // but we assume it was removed for this test
-  const firstOwnerRolesBeforeTransfers = firstOwnerBeforeTransfers.organizations[organizationId].roles
+  const firstOwnerRolesBeforeTransfers =
+    firstOwnerBeforeTransfers.organizations[organizationId].roles
   t.false(Object.keys(firstOwnerRolesBeforeTransfers).includes('dev'))
 
-  const { body: secondOwnerBeforeTransfers } = await request(t.context.serverUrl)
+  const { body: secondOwnerBeforeTransfers } = await request(
+    t.context.serverUrl,
+  )
     .get(`/users/${newOwnerId}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -955,19 +978,22 @@ test('transfers organization ownership as an owner', async (t) => {
 
   const { body: organization } = await request(t.context.serverUrl)
     .get(`/users/${organizationId}`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': organizationId
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': organizationId,
+    })
     .expect(200)
 
   t.is(organization.orgOwnerId, userId)
 
-  const { body: organizationAfterTransfer1 } = await request(t.context.serverUrl)
+  const { body: organizationAfterTransfer1 } = await request(
+    t.context.serverUrl,
+  )
     .patch(`/users/${organizationId}`)
-    .set(Object.assign({}, authorizationHeaders, {
-      // Impersonating org lets us edit the org without 'user:edit:all' permission
-      'x-saltana-organization-id': organizationId
-    }))
+    .set({
+      ...authorizationHeaders, // Impersonating org lets us edit the org without 'user:edit:all' permission
+      'x-saltana-organization-id': organizationId,
+    })
     .send({ orgOwnerId: newOwnerId })
     .expect(200)
 
@@ -979,16 +1005,18 @@ test('transfers organization ownership as an owner', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  const secondOwnerRolesAfterTransfer1 = secondOwnerAfterTransfer1.organizations[organizationId].roles
+  const secondOwnerRolesAfterTransfer1 =
+    secondOwnerAfterTransfer1.organizations[organizationId].roles
   t.deepEqual(secondOwnerRolesAfterTransfer1, ['dev'])
 
   // Switch back to first owner and check roles integrity
 
   await request(t.context.serverUrl)
     .patch(`/users/${organizationId}`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': organizationId
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': organizationId,
+    })
     .send({ orgOwnerId: userId })
     .expect(403) // Does not work since userId of authorizationHeaders is not owner anymore
 
@@ -996,9 +1024,9 @@ test('transfers organization ownership as an owner', async (t) => {
     t,
     permissions: [
       'user:read:all',
-      'user:edit:all' // Works with this permission, even if userId is not owner anymore
+      'user:edit:all', // Works with this permission, even if userId is not owner anymore
     ],
-    userId
+    userId,
   })
 
   await request(t.context.serverUrl)
@@ -1009,14 +1037,13 @@ test('transfers organization ownership as an owner', async (t) => {
 
   const authorizationHeaders3 = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:read:all',
-      'user:edit:all'
-    ],
-    userId: newOwnerId
+    permissions: ['user:read:all', 'user:edit:all'],
+    userId: newOwnerId,
   })
 
-  const { body: organizationAfterTransfers } = await request(t.context.serverUrl)
+  const { body: organizationAfterTransfers } = await request(
+    t.context.serverUrl,
+  )
     .patch(`/users/${organizationId}`)
     .set(authorizationHeaders3)
     .send({ orgOwnerId: userId })
@@ -1029,17 +1056,23 @@ test('transfers organization ownership as an owner', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  const firstOwnerRolesAfterTransfers = firstOwnerAfterTransfers.organizations[organizationId].roles
+  const firstOwnerRolesAfterTransfers =
+    firstOwnerAfterTransfers.organizations[organizationId].roles
   t.true(firstOwnerRolesAfterTransfers.includes('dev'))
   // Preserving existing roles after granting new owner with 'dev' role
-  t.true(firstOwnerRolesBeforeTransfers.every(r => firstOwnerRolesAfterTransfers.includes(r)))
+  t.true(
+    firstOwnerRolesBeforeTransfers.every((r) =>
+      firstOwnerRolesAfterTransfers.includes(r),
+    ),
+  )
 
   const { body: secondOwnerAfterTransfers } = await request(t.context.serverUrl)
     .get(`/users/${newOwnerId}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const secondOwnerRolesAfterTransfers = secondOwnerAfterTransfers.organizations[organizationId].roles
+  const secondOwnerRolesAfterTransfers =
+    secondOwnerAfterTransfers.organizations[organizationId].roles
   // Not removing 'dev' role
   t.deepEqual(secondOwnerRolesAfterTransfers, secondOwnerRolesAfterTransfer1)
 })
@@ -1048,7 +1081,7 @@ test('cannot update an organization as a plain user without x-saltana-organizati
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['user:edit'],
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
   const organizationId = 'org_xC3ZlGs1Jo71gb2G0Jo7'
 
@@ -1061,9 +1094,10 @@ test('cannot update an organization as a plain user without x-saltana-organizati
   let comment = 'Updated organization with organization-id header'
   const { body: updated1 } = await request(t.context.serverUrl)
     .patch(`/users/${organizationId}`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': organizationId
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': organizationId,
+    })
     .send({ metadata: { comment } })
     .expect(200)
 
@@ -1072,7 +1106,7 @@ test('cannot update an organization as a plain user without x-saltana-organizati
   const authorizationHeaders2 = await getAccessTokenHeaders({
     t,
     permissions: ['user:edit:all'], // 'dev' permission
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
 
   comment = 'Updated organization with user:edit:all permission'
@@ -1088,22 +1122,25 @@ test('cannot update an organization as a plain user without x-saltana-organizati
 test('updates a user’s rights in organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:configOrganization'
-    ]
+    permissions: ['user:configOrganization'],
   })
 
   // the current user belongs to the org 'org_yiBSnhs1zaP1hh8rczaP'
 
   const { body: user } = await request(t.context.serverUrl)
-    .put('/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP')
+    .put(
+      '/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP',
+    )
     .set(authorizationHeaders)
     .send({
-      roles: ['user', 'provider']
+      roles: ['user', 'provider'],
     })
     .expect(200)
 
-  t.deepEqual(user.organizations.org_yiBSnhs1zaP1hh8rczaP.roles, ['user', 'provider'])
+  t.deepEqual(user.organizations.org_yiBSnhs1zaP1hh8rczaP.roles, [
+    'user',
+    'provider',
+  ])
 })
 
 test('updates a user’s rights in organization with API key', async (t) => {
@@ -1111,34 +1148,41 @@ test('updates a user’s rights in organization with API key', async (t) => {
 
   const { body: user } = await request(t.context.serverUrl)
     // DEPRECATED in favor of put method below, to uncomment when removing patch endpoint.
-    .patch('/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP')
+    .patch(
+      '/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP',
+    )
     // .put('/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP')
     .set({
-      authorization: `Basic ${encodeBase64('seck_live_iuJzTKo5wumuE1imSjmcgimR:')}`,
+      authorization: `Basic ${encodeBase64(
+        'seck_live_iuJzTKo5wumuE1imSjmcgimR:',
+      )}`,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      roles: ['user', 'provider']
+      roles: ['user', 'provider'],
     })
     .expect(200)
 
-  t.deepEqual(user.organizations.org_yiBSnhs1zaP1hh8rczaP.roles, ['user', 'provider'])
+  t.deepEqual(user.organizations.org_yiBSnhs1zaP1hh8rczaP.roles, [
+    'user',
+    'provider',
+  ])
 })
 
 test('cannot update a user’s rights in an invalid organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:configOrganization'
-    ]
+    permissions: ['user:configOrganization'],
   })
 
   const { body: error } = await request(t.context.serverUrl)
-    .put('/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/usr_Y0tfQps1I3a1gJYz2I3a')
+    .put(
+      '/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/usr_Y0tfQps1I3a1gJYz2I3a',
+    )
     .set(authorizationHeaders)
     .send({
-      roles: ['user', 'provider']
+      roles: ['user', 'provider'],
     })
     .expect(422)
 
@@ -1148,37 +1192,40 @@ test('cannot update a user’s rights in an invalid organization', async (t) => 
 test('updates any organization rights with "user:configOrganization:all" permission', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:configOrganization:all'
-    ],
-    userId: 'external-user-id'
+    permissions: ['user:configOrganization:all'],
+    userId: 'external-user-id',
   })
 
   // the current user does not belongs to the org 'org_yiBSnhs1zaP1hh8rczaP'
 
   const { body: user } = await request(t.context.serverUrl)
-    .put('/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP')
+    .put(
+      '/users/usr_Y0tfQps1I3a1gJYz2I3a/organizations/org_yiBSnhs1zaP1hh8rczaP',
+    )
     .set(authorizationHeaders)
     .send({
-      roles: ['user', 'provider']
+      roles: ['user', 'provider'],
     })
     .expect(200)
 
-  t.deepEqual(user.organizations.org_yiBSnhs1zaP1hh8rczaP.roles, ['user', 'provider'])
+  t.deepEqual(user.organizations.org_yiBSnhs1zaP1hh8rczaP.roles, [
+    'user',
+    'provider',
+  ])
 })
 
 test('removes a user’s from own organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:configOrganization'
-    ]
+    permissions: ['user:configOrganization'],
   })
 
   // the current user belongs to the org 'org_yiBSnhs1zaP1hh8rczaP'
 
   const { body: user } = await request(t.context.serverUrl)
-    .delete('/users/usr_em9SToe1nI01iG4yRnHz/organizations/org_yiBSnhs1zaP1hh8rczaP')
+    .delete(
+      '/users/usr_em9SToe1nI01iG4yRnHz/organizations/org_yiBSnhs1zaP1hh8rczaP',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1186,13 +1233,16 @@ test('removes a user’s from own organization', async (t) => {
 })
 
 test('cannot update the username of an organization', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/users/org_toMLWis1EpB1gwNcfEpB')
     .set(authorizationHeaders)
     .send({
-      username: 'username'
+      username: 'username',
     })
     .expect(400)
 
@@ -1202,22 +1252,18 @@ test('cannot update the username of an organization', async (t) => {
 test('removes a user', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:read:all',
-      'user:create:all',
-      'user:remove:all'
-    ]
+    permissions: ['user:read:all', 'user:create:all', 'user:remove:all'],
   })
 
   const { body: user } = await request(t.context.serverUrl)
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'userToRemove',
-      password: 'secretPassword'
+      password: 'secretPassword',
     })
     .expect(200)
 
@@ -1237,7 +1283,10 @@ test('removes a user', async (t) => {
 })
 
 test('cannot remove a user that have assets', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:remove:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:remove:all'],
+  })
 
   await request(t.context.serverUrl)
     .delete('/users/usr_WHlfQps1I3a1gJYz2I3a')
@@ -1250,10 +1299,7 @@ test('cannot remove a user that have assets', async (t) => {
 test('cannot remove a user who owns some organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:read:all',
-      'user:remove:all'
-    ]
+    permissions: ['user:read:all', 'user:remove:all'],
   })
 
   // The organization 'org_4YsuuQe1X0h1hznSoX0g' is owned by 'usr_Y0tfQps1I3a1gJYz2I3a'
@@ -1275,11 +1321,8 @@ test('cannot remove a user who owns some organization', async (t) => {
 test('removes an organization', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:read:all',
-      'user:remove'
-    ],
-    userId: 'usr_Y0tfQps1I3a1gJYz2I3a'
+    permissions: ['user:read:all', 'user:remove'],
+    userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
   })
 
   await request(t.context.serverUrl)
@@ -1289,9 +1332,10 @@ test('removes an organization', async (t) => {
 
   const { body: payload } = await request(t.context.serverUrl)
     .delete('/users/org_4YsuuQe1X0h1hznSoX0g')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_4YsuuQe1X0h1hznSoX0g'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_4YsuuQe1X0h1hznSoX0g',
+    })
     .expect(200)
 
   t.is(payload.id, 'org_4YsuuQe1X0h1hznSoX0g')
@@ -1314,11 +1358,8 @@ test('cannot remove an organization as non-owner without "user:remove:all" permi
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'user:read:all',
-      'user:remove'
-    ],
-    userId
+    permissions: ['user:read:all', 'user:remove'],
+    userId,
   })
 
   const { body: error } = await request(t.context.serverUrl)
@@ -1335,48 +1376,53 @@ test('removing an organization automatically makes members leave the org', async
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:list:all',
-      'user:read:all',
-      'user:remove'
-    ],
-    userId: userIds[0]
+    permissions: ['event:list:all', 'user:read:all', 'user:remove'],
+    userId: userIds[0],
   })
 
-  const { body: { results: beforeUsers } } = await request(t.context.serverUrl)
+  const {
+    body: { results: beforeUsers },
+  } = await request(t.context.serverUrl)
     .get(`/users?id=${userIds.join(',')}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  t.true(beforeUsers.every(u => u.organizations[organizationId]))
+  t.true(beforeUsers.every((u) => u.organizations[organizationId]))
 
   await request(t.context.serverUrl)
     .delete(`/users/${organizationId}`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': organizationId
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': organizationId,
+    })
     .expect(200)
 
-  const { body: { results: afterUsers } } = await request(t.context.serverUrl)
+  const {
+    body: { results: afterUsers },
+  } = await request(t.context.serverUrl)
     .get(`/users?id=${userIds.join(',')}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  t.true(afterUsers.every(u => u.organizations[organizationId] === undefined))
+  t.true(afterUsers.every((u) => u.organizations[organizationId] === undefined))
 
   // Checking event data for all leaving users, including owner
 
-  let { body: { results: eventsAfterLeavingOrg } } = await request(t.context.serverUrl)
+  let {
+    body: { results: eventsAfterLeavingOrg },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
 
   eventsAfterLeavingOrg = eventsAfterLeavingOrg.filter(
-    e => e.relatedObjectsIds.organizationId === organizationId
+    (e) => e.relatedObjectsIds.organizationId === organizationId,
   )
 
   const checkLeavingUserEvent = async (userId) => {
-    const { body: userUpdatedAfterLeavingOrg } = await request(t.context.serverUrl)
+    const { body: userUpdatedAfterLeavingOrg } = await request(
+      t.context.serverUrl,
+    )
       .get(`/users/${userId}`)
       .set(authorizationHeaders)
       .expect(200)
@@ -1384,15 +1430,15 @@ test('removing an organization automatically makes members leave the org', async
     const userOrgLeftEvent = getObjectEvent({
       events: eventsAfterLeavingOrg,
       eventType: 'user__organization_left',
-      objectId: userId
+      objectId: userId,
     })
 
     await testEventMetadata({
       event: userOrgLeftEvent,
-      relatedObjectsIds: { organizationId: organizationId },
+      relatedObjectsIds: { organizationId },
       object: userUpdatedAfterLeavingOrg,
       metadata: { saltanaComment: 'Organization deleted' },
-      t
+      t,
     })
   }
 
@@ -1403,14 +1449,15 @@ test('cannot remove an organization if it is the parent of other organizations',
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['user:remove:all'],
-    userId: 'usr_QVQfQps1I3a1gJYz2I3a'
+    userId: 'usr_QVQfQps1I3a1gJYz2I3a',
   })
 
   await request(t.context.serverUrl)
     .delete('/users/org_toMLWis1EpB1gwNcfEpB')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-organization-id': 'org_toMLWis1EpB1gwNcfEpB'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-organization-id': 'org_toMLWis1EpB1gwNcfEpB',
+    })
     .expect(403) // 'x-saltana-organization-id' overwrites 'user:remove:all' with org permissions
 
   await request(t.context.serverUrl)
@@ -1434,7 +1481,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1446,7 +1493,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -1460,7 +1507,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
     .post('/users')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: true,
@@ -1474,7 +1521,7 @@ test('fails to create a user if missing or invalid parameters', async (t) => {
       organizations: true,
       metadata: true,
       platformData: true,
-      type: true
+      type: true,
     })
     .expect(400)
 
@@ -1502,7 +1549,7 @@ test('fails to update a user if missing or invalid parameters', async (t) => {
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1514,7 +1561,7 @@ test('fails to update a user if missing or invalid parameters', async (t) => {
     .patch('/users/usr_WHlfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: true,
@@ -1525,7 +1572,7 @@ test('fails to update a user if missing or invalid parameters', async (t) => {
       email: true,
       roles: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -1544,10 +1591,12 @@ test('fails to change organization config if missing or invalid parameters', asy
 
   // missing body
   result = await request(t.context.serverUrl)
-    .put('/users/usr_WHlfQps1I3a1gJYz2I3a/organizations/org_xC3ZlGs1Jo71gb2G0Jo7')
+    .put(
+      '/users/usr_WHlfQps1I3a1gJYz2I3a/organizations/org_xC3ZlGs1Jo71gb2G0Jo7',
+    )
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1556,13 +1605,15 @@ test('fails to change organization config if missing or invalid parameters', asy
 
   // parameters with wrong type
   result = await request(t.context.serverUrl)
-    .put('/users/usr_WHlfQps1I3a1gJYz2I3a/organizations/org_xC3ZlGs1Jo71gb2G0Jo7')
+    .put(
+      '/users/usr_WHlfQps1I3a1gJYz2I3a/organizations/org_xC3ZlGs1Jo71gb2G0Jo7',
+    )
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      roles: true
+      roles: true,
     })
     .expect(400)
 
@@ -1583,10 +1634,10 @@ test.serial('generates user__* events', async (t) => {
       'user:edit:all',
       'user:remove:all',
       'event:list:all',
-      'platformData:edit:all'
+      'platformData:edit:all',
     ],
     readNamespaces: ['*'],
-    editNamespaces: ['*']
+    editNamespaces: ['*'],
   })
 
   const userId = 'usr_Y0tfQps1I3a1gJYz2I3a'
@@ -1599,11 +1650,11 @@ test.serial('generates user__* events', async (t) => {
       'user:remove:all',
       'event:list:all',
       'organization:create',
-      'platformData:edit:all'
+      'platformData:edit:all',
     ],
     readNamespaces: ['*'],
     editNamespaces: ['*'],
-    userId
+    userId,
   })
 
   const { body: user } = await request(t.context.serverUrl)
@@ -1615,23 +1666,23 @@ test.serial('generates user__* events', async (t) => {
       metadata: {
         _private: {
           firstname: 'Random',
-          lastname: 'RANDOM'
+          lastname: 'RANDOM',
         },
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(200)
 
   const patchPayload = {
     metadata: {
       _private: {
-        firstname: 'Matt'
+        firstname: 'Matt',
       },
-      dummy: false
+      dummy: false,
     },
     platformData: {
-      test: 1
-    }
+      test: 1,
+    },
   }
 
   const { body: userUpdated } = await request(t.context.serverUrl)
@@ -1640,9 +1691,11 @@ test.serial('generates user__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1650,7 +1703,7 @@ test.serial('generates user__* events', async (t) => {
   const userCreatedEvent = getObjectEvent({
     events,
     eventType: 'user__created',
-    objectId: user.id
+    objectId: user.id,
   })
   await testEventMetadata({ event: userCreatedEvent, object: user, t })
   t.is(userCreatedEvent.object.username, user.username)
@@ -1660,13 +1713,13 @@ test.serial('generates user__* events', async (t) => {
   const userUpdatedEvent = getObjectEvent({
     events,
     eventType: 'user__updated',
-    objectId: userUpdated.id
+    objectId: userUpdated.id,
   })
   await testEventMetadata({
     event: userUpdatedEvent,
     object: userUpdated,
     t,
-    patchPayload
+    patchPayload,
   })
   t.is(userUpdatedEvent.object.username, userUpdated.username)
   t.is(userUpdatedEvent.object.password, userUpdated.password)
@@ -1677,9 +1730,11 @@ test.serial('generates user__* events', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1687,7 +1742,7 @@ test.serial('generates user__* events', async (t) => {
   const userDeletedEvent = getObjectEvent({
     events: eventsAfterDelete,
     eventType: 'user__deleted',
-    objectId: userUpdated.id
+    objectId: userUpdated.id,
   })
   await testEventMetadata({ event: userDeletedEvent, object: userUpdated, t })
   t.is(userDeletedEvent.object.username, userUpdated.username)
@@ -1701,14 +1756,18 @@ test.serial('generates user__* events', async (t) => {
     .send({ type: 'organization' })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: userUpdatedAfterCreatingOrg } = await request(t.context.serverUrl)
+  const { body: userUpdatedAfterCreatingOrg } = await request(
+    t.context.serverUrl,
+  )
     .get(`/users/${userId}`)
     .set(authorizationHeaders2)
     .expect(200)
 
-  const { body: { results: eventsAfterCreatingOrg } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterCreatingOrg },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders2)
     .expect(200)
@@ -1716,39 +1775,46 @@ test.serial('generates user__* events', async (t) => {
   const orgCreatedEvent = getObjectEvent({
     events: eventsAfterCreatingOrg,
     eventType: 'user__created',
-    objectId: organization.id
+    objectId: organization.id,
   })
   await testEventMetadata({ event: orgCreatedEvent, object: organization, t })
 
   const userOrgJoinedEvent = getObjectEvent({
     events: eventsAfterCreatingOrg,
     eventType: 'user__organization_joined',
-    objectId: userId
+    objectId: userId,
   })
 
   await testEventMetadata({
     event: userOrgJoinedEvent,
     relatedObjectsIds: { organizationId: organization.id },
     object: userUpdatedAfterCreatingOrg,
-    t
+    t,
   })
 
   // Changing rights within organization
 
   await request(t.context.serverUrl)
     .put(`/users/${userId}/organizations/${organization.id}`)
-    .set(Object.assign({}, authorizationHeaders2, { 'x-saltana-organization-id': organization.id }))
+    .set({
+      ...authorizationHeaders2,
+      'x-saltana-organization-id': organization.id,
+    })
     .send({ roles: ['dev', 'user'] })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: userUpdatedAfterChangingOrgRights } = await request(t.context.serverUrl)
+  const { body: userUpdatedAfterChangingOrgRights } = await request(
+    t.context.serverUrl,
+  )
     .get(`/users/${userId}`)
     .set(authorizationHeaders2)
     .expect(200)
 
-  const { body: { results: eventsAfterChangingOrgRights } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterChangingOrgRights },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders2)
     .expect(200)
@@ -1756,31 +1822,38 @@ test.serial('generates user__* events', async (t) => {
   const orgRightsChangedEvent = getObjectEvent({
     events: eventsAfterChangingOrgRights,
     eventType: 'user__organization_rights_changed',
-    objectId: userId
+    objectId: userId,
   })
   await testEventMetadata({
     event: orgRightsChangedEvent,
     relatedObjectsIds: { organizationId: organization.id },
     object: userUpdatedAfterChangingOrgRights,
     patchPayload: { roles: ['dev', 'user'] },
-    t
+    t,
   })
 
   // Deleting organization
 
   await request(t.context.serverUrl)
     .delete(`/users/${organization.id}`)
-    .set(Object.assign({}, authorizationHeaders2, { 'x-saltana-organization-id': organization.id }))
+    .set({
+      ...authorizationHeaders2,
+      'x-saltana-organization-id': organization.id,
+    })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: userUpdatedAfterDeletingOrg } = await request(t.context.serverUrl)
+  const { body: userUpdatedAfterDeletingOrg } = await request(
+    t.context.serverUrl,
+  )
     .get(`/users/${userId}`)
     .set(authorizationHeaders2)
     .expect(200)
 
-  const { body: { results: eventsAfterDeletingOrg } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDeletingOrg },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders2)
     .expect(200)
@@ -1788,14 +1861,14 @@ test.serial('generates user__* events', async (t) => {
   const orgDeletedEvent = getObjectEvent({
     events: eventsAfterDeletingOrg,
     eventType: 'user__deleted',
-    objectId: organization.id
+    objectId: organization.id,
   })
   await testEventMetadata({ event: orgDeletedEvent, object: organization, t })
 
   const userOrgLeftEvent = getObjectEvent({
     events: eventsAfterDeletingOrg,
     eventType: 'user__organization_left',
-    objectId: userId
+    objectId: userId,
   })
 
   await testEventMetadata({
@@ -1803,7 +1876,7 @@ test.serial('generates user__* events', async (t) => {
     // adding relatedObjectId
     relatedObjectsIds: { organizationId: organization.id },
     object: userUpdatedAfterDeletingOrg,
-    t
+    t,
   })
 })
 
@@ -1816,7 +1889,7 @@ test.serial('2019-05-20: list users with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -1830,7 +1903,7 @@ test('2019-05-20: list users with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -1846,7 +1919,7 @@ test('2019-05-20: list users with query filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const query = 'user2'
@@ -1859,17 +1932,14 @@ test('2019-05-20: list users with query filter', async (t) => {
   checkOffsetPaginatedListObject(t, obj)
   t.is(obj.nbResults, 1)
 
-  obj.results.forEach(user => {
-    const fields = [
-      'displayName',
-      'firstname',
-      'lastname',
-      'username',
-      'email'
-    ]
+  obj.results.forEach((user) => {
+    const fields = ['displayName', 'firstname', 'lastname', 'username', 'email']
 
-    const matchQuery = fields.some(field => {
-      return user[field] && user[field].toLowerCase().replace(/\s/gi, '').includes(query)
+    const matchQuery = fields.some((field) => {
+      return (
+        user[field] &&
+        user[field].toLowerCase().replace(/\s/gi, '').includes(query)
+      )
     })
 
     t.true(matchQuery)
@@ -1880,7 +1950,7 @@ test('2019-05-20: list users without type should only return natural users', asy
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -1888,7 +1958,8 @@ test('2019-05-20: list users without type should only return natural users', asy
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, user) => t.true(!user.roles.includes('organization'))
+  const checkResultsFn = (t, user) =>
+    t.true(!user.roles.includes('organization'))
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })
 })
 
@@ -1896,7 +1967,7 @@ test('2019-05-20: list organization users', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -1904,7 +1975,8 @@ test('2019-05-20: list organization users', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, user) => t.true(user.roles.includes('organization'))
+  const checkResultsFn = (t, user) =>
+    t.true(user.roles.includes('organization'))
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })
 })
 
@@ -1912,7 +1984,7 @@ test('2019-05-20: list users and organizations', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -1939,7 +2011,7 @@ test('2019-05-20: list users and organizations filtering by IDs without providin
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -1948,7 +2020,11 @@ test('2019-05-20: list users and organizations filtering by IDs without providin
     .expect(200)
 
   const checkResultsFn = (t, user) => {
-    t.true(['usr_WHlfQps1I3a1gJYz2I3a', 'org_xC3ZlGs1Jo71gb2G0Jo7'].includes(user.id))
+    t.true(
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'org_xC3ZlGs1Jo71gb2G0Jo7'].includes(
+        user.id,
+      ),
+    )
   }
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })
 })
@@ -1957,7 +2033,7 @@ test('2019-05-20: list members of an organization using userOrganizationId filte
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const orgId = 'org_yiBSnhs1zaP1hh8rczaP'
@@ -1966,7 +2042,8 @@ test('2019-05-20: list members of an organization using userOrganizationId filte
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, user) => t.true(Object.keys(user.organizations).includes(orgId))
+  const checkResultsFn = (t, user) =>
+    t.true(Object.keys(user.organizations).includes(orgId))
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })
   t.is(obj.nbResults, 3)
   t.is(obj.nbPages, 1)
@@ -1976,7 +2053,7 @@ test('2019-05-20: list user belonging to every listed using userOrganizationId f
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['user:list:all']
+    permissions: ['user:list:all'],
   })
 
   const orgIds = ['org_xC3ZlGs1Jo71gb2G0Jo7', 'org_yiBSnhs1zaP1hh8rczaP']
@@ -1986,7 +2063,7 @@ test('2019-05-20: list user belonging to every listed using userOrganizationId f
     .expect(200)
 
   const checkResultsFn = (t, user) => {
-    t.true(orgIds.every(id => Object.keys(user.organizations).includes(id)))
+    t.true(orgIds.every((id) => Object.keys(user.organizations).includes(id)))
   }
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })
   t.is(obj.nbResults, 1)
