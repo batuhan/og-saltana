@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -11,7 +9,7 @@ const {
 } = require('../../util')
 const { computeDate } = require('../../../src/util/time')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'role' })(t)
   await beforeEach()(t)
 })
@@ -20,17 +18,23 @@ test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('lists roles', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['role:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['role:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
     endpointUrl: '/roles',
-    authorizationHeaders
+    authorizationHeaders,
   })
 })
 
 test('list roles with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/roles?id=role_C5ZIBs105v1gHK1i05v')
@@ -42,7 +46,10 @@ test('list roles with id filter', async (t) => {
 })
 
 test('list roles with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   const now = new Date().toISOString()
   const minCreatedDate = computeDate(now, '-10d')
@@ -52,13 +59,16 @@ test('list roles with advanced filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  obj1.results.forEach(category => {
+  obj1.results.forEach((category) => {
     t.true(category.createdDate >= minCreatedDate)
   })
 })
 
 test('finds a role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['role:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['role:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/roles/role_2tem1s1CSC1gTgJYCSC')
@@ -72,7 +82,10 @@ test('finds a role', async (t) => {
 })
 
 test('creates a role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['role:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['role:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/roles')
@@ -81,7 +94,7 @@ test('creates a role', async (t) => {
       name: 'New role',
       value: 'new',
       permissions: ['category:create:all'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -92,14 +105,17 @@ test('creates a role', async (t) => {
 })
 
 test('updates a role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['role:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['role:edit:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .patch('/roles/role_2tem1s1CSC1gTgJYCSC')
     .set(authorizationHeaders)
     .send({
       permissions: ['category:create:all'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -110,14 +126,17 @@ test('updates a role', async (t) => {
 })
 
 test('cannot update a non custom role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['role:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['role:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/roles/role_C5ZIBs105v1gHK1i05v')
     .set(authorizationHeaders)
     .send({
       permissions: ['category:create:all'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(403)
 
@@ -127,11 +146,7 @@ test('cannot update a non custom role', async (t) => {
 test('removes a role', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'role:read:all',
-      'role:create:all',
-      'role:remove:all'
-    ]
+    permissions: ['role:read:all', 'role:create:all', 'role:remove:all'],
   })
 
   const { body: role } = await request(t.context.serverUrl)
@@ -139,7 +154,7 @@ test('removes a role', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Role to remove',
-      value: 'role-to-remove'
+      value: 'role-to-remove',
     })
     .expect(200)
 
@@ -161,10 +176,7 @@ test('removes a role', async (t) => {
 test('cannot remove a role that is still referenced by other models', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'role:read:all',
-      'role:remove:all'
-    ]
+    permissions: ['role:read:all', 'role:remove:all'],
   })
 
   await request(t.context.serverUrl)
@@ -181,7 +193,10 @@ test('cannot remove a role that is still referenced by other models', async (t) 
 })
 
 test('cannot remove a non custom role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['role:remove:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['role:remove:all'],
+  })
 
   await request(t.context.serverUrl)
     .delete('/roles/role_lj840s1v7v1hCM29v7v')
@@ -204,7 +219,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
     .post('/roles')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -216,7 +231,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
     .post('/roles')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -230,7 +245,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
     .post('/roles')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -239,7 +254,7 @@ test('fails to create a role if missing or invalid parameters', async (t) => {
       readNamespaces: true,
       editNamespaces: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -262,7 +277,7 @@ test('fails to update a role if missing or invalid parameters', async (t) => {
     .patch('/roles/role_2tem1s1CSC1gTgJYCSC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -274,7 +289,7 @@ test('fails to update a role if missing or invalid parameters', async (t) => {
     .patch('/roles/role_2tem1s1CSC1gTgJYCSC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -283,7 +298,7 @@ test('fails to update a role if missing or invalid parameters', async (t) => {
       readNamespaces: true,
       editNamespaces: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -305,7 +320,7 @@ test('2019-05-20: lists roles', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['role:list:all']
+    permissions: ['role:list:all'],
   })
 
   const result = await request(t.context.serverUrl)

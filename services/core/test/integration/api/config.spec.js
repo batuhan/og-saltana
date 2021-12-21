@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -8,7 +6,7 @@ const { apiVersions } = require('../../../src/versions')
 const { before, beforeEach, after } = require('../../lifecycle')
 const { getAccessTokenHeaders, getSystemKey } = require('../../auth')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'config' })(t)
   await beforeEach()(t)
 })
@@ -16,7 +14,10 @@ test.before(async t => {
 test.after(after())
 
 test('gets config', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:read'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:read'],
+  })
 
   const { body: config } = await request(t.context.serverUrl)
     .get('/config')
@@ -27,7 +28,10 @@ test('gets config', async (t) => {
   t.is(typeof config.custom, 'object')
   t.is(typeof config.theme, 'object')
 
-  const authorizationHeaders2 = await getAccessTokenHeaders({ t, permissions: ['config:read:all'] })
+  const authorizationHeaders2 = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:read:all'],
+  })
   const { body: config2 } = await request(t.context.serverUrl)
     .get('/config')
     .set(authorizationHeaders2)
@@ -37,13 +41,16 @@ test('gets config', async (t) => {
 })
 
 test('updates config', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
   const payload = {
     saltana: {
       instant: {
-        locale: 'fr'
-      }
-    }
+        locale: 'fr',
+      },
+    },
   }
 
   const { body: config } = await request(t.context.serverUrl)
@@ -55,7 +62,10 @@ test('updates config', async (t) => {
   t.is(typeof config.saltana, 'object')
   t.is(config.saltana.instant.locale, 'fr')
 
-  const authorizationHeaders2 = await getAccessTokenHeaders({ t, permissions: ['config:edit:all'] })
+  const authorizationHeaders2 = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit:all'],
+  })
   payload.saltana.instant.locale = 'en'
   const { body: config2 } = await request(t.context.serverUrl)
     .patch('/config')
@@ -67,7 +77,10 @@ test('updates config', async (t) => {
 })
 
 test('changes default and whitelist roles in config', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
 
   const { body: config } = await request(t.context.serverUrl)
     .patch('/config')
@@ -76,9 +89,9 @@ test('changes default and whitelist roles in config', async (t) => {
       saltana: {
         roles: {
           default: ['user'],
-          whitelist: ['provider']
-        }
-      }
+          whitelist: ['provider'],
+        },
+      },
     })
     .expect(200)
 
@@ -88,7 +101,10 @@ test('changes default and whitelist roles in config', async (t) => {
 })
 
 test('cannot provide an unknown role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/config')
@@ -96,9 +112,9 @@ test('cannot provide an unknown role', async (t) => {
     .send({
       saltana: {
         roles: {
-          default: ['unknownRole']
-        }
-      }
+          default: ['unknownRole'],
+        },
+      },
     })
     .expect(422)
 
@@ -106,7 +122,10 @@ test('cannot provide an unknown role', async (t) => {
 })
 
 test('cannot provide dev role in roles whitelist', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/config')
@@ -114,9 +133,9 @@ test('cannot provide dev role in roles whitelist', async (t) => {
     .send({
       saltana: {
         roles: {
-          whitelist: ['dev', 'user']
-        }
-      }
+          whitelist: ['dev', 'user'],
+        },
+      },
     })
     .expect(422)
 
@@ -124,7 +143,10 @@ test('cannot provide dev role in roles whitelist', async (t) => {
 })
 
 test('cannot provide dev role in default roles list', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/config')
@@ -132,9 +154,9 @@ test('cannot provide dev role in default roles list', async (t) => {
     .send({
       saltana: {
         roles: {
-          default: ['dev', 'user']
-        }
-      }
+          default: ['dev', 'user'],
+        },
+      },
     })
     .expect(422)
 
@@ -142,15 +164,18 @@ test('cannot provide dev role in default roles list', async (t) => {
 })
 
 test('updates config theme', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
 
   const { body: config } = await request(t.context.serverUrl)
     .patch('/config')
     .set(authorizationHeaders)
     .send({
       theme: {
-        primaryColor: 'blue'
-      }
+        primaryColor: 'blue',
+      },
     })
     .expect(200)
 
@@ -158,7 +183,10 @@ test('updates config theme', async (t) => {
 })
 
 test('gets the private config', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:read:all'],
+  })
 
   const { body: config } = await request(t.context.serverUrl)
     .get('/config/private')
@@ -170,15 +198,18 @@ test('gets the private config', async (t) => {
 })
 
 test('updates the private config', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit:all'],
+  })
 
   const { body: config } = await request(t.context.serverUrl)
     .patch('/config/private')
     .set(authorizationHeaders)
     .send({
       saltana: {
-        saltanaAuthRefreshTokenExpiration: { d: 14 }
-      }
+        saltanaAuthRefreshTokenExpiration: { d: 14 },
+      },
     })
     .expect(200)
 
@@ -193,7 +224,7 @@ test('gets the system config', async (t) => {
     .set({
       'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(200)
 
@@ -209,16 +240,16 @@ test('updates the system config', async (t) => {
     .set({
       'x-saltana-system-key': systemKey,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       saltana: {
         // change API version, propagates to redis internally
-        saltanaVersion: apiVersions[0]
+        saltanaVersion: apiVersions[0],
       },
       custom: {
-        anySystemProtectedValue: { system: true }
-      }
+        anySystemProtectedValue: { system: true },
+      },
     })
     .expect(200)
 
@@ -231,7 +262,10 @@ test('updates the system config', async (t) => {
 // ////////// //
 
 test('fails to update the config if missing parameters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit'],
+  })
 
   let result
   let error
@@ -252,7 +286,7 @@ test('fails to update the config if missing parameters', async (t) => {
     .send({
       saltana: true,
       custom: true,
-      theme: true
+      theme: true,
     })
     .expect(400)
 
@@ -263,7 +297,10 @@ test('fails to update the config if missing parameters', async (t) => {
 })
 
 test('fails to update the private config if missing parameters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['config:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['config:edit:all'],
+  })
 
   let result
   let error
@@ -282,7 +319,7 @@ test('fails to update the private config if missing parameters', async (t) => {
     .patch('/config/private')
     .set(authorizationHeaders)
     .send({
-      saltana: true
+      saltana: true,
     })
     .expect(400)
 

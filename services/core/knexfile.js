@@ -1,13 +1,13 @@
-require('@saltana/common').load()
+const config = require('config').get('ExternalServices')
 
 module.exports = {
   client: 'pg',
   connection: {
-    host: process.env.POSTGRES_HOST,
-    database: process.env.POSTGRES_DB,
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    port: process.env.POSTGRES_PORT,
+    host: config.get('pgsql.host'),
+    database: config.get('pgsql.database'),
+    user: config.get('pgsql.user'),
+    password: config.get('pgsql.password'),
+    port: config.get('pgsql.port'),
     ssl: { rejectUnauthorized: false },
     schema: 'public',
   },

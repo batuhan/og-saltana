@@ -1,11 +1,13 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
 
 const { before, beforeEach, after } = require('../../lifecycle')
-const { getAccessToken, getAccessTokenHeaders, getSystemKey } = require('../../auth')
+const {
+  getAccessToken,
+  getAccessTokenHeaders,
+  getSystemKey,
+} = require('../../auth')
 const {
   getObjectEvent,
   testEventMetadata,
@@ -14,15 +16,15 @@ const {
   checkCursorPaginatedListObject,
 
   checkOffsetPaginationScenario,
-  checkOffsetPaginatedListObject
+  checkOffsetPaginatedListObject,
 } = require('../../util')
 const { encodeBase64 } = require('../../../src/util/encoding')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({
     name: 'apiKey',
     platformId: 2, // set the platformId to 2 because of the api key information
-    env: 'test'
+    env: 'test',
   })(t)
   await beforeEach()(t)
 })
@@ -31,7 +33,10 @@ test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list api keys with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -41,7 +46,10 @@ test.serial('list api keys with pagination', async (t) => {
 })
 
 test('list api keys with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/api-keys?id=apik_aHZQps1I3b1gJYz2I3a')
@@ -55,7 +63,11 @@ test('list api keys with id filter', async (t) => {
 test('list api keys with api key', async (t) => {
   const { body: obj } = await request(t.context.serverUrl)
     .get('/api-keys')
-    .set({ authorization: `Basic ${encodeBase64('seck_test_wakWA41rBTUXs1Y5pNRjeY5o:')}` })
+    .set({
+      authorization: `Basic ${encodeBase64(
+        'seck_test_wakWA41rBTUXs1Y5pNRjeY5o:',
+      )}`,
+    })
     .expect(200)
 
   checkCursorPaginatedListObject(t, obj)
@@ -70,7 +82,7 @@ test('rejects invalid api key format with 401 and www-authenticate header', asyn
 
       // should use the platformId with the old format api key (no information in it)
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(401)
 
@@ -81,21 +93,28 @@ test('rejects invalid api key format with 401 and www-authenticate header', asyn
 })
 
 test('list api keys with a given type', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:list:all'],
+  })
 
-  const { body: { results: publishableApiKeys } } = await request(t.context.serverUrl)
+  const {
+    body: { results: publishableApiKeys },
+  } = await request(t.context.serverUrl)
     .get('/api-keys?type=pubk')
     .set(authorizationHeaders)
     .expect(200)
 
-  t.true(publishableApiKeys.every(p => p.key.startsWith('pubk')))
+  t.true(publishableApiKeys.every((p) => p.key.startsWith('pubk')))
 
-  const { body: { results: secretApiKeys } } = await request(t.context.serverUrl)
+  const {
+    body: { results: secretApiKeys },
+  } = await request(t.context.serverUrl)
     .get('/api-keys?type=seck')
     .set(authorizationHeaders)
     .expect(200)
 
-  t.true(secretApiKeys.every(s => s.key.startsWith('seck')))
+  t.true(secretApiKeys.every((s) => s.key.startsWith('seck')))
 
   await request(t.context.serverUrl)
     .get('/api-keys?type=tooLongType')
@@ -104,7 +123,10 @@ test('list api keys with a given type', async (t) => {
 })
 
 test('creates an api key with custom type', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:create:all'],
+  })
 
   const { body: customKey } = await request(t.context.serverUrl)
     .post('/api-keys')
@@ -114,7 +136,7 @@ test('creates an api key with custom type', async (t) => {
       roles: ['dev'],
       permissions: ['category:create:all'],
       type: 'custom1',
-      metadata: { custom: true }
+      metadata: { custom: true },
     })
     .expect(200)
 
@@ -123,7 +145,10 @@ test('creates an api key with custom type', async (t) => {
 })
 
 test('finds an api key', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/api-keys/apik_aHZQps1I3b1gJYz2I3a')
@@ -139,7 +164,11 @@ test('finds an api key', async (t) => {
 test('finds an api key with api key', async (t) => {
   const result = await request(t.context.serverUrl)
     .get('/api-keys/apik_aHZQps1I3b1gJYz2I3a')
-    .set({ authorization: `Basic ${encodeBase64('seck_test_wakWA41rBTUXs1Y5pNRjeY5o:')}` })
+    .set({
+      authorization: `Basic ${encodeBase64(
+        'seck_test_wakWA41rBTUXs1Y5pNRjeY5o:',
+      )}`,
+    })
     .expect(200)
 
   const apiKey = result.body
@@ -149,7 +178,10 @@ test('finds an api key with api key', async (t) => {
 })
 
 test('creates an api key of publishable type by default', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/api-keys')
@@ -158,7 +190,7 @@ test('creates an api key of publishable type by default', async (t) => {
       name: 'New api key',
       roles: ['dev'], // overridden for now, may throw in the future
       permissions: ['category:create:all'], // idem
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -171,7 +203,10 @@ test('creates an api key of publishable type by default', async (t) => {
 })
 
 test('creates an api key with a role other than dev', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/api-keys')
@@ -179,7 +214,7 @@ test('creates an api key with a role other than dev', async (t) => {
     .send({
       name: 'New api key',
       roles: ['public'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -189,7 +224,10 @@ test('creates an api key with a role other than dev', async (t) => {
 })
 
 test('fails to create an api key with a unknown role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:create:all'],
+  })
 
   await request(t.context.serverUrl)
     .post('/api-keys')
@@ -197,7 +235,7 @@ test('fails to create an api key with a unknown role', async (t) => {
     .send({
       name: 'New api key',
       roles: ['unknownRole'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -207,12 +245,16 @@ test('fails to create an api key with a unknown role', async (t) => {
 test('creates an api key with api key', async (t) => {
   const result = await request(t.context.serverUrl)
     .post('/api-keys')
-    .set({ authorization: `Basic ${encodeBase64('seck_test_wakWA41rBTUXs1Y5pNRjeY5o:')}` })
+    .set({
+      authorization: `Basic ${encodeBase64(
+        'seck_test_wakWA41rBTUXs1Y5pNRjeY5o:',
+      )}`,
+    })
     .send({
       name: 'New api key',
       roles: ['dev'],
       permissions: ['category:create:all'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -223,10 +265,7 @@ test('creates an api key with api key', async (t) => {
 
 test('use the publishable key in Authorization header to identify the platform ID', async (t) => {
   const accessToken = await getAccessToken({
-    permissions: [
-      'apiKey:read:all',
-      'apiKey:create:all'
-    ]
+    permissions: ['apiKey:read:all', 'apiKey:create:all'],
   })
 
   const date = new Date().getTime()
@@ -236,12 +275,12 @@ test('use the publishable key in Authorization header to identify the platform I
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'My publishable key',
       type: 'pubk',
-      metadata: { date }
+      metadata: { date },
     })
     .expect(200)
 
@@ -252,18 +291,20 @@ test('use the publishable key in Authorization header to identify the platform I
     .set({
       // use the publishable key to identify the platform ID
       // Custom authorization scheme, not case sensitive
-      authorization: `SaltanaCore-V1 apiKey=${publishableKey.key}, token=${accessToken}`
+      authorization: `SaltanaCore-V1 apiKey=${publishableKey.key}, token=${accessToken}`,
     })
     .expect(200)
 
   t.is(afterPublishableKey.id, publishableKey.id)
   t.is(afterPublishableKey.metadata.date, date)
 
-  const { body: afterPublishableKeyLowerCase } = await request(t.context.serverUrl)
+  const { body: afterPublishableKeyLowerCase } = await request(
+    t.context.serverUrl,
+  )
     .get(`/api-keys/${publishableKey.id}`)
     .set({
       // Custom authorization scheme, not case sensitive
-      authorization: `saltanacore-v1 apikey=${publishableKey.key}, token=${accessToken}`
+      authorization: `saltanacore-v1 apikey=${publishableKey.key}, token=${accessToken}`,
     })
     .expect(200)
 
@@ -272,7 +313,10 @@ test('use the publishable key in Authorization header to identify the platform I
 })
 
 test('updates an api key', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:edit:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .patch('/api-keys/apik_A30Gye1mER1iEyNAmEQ')
@@ -280,7 +324,7 @@ test('updates an api key', async (t) => {
     .send({
       roles: ['dev'],
       permissions: ['category:create:all'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -297,7 +341,7 @@ test('updates an api key with api key', async (t) => {
     .send({
       roles: ['dev'],
       permissions: ['category:create:all'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -309,7 +353,9 @@ test('updates an api key with api key', async (t) => {
 
 test('updates an api key with api key and loses access to some endpoints', async (t) => {
   const authorizationHeaders = {
-    authorization: `Basic ${encodeBase64('seck_test_RS1OQ21Bosuoe1CJDh5cr9vUHDQ1hCJC:')}`
+    authorization: `Basic ${encodeBase64(
+      'seck_test_RS1OQ21Bosuoe1CJDh5cr9vUHDQ1hCJC:',
+    )}`,
   }
 
   await request(t.context.serverUrl)
@@ -323,7 +369,7 @@ test('updates an api key with api key and loses access to some endpoints', async
     .send({
       roles: [],
       permissions: [],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -339,14 +385,17 @@ test('updates an api key with api key and loses access to some endpoints', async
 })
 
 test('updates an api key with a role other than dev', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:edit:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .patch('/api-keys/apik_A30Gye1mER1iEyNAmEQ')
     .set(authorizationHeaders)
     .send({
       roles: ['public'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -357,14 +406,17 @@ test('updates an api key with a role other than dev', async (t) => {
 })
 
 test('fails to update an api key with a unknown role', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/api-keys/apik_A30Gye1mER1iEyNAmEQ')
     .set(authorizationHeaders)
     .send({
       roles: ['unknownRole'],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -374,11 +426,7 @@ test('fails to update an api key with a unknown role', async (t) => {
 test('removes an api key via access token', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'apiKey:read:all',
-      'apiKey:create:all',
-      'apiKey:remove:all'
-    ]
+    permissions: ['apiKey:read:all', 'apiKey:create:all', 'apiKey:remove:all'],
   })
 
   const { body: apiKey } = await request(t.context.serverUrl)
@@ -387,7 +435,7 @@ test('removes an api key via access token', async (t) => {
     .send({
       name: 'New custom',
       roles: ['dev'],
-      type: 'customKey'
+      type: 'customKey',
     })
     .expect(200)
 
@@ -413,7 +461,9 @@ test('removes an api key via access token', async (t) => {
 
 test('removes an api key via api key', async (t) => {
   const authorizationHeaders = {
-    authorization: `Basic ${encodeBase64('seck_test_wakWA41rBTUXs1Y5pNRjeY5o:')}`
+    authorization: `Basic ${encodeBase64(
+      'seck_test_wakWA41rBTUXs1Y5pNRjeY5o:',
+    )}`,
   }
 
   const { body: apiKey } = await request(t.context.serverUrl)
@@ -422,7 +472,7 @@ test('removes an api key via api key', async (t) => {
     .send({
       name: 'New custom',
       roles: ['dev'],
-      type: 'customKey'
+      type: 'customKey',
     })
     .expect(200)
 
@@ -459,7 +509,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -471,7 +521,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -484,7 +534,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -494,7 +544,7 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
       readNamespaces: true,
       editNamespaces: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -510,7 +560,10 @@ test('fails to create an api key if missing or invalid parameters', async (t) =>
 })
 
 test('fails to update an api key if missing or invalid parameters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['apiKey:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['apiKey:create:all'],
+  })
 
   let result
   let error
@@ -535,7 +588,7 @@ test('fails to update an api key if missing or invalid parameters', async (t) =>
       readNamespaces: true,
       editNamespaces: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -552,10 +605,7 @@ test('fails to update an api key if missing or invalid parameters', async (t) =>
 test('secret key should be obfuscated', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'apiKey:read:all',
-      'apiKey:create:all'
-    ]
+    permissions: ['apiKey:read:all', 'apiKey:create:all'],
   })
 
   const { body: apiKey } = await request(t.context.serverUrl)
@@ -563,7 +613,7 @@ test('secret key should be obfuscated', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'New secret api key',
-      type: 'seck'
+      type: 'seck',
     })
     .expect(200)
 
@@ -585,11 +635,11 @@ test('secret key can be revealed if the request is from system', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       name: 'New secret api key',
-      type: 'seck'
+      type: 'seck',
     })
     .expect(200)
 
@@ -598,7 +648,7 @@ test('secret key can be revealed if the request is from system', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .expect(200)
 
@@ -610,7 +660,7 @@ test('secret key can be revealed if the request is from system', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .expect(200)
 
@@ -620,10 +670,7 @@ test('secret key can be revealed if the request is from system', async (t) => {
 test('secret key can be revealed if the request is from Saltana auth token', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'apiKey:read:all',
-      'apiKey:create:all'
-    ]
+    permissions: ['apiKey:read:all', 'apiKey:create:all'],
   })
 
   const { body: apiKey } = await request(t.context.serverUrl)
@@ -631,7 +678,7 @@ test('secret key can be revealed if the request is from Saltana auth token', asy
     .set(authorizationHeaders)
     .send({
       name: 'New secret api key',
-      type: 'seck'
+      type: 'seck',
     })
     .expect(200)
 
@@ -654,9 +701,7 @@ test('secret key can be revealed if the request is from Saltana auth token', asy
 test('secret key cannot be revealed if the request is from Saltana auth token and there is not enough permissions', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'apiKey:read:all'
-    ]
+    permissions: ['apiKey:read:all'],
   })
 
   const { body: obfuscatedApiKey } = await request(t.context.serverUrl)
@@ -685,8 +730,8 @@ test.serial('generates api_key__* events', async (t) => {
       'apiKey:create:all',
       'apiKey:edit:all',
       'apiKey:remove:all',
-      'event:list:all'
-    ]
+      'event:list:all',
+    ],
   })
 
   const { body: apiKey } = await request(t.context.serverUrl)
@@ -696,14 +741,14 @@ test.serial('generates api_key__* events', async (t) => {
       name: 'Created Event Test Api Key',
       type: 'eventTest',
       roles: ['dev'],
-      permissions: ['asset:create:all']
+      permissions: ['asset:create:all'],
     })
     .expect(200)
 
   const patchPayload = {
     name: 'Updated Event Test Api Key, after update',
     roles: ['dev', 'custom'],
-    permissions: ['asset:create:all', 'category:create:all']
+    permissions: ['asset:create:all', 'category:create:all'],
   }
 
   const { body: apiKeyUpdated } = await request(t.context.serverUrl)
@@ -712,9 +757,11 @@ test.serial('generates api_key__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -722,7 +769,7 @@ test.serial('generates api_key__* events', async (t) => {
   const apiKeyCreatedEvent = getObjectEvent({
     events,
     eventType: 'api_key__created',
-    objectId: apiKey.id
+    objectId: apiKey.id,
   })
   await testEventMetadata({ event: apiKeyCreatedEvent, object: apiKey, t })
   t.is(apiKeyCreatedEvent.object.name, apiKey.name)
@@ -733,12 +780,20 @@ test.serial('generates api_key__* events', async (t) => {
   const apiKeyUpdatedEvent = getObjectEvent({
     events,
     eventType: 'api_key__updated',
-    objectId: apiKeyUpdated.id
+    objectId: apiKeyUpdated.id,
   })
-  await testEventMetadata({ event: apiKeyUpdatedEvent, object: apiKeyUpdated, t, patchPayload })
+  await testEventMetadata({
+    event: apiKeyUpdatedEvent,
+    object: apiKeyUpdated,
+    t,
+    patchPayload,
+  })
   t.is(apiKeyUpdatedEvent.object.name, apiKeyUpdated.name)
   t.truthy(apiKeyUpdatedEvent.object.key.includes('x'.repeat(12)))
-  t.is(_.difference(apiKeyUpdatedEvent.object.roles, apiKeyUpdated.roles).length, 0)
+  t.is(
+    _.difference(apiKeyUpdatedEvent.object.roles, apiKeyUpdated.roles).length,
+    0,
+  )
   t.not(_.difference(apiKeyUpdatedEvent.object.roles, apiKey.roles).length, 0)
 
   await request(t.context.serverUrl)
@@ -746,18 +801,25 @@ test.serial('generates api_key__* events', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
 
-  const apiKeyDeletedEvent = eventsAfterDelete.find(event => {
-    return event.type === 'api_key__deleted' &&
-      event.objectId === apiKeyUpdated.id
+  const apiKeyDeletedEvent = eventsAfterDelete.find((event) => {
+    return (
+      event.type === 'api_key__deleted' && event.objectId === apiKeyUpdated.id
+    )
   })
-  await testEventMetadata({ event: apiKeyDeletedEvent, object: apiKeyUpdated, t })
+  await testEventMetadata({
+    event: apiKeyDeletedEvent,
+    object: apiKeyUpdated,
+    t,
+  })
 })
 
 // //////// //
@@ -769,7 +831,7 @@ test.serial('2019-05-20: list api keys with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['apiKey:list:all']
+    permissions: ['apiKey:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -783,7 +845,7 @@ test('2019-05-20: list api keys with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['apiKey:list:all']
+    permissions: ['apiKey:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -799,8 +861,10 @@ test('2019-05-20: list api keys with api key', async (t) => {
   const { body: obj } = await request(t.context.serverUrl)
     .get('/api-keys')
     .set({
-      authorization: `Basic ${encodeBase64('seck_test_wakWA41rBTUXs1Y5pNRjeY5o:')}`,
-      'x-saltana-version': '2019-05-20'
+      authorization: `Basic ${encodeBase64(
+        'seck_test_wakWA41rBTUXs1Y5pNRjeY5o:',
+      )}`,
+      'x-saltana-version': '2019-05-20',
     })
     .expect(200)
 

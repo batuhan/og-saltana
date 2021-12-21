@@ -1,9 +1,11 @@
-require('@saltana/common').load()
+const config = require('config').get('ExternalServices')
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const Stripe = require('stripe')
 
-// user confiigration id bpc_1JubGhCzDOw5R4whIMBj5eYd
-// provider confiigration id bpc_1JubGhCzDOw5R4wh8PYiArdx
+const stripe = Stripe(config.get('stripe.secretKey'))
+
+// user configuration id bpc_1JubGhCzDOw5R4whIMBj5eYd
+// provider configuration id bpc_1JubGhCzDOw5R4wh8PYiArdx
 const defaults = {
   features: {
     customer_update: {

@@ -1,40 +1,34 @@
 const _ = require('lodash')
+const config = require('config')
 
-const {
-  sendEmail
-} = require('../util/send')
+const { sendEmail } = require('../util/send')
 
-const {
-  generateGeneralTemplate
-} = require('../util/template')
+const { generateGeneralTemplate } = require('../util/template')
 
-const {
-  getTransporter,
-  getDefaults
-} = require('../util/nodemailer')
+const { getTransporter, getDefaults } = require('../util/nodemailer')
 
-const TEST = process.env.NODE_ENV === 'test'
+const TEST = config.get('Env') === 'test'
 
-module.exports = function createService (deps) {
+module.exports = function createService(deps) {
   const {
     createError,
     utils: {
       locale: { parseLocale },
-      time: { isValidTimezone }
+      time: { isValidTimezone },
     },
 
     configRequester,
-    entryRequester
+    entryRequester,
   } = deps
 
   return {
     send,
-    sendTemplate
+    sendTemplate,
   }
 
-  async function send (req) {
-    const platformId = req.platformId
-    const env = req.env
+  async function send(req) {
+    const { platformId } = req
+    const { env } = req
 
     const {
       html,
@@ -49,7 +43,7 @@ module.exports = function createService (deps) {
 
       subject,
       replyTo,
-      headers
+      headers,
     } = req
 
     let forceSendingEmailInTestEnv
@@ -64,7 +58,7 @@ module.exports = function createService (deps) {
       to,
       toEmail,
       toName,
-      ignoreInvalidCertificates: forceSendingEmailInTestEnv
+      ignoreInvalidCertificates: forceSendingEmailInTestEnv,
     })
 
     const { emailContext, nodemailerInfo } = await sendEmail({
@@ -78,7 +72,7 @@ module.exports = function createService (deps) {
       replyTo,
       headers,
 
-      forceSendingEmailInTestEnv
+      forceSendingEmailInTestEnv,
     })
 
     const exposedResult = { success: true }
@@ -90,9 +84,9 @@ module.exports = function createService (deps) {
     return exposedResult
   }
 
-  async function sendTemplate (req) {
-    const platformId = req.platformId
-    const env = req.env
+  async function sendTemplate(req) {
+    const { platformId } = req
+    const { env } = req
 
     const {
       name,
@@ -108,10 +102,11 @@ module.exports = function createService (deps) {
       // DEPRECATED:END
 
       to,
-      replyTo
+      replyTo,
     } = req
 
-    if (timezone && !isValidTimezone(timezone)) throw createError(422, 'Invalid timezone')
+    if (timezone && !isValidTimezone(timezone))
+      throw createError(422, 'Invalid timezone')
 
     const emailParams = await checkAndGetEmailParameters({
       platformId,
@@ -119,12 +114,12 @@ module.exports = function createService (deps) {
       req,
       to,
       toEmail,
-      toName
+      toName,
     })
 
     const config = await configRequester.communicate(req)({
       type: 'read',
-      access: 'default'
+      access: 'default',
     })
 
     const platformInfo = getPlatformInfoFromConfig(config)
@@ -138,7 +133,9 @@ module.exports = function createService (deps) {
 
     const defaultLanguage = 'en'
     const supportedLanguages = ['en', 'fr']
-    const selectedLanguage = supportedLanguages.includes(language) ? language : defaultLanguage
+    const selectedLanguage = supportedLanguages.includes(language)
+      ? language
+      : defaultLanguage
 
     const { results: entries } = await entryRequester.communicate(req)({
       type: 'list',
@@ -148,26 +145,29 @@ module.exports = function createService (deps) {
       orderBy: 'createdDate',
       order: 'desc',
       page: 1,
-      nbResultsPerPage: 2 // common template + specified template
+      nbResultsPerPage: 2, // common template + specified template
     })
 
     if (!entries.length) {
-      throw createError(422, 'No content available, please create entries first')
+      throw createError(
+        422,
+        'No content available, please create entries first',
+      )
     }
 
-    const commonEntry = entries.find(entry => entry.name === 'common')
-    const emailEntry = entries.find(entry => entry.name === name)
+    const commonEntry = entries.find((entry) => entry.name === 'common')
+    const emailEntry = entries.find((entry) => entry.name === name)
 
     const commonFields = commonEntry && commonEntry.fields
     const emailFields = emailEntry && emailEntry.fields
 
     const defaultFields = {
-      service_logo__url: platformInfo.logoUrl
+      service_logo__url: platformInfo.logoUrl,
     }
 
     const brandingFields = getBrandingFields({
       serviceName: platformInfo.serviceName,
-      language: selectedLanguage
+      language: selectedLanguage,
     })
     const templateFields = getTemplateFieldsFromEntryFields([
       // objects with higher index fields override the existing fields
@@ -183,21 +183,29 @@ module.exports = function createService (deps) {
     const enrichedData = enrichData(data, { platformInfo })
 
     try {
-      const generatedResult = generateGeneralTemplate(templateFields, enrichedData, {
-        locale,
-        currency,
-        timezone
-      })
+      const generatedResult = generateGeneralTemplate(
+        templateFields,
+        enrichedData,
+        {
+          locale,
+          currency,
+          timezone,
+        },
+      )
 
       newTemplate = generatedResult.newTemplate
       newTemplateFields = generatedResult.newFields
     } catch (err) {
       if (err.errorType === 'ICU_FORMAT_ERROR') {
-        throw createError(422, `Invalid ICU format for the field "${err.invalidKey}"`, {
-          public: {
-            value: err.invalidValue
-          }
-        })
+        throw createError(
+          422,
+          `Invalid ICU format for the field "${err.invalidKey}"`,
+          {
+            public: {
+              value: err.invalidValue,
+            },
+          },
+        )
       } else {
         throw err
       }
@@ -210,7 +218,7 @@ module.exports = function createService (deps) {
       from,
       to: emailParams.to,
       subject: newTemplateFields.subject,
-      replyTo
+      replyTo,
     })
 
     const exposedResult = { success: true }
@@ -222,19 +230,19 @@ module.exports = function createService (deps) {
     return exposedResult
   }
 
-  function getPlatformInfoFromConfig (config) {
+  function getPlatformInfoFromConfig(config) {
     const instantConfig = _.get(config, 'saltana.instant', {})
 
     return {
       serviceName: instantConfig.serviceName,
       logoUrl: instantConfig.logoUrl,
       locale: instantConfig.locale,
-      currency: instantConfig.currency
+      currency: instantConfig.currency,
     }
   }
 
-  function enrichData (data = {}, { platformInfo }) {
-    const enrichedData = Object.assign({}, data)
+  function enrichData(data = {}, { platformInfo }) {
+    const enrichedData = { ...data }
 
     if (!enrichedData.serviceName) {
       enrichedData.serviceName = platformInfo.serviceName
@@ -243,18 +251,20 @@ module.exports = function createService (deps) {
     return enrichedData
   }
 
-  function getBrandingFields ({ serviceName, language }) {
-    const saltanaUrl = 'https://saltana.com/?utm_campaign=powered-by&utm_source=galaxy&utm_medium=email'
+  function getBrandingFields({ serviceName, language }) {
+    const saltanaUrl =
+      'https://saltana.com/?utm_campaign=powered-by&utm_source=galaxy&utm_medium=email'
     const brandingByLocale = {
       en: `${serviceName} is powered by <a href="${saltanaUrl}">Saltana API</a>.`,
-      fr: `${serviceName} est propulsé par <a href="${saltanaUrl}">l’API Saltana</a>.`
+      fr: `${serviceName} est propulsé par <a href="${saltanaUrl}">l’API Saltana</a>.`,
     }
 
     return {
       branding: brandingByLocale[language] || '',
       saltana_website__img_url: `${saltanaUrl}&utm_content=logo`,
       saltana_logo__alt: 'Saltana',
-      saltana_logo__url: 'https://saltana-instant-files.s3.amazonaws.com/s/saltana-platform-runner-small.png',
+      saltana_logo__url:
+        'https://saltana-instant-files.s3.amazonaws.com/s/saltana-platform-runner-small.png',
     }
   }
 
@@ -272,23 +282,28 @@ module.exports = function createService (deps) {
    * }
    * @param {Object[]} entriesFields
    */
-  function getTemplateFieldsFromEntryFields (entriesFields) {
+  function getTemplateFieldsFromEntryFields(entriesFields) {
     const templateFields = {}
 
-    entriesFields.forEach(entryFields => {
+    entriesFields.forEach((entryFields) => {
       if (!entryFields || !_.isPlainObject(entryFields)) return
 
       const fieldNames = Object.keys(entryFields)
 
-      fieldNames.forEach(fieldName => {
+      fieldNames.forEach((fieldName) => {
         const value = entryFields[fieldName]
 
         if (_.isPlainObject(value)) {
-          const validTransformedField = _.isPlainObject(value) && _.isString(value.transformed)
+          const validTransformedField =
+            _.isPlainObject(value) && _.isString(value.transformed)
           if (!validTransformedField) {
-            throw createError(422, `Invalid transform object for the field "${fieldName}"`, {
-              public: { value }
-            })
+            throw createError(
+              422,
+              `Invalid transform object for the field "${fieldName}"`,
+              {
+                public: { value },
+              },
+            )
           }
 
           templateFields[fieldName] = value.transformed
@@ -301,24 +316,30 @@ module.exports = function createService (deps) {
     return templateFields
   }
 
-  async function checkAndGetEmailParameters ({
+  async function checkAndGetEmailParameters({
     platformId,
     env,
     req,
     to,
     toEmail,
     toName,
-    ignoreInvalidCertificates
+    ignoreInvalidCertificates,
   }) {
-    if (toEmail && to) throw createError(400, 'Please provide only one of \'to\' and \'toEmail\'')
+    if (toEmail && to)
+      throw createError(400, "Please provide only one of 'to' and 'toEmail'")
 
     const privateConfig = await configRequester.communicate(req)({
-      type: 'readPrivate'
+      type: 'readPrivate',
     })
 
     const emailConfig = _.get(privateConfig, 'saltana.email') || {}
 
-    const transporter = await getTransporter({ platformId, env, emailConfig, ignoreInvalidCertificates })
+    const transporter = await getTransporter({
+      platformId,
+      env,
+      emailConfig,
+      ignoreInvalidCertificates,
+    })
 
     const emailDefaults = getDefaults(emailConfig)
 
@@ -341,7 +362,7 @@ module.exports = function createService (deps) {
     return {
       transporter,
       defaults: emailDefaults,
-      to: toField
+      to: toField,
     }
   }
 }

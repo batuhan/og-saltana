@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -16,7 +14,7 @@ const {
   checkCursorPaginatedListObject,
 } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'message' })(t)
   await beforeEach()(t)
 })
@@ -25,7 +23,10 @@ test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list messages with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['message:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['message:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -35,7 +36,10 @@ test.serial('list messages with pagination', async (t) => {
 })
 
 test('list messages with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['message:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['message:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/messages?id=msg_Vuz9KRs10NK1gAHrp0NK')
@@ -48,14 +52,18 @@ test('list messages with id filter', async (t) => {
 })
 
 test('list messages with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['message:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['message:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/messages?senderId=user-external-id')
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, message) => t.is(message.senderId, 'user-external-id')
+  const checkResultsFn = (t, message) =>
+    t.is(message.senderId, 'user-external-id')
 
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
   t.is(obj.results.length, 1)
@@ -65,7 +73,7 @@ test('cannot list messages if the current user does not belong to the conversati
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['message:list'],
-    userId: 'usr_Y0tfQps1I3a1gJYz2I3a'
+    userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
   })
 
   await request(t.context.serverUrl)
@@ -80,21 +88,30 @@ test('list messages with userId as filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['message:list'],
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
 
-  const { body: { results: messages } } = await request(t.context.serverUrl)
+  const {
+    body: { results: messages },
+  } = await request(t.context.serverUrl)
     .get('/messages?userId=usr_WHlfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .expect(200)
 
-  messages.forEach(message => {
-    t.true([message.senderId, message.receiverId].includes('usr_WHlfQps1I3a1gJYz2I3a'))
+  messages.forEach((message) => {
+    t.true(
+      [message.senderId, message.receiverId].includes(
+        'usr_WHlfQps1I3a1gJYz2I3a',
+      ),
+    )
   })
 })
 
 test('finds a message', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['message:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['message:read:all'],
+  })
 
   const { body: message } = await request(t.context.serverUrl)
     .get('/messages/msg_Vuz9KRs10NK1gAHrp0NK')
@@ -110,7 +127,7 @@ test('cannot find a message if the current user does not belong the conversation
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['message:read'],
-    userId: 'usr_QVQfQps1I3a1gJYz2I3a'
+    userId: 'usr_QVQfQps1I3a1gJYz2I3a',
   })
 
   await request(t.context.serverUrl)
@@ -122,7 +139,10 @@ test('cannot find a message if the current user does not belong the conversation
 })
 
 test('creates a message', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['message:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['message:create:all'],
+  })
 
   const { body: message } = await request(t.context.serverUrl)
     .post('/messages')
@@ -132,13 +152,16 @@ test('creates a message', async (t) => {
       receiverId: 'user-external-id',
       content: 'Good',
       attachments: [{ name: 'attachmentName1' }, { name: 'attachmentName2' }],
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
   t.truthy(message.senderId)
   t.truthy(message.conversationId)
-  t.deepEqual(message.attachments, [{ name: 'attachmentName1' }, { name: 'attachmentName2' }])
+  t.deepEqual(message.attachments, [
+    { name: 'attachmentName1' },
+    { name: 'attachmentName2' },
+  ])
   t.deepEqual(message.metadata, { dummy: true })
 })
 
@@ -146,7 +169,7 @@ test('automatically assign a conversationId when creating a message if non provi
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['message:create:all'],
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
 
   const { body: message1 } = await request(t.context.serverUrl)
@@ -156,7 +179,7 @@ test('automatically assign a conversationId when creating a message if non provi
       topicId: 'ast_2l7fQps1I3a1gJYz2I3a',
       receiverId: 'user-external-id',
       content: 'Oh yeah!',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -170,7 +193,7 @@ test('automatically assign a conversationId when creating a message if non provi
       receiverId: 'user-external-id',
       content: 'Oh yeah!',
       conversationId: 'conv_4FqUqs1zln1h9gZhzln',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -181,7 +204,7 @@ test('cannot create a message in a conversation if the current user does not bel
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['message:create'],
-    userId: 'user-external-id2'
+    userId: 'user-external-id2',
   })
 
   await request(t.context.serverUrl)
@@ -192,7 +215,7 @@ test('cannot create a message in a conversation if the current user does not bel
       receiverId: 'user-external-id',
       content: 'Good',
       conversationId: 'conv_4FqUqs1zln1h9gZhzln',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(403)
 
@@ -200,7 +223,10 @@ test('cannot create a message in a conversation if the current user does not bel
 })
 
 test('cannot create a message with a non-existing conversationId', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['message:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['message:create:all'],
+  })
 
   await request(t.context.serverUrl)
     .post('/messages')
@@ -210,7 +236,7 @@ test('cannot create a message with a non-existing conversationId', async (t) => 
       receiverId: 'user-external-id',
       content: 'Good',
       conversationId: 'conv_0HaL0s1XvY1ghqRIXvY', // non-existing conversationId
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -220,7 +246,7 @@ test('cannot create a message with a non-existing conversationId', async (t) => 
 test('updates a message', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['message:edit:all']
+    permissions: ['message:edit:all'],
   })
 
   const { body: message } = await request(t.context.serverUrl)
@@ -229,8 +255,8 @@ test('updates a message', async (t) => {
     .send({
       read: true,
       metadata: {
-        newThing: true
-      }
+        newThing: true,
+      },
     })
     .expect(200)
 
@@ -243,14 +269,14 @@ test('marks the message as read', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['message:edit'],
-    userId: 'usr_WHlfQps1I3a1gJYz2I3a'
+    userId: 'usr_WHlfQps1I3a1gJYz2I3a',
   })
 
   const { body: message } = await request(t.context.serverUrl)
     .patch('/messages/msg_Wg01MFs1Crb1gMm8pCrb')
     .set(authorizationHeaders)
     .send({
-      read: true
+      read: true,
     })
     .expect(200)
 
@@ -264,8 +290,8 @@ test('removes a message', async (t) => {
     permissions: [
       'message:read:all',
       'message:create:all',
-      'message:remove:all'
-    ]
+      'message:remove:all',
+    ],
   })
 
   const { body: message } = await request(t.context.serverUrl)
@@ -274,7 +300,7 @@ test('removes a message', async (t) => {
     .send({
       receiverId: 'user-external-id',
       topicId: 'someTopic',
-      content: 'Message to remove'
+      content: 'Message to remove',
     })
     .expect(200)
 
@@ -306,7 +332,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
     .post('/messages')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -318,7 +344,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
     .post('/messages')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -333,7 +359,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
     .post('/messages')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       topicId: true,
@@ -344,7 +370,7 @@ test('fails to create a message if missing or invalid parameters', async (t) => 
       senderId: true,
       receiverId: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -369,7 +395,7 @@ test('fails to update a message if missing or invalid parameters', async (t) => 
     .patch('/messages/msg_GYT4WXs15RC1gFLjp5RC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -381,12 +407,12 @@ test('fails to update a message if missing or invalid parameters', async (t) => 
     .patch('/messages/msg_GYT4WXs15RC1gFLjp5RC')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       read: 'invalid',
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -404,12 +430,9 @@ test('fails to update a message if missing or invalid parameters', async (t) => 
 test.serial('generates message__* events', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'message:create:all',
-      'event:list:all'
-    ],
+    permissions: ['message:create:all', 'event:list:all'],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const { body: message } = await request(t.context.serverUrl)
@@ -423,15 +446,17 @@ test.serial('generates message__* events', async (t) => {
       metadata: {
         test1: true,
         _custom: {
-          hasDataInNamespace: true
-        }
-      }
+          hasDataInNamespace: true,
+        },
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -439,7 +464,7 @@ test.serial('generates message__* events', async (t) => {
   const messageCreatedEvent = getObjectEvent({
     events,
     eventType: 'message__created',
-    objectId: message.id
+    objectId: message.id,
   })
   await testEventMetadata({ event: messageCreatedEvent, object: message, t })
   t.is(messageCreatedEvent.object.name, message.name)
@@ -456,7 +481,7 @@ test.serial('2019-05-20: list messages with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['message:list:all']
+    permissions: ['message:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -470,7 +495,7 @@ test('2019-05-20: list messages with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['message:list:all']
+    permissions: ['message:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -487,7 +512,7 @@ test('2019-05-20: list messages with advanced filters', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['message:list:all']
+    permissions: ['message:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -495,7 +520,8 @@ test('2019-05-20: list messages with advanced filters', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkResultsFn = (t, message) => t.is(message.senderId, 'user-external-id')
+  const checkResultsFn = (t, message) =>
+    t.is(message.senderId, 'user-external-id')
 
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })
   t.is(obj.nbResults, 1)

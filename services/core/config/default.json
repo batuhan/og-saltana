@@ -1,0 +1,94 @@
+{
+  "Env": "dev",
+  "SystemKey": "system",
+  "SystemHashFnPassphrase": "SYSTEM_HASH_FUNCTION_PASSPHRASE",
+  "ApiSecretKey": "seck_test_wakWA41rBTUXs1Y5oNRjeY5o",
+  "DebugEnabled": true,
+  "DebugEmails": "batuhan@saltana.com",
+  "InstanceId": "default",
+  "InstanceEnv": "staging,dev",
+  "Public": {
+    "api": {
+      "host": "dev.saltana.com"
+    }
+  },
+  "Cote": {
+    "port": 4100,
+    "env": "dev",
+    "baseUrl": null,
+    "logging": true
+  },
+  "ExternalServices": {
+    "pgsql": {
+      "host": "164.90.174.135",
+      "port": "6543",
+      "username": "user",
+      "password": "password",
+      "database": "saltana-core",
+      "schema": "public",
+      "timescale": {
+        "enabled": false
+      },
+      "ssl": {
+        "enabled": false,
+        "cert": "",
+        "key": "",
+        "ca": ""
+      },
+      "adminUser": "postgres"
+    },
+    "elasticsearch": {
+      "host": "164.90.174.135",
+      "protocol": "http",
+      "port": 9200,
+      "user": "elastic",
+      "password": "elastic_password",
+      "apm": {
+        "enabled": false,
+        "serverUrl": "",
+        "secretToken": ""
+      }
+    },
+    "stripe": {
+      "secretKey": "sk_test_51IpyZzCzDOw5R4whxk0jrB3j2tDCr4OHHrbjsz4L2bRI05G0Ku3m3k264fL5GmMKQQIa2PROW9UDZn8ptmIKTXRu00kcmgys8T",
+      "webhookSecret": "whsec_1234",
+      "paymentDescription": "SALTANAHQ"
+    },
+    "redis": {
+      "host": "164.90.174.135",
+      "port": 36379,
+      "dbnum": 0,
+      "password": "",
+      "tls": false
+    },
+    "clerk": {
+      "apiKey": "test_5DXNcvKedKBwv4zHJGjykM60ohYTwwTRlp",
+      "jwksLink": "https://clerk.8n265.f7qow.lcl.dev/.well-known/jwks.json"
+    },
+    "cloudflare": {
+      "apiToken": null,
+      "zoneId": "08ceab39c469aa51c59d57f884dac169",
+      "accountId": "610b07790bf632c89fb6fa735d2fbfe3"
+    }
+  },
+  "LocalEnv": {
+    "instantData": false,
+    "ngrok": {
+      "auth": "",
+      "subdomain": "",
+      "authToken": ""
+    }
+  },
+  "TestEnv": {
+    "tests": ""
+  },
+  "Features": {
+    "PaymentWithCrypto": "",
+    "PayoutWithCrypto": ""
+  },
+  "Plugins": {
+    "paths": "",
+    "ignored": "",
+    "installed": ""
+  }
+}

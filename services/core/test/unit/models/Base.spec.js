@@ -1,11 +1,9 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 
 const Base = require('../../../src/models/Base')
 
 class CustomModel extends Base {
-  static getAccessFields (access) {
+  static getAccessFields(access) {
     const accessFields = {
       api: [
         'id',
@@ -14,8 +12,8 @@ class CustomModel extends Base {
         'name',
         'description',
         'metadata',
-        'platformData'
-      ]
+        'platformData',
+      ],
     }
 
     return accessFields[access]
@@ -29,17 +27,17 @@ test('merges the custom metadata object', (t) => {
       nbViews: 10,
       nestedObj: {
         a: true,
-        anotherArray: [1, 2]
+        anotherArray: [1, 2],
       },
-      features: ['a', 'b']
-    }
+      features: ['a', 'b'],
+    },
   }
   const newMetadata = {
     color: 'red',
     features: ['c'],
     nestedObj: {
-      anotherArray: []
-    }
+      anotherArray: [],
+    },
   }
 
   t.deepEqual(Base.getCustomData(element, { metadata: newMetadata }), {
@@ -47,9 +45,9 @@ test('merges the custom metadata object', (t) => {
     nbViews: 10,
     nestedObj: {
       a: true,
-      anotherArray: []
+      anotherArray: [],
     },
-    features: ['c']
+    features: ['c'],
   })
 })
 
@@ -60,48 +58,48 @@ test('replaces the custom metadata object', (t) => {
       nbViews: 10,
       nestedObj: {
         a: true,
-        anotherArray: [1, 2]
+        anotherArray: [1, 2],
       },
-      features: ['a', 'b']
-    }
+      features: ['a', 'b'],
+    },
   }
   const newMetadata = {
     color: 'red',
     features: ['c'],
     nestedObj: {
-      anotherArray: []
+      anotherArray: [],
     },
-    __replace__: true
+    __replace__: true,
   }
 
   t.deepEqual(Base.getCustomData(element, { metadata: newMetadata }), {
     color: 'red',
     features: ['c'],
     nestedObj: {
-      anotherArray: []
-    }
+      anotherArray: [],
+    },
   })
 })
 
 test('checks that custom newData is correctly merged', (t) => {
   const element = {
     data: {
-      a: 1
+      a: 1,
     },
     metadata: {
-      b: 2
+      b: 2,
     },
     platformData: {
-      c: 3
-    }
+      c: 3,
+    },
   }
   const newData = {
-    d: 4
+    d: 4,
   }
 
   t.deepEqual(Base.getCustomData(element, { newData, field: 'data' }), {
     a: 1,
-    d: 4
+    d: 4,
   })
 })
 
@@ -113,7 +111,7 @@ test('expose only authorized fields', (t) => {
     name: 'example',
     description: 'test',
     metadata: {},
-    platformData: {}
+    platformData: {},
   }
 
   t.deepEqual(CustomModel.expose(element), {
@@ -123,7 +121,7 @@ test('expose only authorized fields', (t) => {
     name: 'example',
     description: 'test',
     metadata: {},
-    platformData: {}
+    platformData: {},
   })
 
   const element2 = {
@@ -135,7 +133,7 @@ test('expose only authorized fields', (t) => {
     color: 'blue',
     secret: '123',
     metadata: {},
-    platformData: {}
+    platformData: {},
   }
 
   t.deepEqual(CustomModel.expose(element2), {
@@ -145,7 +143,7 @@ test('expose only authorized fields', (t) => {
     name: 'example',
     description: 'test',
     metadata: {},
-    platformData: {}
+    platformData: {},
   })
 })
 
@@ -156,27 +154,27 @@ test('hide namespaces by default', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
+        dummy: true,
       },
       _private: {
-        test: true
+        test: true,
       },
       _namespace: {
-        number: 123
-      }
+        number: 123,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
+        dummy: false,
       },
       _private: {
-        test: false
+        test: false,
       },
       _namespace: {
-        number: 123
-      }
-    }
+        number: 123,
+      },
+    },
   }
   const expected = {
     id: '9be26bc4-3259-4fc3-97e2-c749958e7c4f',
@@ -184,15 +182,15 @@ test('hide namespaces by default', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
-      }
+        dummy: true,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
-      }
-    }
+        dummy: false,
+      },
+    },
   }
 
   t.deepEqual(CustomModel.expose(element), expected)
@@ -205,27 +203,27 @@ test('show allowed namespaces', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
+        dummy: true,
       },
       _private: {
-        test: true
+        test: true,
       },
       _namespace: {
-        number: 123
-      }
+        number: 123,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
+        dummy: false,
       },
       _private: {
-        test: false
+        test: false,
       },
       _namespace: {
-        number: 456
-      }
-    }
+        number: 456,
+      },
+    },
   }
   const expected1 = {
     id: '9be26bc4-3259-4fc3-97e2-c749958e7c4f',
@@ -233,21 +231,21 @@ test('show allowed namespaces', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
+        dummy: true,
       },
       _private: {
-        test: true
-      }
+        test: true,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
+        dummy: false,
       },
       _private: {
-        test: false
-      }
-    }
+        test: false,
+      },
+    },
   }
   const expected2 = {
     id: '9be26bc4-3259-4fc3-97e2-c749958e7c4f',
@@ -255,25 +253,31 @@ test('show allowed namespaces', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
+        dummy: true,
       },
       _namespace: {
-        number: 123
-      }
+        number: 123,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
+        dummy: false,
       },
       _namespace: {
-        number: 456
-      }
-    }
+        number: 456,
+      },
+    },
   }
 
-  t.deepEqual(CustomModel.expose(element, { namespaces: ['private'] }), expected1)
-  t.deepEqual(CustomModel.expose(element, { namespaces: ['namespace', 'test'] }), expected2)
+  t.deepEqual(
+    CustomModel.expose(element, { namespaces: ['private'] }),
+    expected1,
+  )
+  t.deepEqual(
+    CustomModel.expose(element, { namespaces: ['namespace', 'test'] }),
+    expected2,
+  )
   t.deepEqual(CustomModel.expose(element, { namespaces: ['*'] }), element)
 })
 
@@ -284,31 +288,35 @@ test('get data namespaces', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
+        dummy: true,
       },
       _private: {
-        test: true
+        test: true,
       },
       _namespace: {
-        number: 123
-      }
+        number: 123,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
+        dummy: false,
       },
       _private: {
-        test: false
+        test: false,
       },
       _namespace: {
-        number: 456
+        number: 456,
       },
-      _custom: {}
-    }
+      _custom: {},
+    },
   }
 
-  t.deepEqual(Base.getDataNamespaces(element), ['private', 'namespace', 'custom'])
+  t.deepEqual(Base.getDataNamespaces(element), [
+    'private',
+    'namespace',
+    'custom',
+  ])
 })
 
 test('check data namespaces', (t) => {
@@ -318,28 +326,28 @@ test('check data namespaces', (t) => {
     metadata: {
       color: 'blue',
       nested: {
-        dummy: true
+        dummy: true,
       },
       _private: {
-        test: true
+        test: true,
       },
       _namespace: {
-        number: 123
-      }
+        number: 123,
+      },
     },
     platformData: {
       color: 'red',
       nested: {
-        dummy: false
+        dummy: false,
       },
       _private: {
-        test: false
+        test: false,
       },
       _namespace: {
-        number: 456
+        number: 456,
       },
-      _custom: {}
-    }
+      _custom: {},
+    },
   }
 
   t.true(Base.checkDataNamespaces(element, ['private', 'namespace', 'custom']))

@@ -1,12 +1,10 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const nodemailer = require('nodemailer')
 const _ = require('lodash')
 
 const {
-  testTools: { lifecycle, auth }
+  testTools: { lifecycle, auth },
 } = require('../../serverTooling')
 
 const { before, beforeEach, after } = lifecycle
@@ -14,7 +12,7 @@ const { getAccessTokenHeaders } = auth
 
 const { minifyHtml } = require('../util/content')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'email' })(t)
   await beforeEach()(t)
 
@@ -23,35 +21,37 @@ test.before(async t => {
 // test.beforeEach(beforeEach()) // Concurrent tests are much faster
 test.after(after())
 
-async function setEmailConfig (t, config = {}) {
+async function setEmailConfig(t, config = {}) {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'config:edit:all',
-    ]
+    permissions: ['config:edit:all'],
   })
 
-  const configPayload = _.merge({}, {
-    saltana: {
-      email: {
-        port: 465,
-        host: 'smtp.example.com',
-        secure: false,
-        ignoreTLS: false,
-        requireTLS: false,
-        auth: {
-          user: 'hello@example.com',
-          pass: 'password'
+  const configPayload = _.merge(
+    {},
+    {
+      saltana: {
+        email: {
+          port: 465,
+          host: 'smtp.example.com',
+          secure: false,
+          ignoreTLS: false,
+          requireTLS: false,
+          auth: {
+            user: 'hello@example.com',
+            pass: 'password',
+          },
+          defaults: {
+            from: 'hello@example.com',
+            cc: null,
+            bcc: null,
+            replyTo: null,
+          },
         },
-        defaults: {
-          from: 'hello@example.com',
-          cc: null,
-          bcc: null,
-          replyTo: null
-        }
-      }
-    }
-  }, config)
+      },
+    },
+    config,
+  )
 
   await request(t.context.serverUrl)
     .patch('/config/private')
@@ -61,126 +61,135 @@ async function setEmailConfig (t, config = {}) {
 }
 
 // serial needed because config is updated
-test.serial('sends email for real and check that information is correct', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: ['email:send:all']
-  })
-
-  let account
-  try {
-    account = await nodemailer.createTestAccount()
-  } catch (err) {
-    // error probably due to external service or network so we just skip the test
-    t.pass()
-    return
-  }
-
-  async function runEmailsTest (debugAddresses = '') {
-    process.env.DEBUG_EMAILS = debugAddresses
-
-    await setEmailConfig(t, {
-      saltana: {
-        email: {
-          host: account.smtp.host,
-          port: account.smtp.port,
-          secure: account.smtp.secure,
-          auth: {
-            user: account.user,
-            pass: account.pass
-          },
-          defaults: {
-            from: account.user,
-            cc: 'user1@example.com, "User2" <user2@example.com>',
-            bcc: [
-              {
-                name: 'User3',
-                address: 'user3@example.com'
-              },
-              'user4@example.com, "User5" <user5@example.com>'
-            ]
-          }
-        }
-      }
+test.serial(
+  'sends email for real and check that information is correct',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t,
+      permissions: ['email:send:all'],
     })
 
-    const payload = {
-      html: '<div>Hello world!</div>',
-      text: 'Hello world',
-      to: 'Example user <test@example.com>',
-      subject: 'Test subject',
-      replyTo: 'support@company.com'
+    let account
+    try {
+      account = await nodemailer.createTestAccount()
+    } catch (err) {
+      // error probably due to external service or network so we just skip the test
+      t.pass()
+      return
     }
 
-    const { body: { emailContext, nodemailerInfo } } = await request(t.context.serverUrl)
-      .post('/emails/send?_forceSend=true')
-      .set(authorizationHeaders)
-      .send(payload)
-      .expect(200)
+    async function runEmailsTest(debugAddresses = '') {
+      process.env.DEBUG_EMAILS = debugAddresses
 
-    t.is(payload.html, emailContext.html)
-    t.is(payload.text, emailContext.text)
-    t.is(payload.subject, emailContext.subject)
-    t.is(payload.replyTo, emailContext.replyTo)
+      await setEmailConfig(t, {
+        saltana: {
+          email: {
+            host: account.smtp.host,
+            port: account.smtp.port,
+            secure: account.smtp.secure,
+            auth: {
+              user: account.user,
+              pass: account.pass,
+            },
+            defaults: {
+              from: account.user,
+              cc: 'user1@example.com, "User2" <user2@example.com>',
+              bcc: [
+                {
+                  name: 'User3',
+                  address: 'user3@example.com',
+                },
+                'user4@example.com, "User5" <user5@example.com>',
+              ],
+            },
+          },
+        },
+      })
 
-    if (debugAddresses) {
-      t.is(debugAddresses, emailContext.to)
-    } else {
-      t.is(payload.to, emailContext.to)
+      const payload = {
+        html: '<div>Hello world!</div>',
+        text: 'Hello world',
+        to: 'Example user <test@example.com>',
+        subject: 'Test subject',
+        replyTo: 'support@company.com',
+      }
+
+      const {
+        body: { emailContext, nodemailerInfo },
+      } = await request(t.context.serverUrl)
+        .post('/emails/send?_forceSend=true')
+        .set(authorizationHeaders)
+        .send(payload)
+        .expect(200)
+
+      t.is(payload.html, emailContext.html)
+      t.is(payload.text, emailContext.text)
+      t.is(payload.subject, emailContext.subject)
+      t.is(payload.replyTo, emailContext.replyTo)
+
+      if (debugAddresses) {
+        t.is(debugAddresses, emailContext.to)
+      } else {
+        t.is(payload.to, emailContext.to)
+      }
+
+      t.is(nodemailerInfo.envelope.from, account.user)
+      t.true(nodemailerInfo.response.toLowerCase().includes('accepted'))
+
+      // no way to easily distinguish to, cc, bcc from Nodemailer info
+      const toRecipients = debugAddresses
+        ? debugAddresses.split(',')
+        : ['test@example.com']
+
+      const recipients = toRecipients.concat([
+        'user1@example.com',
+        'user2@example.com',
+        'user3@example.com',
+        'user4@example.com',
+        'user5@example.com',
+      ])
+
+      t.deepEqual(nodemailerInfo.accepted, nodemailerInfo.envelope.to)
+      t.is(_.difference(nodemailerInfo.envelope.to, recipients).length, 0)
+
+      // check that default values are overridden
+      const newFrom = 'super@mail.com'
+      const {
+        body: { nodemailerInfo: nodemailerInfo2 },
+      } = await request(t.context.serverUrl)
+        .post('/emails/send?_forceSend=true')
+        .set(authorizationHeaders)
+        .send({ ...payload, from: newFrom })
+        .expect(200)
+
+      t.is(nodemailerInfo2.envelope.from, newFrom)
+      t.true(nodemailerInfo2.response.toLowerCase().includes('accepted'))
+
+      t.deepEqual(nodemailerInfo2.accepted, nodemailerInfo2.envelope.to)
+      t.is(_.difference(nodemailerInfo2.envelope.to, recipients).length, 0)
     }
 
-    t.is(nodemailerInfo.envelope.from, account.user)
-    t.true(nodemailerInfo.response.toLowerCase().includes('accepted'))
+    const originalDebugEmails = process.env.DEBUG_EMAILS
+    const testDebugAddresses = 'debug1@example.com,debug2@example.com'
 
-    // no way to easily distinguish to, cc, bcc from Nodemailer info
-    const toRecipients = debugAddresses ? debugAddresses.split(',') : ['test@example.com']
+    // remove any debug emails from environment so they won't interfere with this test
+    await runEmailsTest()
 
-    const recipients = toRecipients.concat([
-      'user1@example.com',
-      'user2@example.com',
-      'user3@example.com',
-      'user4@example.com',
-      'user5@example.com'
-    ])
+    // send emails with debug emails set
+    await runEmailsTest(testDebugAddresses)
 
-    t.deepEqual(nodemailerInfo.accepted, nodemailerInfo.envelope.to)
-    t.is(_.difference(nodemailerInfo.envelope.to, recipients).length, 0)
+    // reset environment variable `DEBUG_EMAILS` to its original value
+    process.env.DEBUG_EMAILS = originalDebugEmails
 
-    // check that default values are overridden
-    const newFrom = 'super@mail.com'
-    const { body: { nodemailerInfo: nodemailerInfo2 } } = await request(t.context.serverUrl)
-      .post('/emails/send?_forceSend=true')
-      .set(authorizationHeaders)
-      .send(Object.assign({}, payload, { from: newFrom }))
-      .expect(200)
-
-    t.is(nodemailerInfo2.envelope.from, newFrom)
-    t.true(nodemailerInfo2.response.toLowerCase().includes('accepted'))
-
-    t.deepEqual(nodemailerInfo2.accepted, nodemailerInfo2.envelope.to)
-    t.is(_.difference(nodemailerInfo2.envelope.to, recipients).length, 0)
-  }
-
-  const originalDebugEmails = process.env.DEBUG_EMAILS
-  const testDebugAddresses = 'debug1@example.com,debug2@example.com'
-
-  // remove any debug emails from environment so they won't interfere with this test
-  await runEmailsTest()
-
-  // send emails with debug emails set
-  await runEmailsTest(testDebugAddresses)
-
-  // reset environment variable `DEBUG_EMAILS` to its original value
-  process.env.DEBUG_EMAILS = originalDebugEmails
-
-  // reset email config for other tests
-  await setEmailConfig(t)
-})
+    // reset email config for other tests
+    await setEmailConfig(t)
+  },
+)
 
 test('sends an email', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const payload = {
@@ -188,10 +197,12 @@ test('sends an email', async (t) => {
     text: 'Hello world',
     to: 'Example user <test@example.com>',
     subject: 'Test subject',
-    replyTo: 'support@company.com'
+    replyTo: 'support@company.com',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send(payload)
@@ -207,7 +218,7 @@ test('sends an email', async (t) => {
 test('sends an email to multiple addresses', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const payload = {
@@ -216,15 +227,17 @@ test('sends an email to multiple addresses', async (t) => {
     to: [
       {
         name: 'User',
-        address: 'user@example.com'
+        address: 'user@example.com',
       },
-      'user2@example.com, "User3" <user3@example.com>'
+      'user2@example.com, "User3" <user3@example.com>',
     ],
     subject: 'Test subject',
-    replyTo: 'support@company.com'
+    replyTo: 'support@company.com',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send(payload)
@@ -241,7 +254,7 @@ test('sends an email to multiple addresses', async (t) => {
 test('sends an email with deprecated `toEmail` and `toName`', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const payload = {
@@ -250,10 +263,12 @@ test('sends an email with deprecated `toEmail` and `toName`', async (t) => {
     toEmail: 'test@example.com',
     toName: 'Example user',
     subject: 'Test subject',
-    replyTo: 'support@company.com'
+    replyTo: 'support@company.com',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send(payload)
@@ -270,7 +285,7 @@ test('sends an email with deprecated `toEmail` and `toName`', async (t) => {
 test('sends an email with plain text only', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const text = `Hello world,
@@ -278,10 +293,12 @@ This is a test.`
 
   const payload = {
     text,
-    to: 'Example user <test@example.com>'
+    to: 'Example user <test@example.com>',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send(payload)
@@ -294,7 +311,7 @@ This is a test.`
 test('email HTML is minified', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const html = `
@@ -304,12 +321,14 @@ test('email HTML is minified', async (t) => {
   `
   const minifiedHtml = minifyHtml(html)
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send({
       html,
-      to: 'test@example.com'
+      to: 'test@example.com',
     })
     .expect(200)
 
@@ -320,7 +339,7 @@ test('email HTML is minified', async (t) => {
 test('text is generated automatically from HTML if not provided', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const html = `
@@ -334,24 +353,28 @@ test('text is generated automatically from HTML if not provided', async (t) => {
   const customText = 'Yeah'
   const generatedText = 'Hello world!\nBeautiful platform'
 
-  const { body: { emailContext: emailContext1 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext1 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send({
       html,
       text: customText,
-      to: 'test@example.com'
+      to: 'test@example.com',
     })
     .expect(200)
 
   t.is(emailContext1.text, customText)
 
-  const { body: { emailContext: emailContext2 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext2 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send({
       html,
-      to: 'test@example.com'
+      to: 'test@example.com',
     })
     .expect(200)
 
@@ -361,29 +384,25 @@ test('text is generated automatically from HTML if not provided', async (t) => {
 test('sends an email with headers', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   const headers1 = {
     'x-test-key1': 'key1',
     'x-test-key2': JSON.stringify({ key2: true }),
-    'x-test-key3': 'key3'
+    'x-test-key3': 'key3',
   }
   const headers2 = {
-    'x-test-key1': [
-      'key1-1',
-      'key1-2',
-      'key1-3'
-    ],
+    'x-test-key1': ['key1-1', 'key1-2', 'key1-3'],
     'x-test-key2': JSON.stringify({ key2: true }),
-    'x-test-key3': 'key3'
+    'x-test-key3': 'key3',
   }
   const headers3 = {
     'x-processed': 'a really long header or value with non-ascii characters 👮',
     'x-unprocessed': {
       prepared: true,
-      value: 'a really long header or value with non-ascii characters 👮'
-    }
+      value: 'a really long header or value with non-ascii characters 👮',
+    },
   }
 
   const payload = {
@@ -391,29 +410,35 @@ test('sends an email with headers', async (t) => {
     text: 'Hello world',
     to: 'Example user <test@example.com>',
     subject: 'Test subject',
-    replyTo: 'support@company.com'
+    replyTo: 'support@company.com',
   }
 
-  const { body: { emailContext: emailContext1 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext1 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { headers: headers1 }))
+    .send({ ...payload, headers: headers1 })
     .expect(200)
 
   t.deepEqual(headers1, emailContext1.headers)
 
-  const { body: { emailContext: emailContext2 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext2 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { headers: headers2 }))
+    .send({ ...payload, headers: headers2 })
     .expect(200)
 
   t.deepEqual(headers2, emailContext2.headers)
 
-  const { body: { emailContext: emailContext3 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext3 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { headers: headers3 }))
+    .send({ ...payload, headers: headers3 })
     .expect(200)
 
   t.deepEqual(headers3, emailContext3.headers)
@@ -422,24 +447,26 @@ test('sends an email with headers', async (t) => {
 test('sends an email without html or text (enabling custom provider templates)', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['email:send:all']
+    permissions: ['email:send:all'],
   })
 
   // Mandrill example
   // https://mandrill.zendesk.com/hc/en-us/articles/205582117-How-to-Use-SMTP-Headers-to-Customize-Your-Messages#use-stored-templates
   const headers = {
     'X-MC-Template': 'customTemplate',
-    'X-MC-MergeVars': JSON.stringify({ var1: 'global value 1' })
+    'X-MC-MergeVars': JSON.stringify({ var1: 'global value 1' }),
   }
 
   const payload = {
     to: 'Example user <test@example.com>',
     subject: 'Test subject',
     replyTo: 'support@company.com',
-    headers
+    headers,
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send')
     .set(authorizationHeaders)
     .send(payload)
@@ -451,10 +478,7 @@ test('sends an email without html or text (enabling custom provider templates)',
 test('sends an email via a template', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const entryPayload = {
@@ -468,7 +492,7 @@ test('sends an email via a template', async (t) => {
     footer_content: 'Custom footer',
     legal_notice: 'My legal notice',
     style__color_brand: 'green',
-    style__color_calltoaction: 'red'
+    style__color_calltoaction: 'red',
   }
 
   await request(t.context.serverUrl)
@@ -478,17 +502,19 @@ test('sends an email via a template', async (t) => {
       collection: 'email',
       locale: 'en',
       name: 'welcome',
-      fields: entryPayload
+      fields: entryPayload,
     })
     .expect(200)
 
   const payload = {
     name: 'welcome',
     to: 'Example user <test@example.com>',
-    replyTo: 'support@company.com'
+    replyTo: 'support@company.com',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -504,10 +530,7 @@ test('sends an email via a template', async (t) => {
 test('sends an email via a template with ICU content', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const entryPayload = {
@@ -535,7 +558,7 @@ test('sends an email via a template with ICU content', async (t) => {
       }
       à partir du {availableDate, date, short} ({availableDate, date, full})
       {availableDate, time, medium}.
-    `.replace(/\\n/g, ' ')
+    `.replace(/\\n/g, ' '),
   }
 
   await request(t.context.serverUrl)
@@ -545,7 +568,7 @@ test('sends an email via a template with ICU content', async (t) => {
       collection: 'email',
       locale: 'fr',
       name: 'registration',
-      fields: entryPayload
+      fields: entryPayload,
     })
     .expect(200)
 
@@ -561,12 +584,14 @@ test('sends an email via a template with ICU content', async (t) => {
       nbAssets: 7,
       discountRate: 0.2,
       deliveryMethod: 'home',
-      availableDate: availableDateStr
+      availableDate: availableDateStr,
     },
-    locale: 'fr'
+    locale: 'fr',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -587,35 +612,39 @@ test('sends an email via a template with ICU content', async (t) => {
   const time = `${availableDate.getHours()}:${availableDate.getMinutes()}:${availableDate.getSeconds()}`
   t.true(html.includes(time))
 
-  const payload2 = Object.assign({}, payload, {
-    timezone: 'America/New_York'
-  })
+  const payload2 = { ...payload, timezone: 'America/New_York' }
 
-  const { body: { emailContext: emailContext2 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext2 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload2)
     .expect(200)
 
-  t.true(emailContext2.html.includes('à partir du 15/03/2019 (vendredi 15 mars 2019)'))
+  t.true(
+    emailContext2.html.includes(
+      'à partir du 15/03/2019 (vendredi 15 mars 2019)',
+    ),
+  )
   t.true(emailContext2.html.includes('14:45:12'))
 
-  const payload3 = Object.assign({}, payload, {
-    timezone: 'Asia/Tokyo'
-  })
+  const payload3 = { ...payload, timezone: 'Asia/Tokyo' }
 
-  const { body: { emailContext: emailContext3 } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContext3 },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload3)
     .expect(200)
 
-  t.true(emailContext3.html.includes('à partir du 16/03/2019 (samedi 16 mars 2019)'))
+  t.true(
+    emailContext3.html.includes('à partir du 16/03/2019 (samedi 16 mars 2019)'),
+  )
   t.true(emailContext3.html.includes('3:45:12'))
 
-  const payload4 = Object.assign({}, payload, {
-    timezone: 'unknownTimezone'
-  })
+  const payload4 = { ...payload, timezone: 'unknownTimezone' }
 
   const { body: error } = await request(t.context.serverUrl)
     .post('/emails/send-template')
@@ -629,15 +658,13 @@ test('sends an email via a template with ICU content', async (t) => {
 test('uses general email content when specific email content is missing', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const commonEntryPayload = {
     subject: 'Bienvenue {userName}',
-    content: 'Vous êtes le {userNum, selectordinal, =1 {premier} =2 {second} =3 {troisième} other {#ème}} utilisateur.'
+    content:
+      'Vous êtes le {userNum, selectordinal, =1 {premier} =2 {second} =3 {troisième} other {#ème}} utilisateur.',
   }
 
   await request(t.context.serverUrl)
@@ -647,12 +674,12 @@ test('uses general email content when specific email content is missing', async 
       collection: 'email',
       locale: 'fr',
       name: 'common',
-      fields: commonEntryPayload
+      fields: commonEntryPayload,
     })
     .expect(200)
 
   const entryPayload = {
-    content: 'Vous êtes le meilleur.'
+    content: 'Vous êtes le meilleur.',
   }
 
   await request(t.context.serverUrl)
@@ -662,7 +689,7 @@ test('uses general email content when specific email content is missing', async 
       collection: 'email',
       locale: 'fr',
       name: 'welcome',
-      fields: entryPayload
+      fields: entryPayload,
     })
     .expect(200)
 
@@ -672,11 +699,13 @@ test('uses general email content when specific email content is missing', async 
     locale: 'fr',
     data: {
       userName: 'Foo',
-      userNum: 2
-    }
+      userNum: 2,
+    },
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -689,11 +718,7 @@ test('uses general email content when specific email content is missing', async 
 test('data are enriched via platform config', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all',
-      'config:edit:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all', 'config:edit:all'],
   })
 
   await request(t.context.serverUrl)
@@ -702,14 +727,14 @@ test('data are enriched via platform config', async (t) => {
     .send({
       saltana: {
         instant: {
-          serviceName: 'BigCompany'
-        }
-      }
+          serviceName: 'BigCompany',
+        },
+      },
     })
     .expect(200)
 
   const commonEntryPayload = {
-    subject: 'Welcome on {serviceName}'
+    subject: 'Welcome on {serviceName}',
   }
 
   await request(t.context.serverUrl)
@@ -719,16 +744,18 @@ test('data are enriched via platform config', async (t) => {
       collection: 'email',
       locale: 'en',
       name: 'common',
-      fields: commonEntryPayload
+      fields: commonEntryPayload,
     })
     .expect(200)
 
   const payload = {
     name: 'unknownName',
-    to: 'test@example.com'
+    to: 'test@example.com',
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -740,10 +767,7 @@ test('data are enriched via platform config', async (t) => {
 test('sends an email via a template with ICU and rich content', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const entryPayload = {
@@ -751,8 +775,8 @@ test('sends an email via a template with ICU and rich content', async (t) => {
     content: {
       editable: '# Welcome',
       transform: 'markdown',
-      transformed: '<h1>Welcome</h1>'
-    }
+      transformed: '<h1>Welcome</h1>',
+    },
   }
 
   await request(t.context.serverUrl)
@@ -762,7 +786,7 @@ test('sends an email via a template with ICU and rich content', async (t) => {
       collection: 'email',
       locale: 'en',
       name: 'registrationMarkdown',
-      fields: entryPayload
+      fields: entryPayload,
     })
     .expect(200)
 
@@ -771,11 +795,13 @@ test('sends an email via a template with ICU and rich content', async (t) => {
     to: 'Example user <test@example.com>',
     replyTo: 'support@company.com',
     data: {
-      userName: 'Foo'
-    }
+      userName: 'Foo',
+    },
   }
 
-  const { body: { emailContext } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -788,10 +814,7 @@ test('sends an email via a template with ICU and rich content', async (t) => {
 test('cannot send an email via a template with invalid transformed value', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const entryPayload = {
@@ -799,10 +822,11 @@ test('cannot send an email via a template with invalid transformed value', async
     content: {
       editable: 'random editable',
       transform: 'unknown',
-      transformed: { // should be a string
-        nested: 'random transformed'
-      }
-    }
+      transformed: {
+        // should be a string
+        nested: 'random transformed',
+      },
+    },
   }
 
   await request(t.context.serverUrl)
@@ -812,7 +836,7 @@ test('cannot send an email via a template with invalid transformed value', async
       collection: 'email',
       locale: 'en',
       name: 'registrationUnknownTransform',
-      fields: entryPayload
+      fields: entryPayload,
     })
     .expect(200)
 
@@ -821,8 +845,8 @@ test('cannot send an email via a template with invalid transformed value', async
     to: 'Example user <test@example.com>',
     replyTo: 'support@company.com',
     data: {
-      userName: 'Foo'
-    }
+      userName: 'Foo',
+    },
   }
 
   const { body: error } = await request(t.context.serverUrl)
@@ -837,19 +861,16 @@ test('cannot send an email via a template with invalid transformed value', async
 test('branding is displayed by default', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const entryPayloadEn = {
     subject: 'Some subject',
-    content: 'Some content'
+    content: 'Some content',
   }
   const entryPayloadFr = {
     subject: 'Un sujet',
-    content: 'Un contenu'
+    content: 'Un contenu',
   }
 
   await request(t.context.serverUrl)
@@ -859,17 +880,19 @@ test('branding is displayed by default', async (t) => {
       collection: 'email',
       locale: 'en',
       name: 'branding',
-      fields: entryPayloadEn
+      fields: entryPayloadEn,
     })
     .expect(200)
 
   const payload = {
     name: 'branding',
     to: 'Example user <test@example.com>',
-    locale: 'en'
+    locale: 'en',
   }
 
-  const { body: { emailContext: emailContextEn } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContextEn },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -885,14 +908,16 @@ test('branding is displayed by default', async (t) => {
       collection: 'email',
       locale: 'fr',
       name: 'branding',
-      fields: entryPayloadFr
+      fields: entryPayloadFr,
     })
     .expect(200)
 
-  const { body: { emailContext: emailContextFr } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContextFr },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { locale: 'fr' }))
+    .send({ ...payload, locale: 'fr' })
     .expect(200)
 
   t.is(emailContextFr.subject, 'Un sujet')
@@ -902,21 +927,18 @@ test('branding is displayed by default', async (t) => {
 test('branding can be removed if branding values set to empty', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'email:send:all',
-      'entry:create:all'
-    ]
+    permissions: ['email:send:all', 'entry:create:all'],
   })
 
   const entryPayloadEn = {
     subject: 'Some subject',
     content: 'Some content',
-    branding: ''
+    branding: '',
   }
   const entryPayloadFr = {
     subject: 'Un sujet',
     content: 'Un contenu',
-    branding: ''
+    branding: '',
   }
 
   await request(t.context.serverUrl)
@@ -926,17 +948,19 @@ test('branding can be removed if branding values set to empty', async (t) => {
       collection: 'email',
       locale: 'en',
       name: 'branding2',
-      fields: entryPayloadEn
+      fields: entryPayloadEn,
     })
     .expect(200)
 
   const payload = {
     name: 'branding2',
     to: 'Example user <test@example.com>',
-    locale: 'en'
+    locale: 'en',
   }
 
-  const { body: { emailContext: emailContextEn } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContextEn },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
     .send(payload)
@@ -952,14 +976,16 @@ test('branding can be removed if branding values set to empty', async (t) => {
       collection: 'email',
       locale: 'fr',
       name: 'branding2',
-      fields: entryPayloadFr
+      fields: entryPayloadFr,
     })
     .expect(200)
 
-  const { body: { emailContext: emailContextFr } } = await request(t.context.serverUrl)
+  const {
+    body: { emailContext: emailContextFr },
+  } = await request(t.context.serverUrl)
     .post('/emails/send-template')
     .set(authorizationHeaders)
-    .send(Object.assign({}, payload, { locale: 'fr' }))
+    .send({ ...payload, locale: 'fr' })
     .expect(200)
 
   t.is(emailContextFr.subject, 'Un sujet')
@@ -979,7 +1005,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
     .post('/emails/send')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -991,7 +1017,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
     .post('/emails/send-template')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -1004,7 +1030,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
     .post('/emails/send')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       html: true,
@@ -1020,7 +1046,7 @@ test('fails to send an email if missing or invalid parameters', async (t) => {
 
       subject: true,
       replyTo: true,
-      headers: true
+      headers: true,
     })
     .expect(400)
 
@@ -1050,7 +1076,7 @@ test('fails to send an email with template if missing or invalid parameters', as
     .post('/emails/send-template')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -1062,7 +1088,7 @@ test('fails to send an email with template if missing or invalid parameters', as
     .post('/emails/send-template')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -1079,7 +1105,7 @@ test('fails to send an email with template if missing or invalid parameters', as
       toName: true,
       // DEPRECATED:END
 
-      replyTo: true
+      replyTo: true,
     })
     .expect(400)
 

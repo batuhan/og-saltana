@@ -3,6 +3,8 @@ const { raw } = require('@saltana/objection')
 const pg = require('pg')
 const { extractDataFromObjectId } = require('@saltana/util-keys')
 
+const pgConfig = require('config').get('ExternalServices.pgsql')
+
 const { getKnex } = require('./util')
 const { mergeFunctionName } = require('../database')
 
@@ -110,36 +112,34 @@ async function getConnection({ platformId, env } = {}) {
     throw new Error('Missing environment when retrieving PostgreSQL connection')
   }
 
-  let connection
-  let schema
-
-  let sslOptions
-
   const isPlatformEnv = platformId && env
 
+  // eslint-disable-next-line no-underscore-dangle
   const _schema = isPlatformEnv
     ? `s${platformId}_${env}`
-    : process.env.POSTGRES_SCHEMA || 'public'
+    : pgConfig.get('schema')
 
-  connection = {
-    host: process.env.POSTGRES_HOST,
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DB,
-    port: process.env.POSTGRES_PORT,
+  const connection = {
+    host: pgConfig.get('host'),
+    user: pgConfig.get('user'),
+    password: pgConfig.get('password'),
+    database: pgConfig.get('database'),
+    port: pgConfig.get('port'),
     schema: _schema,
   }
 
-  sslOptions = getSSLOptions({
-    ssl: process.env.POSTGRES_SSL,
-    sslcert: process.env.POSTGRES_SSL_CERT,
-    sslkey: process.env.POSTGRES_SSL_KEY,
-    sslca: process.env.POSTGRES_SSL_CA,
-  })
+  const enableSsl = pgConfig.get('ssl.enabled')
 
-  schema = _schema
+  const schema = _schema
 
-  if (sslOptions) connection.ssl = sslOptions
+  if (enableSsl) {
+    connection.ssl = getSSLOptions({
+      ssl: true,
+      sslcert: pgConfig.get('ssl.sslcert'),
+      sslkey: pgConfig.get('ssl.sslkey'),
+      sslca: pgConfig.get('ssl.sslca'),
+    })
+  }
 
   return {
     connection,
@@ -235,7 +235,7 @@ async function getModels({ platformId, env } = {}) {
           throw new Error('changesObject expected as second argument')
         if (!trx) throw new Error('Transaction object trx expected')
 
-        const beforeReplaceChanges = Object.assign({}, changesObject)
+        const beforeReplaceChanges = { ...changesObject }
         const afterReplaceChanges = {}
 
         if (replacingProperties && Array.isArray(replacingProperties)) {
@@ -320,10 +320,11 @@ function getModelInfo({ objectId, objectType, idPrefix, Models = models }) {
   return info
 }
 
-module.exports = Object.assign({}, models, {
+module.exports = {
+  ...models,
   getSSLOptions,
   getConnection,
   getModels,
 
   getModelInfo,
-})
+}

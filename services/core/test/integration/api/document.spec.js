@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
@@ -25,29 +23,31 @@ test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('get simple documents stats with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
     endpointUrl: '/documents/stats?type=movie&groupBy=data.director',
     authorizationHeaders,
-    orderBy: 'count'
+    orderBy: 'count',
   })
 })
 
 test('get simple documents stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
   const filters = 'type=movie'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -61,17 +61,14 @@ test('get simple documents stats', async (t) => {
     t,
     obj,
     groupBy,
-    results: documents
+    results: documents,
   })
 })
 
 test('get aggregated field stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -80,13 +77,17 @@ test('get aggregated field stats', async (t) => {
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -101,17 +102,14 @@ test('get aggregated field stats', async (t) => {
     additionalResultCheckFn: (result) => {
       t.is(typeof result.ranking, 'undefined')
       t.is(typeof result.lowestRanking, 'undefined')
-    }
+    },
   })
 })
 
 test('get aggregated field stats by authorId and filter on an authorId', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'authorId'
@@ -120,13 +118,17 @@ test('get aggregated field stats by authorId and filter on an authorId', async (
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -141,17 +143,14 @@ test('get aggregated field stats by authorId and filter on an authorId', async (
     additionalResultCheckFn: (result) => {
       t.is(typeof result.ranking, 'undefined')
       t.is(typeof result.lowestRanking, 'undefined')
-    }
+    },
   })
 })
 
 test('get aggregated field stats with ranking', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -160,13 +159,17 @@ test('get aggregated field stats with ranking', async (t) => {
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -191,17 +194,14 @@ test('get aggregated field stats with ranking', async (t) => {
       } else {
         t.true(ranking < result.ranking)
       }
-    }
+    },
   })
 })
 
 test('get aggregated field stats with ranking with specified label', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -210,13 +210,17 @@ test('get aggregated field stats with ranking with specified label', async (t) =
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -241,13 +245,15 @@ test('get aggregated field stats with ranking with specified label', async (t) =
       } else {
         t.true(ranking < result.ranking)
       }
-    }
+    },
   })
 
   const filters2 = 'type=movie&label=source:random'
 
   const { body: obj2 } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -255,10 +261,14 @@ test('get aggregated field stats with ranking with specified label', async (t) =
 })
 
 test('get aggregated field stats with ranking with wildcard label', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
-  const queryParamsPrefix = 'type=movie&groupBy=data.director&field=data.score&orderBy=avg&order=asc' +
-  '&computeRanking=true&label=source'
+  const queryParamsPrefix =
+    'type=movie&groupBy=data.director&field=data.score&orderBy=avg&order=asc' +
+    '&computeRanking=true&label=source'
 
   const queryParams = `${queryParamsPrefix}:imdb`
 
@@ -288,20 +298,21 @@ test('get aggregated field stats with ranking with wildcard label', async (t) =>
     .set(authorizationHeaders)
     .expect(200)
 
-  const getTotalCount = obj => obj.results.reduce((memo, result) => {
-    return memo + result.count
-  }, 0)
+  const getTotalCount = (obj) =>
+    obj.results.reduce((memo, result) => {
+      return memo + result.count
+    }, 0)
 
-  t.is(getTotalCount(obj) + getTotalCount(obj2) + getTotalCount(obj3), getTotalCount(obj4))
+  t.is(
+    getTotalCount(obj) + getTotalCount(obj2) + getTotalCount(obj3),
+    getTotalCount(obj4),
+  )
 })
 
 test('get aggregated field stats with ranking and postranking filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -311,7 +322,9 @@ test('get aggregated field stats with ranking and postranking filter', async (t)
   const order = 'asc'
 
   const { body: beforeObj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -327,13 +340,17 @@ test('get aggregated field stats with ranking and postranking filter', async (t)
   // Now only filter on the director, ranking stats should not changed
   const filters2 = 'type=movie&data[director]=Hayao+Miyazaki'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters2}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -351,17 +368,14 @@ test('get aggregated field stats with ranking and postranking filter', async (t)
 
       t.is(result.ranking, directorRanking)
       t.is(result.lowestRanking, lowestRanking)
-    }
+    },
   })
 })
 
 test('get aggregated field stats with ranking and preranking filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -370,13 +384,17 @@ test('get aggregated field stats with ranking and preranking filter', async (t) 
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -391,14 +409,18 @@ test('get aggregated field stats with ranking and preranking filter', async (t) 
     additionalResultCheckFn: (result) => {
       t.is(typeof result.ranking, 'number')
       t.is(typeof result.lowestRanking, 'number')
-    }
+    },
   })
 })
 
 test('get aggregated field stats with multiple labels', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
-  const queryParams = 'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
+  const queryParams =
+    'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
     '&order=asc&computeRanking=true&label=source:*,source:imdb,source:random&data[director]=Hayao+Miyazaki'
 
   const result = await request(t.context.serverUrl)
@@ -413,7 +435,7 @@ test('get aggregated field stats with multiple labels', async (t) => {
   checkCursorPaginatedListObject(t, obj, { cursorCheck: false })
   t.is(obj.results.length, 1)
 
-  const checkStatObject = obj => {
+  const checkStatObject = (obj) => {
     t.is(typeof obj, 'object')
     t.is(obj.groupBy, 'data.director')
     t.truthy(obj.groupByValue)
@@ -430,9 +452,13 @@ test('get aggregated field stats with multiple labels', async (t) => {
 })
 
 test('aggregated field stats with multiple labels works if only the filter on the groupBy is unique', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
-  const queryParams = 'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
+  const queryParams =
+    'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
     '&order=asc&computeRanking=true&label=source:*,source:imdb,source:random&data[director]=Hayao+Miyazaki'
 
   await request(t.context.serverUrl)
@@ -440,7 +466,8 @@ test('aggregated field stats with multiple labels works if only the filter on th
     .set(authorizationHeaders)
     .expect(200)
 
-  const queryParams2 = 'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
+  const queryParams2 =
+    'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
     '&order=asc&computeRanking=true&label=source:*,source:imdb,source:random' +
     '&data[director]=Hayao+Miyazaki,Akira+Kurosawa'
 
@@ -453,9 +480,13 @@ test('aggregated field stats with multiple labels works if only the filter on th
 })
 
 test('aggregated field stats with multiple labels on a non-existing label returns an empty stats object', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
-  const queryParams = 'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
+  const queryParams =
+    'type=movie&groupBy=data.director&field=data.score&orderBy=avg' +
     '&order=asc&computeRanking=true&label=source:*,source:hello&data[director]=Hayao+Miyazaki'
 
   const result = await request(t.context.serverUrl)
@@ -477,35 +508,45 @@ test('aggregated field stats with multiple labels on a non-existing label return
 })
 
 test('get aggregated field stats with average rounded to integer', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
   const isInteger = (value) => !isNaN(value) && Math.round(value) === value
 
   const result1 = await request(t.context.serverUrl)
-    .get('/documents/stats?type=movie&groupBy=data.director&field=data.score&orderBy=min&order=asc&avgPrecision=5')
+    .get(
+      '/documents/stats?type=movie&groupBy=data.director&field=data.score&orderBy=min&order=asc&avgPrecision=5',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const obj1 = result1.body
 
-  obj1.results.forEach(result1 => {
+  obj1.results.forEach((result1) => {
     t.false(isInteger(result1.avg)) // score is decimal, it's highly probable to get a decimal number as average
   })
 
   const result2 = await request(t.context.serverUrl)
-    .get('/documents/stats?type=movie&groupBy=data.director&field=data.score&orderBy=min&order=asc&avgPrecision=0')
+    .get(
+      '/documents/stats?type=movie&groupBy=data.director&field=data.score&orderBy=min&order=asc&avgPrecision=0',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const obj2 = result2.body
 
-  obj2.results.forEach(result2 => {
+  obj2.results.forEach((result2) => {
     t.true(isInteger(result2.avg))
   })
 })
 
 test('fails to get aggregated stats with non-number field', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:stats:all'],
+  })
 
   const groupBy = 'authorId'
   const field = 'data.title'
@@ -515,12 +556,17 @@ test('fails to get aggregated stats with non-number field', async (t) => {
     .set(authorizationHeaders)
     .expect(422)
 
-  t.true(error.message.includes(`Non-number value was found for field "${field}"`))
+  t.true(
+    error.message.includes(`Non-number value was found for field "${field}"`),
+  )
 })
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list documents with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -530,7 +576,10 @@ test.serial('list documents with pagination', async (t) => {
 })
 
 test('list documents with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/documents?type=invoice&id=doc_WWRfQps1I3a1gJYz2I3a')
@@ -542,7 +591,10 @@ test('list documents with id filter', async (t) => {
 })
 
 test('list documents with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:list:all'],
+  })
 
   const result1 = await request(t.context.serverUrl)
     .get('/documents?type=invoice&id=doc_WWRfQps1I3a1gJYz2I3a,user-external-id')
@@ -551,8 +603,10 @@ test('list documents with advanced filters', async (t) => {
 
   const obj1 = result1.body
 
-  obj1.results.forEach(doc => {
-    t.true(['doc_WWRfQps1I3a1gJYz2I3a', 'user-external-id'].includes(doc.authorId))
+  obj1.results.forEach((doc) => {
+    t.true(
+      ['doc_WWRfQps1I3a1gJYz2I3a', 'user-external-id'].includes(doc.authorId),
+    )
   })
 
   const result2 = await request(t.context.serverUrl)
@@ -562,15 +616,18 @@ test('list documents with advanced filters', async (t) => {
 
   const obj2 = result2.body
 
-  obj2.results.forEach(doc => {
+  obj2.results.forEach((doc) => {
     t.true(['https://example.com/invoice'].includes(doc.data.invoiceUrl))
   })
 })
 
 test('list documents with data object filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:list:all'],
+  })
 
-  const encode = obj => encodeURIComponent(JSON.stringify(obj))
+  const encode = (obj) => encodeURIComponent(JSON.stringify(obj))
 
   const { body: castleInTheSky } = await request(t.context.serverUrl)
     .get('/documents?type=movie&data[title]=Castle+in+the+Sky')
@@ -578,7 +635,7 @@ test('list documents with data object filters', async (t) => {
     .expect(200)
 
   t.truthy(castleInTheSky.results.length)
-  castleInTheSky.results.forEach(doc => {
+  castleInTheSky.results.forEach((doc) => {
     t.is(_.get(doc.data, 'title'), 'Castle in the Sky')
   })
 
@@ -595,7 +652,7 @@ test('list documents with data object filters', async (t) => {
     .expect(200)
 
   t.true(awesome.results.length > 1)
-  awesome.results.forEach(doc => {
+  awesome.results.forEach((doc) => {
     t.true(_.get(doc.data, 'tags.awesome'))
   })
 
@@ -612,18 +669,20 @@ test('list documents with data object filters', async (t) => {
     .expect(200)
 
   t.truthy(seenTenTimes.results.length)
-  seenTenTimes.results.forEach(doc => {
+  seenTenTimes.results.forEach((doc) => {
     t.is(_.get(doc.data, 'tags.timesSeen'), 10)
   })
 
   const { body: complexQuery } = await request(t.context.serverUrl)
-    .get(`/documents?type=movie&data=${encode({
-      tags: {
-        awesome: true,
-        timesSeen: 10,
-        heroes: ['Sheeta']
-      }
-    })}`)
+    .get(
+      `/documents?type=movie&data=${encode({
+        tags: {
+          awesome: true,
+          timesSeen: 10,
+          heroes: ['Sheeta'],
+        },
+      })}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -635,13 +694,15 @@ test('list documents with data object filters', async (t) => {
   t.true(doc.data.tags.heroes.includes('Sheeta'))
 
   const { body: noHit } = await request(t.context.serverUrl)
-    .get(`/documents?type=movie&data=${encode({
-      tags: {
-        awesome: true,
-        timesSeen: 10,
-        heroes: ['Unknown']
-      }
-    })}`)
+    .get(
+      `/documents?type=movie&data=${encode({
+        tags: {
+          awesome: true,
+          timesSeen: 10,
+          heroes: ['Unknown'],
+        },
+      })}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -649,7 +710,10 @@ test('list documents with data object filters', async (t) => {
 })
 
 test('list documents with label filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:list:all'],
+  })
 
   const result1 = await request(t.context.serverUrl)
     .get('/documents?type=blogpost')
@@ -675,7 +739,7 @@ test('list documents with label filter', async (t) => {
   const obj3 = result3.body
 
   t.true(obj3.results.length > 0)
-  obj3.results.forEach(result => {
+  obj3.results.forEach((result) => {
     t.is(result.label, 'main:popular')
   })
 
@@ -687,7 +751,7 @@ test('list documents with label filter', async (t) => {
   const obj4 = result4.body
 
   t.true(obj4.results.length > 0)
-  obj4.results.forEach(result => {
+  obj4.results.forEach((result) => {
     t.true(['main:popular', 'main:random'].includes(result.label))
   })
 
@@ -699,13 +763,16 @@ test('list documents with label filter', async (t) => {
   const obj5 = result5.body
 
   t.true(obj5.results.length > 0)
-  obj5.results.forEach(result => {
+  obj5.results.forEach((result) => {
     t.true(result.label.startsWith('main:'))
   })
 })
 
 test('finds a document', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['document:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['document:read:all'],
+  })
 
   const { body: document } = await request(t.context.serverUrl)
     .get('/documents/doc_WWRfQps1I3a1gJYz2I3a')
@@ -719,16 +786,13 @@ test('finds a document', async (t) => {
 test('creates a document', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:create:all',
-      'platformData:edit:all'
-    ]
+    permissions: ['document:create:all', 'platformData:edit:all'],
   })
 
   const data = {
     title: 'The most beautiful car I have ever seen',
     content: 'I do not know how I can describe it',
-    assetId: 'ast_2l7fQps1I3a1gJYz2I3a'
+    assetId: 'ast_2l7fQps1I3a1gJYz2I3a',
   }
 
   const { body: document } = await request(t.context.serverUrl)
@@ -738,11 +802,11 @@ test('creates a document', async (t) => {
       type: 'blogpost:car',
       data,
       metadata: {
-        metadataField: true
+        metadataField: true,
       },
       platformData: {
-        platformDataField: true
-      }
+        platformDataField: true,
+      },
     })
     .expect(200)
 
@@ -756,10 +820,7 @@ test('creates a document', async (t) => {
 test.serial('updates a document with platformData', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'document:edit:all',
-      'platformData:edit:all'
-    ]
+    permissions: ['document:edit:all', 'platformData:edit:all'],
   })
 
   const { body: document } = await request(t.context.serverUrl)
@@ -768,10 +829,10 @@ test.serial('updates a document with platformData', async (t) => {
     .send({
       label: 'source:imdb2',
       data: {
-        score: 20
+        score: 20,
       },
       metadata: { dummy: true },
-      platformData: { isAwesome: true }
+      platformData: { isAwesome: true },
     })
     .expect(200)
 
@@ -791,14 +852,14 @@ test('updates a document with replacement of some properties', async (t) => {
     permissions: [
       'document:create:all',
       'document:edit:all',
-      'platformData:edit:all'
-    ]
+      'platformData:edit:all',
+    ],
   })
 
   const data = {
     randomText: 'hello',
     nestedObjectWithReplacement: { color: 'blue' },
-    nestedObjectWithoutReplacement: { color: 'red' }
+    nestedObjectWithoutReplacement: { color: 'red' },
   }
 
   const { body: document } = await request(t.context.serverUrl)
@@ -808,7 +869,7 @@ test('updates a document with replacement of some properties', async (t) => {
       type: 'testReplacement',
       data,
       metadata: { metadataField: true },
-      platformData: { platformDataField: true }
+      platformData: { platformDataField: true },
     })
     .expect(200)
 
@@ -823,13 +884,16 @@ test('updates a document with replacement of some properties', async (t) => {
     .send({
       data: {
         nestedObjectWithReplacement: { replaced: true },
-        nestedObjectWithoutReplacement: { replaced: false }
+        nestedObjectWithoutReplacement: { replaced: false },
       },
-      replaceDataProperties: ['nestedObjectWithReplacement']
+      replaceDataProperties: ['nestedObjectWithReplacement'],
     })
 
   t.deepEqual(newDocument.data.nestedObjectWithReplacement, { replaced: true }) // properties replaced
-  t.deepEqual(newDocument.data.nestedObjectWithoutReplacement, { color: 'red', replaced: false }) // properties merged
+  t.deepEqual(newDocument.data.nestedObjectWithoutReplacement, {
+    color: 'red',
+    replaced: false,
+  }) // properties merged
 })
 
 // .serial makes counting easier
@@ -839,15 +903,15 @@ test.serial('removes a document', async (t) => {
     permissions: [
       'document:read:all',
       'document:create:all',
-      'document:remove:all'
-    ]
+      'document:remove:all',
+    ],
   })
 
   const { body: document } = await request(t.context.serverUrl)
     .post('/documents')
     .set(authorizationHeaders)
     .send({
-      type: 'Document to remove'
+      type: 'Document to remove',
     })
     .expect(200)
 
@@ -879,7 +943,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/documents')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -891,7 +955,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/documents')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -904,7 +968,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
     .post('/documents')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       authorId: true,
@@ -913,7 +977,7 @@ test('fails to create a document if missing or invalid parameters', async (t) =>
       label: true,
       data: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -936,7 +1000,7 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
     .patch('/documents/doc_WWRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -948,7 +1012,7 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
     .patch('/documents/doc_WWRfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       label: true,
@@ -956,7 +1020,7 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
       metadata: true,
       platformData: true,
 
-      replaceDataProperties: true
+      replaceDataProperties: true,
     })
     .expect(400)
 
@@ -973,35 +1037,37 @@ test('fails to update a document if missing or invalid parameters', async (t) =>
 // //////// //
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
-test.serial('2019-05-20: get simple documents stats with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    apiVersion: '2019-05-20',
-    t,
-    permissions: ['document:stats:all']
-  })
+test.serial(
+  '2019-05-20: get simple documents stats with pagination',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      apiVersion: '2019-05-20',
+      t,
+      permissions: ['document:stats:all'],
+    })
 
-  await checkOffsetPaginationScenario({
-    t,
-    endpointUrl: '/documents/stats?type=movie&groupBy=data.director',
-    authorizationHeaders,
-    orderBy: 'count'
-  })
-})
+    await checkOffsetPaginationScenario({
+      t,
+      endpointUrl: '/documents/stats?type=movie&groupBy=data.director',
+      authorizationHeaders,
+      orderBy: 'count',
+    })
+  },
+)
 
 test('2019-05-20: get simple documents stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
   const filters = 'type=movie'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -1015,7 +1081,7 @@ test('2019-05-20: get simple documents stats', async (t) => {
     t,
     obj,
     groupBy,
-    results: documents
+    results: documents,
   })
 })
 
@@ -1023,10 +1089,7 @@ test('2019-05-20: get aggregated field stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -1035,13 +1098,17 @@ test('2019-05-20: get aggregated field stats', async (t) => {
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1056,7 +1123,7 @@ test('2019-05-20: get aggregated field stats', async (t) => {
     additionalResultCheckFn: (result) => {
       t.is(typeof result.ranking, 'undefined')
       t.is(typeof result.lowestRanking, 'undefined')
-    }
+    },
   })
 })
 
@@ -1064,10 +1131,7 @@ test('2019-05-20: get aggregated field stats by authorId and filter on an author
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'authorId'
@@ -1076,13 +1140,17 @@ test('2019-05-20: get aggregated field stats by authorId and filter on an author
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1097,7 +1165,7 @@ test('2019-05-20: get aggregated field stats by authorId and filter on an author
     additionalResultCheckFn: (result) => {
       t.is(typeof result.ranking, 'undefined')
       t.is(typeof result.lowestRanking, 'undefined')
-    }
+    },
   })
 })
 
@@ -1105,10 +1173,7 @@ test('2019-05-20: get aggregated field stats with ranking', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -1117,13 +1182,17 @@ test('2019-05-20: get aggregated field stats with ranking', async (t) => {
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1148,7 +1217,7 @@ test('2019-05-20: get aggregated field stats with ranking', async (t) => {
       } else {
         t.true(ranking < result.ranking)
       }
-    }
+    },
   })
 })
 
@@ -1156,10 +1225,7 @@ test('2019-05-20: get aggregated field stats with ranking with specified label',
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -1168,13 +1234,17 @@ test('2019-05-20: get aggregated field stats with ranking with specified label',
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1199,13 +1269,15 @@ test('2019-05-20: get aggregated field stats with ranking with specified label',
       } else {
         t.true(ranking < result.ranking)
       }
-    }
+    },
   })
 
   const filters2 = 'type=movie&label=source:random'
 
   const { body: obj2 } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1216,10 +1288,7 @@ test('2019-05-20: get aggregated field stats with ranking and postranking filter
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -1229,7 +1298,9 @@ test('2019-05-20: get aggregated field stats with ranking and postranking filter
   const order = 'asc'
 
   const { body: beforeObj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1245,13 +1316,17 @@ test('2019-05-20: get aggregated field stats with ranking and postranking filter
   // Now only filter on the director, ranking stats should not changed
   const filters2 = 'type=movie&data[director]=Hayao+Miyazaki'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters2}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters2}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1269,7 +1344,7 @@ test('2019-05-20: get aggregated field stats with ranking and postranking filter
 
       t.is(result.ranking, directorRanking)
       t.is(result.lowestRanking, lowestRanking)
-    }
+    },
   })
 })
 
@@ -1277,10 +1352,7 @@ test('2019-05-20: get aggregated field stats with ranking and preranking filter'
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'document:stats:all',
-      'document:list:all'
-    ]
+    permissions: ['document:stats:all', 'document:list:all'],
   })
 
   const groupBy = 'data.director'
@@ -1289,13 +1361,17 @@ test('2019-05-20: get aggregated field stats with ranking and preranking filter'
   const orderBy = 'avg'
   const order = 'asc'
 
-  const { body: { results: documents } } = await request(t.context.serverUrl)
+  const {
+    body: { results: documents },
+  } = await request(t.context.serverUrl)
     .get(`/documents?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`)
+    .get(
+      `/documents/stats?groupBy=${groupBy}&field=${field}&orderBy=${orderBy}&order=${order}&${filters}&computeRanking=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -1317,7 +1393,7 @@ test('2019-05-20: get aggregated field stats with ranking and preranking filter'
     additionalResultCheckFn: (result) => {
       t.is(typeof result.ranking, 'number')
       t.is(typeof result.lowestRanking, 'number')
-    }
+    },
   })
 })
 
@@ -1326,7 +1402,7 @@ test.serial('2019-05-20: list documents with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['document:list:all']
+    permissions: ['document:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -1340,7 +1416,7 @@ test('2019-05-20: list documents with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['document:list:all']
+    permissions: ['document:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

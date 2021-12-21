@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -18,7 +16,7 @@ const {
   checkOffsetPaginatedListObject,
 } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'asset' })(t)
   await beforeEach()(t)
 })
@@ -30,7 +28,10 @@ const defaultAssetTypeId = 'typ_RFpfQps1I3a1gJYz2I3a'
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list assets with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -43,7 +44,7 @@ test('list assets for the current user', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['asset:list'],
-    userId: '7308ffc8-a046-4965-bb4a-b1184a42325c'
+    userId: '7308ffc8-a046-4965-bb4a-b1184a42325c',
   })
 
   await request(t.context.serverUrl)
@@ -52,7 +53,9 @@ test('list assets for the current user', async (t) => {
     .expect(403)
 
   await request(t.context.serverUrl)
-    .get('/assets?ownerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id')
+    .get(
+      '/assets?ownerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id',
+    )
     .set(authorizationHeaders)
     .expect(403)
 
@@ -64,7 +67,7 @@ test('list assets for the current user', async (t) => {
   const authorizationHeaders2 = await getAccessTokenHeaders({
     t,
     permissions: ['asset:list:all'],
-    userId: '7308ffc8-a046-4965-bb4a-b1184a42325c'
+    userId: '7308ffc8-a046-4965-bb4a-b1184a42325c',
   })
 
   await request(t.context.serverUrl)
@@ -76,7 +79,10 @@ test('list assets for the current user', async (t) => {
 })
 
 test('list assets with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/assets?id=ast_0TYM7rs1OwP1gQRuCOwP')
@@ -88,29 +94,40 @@ test('list assets with id filter', async (t) => {
 })
 
 test('list assets with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:list:all'],
+  })
 
   const result1 = await request(t.context.serverUrl)
-    .get('/assets?ownerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id&active=true')
+    .get(
+      '/assets?ownerId=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ,user-external-id&active=true',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const obj1 = result1.body
 
-  obj1.results.forEach(asset => {
-    t.true(['usr_QVQfQps1I3a1gJYz2I3a', 'user-external-id'].includes(asset.ownerId))
+  obj1.results.forEach((asset) => {
+    t.true(
+      ['usr_QVQfQps1I3a1gJYz2I3a', 'user-external-id'].includes(asset.ownerId),
+    )
     t.true(asset.active)
   })
 
   const result2 = await request(t.context.serverUrl)
-    .get('/assets?ownerId[]=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ&ownerId[]=user-external-id')
+    .get(
+      '/assets?ownerId[]=user_QVQzajA5ZnMxgYbWM930qpyvKyRHMxJ&ownerId[]=user-external-id',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const obj2 = result2.body
 
-  obj2.results.forEach(asset => {
-    t.true(['usr_QVQfQps1I3a1gJYz2I3a', 'user-external-id'].includes(asset.ownerId))
+  obj2.results.forEach((asset) => {
+    t.true(
+      ['usr_QVQfQps1I3a1gJYz2I3a', 'user-external-id'].includes(asset.ownerId),
+    )
   })
 
   const result3 = await request(t.context.serverUrl)
@@ -120,7 +137,7 @@ test('list assets with advanced filters', async (t) => {
 
   const obj3 = result3.body
 
-  obj3.results.forEach(asset => {
+  obj3.results.forEach((asset) => {
     t.true(['typ_RFpfQps1I3a1gJYz2I3a'].includes(asset.assetTypeId))
     t.false(asset.validated)
   })
@@ -132,14 +149,17 @@ test('list assets with advanced filters', async (t) => {
 
   const obj4 = result4.body
 
-  obj4.results.forEach(asset => {
+  obj4.results.forEach((asset) => {
     t.true(asset.price >= 100)
     t.is(asset.categoryId, 'ctgy_ejQQps1I3a1gJYz2I3a')
   })
 })
 
 test('finds an asset', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -153,7 +173,11 @@ test('finds an asset', async (t) => {
 })
 
 test('finds own asset (display private and protected namespace)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:read:all'], userId: 'usr_QVQfQps1I3a1gJYz2I3a' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:read:all'],
+    userId: 'usr_QVQfQps1I3a1gJYz2I3a',
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -170,7 +194,11 @@ test('finds own asset (display private and protected namespace)', async (t) => {
 })
 
 test('finds an asset from a transaction (display protected namespace)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:read:all'], userId: 'usr_Y0tfQps1I3a1gJYz2I3a' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:read:all'],
+    userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -187,7 +215,11 @@ test('finds an asset from a transaction (display protected namespace)', async (t
 })
 
 test('finds an asset with no relation (display neither private nor protected namespace)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:read:all'], userId: '43b7c248-4cca-43ff-95b6-f44a088e2ef2' })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:read:all'],
+    userId: '43b7c248-4cca-43ff-95b6-f44a088e2ef2',
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -204,7 +236,10 @@ test('finds an asset with no relation (display neither private nor protected nam
 })
 
 test('creates an asset', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/assets')
@@ -215,9 +250,9 @@ test('creates an asset', async (t) => {
       assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
       customAttributes: {
         seatingCapacity: 5,
-        freeTags: ['any tag', 'freeTag']
+        freeTags: ['any tag', 'freeTag'],
       },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -227,115 +262,123 @@ test('creates an asset', async (t) => {
   t.is(asset.metadata.dummy, true)
 })
 
-test.serial('creating an asset without specifying an asset type will use the default one', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'asset:create:all',
-      'assetType:read:all'
-    ]
-  })
-
-  const { body: assetType } = await request(t.context.serverUrl)
-    .get(`/asset-types/${defaultAssetTypeId}`)
-    .set(authorizationHeaders)
-    .expect(200)
-
-  t.is(assetType.isDefault, true)
-
-  const result = await request(t.context.serverUrl)
-    .post('/assets')
-    .set(authorizationHeaders)
-    .send({
-      name: 'Chevrolet',
-      ownerId: '38006389-67bc-4552-a284-8f2dc76a25b8'
+test.serial(
+  'creating an asset without specifying an asset type will use the default one',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t,
+      permissions: ['asset:create:all', 'assetType:read:all'],
     })
-    .expect(200)
 
-  const asset = result.body
+    const { body: assetType } = await request(t.context.serverUrl)
+      .get(`/asset-types/${defaultAssetTypeId}`)
+      .set(authorizationHeaders)
+      .expect(200)
 
-  t.is(asset.name, 'Chevrolet')
-  t.is(asset.assetTypeId, defaultAssetTypeId)
-})
+    t.is(assetType.isDefault, true)
+
+    const result = await request(t.context.serverUrl)
+      .post('/assets')
+      .set(authorizationHeaders)
+      .send({
+        name: 'Chevrolet',
+        ownerId: '38006389-67bc-4552-a284-8f2dc76a25b8',
+      })
+      .expect(200)
+
+    const asset = result.body
+
+    t.is(asset.name, 'Chevrolet')
+    t.is(asset.assetTypeId, defaultAssetTypeId)
+  },
+)
 
 // Must serially because it needs an empty platform environment
-test.serial('creating an asset if there is no asset type will create one', async (t) => {
-  const { context } = await createPlatform({ t, minimumFixtures: true })
+test.serial(
+  'creating an asset if there is no asset type will create one',
+  async (t) => {
+    const { context } = await createPlatform({ t, minimumFixtures: true })
 
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t: { context },
-    permissions: [
-      'asset:create:all',
-      'assetType:list:all'
-    ]
-  })
-
-  const { body: { results: assetTypes } } = await request(t.context.serverUrl)
-    .get('/asset-types')
-    .set(authorizationHeaders)
-    .expect(200)
-
-  t.is(assetTypes.length, 0)
-
-  const { body: asset } = await request(t.context.serverUrl)
-    .post('/assets')
-    .set(authorizationHeaders)
-    .send({
-      name: 'No asset type asset'
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t: { context },
+      permissions: ['asset:create:all', 'assetType:list:all'],
     })
-    .expect(200)
 
-  t.is(asset.name, 'No asset type asset')
-  t.truthy(asset.assetTypeId)
-})
+    const {
+      body: { results: assetTypes },
+    } = await request(t.context.serverUrl)
+      .get('/asset-types')
+      .set(authorizationHeaders)
+      .expect(200)
 
-test.serial('creating an asset without specifying an asset type will throw if there is no default asset type', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'asset:create:all',
-      'assetType:read:all',
-      'assetType:edit:all'
-    ]
-  })
+    t.is(assetTypes.length, 0)
 
-  const { body: assetType } = await request(t.context.serverUrl)
-    .get(`/asset-types/${defaultAssetTypeId}`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const { body: asset } = await request(t.context.serverUrl)
+      .post('/assets')
+      .set(authorizationHeaders)
+      .send({
+        name: 'No asset type asset',
+      })
+      .expect(200)
 
-  t.is(assetType.isDefault, true)
+    t.is(asset.name, 'No asset type asset')
+    t.truthy(asset.assetTypeId)
+  },
+)
 
-  // set to no default asset type
-  await request(t.context.serverUrl)
-    .patch(`/asset-types/${defaultAssetTypeId}`)
-    .set(authorizationHeaders)
-    .send({
-      isDefault: false
+test.serial(
+  'creating an asset without specifying an asset type will throw if there is no default asset type',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t,
+      permissions: [
+        'asset:create:all',
+        'assetType:read:all',
+        'assetType:edit:all',
+      ],
     })
-    .expect(200)
 
-  await request(t.context.serverUrl)
-    .post('/assets')
-    .set(authorizationHeaders)
-    .send({
-      name: 'Chevrolet',
-      ownerId: '38006389-67bc-4552-a284-8f2dc76a25b8'
-    })
-    .expect(400)
+    const { body: assetType } = await request(t.context.serverUrl)
+      .get(`/asset-types/${defaultAssetTypeId}`)
+      .set(authorizationHeaders)
+      .expect(200)
 
-  // restore for other tests
-  await request(t.context.serverUrl)
-    .patch(`/asset-types/${defaultAssetTypeId}`)
-    .set(authorizationHeaders)
-    .send({
-      isDefault: true
-    })
-    .expect(200)
-})
+    t.is(assetType.isDefault, true)
+
+    // set to no default asset type
+    await request(t.context.serverUrl)
+      .patch(`/asset-types/${defaultAssetTypeId}`)
+      .set(authorizationHeaders)
+      .send({
+        isDefault: false,
+      })
+      .expect(200)
+
+    await request(t.context.serverUrl)
+      .post('/assets')
+      .set(authorizationHeaders)
+      .send({
+        name: 'Chevrolet',
+        ownerId: '38006389-67bc-4552-a284-8f2dc76a25b8',
+      })
+      .expect(400)
+
+    // restore for other tests
+    await request(t.context.serverUrl)
+      .patch(`/asset-types/${defaultAssetTypeId}`)
+      .set(authorizationHeaders)
+      .send({
+        isDefault: true,
+      })
+      .expect(200)
+  },
+)
 
 test('creates an asset without ownerId', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/assets')
@@ -345,9 +388,9 @@ test('creates an asset without ownerId', async (t) => {
       assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
       customAttributes: {
         seatingCapacity: 5,
-        freeTags: ['any tag', 'freeTag']
+        freeTags: ['any tag', 'freeTag'],
       },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -358,7 +401,10 @@ test('creates an asset without ownerId', async (t) => {
 })
 
 test('creates an asset with validated and active to true by default if not provided', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/assets')
@@ -368,7 +414,7 @@ test('creates an asset with validated and active to true by default if not provi
       ownerId: '38006389-67bc-4552-a284-8f2dc76a25b8',
       assetTypeId: 'typ_MWNfQps1I3a1gJYz2I3a',
       quantity: 0,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -381,7 +427,10 @@ test('creates an asset with validated and active to true by default if not provi
 })
 
 test('creates an asset with provided validated and active (overrides defaults)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/assets')
@@ -393,7 +442,7 @@ test('creates an asset with provided validated and active (overrides defaults)',
       quantity: 0,
       active: false,
       validated: false,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -444,7 +493,10 @@ test.serial('creates an asset with validated to false if the config value assets
 */
 
 test('creates an asset with zero quantity (isn’t bookable by default)', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/assets')
@@ -455,9 +507,9 @@ test('creates an asset with zero quantity (isn’t bookable by default)', async 
       assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
       quantity: 0,
       customAttributes: {
-        seatingCapacity: 5
+        seatingCapacity: 5,
       },
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -468,9 +520,13 @@ test('creates an asset with zero quantity (isn’t bookable by default)', async 
 })
 
 test('updates an asset', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:edit:all'],
+  })
 
-  const description = '🚀 Updating description, customAttributes, customPricingConfig and metadata'
+  const description =
+    '🚀 Updating description, customAttributes, customPricingConfig and metadata'
 
   const { body: asset } = await request(t.context.serverUrl)
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -478,9 +534,9 @@ test('updates an asset', async (t) => {
     .send({
       description,
       customAttributes: {
-        seatingCapacity: 2
+        seatingCapacity: 2,
       },
-      metadata: { editingPricingAndCustomAttributes: true }
+      metadata: { editingPricingAndCustomAttributes: true },
     })
     .expect(200)
 
@@ -495,11 +551,11 @@ test('updates an asset without namespaces with api keys', async (t) => {
     .set({
       'x-api-key': 'seck_live_iuJzTKo5wumuE1imSjmcgimR',
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       active: true,
-      validated: true
+      validated: true,
     })
     .expect(200)
 
@@ -512,7 +568,7 @@ test('update own asset private namespace', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['asset:edit:all'],
-    userId: 'usr_QVQfQps1I3a1gJYz2I3a'
+    userId: 'usr_QVQfQps1I3a1gJYz2I3a',
   })
 
   const result = await request(t.context.serverUrl)
@@ -521,10 +577,10 @@ test('update own asset private namespace', async (t) => {
     .send({
       metadata: {
         _private: {
-          color: 'blue'
+          color: 'blue',
         },
-        notPrivate: true
-      }
+        notPrivate: true,
+      },
     })
     .expect(200)
 
@@ -535,8 +591,11 @@ test('update own asset private namespace', async (t) => {
   t.is(user.metadata.notPrivate, true)
 })
 
-test('cannot update the asset private namespace if it isn\'t own', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['user:edit:all'] })
+test("cannot update the asset private namespace if it isn't own", async (t) => {
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['user:edit:all'],
+  })
 
   await request(t.context.serverUrl)
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -544,10 +603,10 @@ test('cannot update the asset private namespace if it isn\'t own', async (t) => 
     .send({
       metadata: {
         _private: {
-          color: 'blue'
+          color: 'blue',
         },
-        dummy: true
-      }
+        dummy: true,
+      },
     })
     .expect(403)
 
@@ -557,27 +616,24 @@ test('cannot update the asset private namespace if it isn\'t own', async (t) => 
 test('updates an asset with platform data', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:edit:all',
-      'platformData:edit:all'
-    ],
+    permissions: ['asset:edit:all', 'platformData:edit:all'],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const patchPayload = {
     name: 'Asset Updated with platform data',
     metadata: {
       _custom: {
-        test: true
-      }
+        test: true,
+      },
     },
     platformData: {
       test: true,
       _custom: {
-        ok: true
-      }
-    }
+        ok: true,
+      },
+    },
   }
 
   const { body: asset } = await request(t.context.serverUrl)
@@ -596,7 +652,8 @@ test('updates an asset with platform data', async (t) => {
   t.is(asset.platformData.platformDataOnly, 'notMetadata') // & cross-data overwrite
 
   patchPayload.platformData._extra = {}
-  patchPayload.name = 'Asset platformData Updated with forbidden extra namespace'
+  patchPayload.name =
+    'Asset platformData Updated with forbidden extra namespace'
 
   await request(t.context.serverUrl)
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -608,11 +665,7 @@ test('updates an asset with platform data', async (t) => {
 test('removes an asset', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:read:all',
-      'asset:create:all',
-      'asset:remove:all'
-    ]
+    permissions: ['asset:read:all', 'asset:create:all', 'asset:remove:all'],
   })
 
   const { body: asset } = await request(t.context.serverUrl)
@@ -620,7 +673,7 @@ test('removes an asset', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Asset to remove',
-      assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a'
+      assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
     })
     .expect(200)
 
@@ -640,7 +693,10 @@ test('removes an asset', async (t) => {
 })
 
 test('cannot remove an asset that have pending transactions', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['asset:remove:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['asset:remove:all'],
+  })
 
   await request(t.context.serverUrl)
     .delete('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
@@ -663,7 +719,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
     .post('/assets')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -675,7 +731,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
     .post('/assets')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -688,7 +744,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
     .post('/assets')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -704,7 +760,7 @@ test('fails to create an asset if missing or invalid parameters', async (t) => {
       currency: true,
       customAttributes: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -734,7 +790,7 @@ test('fails to update an asset if missing or invalid parameters', async (t) => {
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -746,7 +802,7 @@ test('fails to update an asset if missing or invalid parameters', async (t) => {
     .patch('/assets/ast_0TYM7rs1OwP1gQRuCOwP')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -761,7 +817,7 @@ test('fails to update an asset if missing or invalid parameters', async (t) => {
       currency: true,
       customAttributes: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -789,7 +845,7 @@ test('fails to update an asset if missing or invalid parameters', async (t) => {
 test.serial('generates asset__* events', async (t) => {
   const { Event } = await getModels({
     platformId: t.context.platformId,
-    env: t.context.env
+    env: t.context.env,
   })
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
@@ -797,10 +853,10 @@ test.serial('generates asset__* events', async (t) => {
       'asset:create:all',
       'asset:edit:all',
       'asset:remove:all',
-      'event:list:all'
+      'event:list:all',
     ],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const { body: asset } = await request(t.context.serverUrl)
@@ -813,14 +869,14 @@ test.serial('generates asset__* events', async (t) => {
       active: true,
       validated: false,
       customAttributes: {
-        seatingCapacity: 5
+        seatingCapacity: 5,
       },
       metadata: {
         test1: true,
         _custom: {
-          hasDataInNamespace: true
-        }
-      }
+          hasDataInNamespace: true,
+        },
+      },
     })
     .expect(200)
 
@@ -836,14 +892,14 @@ test.serial('generates asset__* events', async (t) => {
     validated: true,
     customAttributes: {
       automaticTransmission: true,
-      options: ['convertible']
+      options: ['convertible'],
     },
     metadata: {
       test2: true,
       _custom: {
-        hasAdditionalDataInNamespace: true
-      }
-    }
+        hasAdditionalDataInNamespace: true,
+      },
+    },
   }
 
   const { body: assetUpdated } = await request(t.context.serverUrl)
@@ -852,36 +908,43 @@ test.serial('generates asset__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
 
-  const assetCreatedEvent = events.find(event => {
-    return event.type === 'asset__created' &&
-      event.objectId === asset.id
+  const assetCreatedEvent = events.find((event) => {
+    return event.type === 'asset__created' && event.objectId === asset.id
   })
   await testEventMetadata({ event: assetCreatedEvent, object: asset, t })
   t.is(assetCreatedEvent.object.name, asset.name)
   t.is(assetCreatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.not(assetCreatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.not(
+    assetCreatedEvent.object.metadata._custom.hasAdditionalDataInNamespace,
+    true,
+  )
 
   const assetUpdatedEvent = getObjectEvent({
     events,
     eventType: 'asset__updated',
-    objectId: assetUpdated.id
+    objectId: assetUpdated.id,
   })
   await testEventMetadata({
     event: assetUpdatedEvent,
     object: assetUpdated,
     t,
-    patchPayload
+    patchPayload,
   })
   t.is(assetUpdatedEvent.object.name, assetUpdated.name)
   t.is(assetUpdatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.is(assetUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.is(
+    assetUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace,
+    true,
+  )
 
   const eventsTypesToTestAfterUpdate = [
     'asset__name_changed',
@@ -893,15 +956,15 @@ test.serial('generates asset__* events', async (t) => {
     'asset__quantity_changed',
     'asset__pricing_changed',
     'asset__validated',
-    'asset__deactivated'
+    'asset__deactivated',
   ]
 
   const eventsAfterUpdate = {}
-  eventsTypesToTestAfterUpdate.forEach(eventType => {
+  eventsTypesToTestAfterUpdate.forEach((eventType) => {
     eventsAfterUpdate[eventType] = getObjectEvent({
       events,
       eventType,
-      objectId: assetUpdated.id
+      objectId: assetUpdated.id,
     })
   })
 
@@ -912,7 +975,12 @@ test.serial('generates asset__* events', async (t) => {
     const event = eventsAfterUpdate[eventType]
     if (!event) t.fail(`No ${eventType} event found`)
 
-    await testEventMetadata({ event, object: assetUpdated, t, patchPayload: deltas[eventType] })
+    await testEventMetadata({
+      event,
+      object: assetUpdated,
+      t,
+      patchPayload: deltas[eventType],
+    })
   }
 
   await request(t.context.serverUrl)
@@ -921,9 +989,11 @@ test.serial('generates asset__* events', async (t) => {
     .send({ active: true })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
-  const { body: { results: eventsAfterActivation } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterActivation },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -931,7 +1001,7 @@ test.serial('generates asset__* events', async (t) => {
   const assetActivatedEvent = getObjectEvent({
     events: eventsAfterActivation,
     eventType: 'asset__activated',
-    objectId: assetUpdated.id
+    objectId: assetUpdated.id,
   })
 
   t.truthy(assetActivatedEvent)
@@ -941,9 +1011,11 @@ test.serial('generates asset__* events', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -951,12 +1023,15 @@ test.serial('generates asset__* events', async (t) => {
   const assetDeletedEvent = getObjectEvent({
     events: eventsAfterDelete,
     eventType: 'asset__deleted',
-    objectId: assetUpdated.id
+    objectId: assetUpdated.id,
   })
   await testEventMetadata({ event: assetDeletedEvent, object: assetUpdated, t })
   t.is(assetUpdatedEvent.object.name, assetUpdated.name)
   t.is(assetUpdatedEvent.object.metadata._custom.hasDataInNamespace, true)
-  t.is(assetUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace, true)
+  t.is(
+    assetUpdatedEvent.object.metadata._custom.hasAdditionalDataInNamespace,
+    true,
+  )
 })
 
 // //////// //
@@ -968,7 +1043,7 @@ test.serial('2019-05-20: list assets with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['asset:list:all']
+    permissions: ['asset:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -982,7 +1057,7 @@ test('2019-05-20: list assets with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['asset:list:all']
+    permissions: ['asset:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

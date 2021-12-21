@@ -1,22 +1,22 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
 const {
-  testTools: { lifecycle, auth, util }
+  testTools: { lifecycle, auth, util },
 } = require('@saltana/core')
+
+const config = require('config')
 
 const { WebhookManager } = util
 
 const { before, beforeEach, after } = lifecycle
 const { getSystemKey, getAccessTokenHeaders } = auth
 
-const secretApiKey = process.env.STRIPE_SECRET_API_KEY
+const secretApiKey = config.get('ExternalServices.stripe.secretKey')
 const tunnel = {
-  auth: process.env.NGROK_AUTH,
-  subdomain: process.env.NGROK_SUBDOMAIN,
-  authToken: process.env.NGROK_AUTH_TOKEN
+  auth: config.get('LocalEnv.ngrok.auth'),
+  subdomain: config.get('LocalEnv.ngrok.subdomain'),
+  authToken: config.get('LocalEnv.ngrok.authToken'),
 }
 
 // perform Stripe tests only if the secret API key is provided
@@ -25,9 +25,9 @@ if (!secretApiKey) {
     t.pass()
   })
 } else {
-  test.before(async t => {
+  test.before(async (t) => {
     await before({
-      name: 'saltanaStripe'
+      name: 'saltanaStripe',
     })(t)
     await beforeEach()(t)
 
@@ -39,15 +39,15 @@ if (!secretApiKey) {
         saltana: {
           integrations: {
             stripe: {
-              secretApiKey
-            }
-          }
-        }
+              secretApiKey,
+            },
+          },
+        },
       })
       .set({
         'x-saltana-system-key': systemKey,
         'x-platform-id': t.context.platformId,
-        'x-saltana-env': t.context.env
+        'x-saltana-env': t.context.env,
       })
       .expect(200)
   })
@@ -55,10 +55,7 @@ if (!secretApiKey) {
   test('stripe request works and webhook is triggered', async (t) => {
     const authorizationHeaders = await getAccessTokenHeaders({
       t,
-      permissions: [
-        'integrations:read_write:stripe',
-        'event:list:all',
-      ]
+      permissions: ['integrations:read_write:stripe', 'event:list:all'],
     })
 
     const webhookUrl = `/integrations/stripe/webhooks/e${t.context.platformId}_${t.context.env}`
@@ -71,8 +68,8 @@ if (!secretApiKey) {
           method: 'webhookEndpoints.create',
           args: {
             enabled_events: ['*'],
-            url: `${tunnelUrl}${webhookUrl}`
-          }
+            url: `${tunnelUrl}${webhookUrl}`,
+          },
         })
         .set(authorizationHeaders)
         .expect(200)
@@ -85,7 +82,7 @@ if (!secretApiKey) {
         .post('/integrations/stripe/request')
         .send({
           method: 'webhookEndpoints.del',
-          args: webhook.id
+          args: webhook.id,
         })
         .set(authorizationHeaders)
         .expect(200)
@@ -96,7 +93,7 @@ if (!secretApiKey) {
     }
 
     // remove created webhook if tests are manually interrupted (via Ctrl+C for instance)
-    ['SIGHUP', 'SIGINT', 'SIGTERM'].forEach(signal => {
+    ;['SIGHUP', 'SIGINT', 'SIGTERM'].forEach((signal) => {
       process.on(signal, removeWebhookOnExit)
     })
 
@@ -105,7 +102,7 @@ if (!secretApiKey) {
       tunnel,
       isWebhookSimulated: false,
       createWebhook,
-      removeWebhook
+      removeWebhook,
     })
     await webhookManager.start()
 
@@ -114,10 +111,10 @@ if (!secretApiKey) {
         saltana: {
           integrations: {
             stripe: {
-              webhookSecret: webhook.secret
-            }
-          }
-        }
+              webhookSecret: webhook.secret,
+            },
+          },
+        },
       })
 
       const { body: customer } = await request(t.context.serverUrl)
@@ -128,7 +125,7 @@ if (!secretApiKey) {
             name: 'Jenny Rosen',
             email: 'jenny.rosen@example.com',
             description: 'Customer for jenny.rosen@example.com',
-          }
+          },
         })
         .set(authorizationHeaders)
         .expect(200)
@@ -141,8 +138,8 @@ if (!secretApiKey) {
             name: 'T-shirt',
             type: 'good',
             description: 'Comfortable cotton t-shirt',
-            attributes: ['size', 'gender']
-          }
+            attributes: ['size', 'gender'],
+          },
         })
         .set(authorizationHeaders)
         .expect(200)
@@ -151,7 +148,7 @@ if (!secretApiKey) {
         .post('/integrations/stripe/request')
         .send({
           method: 'products.del',
-          args: product.id
+          args: product.id,
         })
         .set(authorizationHeaders)
         .expect(200)
@@ -160,23 +157,33 @@ if (!secretApiKey) {
         .post('/integrations/stripe/request')
         .send({
           method: 'customers.del',
-          args: customer.id
+          args: customer.id,
         })
         .set(authorizationHeaders)
         .expect(200)
 
       await webhookManager.waitForEvents()
 
-      const { body: { results: events } } = await request(t.context.serverUrl)
+      const {
+        body: { results: events },
+      } = await request(t.context.serverUrl)
         .get('/events')
         .set(authorizationHeaders)
         .expect(200)
 
       // 'stripe' prefix added to event type
-      const createdCustomerEvent = events.find(e => e.type === 'stripe_customer.created')
-      const deletedCustomerEvent = events.find(e => e.type === 'stripe_customer.deleted')
-      const createdProductEvent = events.find(e => e.type === 'stripe_product.created')
-      const deletedProductEvent = events.find(e => e.type === 'stripe_product.deleted')
+      const createdCustomerEvent = events.find(
+        (e) => e.type === 'stripe_customer.created',
+      )
+      const deletedCustomerEvent = events.find(
+        (e) => e.type === 'stripe_customer.deleted',
+      )
+      const createdProductEvent = events.find(
+        (e) => e.type === 'stripe_product.created',
+      )
+      const deletedProductEvent = events.find(
+        (e) => e.type === 'stripe_product.deleted',
+      )
 
       t.truthy(createdCustomerEvent)
       t.truthy(deletedCustomerEvent)

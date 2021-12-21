@@ -1,12 +1,16 @@
-const pkg = require('@clerk/clerk-sdk-node')
+const config = require('config')
+process.env.CLERK_API_KEY = config.get('ExternalServices.clerk.apiKey')
+pkg = require('@clerk/clerk-sdk-node')
 const JwksClient = require('jwks-rsa')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
 
 const clerk = pkg.default
 
+const clerkJwksUri = config.get('ExternalServices.clerk.jwksLink')
+
 const jwksClient = JwksClient({
-  jwksUri: process.env.CLERK_JWKS_LINK,
+  jwksUri: clerkJwksUri,
 })
 
 function getKey(header, callback) {
@@ -60,7 +64,7 @@ function diffClerkUserAndInternalUser(clerkUser, internalUser = {}) {
       _.isEqual(
         _.get(clerkUser, clerkFieldName),
         _.get(internalUser, internalUserFieldName),
-      ) == false
+      ) === false
     ) {
       _.set(
         updatesToInternalUser,

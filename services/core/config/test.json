@@ -1,0 +1,8 @@
+{
+  "Env": "test",
+  "InstanceId": "test",
+  "InstanceEnv": "test",
+  "Cote": {
+    "logging": false
+  }
+}

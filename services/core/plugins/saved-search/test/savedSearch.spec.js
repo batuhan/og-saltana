@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -14,11 +12,11 @@ const {
 
       checkCursorPaginationScenario,
       checkCursorPaginatedListObject,
-    }
+    },
   },
   utils: {
-    time: { computeDate }
-  }
+    time: { computeDate },
+  },
 } = require('../../serverTooling')
 
 const { before, beforeEach, after } = lifecycle
@@ -27,21 +25,16 @@ const { initElasticsearch, fixturesParams } = searchFixtures
 
 const savedSearchIds = {}
 let initNow
-const {
-  ownerId,
-  assetsIds,
-} = fixturesParams
+const { ownerId, assetsIds } = fixturesParams
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'savedSearch' })(t)
   await beforeEach()(t)
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'savedSearch:create:all',
-    ],
-    userId: ownerId
+    permissions: ['savedSearch:create:all'],
+    userId: ownerId,
   })
 
   initNow = await initElasticsearch({ t })
@@ -53,7 +46,7 @@ test.before(async t => {
       name: 'Saved search 1',
       query: 'Toyota',
       assetTypeId: ['typ_MnkfQps1I3a1gJYz2I3a'],
-      save: true
+      save: true,
     })
     .expect(200)
 
@@ -68,20 +61,23 @@ test.before(async t => {
       customAttributes: { options: 'sunroof' },
       createdBefore: computeDate(initNow, '1h'),
       createdAfter: computeDate(initNow, '-1h'),
-      save: true
+      save: true,
     })
     .expect(200)
 
   savedSearchIds.savedSearch2 = savedSearch2.id
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 })
 // test.beforeEach(beforeEach()) // Concurrent tests are much faster
 test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('lists saved searches with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['savedSearch:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['savedSearch:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -91,7 +87,10 @@ test.serial('lists saved searches with pagination', async (t) => {
 })
 
 test('lists saved searches with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['savedSearch:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['savedSearch:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/search?id=sch_2l7fQps1I3a1gJYz2I3a,sch_emdfQps1I3a1gJYz2I3a')
@@ -99,7 +98,11 @@ test('lists saved searches with id filter', async (t) => {
     .expect(200)
 
   const checkResultsFn = (t, savedSearch) => {
-    t.true(['sch_2l7fQps1I3a1gJYz2I3a', 'sch_emdfQps1I3a1gJYz2I3a'].includes(savedSearch.id))
+    t.true(
+      ['sch_2l7fQps1I3a1gJYz2I3a', 'sch_emdfQps1I3a1gJYz2I3a'].includes(
+        savedSearch.id,
+      ),
+    )
   }
 
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
@@ -107,7 +110,10 @@ test('lists saved searches with id filter', async (t) => {
 })
 
 test('lists saved searches with advanced filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['savedSearch:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['savedSearch:list:all'],
+  })
 
   const result1 = await request(t.context.serverUrl)
     .get('/search?userId=usr_WHlfQps1I3a1gJYz2I3a,user-external-id')
@@ -116,8 +122,12 @@ test('lists saved searches with advanced filter', async (t) => {
 
   const obj1 = result1.body
 
-  obj1.results.forEach(savedSearch => {
-    t.true(['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(savedSearch.userId))
+  obj1.results.forEach((savedSearch) => {
+    t.true(
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(
+        savedSearch.userId,
+      ),
+    )
   })
 
   const result2 = await request(t.context.serverUrl)
@@ -127,13 +137,20 @@ test('lists saved searches with advanced filter', async (t) => {
 
   const obj2 = result2.body
 
-  obj2.results.forEach(savedSearch => {
-    t.true(['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(savedSearch.userId))
+  obj2.results.forEach((savedSearch) => {
+    t.true(
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(
+        savedSearch.userId,
+      ),
+    )
   })
 })
 
 test('finds a saved search', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['savedSearch:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['savedSearch:read:all'],
+  })
 
   const { body: savedSearch } = await request(t.context.serverUrl)
     .get('/search/sch_2l7fQps1I3a1gJYz2I3a')
@@ -154,7 +171,7 @@ test('creates a saved search', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['savedSearch:create:all'],
-    userId
+    userId,
   })
 
   const search = {
@@ -162,7 +179,7 @@ test('creates a saved search', async (t) => {
     assetTypeId: ['typ_rL6IBMe1wlK1iJ9NNwlK'],
     location: {
       latitude: 0,
-      longitude: 0
+      longitude: 0,
     },
     quantity: 2,
   }
@@ -171,7 +188,7 @@ test('creates a saved search', async (t) => {
     ...search,
     name: 'My cars',
     save: true,
-    metadata: { dummy: true }
+    metadata: { dummy: true },
   }
 
   const { body: savedSearch } = await request(t.context.serverUrl)
@@ -193,14 +210,14 @@ test('fails to create a saved search with an invalid query', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['savedSearch:create:all'],
-    userId
+    userId,
   })
 
   const payload = {
     name: 'Invalid saved search query',
     customAttributes: { licensePlate: { invalid: true } }, // expecting string
     save: true,
-    metadata: { dummy: true }
+    metadata: { dummy: true },
   }
 
   const { body: error } = await request(t.context.serverUrl)
@@ -215,108 +232,121 @@ test('fails to create a saved search with an invalid query', async (t) => {
 test('triggers a search with a saved query', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'search:list:all',
-      'savedSearch:list:all'
-    ],
-    userId: ownerId
+    permissions: ['search:list:all', 'savedSearch:list:all'],
+    userId: ownerId,
   })
 
-  const { body: { results: results1 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: results1 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        ids: [savedSearchIds.savedSearch1]
-      }
+        ids: [savedSearchIds.savedSearch1],
+      },
     })
     .expect(200)
 
   t.is(results1.length, 1)
-  t.truthy(results1.find(result => result.id === assetsIds.asset6))
-  results1.forEach(result => {
+  t.truthy(results1.find((result) => result.id === assetsIds.asset6))
+  results1.forEach((result) => {
     t.deepEqual(result.savedSearchIds, [savedSearchIds.savedSearch1])
   })
 
-  const { body: { results: results2 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: results2 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        ids: [savedSearchIds.savedSearch2]
-      }
+        ids: [savedSearchIds.savedSearch2],
+      },
     })
     .expect(200)
 
   t.is(results2.length, 2)
-  t.truthy(results2.find(result => result.id === assetsIds.asset6))
-  t.truthy(results2.find(result => result.id === assetsIds.asset8))
-  results2.forEach(result => {
+  t.truthy(results2.find((result) => result.id === assetsIds.asset6))
+  t.truthy(results2.find((result) => result.id === assetsIds.asset8))
+  results2.forEach((result) => {
     t.deepEqual(result.savedSearchIds, [savedSearchIds.savedSearch2])
   })
 
-  const { body: { results: results3 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: results3 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        ids: [savedSearchIds.savedSearch1, savedSearchIds.savedSearch2]
-      }
+        ids: [savedSearchIds.savedSearch1, savedSearchIds.savedSearch2],
+      },
     })
     .expect(200)
 
   t.is(results3.length, 2)
-  t.truthy(results3.find(result => result.id === assetsIds.asset6))
-  t.truthy(results3.find(result => result.id === assetsIds.asset8))
+  t.truthy(results3.find((result) => result.id === assetsIds.asset6))
+  t.truthy(results3.find((result) => result.id === assetsIds.asset8))
 
-  const results3Asset = results3.find(result => result.id === assetsIds.asset6)
+  const results3Asset = results3.find(
+    (result) => result.id === assetsIds.asset6,
+  )
   t.true(results3Asset.savedSearchIds.includes(savedSearchIds.savedSearch1))
   t.true(results3Asset.savedSearchIds.includes(savedSearchIds.savedSearch2))
 
   // same as previous search on saved searches 1 and 2
-  const { body: { results: results4 } } = await request(t.context.serverUrl)
-    .post('/search')
-    .set(authorizationHeaders)
-    .send({
-      savedSearch: {
-        userId: ownerId
-      }
-    })
-    .expect(200)
-
-  t.is(results4.length, 2)
-  t.truthy(results4.find(result => result.id === assetsIds.asset6))
-  t.truthy(results4.find(result => result.id === assetsIds.asset8))
-
-  const results4Asset = results4.find(result => result.id === assetsIds.asset6)
-  t.true(results4Asset.savedSearchIds.includes(savedSearchIds.savedSearch1))
-  t.true(results4Asset.savedSearchIds.includes(savedSearchIds.savedSearch2))
-
-  // filter on user saved search AND provided IDs
-  const { body: { results: results5 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: results4 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       savedSearch: {
         userId: ownerId,
-        ids: [savedSearchIds.savedSearch1]
-      }
+      },
+    })
+    .expect(200)
+
+  t.is(results4.length, 2)
+  t.truthy(results4.find((result) => result.id === assetsIds.asset6))
+  t.truthy(results4.find((result) => result.id === assetsIds.asset8))
+
+  const results4Asset = results4.find(
+    (result) => result.id === assetsIds.asset6,
+  )
+  t.true(results4Asset.savedSearchIds.includes(savedSearchIds.savedSearch1))
+  t.true(results4Asset.savedSearchIds.includes(savedSearchIds.savedSearch2))
+
+  // filter on user saved search AND provided IDs
+  const {
+    body: { results: results5 },
+  } = await request(t.context.serverUrl)
+    .post('/search')
+    .set(authorizationHeaders)
+    .send({
+      savedSearch: {
+        userId: ownerId,
+        ids: [savedSearchIds.savedSearch1],
+      },
     })
     .expect(200)
 
   t.is(results5.length, 1)
-  t.truthy(results5.find(result => result.id === assetsIds.asset6))
+  t.truthy(results5.find((result) => result.id === assetsIds.asset6))
 
   // combine with createdDate range filter
-  const { body: { results: results6 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: results6 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       createdAfter: computeDate(initNow, '1h'),
       savedSearch: {
         userId: ownerId,
-        ids: [savedSearchIds.savedSearch1]
-      }
+        ids: [savedSearchIds.savedSearch1],
+      },
     })
     .expect(200)
 
@@ -326,33 +356,34 @@ test('triggers a search with a saved query', async (t) => {
 test('createdDate range filter in root query overrides saved searches one’s', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'search:list:all',
-      'savedSearch:list:all'
-    ],
-    userId: ownerId
+    permissions: ['search:list:all', 'savedSearch:list:all'],
+    userId: ownerId,
   })
 
-  const { body: { results: result1 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: result1 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        ids: [savedSearchIds.savedSearch2] // createdDate filter in the saved search
-      }
+        ids: [savedSearchIds.savedSearch2], // createdDate filter in the saved search
+      },
     })
     .expect(200)
 
   t.is(result1.length, 2)
 
-  const { body: { results: result2 } } = await request(t.context.serverUrl)
+  const {
+    body: { results: result2 },
+  } = await request(t.context.serverUrl)
     .post('/search')
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        ids: [savedSearchIds.savedSearch2] // createdDate filter in the saved search
+        ids: [savedSearchIds.savedSearch2], // createdDate filter in the saved search
       },
-      createdAfter: computeDate(initNow, '1h')
+      createdAfter: computeDate(initNow, '1h'),
     })
     .expect(200)
 
@@ -362,11 +393,8 @@ test('createdDate range filter in root query overrides saved searches one’s', 
 test('cannot trigger a search with a saved query from another user', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'search:list:all',
-      'savedSearch:list'
-    ],
-    userId: 'random-user-id'
+    permissions: ['search:list:all', 'savedSearch:list'],
+    userId: 'random-user-id',
   })
 
   await request(t.context.serverUrl)
@@ -374,8 +402,8 @@ test('cannot trigger a search with a saved query from another user', async (t) =
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        ids: [savedSearchIds.savedSearch1]
-      }
+        ids: [savedSearchIds.savedSearch1],
+      },
     })
     .expect(403)
 
@@ -384,8 +412,8 @@ test('cannot trigger a search with a saved query from another user', async (t) =
     .set(authorizationHeaders)
     .send({
       savedSearch: {
-        userId: ownerId
-      }
+        userId: ownerId,
+      },
     })
     .expect(403)
 
@@ -395,10 +423,7 @@ test('cannot trigger a search with a saved query from another user', async (t) =
 test('updates a saved search', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'savedSearch:create:all',
-      'savedSearch:edit:all'
-    ]
+    permissions: ['savedSearch:create:all', 'savedSearch:edit:all'],
   })
 
   const createPayload = {
@@ -407,16 +432,16 @@ test('updates a saved search', async (t) => {
     assetTypeId: ['typ_rL6IBMe1wlK1iJ9NNwlK'],
     location: {
       latitude: 0,
-      longitude: 0
+      longitude: 0,
     },
     quantity: 2,
     save: true,
-    metadata: { dummy: true }
+    metadata: { dummy: true },
   }
 
   const updatePayload = {
     name: 'My cars 2',
-    metadata: { dummy2: true }
+    metadata: { dummy2: true },
   }
 
   const { body: savedSearch } = await request(t.context.serverUrl)
@@ -442,8 +467,8 @@ test('removes a saved search', async (t) => {
     permissions: [
       'savedSearch:read:all',
       'savedSearch:create:all',
-      'savedSearch:remove:all'
-    ]
+      'savedSearch:remove:all',
+    ],
   })
 
   const { body: savedSearch } = await request(t.context.serverUrl)
@@ -452,7 +477,7 @@ test('removes a saved search', async (t) => {
     .send({
       name: 'Saved search to remove',
       query: 'random query',
-      save: true
+      save: true,
     })
     .expect(200)
 
@@ -484,7 +509,7 @@ test('fails to update a saved search if missing or invalid parameters', async (t
     .patch('/search/sch_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -496,7 +521,7 @@ test('fails to update a saved search if missing or invalid parameters', async (t
     .patch('/search/sch_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -504,7 +529,7 @@ test('fails to update a saved search if missing or invalid parameters', async (t
       search: true,
       active: 'invalid',
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -525,7 +550,7 @@ test.serial('2019-05-20: lists saved searches with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['savedSearch:list:all']
+    permissions: ['savedSearch:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -539,7 +564,7 @@ test('2019-05-20: lists saved searches with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['savedSearch:list:all']
+    permissions: ['savedSearch:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -548,7 +573,11 @@ test('2019-05-20: lists saved searches with id filter', async (t) => {
     .expect(200)
 
   const checkResultsFn = (t, savedSearch) => {
-    t.true(['sch_2l7fQps1I3a1gJYz2I3a', 'sch_emdfQps1I3a1gJYz2I3a'].includes(savedSearch.id))
+    t.true(
+      ['sch_2l7fQps1I3a1gJYz2I3a', 'sch_emdfQps1I3a1gJYz2I3a'].includes(
+        savedSearch.id,
+      ),
+    )
   }
 
   checkOffsetPaginatedListObject(t, obj, { checkResultsFn })

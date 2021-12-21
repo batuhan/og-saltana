@@ -1,6 +1,25 @@
 const _ = require('lodash')
+const config = require('config')
+
+const instanceEnv = config.get("InstanceEnv")
 
 let environments
+
+/**
+ * Parse INSTANCE_ENV from .env file and convert it into array of environments
+ * (environments can be comma separated)
+ * e.g. INSTANCE_ENV=test,live => environments = ['test', 'live']
+ *      INSTANCE_ENV=staging => environments = ['staging']
+ */
+function loadEnvironments () {
+  if (environments) return
+
+  if (!instanceEnv || typeof instanceEnv !== 'string') {
+    environments = []
+  } else {
+    environments = _.uniq(_.compact(process.env.INSTANCE_ENV.split(',')))
+  }
+}
 
 function getDefaultEnvironment () {
   loadEnvironments()
@@ -17,22 +36,6 @@ function isValidEnvironment (env) {
 function getEnvironments () {
   loadEnvironments()
   return environments
-}
-
-/**
- * Parse INSTANCE_ENV from .env file and convert it into array of environments
- * (environments can be comma separated)
- * e.g. INSTANCE_ENV=test,live => environments = ['test', 'live']
- *      INSTANCE_ENV=staging => environments = ['staging']
- */
-function loadEnvironments () {
-  if (environments) return
-
-  if (!process.env.INSTANCE_ENV || typeof process.env.INSTANCE_ENV !== 'string') {
-    environments = []
-  } else {
-    environments = _.uniq(_.compact(process.env.INSTANCE_ENV.split(',')))
-  }
 }
 
 module.exports = {

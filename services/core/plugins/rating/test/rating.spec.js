@@ -1,10 +1,8 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
 const {
-  testTools: { lifecycle, auth, util }
+  testTools: { lifecycle, auth, util },
 } = require('../../serverTooling')
 
 const { before, beforeEach, after } = lifecycle
@@ -19,7 +17,7 @@ const {
   checkCursorPaginatedStatsObject,
 } = util
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'rating' })(t)
   await beforeEach()(t)
 })
@@ -28,13 +26,16 @@ test.after(after())
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('gets simple rating stats with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:stats:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
     endpointUrl: '/ratings/stats?groupBy=authorId',
     authorizationHeaders,
-    orderBy: 'avg'
+    orderBy: 'avg',
   })
 })
 
@@ -43,15 +44,14 @@ test.serial('gets simple rating stats with pagination', async (t) => {
 test.serial('gets simple rating stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'rating:stats:all',
-      'rating:list:all'
-    ]
+    permissions: ['rating:stats:all', 'rating:list:all'],
   })
 
   const groupBy = 'authorId'
 
-  const { body: { results: ratings } } = await request(t.context.serverUrl)
+  const {
+    body: { results: ratings },
+  } = await request(t.context.serverUrl)
     .get('/ratings')
     .set(authorizationHeaders)
     .expect(200)
@@ -70,7 +70,7 @@ test.serial('gets simple rating stats', async (t) => {
     results: ratings,
     orderBy: 'avg',
     order: 'desc',
-    expandedGroupByField: false
+    expandedGroupByField: false,
   })
 
   // cf. plugin middleware test below
@@ -78,7 +78,10 @@ test.serial('gets simple rating stats', async (t) => {
 })
 
 test('integrates plugin middleware', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:stats:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:stats:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/ratings/test?groupBy=authorId')
@@ -95,15 +98,14 @@ test('integrates plugin middleware', async (t) => {
 test.serial('gets aggregated rating stats with ranking', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'rating:stats:all',
-      'rating:list:all'
-    ]
+    permissions: ['rating:stats:all', 'rating:list:all'],
   })
 
   const groupBy = 'authorId'
 
-  const { body: { results: ratings } } = await request(t.context.serverUrl)
+  const {
+    body: { results: ratings },
+  } = await request(t.context.serverUrl)
     .get('/ratings')
     .set(authorizationHeaders)
     .expect(200)
@@ -137,33 +139,36 @@ test.serial('gets aggregated rating stats with ranking', async (t) => {
       } else {
         t.true(ranking < result.ranking)
       }
-    }
+    },
   })
 })
 
 test('gets aggregated rating stats with wildcard label', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'rating:list:all',
-      'rating:stats:all'
-    ]
+    permissions: ['rating:list:all', 'rating:stats:all'],
   })
 
   const authorId = 'usr_WHlfQps1I3a1gJYz2I3a'
 
-  const { body: { results: ratings } } = await request(t.context.serverUrl)
+  const {
+    body: { results: ratings },
+  } = await request(t.context.serverUrl)
     .get(`/ratings?authorId=${authorId}&label=main:*`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const { body: { results } } = await request(t.context.serverUrl)
+  const {
+    body: { results },
+  } = await request(t.context.serverUrl)
     .get(`/ratings/stats?groupBy=authorId&label=main:*&authorId=${authorId}`)
     .set(authorizationHeaders)
     .expect(200)
 
   const nbRatings = ratings.length
-  const avgRatings = Math.round(ratings.reduce((memo, rating) => memo + rating.score, 0) / nbRatings)
+  const avgRatings = Math.round(
+    ratings.reduce((memo, rating) => memo + rating.score, 0) / nbRatings,
+  )
 
   t.is(avgRatings, results[0].avg)
 })
@@ -171,19 +176,21 @@ test('gets aggregated rating stats with wildcard label', async (t) => {
 test('gets aggregated rating stats with multiple labels', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'rating:stats:all'
-    ]
+    permissions: ['rating:stats:all'],
   })
 
   const authorId = 'usr_WHlfQps1I3a1gJYz2I3a'
 
-  const { body: { results } } = await request(t.context.serverUrl)
-    .get(`/ratings/stats?groupBy=authorId&label=main:*,main:friendliness,main:pricing&authorId=${authorId}`)
+  const {
+    body: { results },
+  } = await request(t.context.serverUrl)
+    .get(
+      `/ratings/stats?groupBy=authorId&label=main:*,main:friendliness,main:pricing&authorId=${authorId}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
-  const checkStatObject = obj => {
+  const checkStatObject = (obj) => {
     t.is(typeof obj, 'object')
     t.is(obj.authorId, authorId)
     t.is(typeof obj.count, 'number')
@@ -200,7 +207,10 @@ test('gets aggregated rating stats with multiple labels', async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('lists ratings with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -210,7 +220,10 @@ test.serial('lists ratings with pagination', async (t) => {
 })
 
 test('lists ratings with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/ratings?id=rtg_2l7fQps1I3a1gJYz2I3a')
@@ -222,7 +235,10 @@ test('lists ratings with id filter', async (t) => {
 })
 
 test('lists ratings with advanced filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:list:all'],
+  })
 
   const result1 = await request(t.context.serverUrl)
     .get('/ratings?authorId=usr_WHlfQps1I3a1gJYz2I3a,user-external-id')
@@ -231,19 +247,29 @@ test('lists ratings with advanced filter', async (t) => {
 
   const obj1 = result1.body
 
-  obj1.results.forEach(rating => {
-    t.true(['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(rating.authorId))
+  obj1.results.forEach((rating) => {
+    t.true(
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(
+        rating.authorId,
+      ),
+    )
   })
 
   const result2 = await request(t.context.serverUrl)
-    .get('/ratings?authorId[]=usr_WHlfQps1I3a1gJYz2I3a&authorId[]=user-external-id')
+    .get(
+      '/ratings?authorId[]=usr_WHlfQps1I3a1gJYz2I3a&authorId[]=user-external-id',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const obj2 = result2.body
 
-  obj2.results.forEach(rating => {
-    t.true(['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(rating.authorId))
+  obj2.results.forEach((rating) => {
+    t.true(
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(
+        rating.authorId,
+      ),
+    )
   })
 
   const result3 = await request(t.context.serverUrl)
@@ -253,25 +279,30 @@ test('lists ratings with advanced filter', async (t) => {
 
   const obj3 = result3.body
 
-  obj3.results.forEach(rating => {
+  obj3.results.forEach((rating) => {
     t.true(['usr_T2VfQps1I3a1gJYz2I3a'].includes(rating.targetId))
   })
 
   const result4 = await request(t.context.serverUrl)
-    .get('/ratings?assetId=ast_0TYM7rs1OwP1gQRuCOwP&transactionId=trn_UG1fQps1I3a1gJYz2I3a')
+    .get(
+      '/ratings?assetId=ast_0TYM7rs1OwP1gQRuCOwP&transactionId=trn_UG1fQps1I3a1gJYz2I3a',
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const obj4 = result4.body
 
-  obj4.results.forEach(rating => {
+  obj4.results.forEach((rating) => {
     t.true(['ast_0TYM7rs1OwP1gQRuCOwP'].includes(rating.assetId))
     t.true(['trn_UG1fQps1I3a1gJYz2I3a'].includes(rating.transactionId))
   })
 })
 
 test('lists ratings with label filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/ratings?label=main:friendliness,main:pricing')
@@ -286,7 +317,10 @@ test('lists ratings with label filter', async (t) => {
 })
 
 test('lists ratings with wildcard label filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/ratings?label=main:*')
@@ -298,7 +332,10 @@ test('lists ratings with wildcard label filter', async (t) => {
 })
 
 test('finds a rating', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['rating:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['rating:read:all'],
+  })
 
   const { body: rating } = await request(t.context.serverUrl)
     .get('/ratings/rtg_2l7fQps1I3a1gJYz2I3a')
@@ -316,7 +353,7 @@ test('finds a rating', async (t) => {
 test('creates a rating', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['rating:create:all']
+    permissions: ['rating:create:all'],
   })
 
   const { body: rating } = await request(t.context.serverUrl)
@@ -328,7 +365,7 @@ test('creates a rating', async (t) => {
       targetId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
       transactionId: 'trn_a3BfQps1I3a1gJYz2I3a',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -343,7 +380,7 @@ test('creates a rating', async (t) => {
 test('sets assetId automatically when creating a rating with a transaction and without an asset', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['rating:create:all']
+    permissions: ['rating:create:all'],
   })
 
   const { body: rating } = await request(t.context.serverUrl)
@@ -354,7 +391,7 @@ test('sets assetId automatically when creating a rating with a transaction and w
       comment: 'Wonderful',
       targetId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       transactionId: 'trn_a3BfQps1I3a1gJYz2I3a',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -369,7 +406,7 @@ test('sets assetId automatically when creating a rating with a transaction and w
 test('creates a rating with a label', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['rating:create:all']
+    permissions: ['rating:create:all'],
   })
 
   const { body: rating } = await request(t.context.serverUrl)
@@ -382,7 +419,7 @@ test('creates a rating with a label', async (t) => {
       assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
       transactionId: 'trn_a3BfQps1I3a1gJYz2I3a',
       label: 'main:friendliness',
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -398,7 +435,7 @@ test('creates a rating with a label', async (t) => {
 test('throws an error when creating a rating with bad reference', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['rating:create:all']
+    permissions: ['rating:create:all'],
   })
 
   await request(t.context.serverUrl)
@@ -409,7 +446,7 @@ test('throws an error when creating a rating with bad reference', async (t) => {
       comment: 'Wonderful',
       targetId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       assetId: 'ast_0TYM7rs1OwP1gQRuCOwW', // non existing asset
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -421,7 +458,7 @@ test('throws an error when creating a rating with bad reference', async (t) => {
       comment: 'Wonderful',
       targetId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       transactionId: 'trn_a3BfQps1I3a1gJYz2I3b', // non existing transaction
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -434,7 +471,7 @@ test('throws an error when creating a rating with bad reference', async (t) => {
       targetId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       assetId: 'ast_dmM034s1gi81giDergi8',
       transactionId: 'trn_a3BfQps1I3a1gJYz2I3a', // transaction asset doesn't match with provided asset
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(422)
 
@@ -444,7 +481,7 @@ test('throws an error when creating a rating with bad reference', async (t) => {
 test('updates a rating', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['rating:edit:all']
+    permissions: ['rating:edit:all'],
   })
 
   const { body: rating } = await request(t.context.serverUrl)
@@ -453,7 +490,7 @@ test('updates a rating', async (t) => {
     .send({
       score: 30,
       comment: 'Bad experience',
-      metadata: { changed: true }
+      metadata: { changed: true },
     })
     .expect(200)
 
@@ -468,11 +505,7 @@ test('updates a rating', async (t) => {
 test('removes a rating', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'rating:read:all',
-      'rating:create:all',
-      'rating:remove:all'
-    ]
+    permissions: ['rating:read:all', 'rating:create:all', 'rating:remove:all'],
   })
 
   const { body: rating } = await request(t.context.serverUrl)
@@ -482,7 +515,7 @@ test('removes a rating', async (t) => {
       score: 100,
       assetId: 'ast_0TYM7rs1OwP1gQRuCOwP',
       comment: 'Rating to remove',
-      targetId: 'usr_Y0tfQps1I3a1gJYz2I3a'
+      targetId: 'usr_Y0tfQps1I3a1gJYz2I3a',
     })
     .expect(200)
 
@@ -516,7 +549,7 @@ test('fails to create a rating if missing or invalid parameters', async (t) => {
     .post('/ratings')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -528,7 +561,7 @@ test('fails to create a rating if missing or invalid parameters', async (t) => {
     .post('/ratings')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       score: 'invalid',
@@ -539,7 +572,7 @@ test('fails to create a rating if missing or invalid parameters', async (t) => {
       assetId: true,
       transactionId: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -564,7 +597,7 @@ test('fails to update a rating if missing or invalid parameters', async (t) => {
     .patch('/ratings/rtg_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -576,14 +609,14 @@ test('fails to update a rating if missing or invalid parameters', async (t) => {
     .patch('/ratings/rtg_UEZfQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       score: 'invalid',
       label: true,
       comment: true,
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -600,20 +633,23 @@ test('fails to update a rating if missing or invalid parameters', async (t) => {
 // //////// //
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
-test.serial('2019-05-20: gets simple rating stats with pagination', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    apiVersion: '2019-05-20',
-    t,
-    permissions: ['rating:stats:all']
-  })
+test.serial(
+  '2019-05-20: gets simple rating stats with pagination',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      apiVersion: '2019-05-20',
+      t,
+      permissions: ['rating:stats:all'],
+    })
 
-  await checkOffsetPaginationScenario({
-    t,
-    endpointUrl: '/ratings/stats?groupBy=authorId',
-    authorizationHeaders,
-    orderBy: 'avg'
-  })
-})
+    await checkOffsetPaginationScenario({
+      t,
+      endpointUrl: '/ratings/stats?groupBy=authorId',
+      authorizationHeaders,
+      orderBy: 'avg',
+    })
+  },
+)
 
 // run this test serially because there is no filter and some other tests create events
 // that can turn the check on `count` property incorrect
@@ -621,15 +657,14 @@ test.serial('2019-05-20: gets simple rating stats', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: [
-      'rating:stats:all',
-      'rating:list:all'
-    ]
+    permissions: ['rating:stats:all', 'rating:list:all'],
   })
 
   const groupBy = 'authorId'
 
-  const { body: { results: ratings } } = await request(t.context.serverUrl)
+  const {
+    body: { results: ratings },
+  } = await request(t.context.serverUrl)
     .get('/ratings')
     .set(authorizationHeaders)
     .expect(200)
@@ -648,7 +683,7 @@ test.serial('2019-05-20: gets simple rating stats', async (t) => {
     results: ratings,
     orderBy: 'avg',
     order: 'desc',
-    expandedGroupByField: false
+    expandedGroupByField: false,
   })
 
   // cf. plugin middleware test below
@@ -657,62 +692,64 @@ test.serial('2019-05-20: gets simple rating stats', async (t) => {
 
 // run this test serially because there is no filter and some other tests create events
 // that can turn the check on `count` property incorrect
-test.serial('2019-05-20: gets aggregated rating stats with ranking', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({
-    apiVersion: '2019-05-20',
-    t,
-    permissions: [
-      'rating:stats:all',
-      'rating:list:all'
-    ]
-  })
+test.serial(
+  '2019-05-20: gets aggregated rating stats with ranking',
+  async (t) => {
+    const authorizationHeaders = await getAccessTokenHeaders({
+      apiVersion: '2019-05-20',
+      t,
+      permissions: ['rating:stats:all', 'rating:list:all'],
+    })
 
-  const groupBy = 'authorId'
+    const groupBy = 'authorId'
 
-  const { body: { results: ratings } } = await request(t.context.serverUrl)
-    .get('/ratings')
-    .set(authorizationHeaders)
-    .expect(200)
+    const {
+      body: { results: ratings },
+    } = await request(t.context.serverUrl)
+      .get('/ratings')
+      .set(authorizationHeaders)
+      .expect(200)
 
-  const { body: obj } = await request(t.context.serverUrl)
-    .get(`/ratings/stats?groupBy=${groupBy}&computeRanking=true`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const { body: obj } = await request(t.context.serverUrl)
+      .get(`/ratings/stats?groupBy=${groupBy}&computeRanking=true`)
+      .set(authorizationHeaders)
+      .expect(200)
 
-  let ranking
+    let ranking
 
-  checkOffsetPaginatedStatsObject({
-    t,
-    obj,
-    groupBy,
-    field: 'score', // implicit for Rating API
-    avgPrecision: 0, // implicit for Rating API
-    results: ratings,
-    orderBy: 'avg',
-    order: 'desc',
-    expandedGroupByField: false,
-    additionalResultCheckFn: (result) => {
-      t.is(typeof result.ranking, 'number')
-      t.is(typeof result.lowestRanking, 'number')
+    checkOffsetPaginatedStatsObject({
+      t,
+      obj,
+      groupBy,
+      field: 'score', // implicit for Rating API
+      avgPrecision: 0, // implicit for Rating API
+      results: ratings,
+      orderBy: 'avg',
+      order: 'desc',
+      expandedGroupByField: false,
+      additionalResultCheckFn: (result) => {
+        t.is(typeof result.ranking, 'number')
+        t.is(typeof result.lowestRanking, 'number')
 
-      t.is(result.lowestRanking, obj.nbResults) // is true because there is no filter
+        t.is(result.lowestRanking, obj.nbResults) // is true because there is no filter
 
-      // check ranking order
-      if (typeof ranking === 'undefined') {
-        ranking = result.ranking
-      } else {
-        t.true(ranking < result.ranking)
-      }
-    }
-  })
-})
+        // check ranking order
+        if (typeof ranking === 'undefined') {
+          ranking = result.ranking
+        } else {
+          t.true(ranking < result.ranking)
+        }
+      },
+    })
+  },
+)
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('2019-05-20: lists ratings with pagination', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['rating:list:all']
+    permissions: ['rating:list:all'],
   })
 
   await checkOffsetPaginationScenario({
@@ -726,7 +763,7 @@ test('2019-05-20: lists ratings with id filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['rating:list:all']
+    permissions: ['rating:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -742,7 +779,7 @@ test('2019-05-20: lists ratings with label filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['rating:list:all']
+    permissions: ['rating:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -761,7 +798,7 @@ test('2019-05-20: lists ratings with wildcard label filter', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['rating:list:all']
+    permissions: ['rating:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

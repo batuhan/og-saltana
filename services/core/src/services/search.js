@@ -4,18 +4,11 @@ const debug = require('debug')('saltana:api:search')
 
 const { logError } = require('../../server/logger')
 
-const {
-  getIndex,
-  getClient
-} = require('../elasticsearch')
+const { getIndex, getClient } = require('../elasticsearch')
 
-const {
-  syncAssetsWithElasticsearch
-} = require('../elasticsearch-sync')
+const { syncAssetsWithElasticsearch } = require('../elasticsearch-sync')
 
-const {
-  getPendingReindexingTask
-} = require('../elasticsearch-reindex')
+const { getPendingReindexingTask } = require('../elasticsearch-reindex')
 
 const { getModels } = require('../models')
 
@@ -33,59 +26,53 @@ const categoryIdInFilterRegex = builtInUsedInFilterRegex('_categoryId')
 const assetTypeIdInFilterRegex = builtInUsedInFilterRegex('_assetTypeId')
 const whitespaceInQueryRegex = /\s/
 
-function start ({ communication, isSystem }) {
+function start({ communication, isSystem }) {
   const {
     getResponder,
     getSubscriber,
     getRequester,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'Search Responder',
-    key: 'search'
+    key: 'search',
   })
 
   subscriber = getSubscriber({
     name: 'Search subscriber',
     key: 'search',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'assetsSearched'
-    ]
+    subscribesTo: ['assetsSearched'],
   })
 
   assetSubscriber = getSubscriber({
     name: 'Search-asset subscriber',
     key: 'asset',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'assetCreated',
-      'assetUpdated',
-      'assetDeleted'
-    ]
+    subscribesTo: ['assetCreated', 'assetUpdated', 'assetDeleted'],
   })
 
   publisher = getPublisher({
     name: 'Search publisher',
     key: 'search',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   availabilityRequester = getRequester({
     name: 'Search service > Availability Requester',
-    key: 'availability'
+    key: 'availability',
   })
 
   configRequester = getRequester({
     name: 'Search service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   responder.on('search', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
 
     const { searchQuery, _size, _validateOnly, parsedFilter } = req
 
@@ -95,7 +82,7 @@ function start ({ communication, isSystem }) {
       type: '_getConfig',
       platformId,
       env,
-      access: 'default'
+      access: 'default',
     })
     const searchConfig = config.saltana.search || {}
 
@@ -103,7 +90,7 @@ function start ({ communication, isSystem }) {
 
     const defaultAvailabilityFilter = {
       enabled: true,
-      fullPeriod: true
+      fullPeriod: true,
     }
 
     const {
@@ -126,10 +113,13 @@ function start ({ communication, isSystem }) {
       active = true,
       validated,
       sort,
-      availabilityFilter: userAvailabilityFilter
+      availabilityFilter: userAvailabilityFilter,
     } = searchQuery
 
-    const availabilityFilter = Object.assign({}, defaultAvailabilityFilter, userAvailabilityFilter)
+    const availabilityFilter = {
+      ...defaultAvailabilityFilter,
+      ...userAvailabilityFilter,
+    }
 
     if (startDate && endDate && endDate <= startDate) {
       throw createError(422, 'Start date must be before end date')
@@ -140,8 +130,9 @@ function start ({ communication, isSystem }) {
     let customAttributes = req._customAttributes // can be populated by some middleware
     let indexedCustomAttributes = {}
 
-    if (_.isEmpty(customAttributes) && (
-      !!customAttributesQuery || query || similarTo || (sort && sort.length))
+    if (
+      _.isEmpty(customAttributes) &&
+      (!!customAttributesQuery || query || similarTo || (sort && sort.length))
     ) {
       customAttributes = await CustomAttribute.query()
     }
@@ -150,21 +141,30 @@ function start ({ communication, isSystem }) {
     }
 
     if (customAttributesQuery) {
-      const validCustomAttributes = Object.keys(customAttributesQuery).reduce((memo, name) => {
-        if (!indexedCustomAttributes[name]) {
-          return memo && false
-        }
-        return memo
-      }, true)
+      const validCustomAttributes = Object.keys(customAttributesQuery).reduce(
+        (memo, name) => {
+          if (!indexedCustomAttributes[name]) {
+            return memo && false
+          }
+          return memo
+        },
+        true,
+      )
 
       if (!validCustomAttributes) {
-        throw createError(422, 'Unknown attribute in custom attributes query object')
+        throw createError(
+          422,
+          'Unknown attribute in custom attributes query object',
+        )
       }
 
       // TODO: make this check in dev env only and
       // restrict custom attributes reindexing in prod for performance
       const reindexingTask = await getPendingReindexingTask({ platformId, env })
-      if (reindexingTask && customAttributesQuery[reindexingTask.newCustomAttributeName]) {
+      if (
+        reindexingTask &&
+        customAttributesQuery[reindexingTask.newCustomAttributeName]
+      ) {
         const errorMsg = `Cannot filter with the custom attribute "${reindexingTask.newCustomAttributeName}" while reindexing is processing`
         throw createError(422, errorMsg)
       }
@@ -175,19 +175,19 @@ function start ({ communication, isSystem }) {
     let size = DEFAULT_SIZE
 
     // only allow to override the default size in testing environment to check Elasticsearch pagination
-    if (process.env.NODE_ENV === 'test' && _size) {
+    if (config.get('Env') === 'test' && _size) {
       size = _size
     }
 
     const body = {
       query: {},
-      size
+      size,
     }
 
     const index = getIndex({ platformId, env })
 
     const bool = {
-      filter: [] // ES filter context
+      filter: [], // ES filter context
     }
     let moreLikeThis
     const sortParams = []
@@ -195,36 +195,40 @@ function start ({ communication, isSystem }) {
     const hasFilter = !!parsedFilter
     // Don’t filter assets on `active` by default when using null reset
     // or when `_active` is used in filter
-    const activeInFilter = hasFilter && checkFilterBuiltIn(filter, activeInFilterRegex)
+    const activeInFilter =
+      hasFilter && checkFilterBuiltIn(filter, activeInFilterRegex)
     if (active !== null && !activeInFilter) {
       bool.filter.push({ term: { active } })
     }
     // Same here: user filter’s `_validated` builtIn takes precedence over user `validated`
-    const validatedInFilter = hasFilter && checkFilterBuiltIn(filter, validatedInFilterRegex)
+    const validatedInFilter =
+      hasFilter && checkFilterBuiltIn(filter, validatedInFilterRegex)
     if (typeof validated === 'boolean' && !validatedInFilter) {
       bool.filter.push({ term: { validated } })
     }
 
-    const categoryIdInFilter = hasFilter && checkFilterBuiltIn(filter, categoryIdInFilterRegex)
+    const categoryIdInFilter =
+      hasFilter && checkFilterBuiltIn(filter, categoryIdInFilterRegex)
     // Note that in filter _categoryId[cat1, cat2] can be used as OR too. Same for assetType below
     if (categoryId && categoryId.length && !categoryIdInFilter) {
       bool.filter.push({
-        terms: { categoryId }
+        terms: { categoryId },
       })
     }
 
-    const assetTypeIdInFilter = hasFilter && checkFilterBuiltIn(filter, assetTypeIdInFilterRegex)
+    const assetTypeIdInFilter =
+      hasFilter && checkFilterBuiltIn(filter, assetTypeIdInFilterRegex)
     if (assetTypeId && assetTypeId.length && !assetTypeIdInFilter) {
       bool.filter.push({
-        terms: { assetTypeId }
+        terms: { assetTypeId },
       })
     }
 
     if (without && without.length) {
       bool.filter.push({
         bool: {
-          must_not: { terms: { _id: without } }
-        }
+          must_not: { terms: { _id: without } },
+        },
       })
     }
 
@@ -238,9 +242,9 @@ function start ({ communication, isSystem }) {
           distance: maxDistance ? `${maxDistance}m` : maxLimit,
           locations: {
             lat: location.latitude,
-            lon: location.longitude
-          }
-        }
+            lon: location.longitude,
+          },
+        },
       })
     }
 
@@ -251,15 +255,15 @@ function start ({ communication, isSystem }) {
 
       bool.filter.push({
         range: {
-          createdDate: createdDateQuery
-        }
+          createdDate: createdDateQuery,
+        },
       })
     }
 
     if (customAttributesQuery) {
       const { filter } = transformCustomAttributesQuery({
         customAttributesQuery,
-        indexedCustomAttributes
+        indexedCustomAttributes,
       })
 
       if (filter) {
@@ -267,13 +271,11 @@ function start ({ communication, isSystem }) {
       }
     }
 
-    const textFields = [
-      'name^2',
-      'description'
-    ]
+    const textFields = ['name^2', 'description']
     for (const attributeName in indexedCustomAttributes) {
       const attribute = indexedCustomAttributes[attributeName]
-      if (attribute.type === 'text') textFields.push(`customAttributes.${attributeName}`)
+      if (attribute.type === 'text')
+        textFields.push(`customAttributes.${attributeName}`)
     }
 
     if (_.isEmpty(similarTo)) {
@@ -284,7 +286,7 @@ function start ({ communication, isSystem }) {
           // We use edge ngrams in Asset name only
           // to provide autocomplete-like functionality without lowering relevance.
           shortQuery.push({
-            match: { 'name.edge_ngrams': query }
+            match: { 'name.edge_ngrams': query },
           })
         }
         const multiTokenQuery = []
@@ -295,9 +297,9 @@ function start ({ communication, isSystem }) {
             multi_match: {
               fields: ['allContent.shingles'],
               query,
-              minimum_should_match: '70%' // 1 of 2 shingles (extracted from 3 tokens)
+              minimum_should_match: '70%', // 1 of 2 shingles (extracted from 3 tokens)
               // 2 of 3/4 shingles, 3 of 5…
-            }
+            },
           })
         }
 
@@ -307,10 +309,12 @@ function start ({ communication, isSystem }) {
         //    - OR matched ICU tokenized words (trigrams perform poorly on Asian languages)
         // 2. Then we boost results having shingles or token match with bool.should
 
-        bool.filter.unshift({ // most specific filter first for performance
+        bool.filter.unshift({
+          // most specific filter first for performance
           bool: {
             should: [
-              { // High trigram match rate, useful for compound words (e.g. German)
+              {
+                // High trigram match rate, useful for compound words (e.g. German)
                 // https://www.elastic.co/guide/en/elasticsearch/guide/current/ngrams-compound-words.html
                 // Note that match must be (almost) exact with fuzziness limited to edges:
                 // 'seeadler' or 'seeadlet' will match 'Weißkopfseeadler'
@@ -320,12 +324,13 @@ function start ({ communication, isSystem }) {
                   fields: ['allContent.trigrams'],
                   query,
                   // Both of 2 trigrams, (n-1) of n trigrams up to n=10, then (n-2) of n up to 20, …
-                  minimum_should_match: '2<90%'
+                  minimum_should_match: '2<90%',
                   // Trigrams are a moving window: 'Naus' query has two trigrams 'Nau', 'aus',
                   // and will match 'Nausicaa' text, unlike 'Naur' query since 'aur' trigram does not match.
-                }
+                },
               },
-              { // Token fuzzy match _and_ control for relevance in multi-token queries
+              {
+                // Token fuzzy match _and_ control for relevance in multi-token queries
                 bool: {
                   filter: [
                     {
@@ -334,16 +339,16 @@ function start ({ communication, isSystem }) {
                         query,
                         fuzziness: 'AUTO',
                         prefix_length: 3,
-                        minimum_should_match: '70%' // 1 of 2 tokens, 2 of 3/4, 3 of 5, 4 of 6/7
-                      }
+                        minimum_should_match: '70%', // 1 of 2 tokens, 2 of 3/4, 3 of 5, 4 of 6/7
+                      },
                     },
-                    ...multiTokenQuery
-                  ]
-                }
+                    ...multiTokenQuery,
+                  ],
+                },
               },
-              ...shortQuery
-            ]
-          }
+              ...shortQuery,
+            ],
+          },
         })
 
         // Second step: boosting relevant results
@@ -354,16 +359,18 @@ function start ({ communication, isSystem }) {
         // TODO: add regression test suite with specific full-text scenarios
         // (e.g. using Saltana Heroes Demo), focusing on rules below and precision/recall.
         bool.should = [
-          { // Fuzzy match
+          {
+            // Fuzzy match
             match: {
               allContent: {
                 query,
                 fuzziness: 'AUTO',
-                prefix_length: 3
+                prefix_length: 3,
               },
-            }
+            },
           },
-          { // “Boost” full-word shingles
+          {
+            // “Boost” full-word shingles
             // + edge ngrams in Asset name for search-as-you-type experience
             multi_match: {
               fields: ['allContent.shingles', 'name.edge_ngrams'],
@@ -371,12 +378,16 @@ function start ({ communication, isSystem }) {
               // 'most_field' type only appropriate for allContent + name (redundant),
               // not for any additional field since it divides scores:
               // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-multi-match-query.html#type-most-fields
-              type: 'most_fields'
-            }
+              type: 'most_fields',
+            },
           },
-          { // Boost trigram shingles (+ additional boost for match on Asset name)
+          {
+            // Boost trigram shingles (+ additional boost for match on Asset name)
             multi_match: {
-              fields: ['allContent.trigrams_shingles', 'name.trigrams_shingles'],
+              fields: [
+                'allContent.trigrams_shingles',
+                'name.trigrams_shingles',
+              ],
               query,
               // 'most_field' type only appropriate for allContent + name (redundant),
               // not for any additional field since it divides scores:
@@ -386,21 +397,22 @@ function start ({ communication, isSystem }) {
               // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-multi-match-query.html#operator-min
               // which is not a problem here since allContent already includes name, so we don’t need 'cross_fields' type
               minimum_should_match: '70%',
-            }
+            },
           },
-          ...shortQuery
+          ...shortQuery,
         ]
       } else {
         bool.must = {
-          match_all: {}
+          match_all: {},
         }
       }
-    } else { // similar assets search
+    } else {
+      // similar assets search
       const like = []
-      similarTo.forEach(assetId => {
+      similarTo.forEach((assetId) => {
         like.push({
           _index: index,
-          _id: assetId
+          _id: assetId,
         })
       })
 
@@ -415,7 +427,7 @@ function start ({ communication, isSystem }) {
         min_doc_freq: 1, // computed _per shard_, defaults to 5: might miss results
         // when using several primary shards with small index or rare words.
         min_word_length: 3, // consistent with our trigram-centric search. Defaults to 0.
-        minimum_should_match: '1<50% 6<2 10<20%' // Default: 30%.
+        minimum_should_match: '1<50% 6<2 10<20%', // Default: 30%.
         // We expect 5 tokens if we have 25 query terms,
         // but only 1 of 2 or 3 tokens (like 30% default value) for assets with _really_ short text
         // 2 of 4/5/6 (stricter than default)
@@ -436,11 +448,9 @@ function start ({ communication, isSystem }) {
         '_name',
         '_validated',
         '_active',
-        '_price'
+        '_price',
       ]
-      const sortableBuiltInAttributesWithKeyword = [
-        '_name'
-      ]
+      const sortableBuiltInAttributesWithKeyword = ['_name']
       const sortableAttributesTypes = ['text', 'number', 'boolean']
 
       /* Let’s turn
@@ -460,8 +470,10 @@ function start ({ communication, isSystem }) {
         const name = Object.keys(step)[0]
         const customAttribute = indexedCustomAttributes[name]
 
-        const isSortableBuiltInAttributesKeyword = sortableBuiltInAttributes.includes(name)
-        const isSortableBuiltInAttributesWithKeyword = sortableBuiltInAttributesWithKeyword.includes(name)
+        const isSortableBuiltInAttributesKeyword =
+          sortableBuiltInAttributes.includes(name)
+        const isSortableBuiltInAttributesWithKeyword =
+          sortableBuiltInAttributesWithKeyword.includes(name)
 
         if (name === sortableAvailabilityAttribute) {
           if (i === 0) {
@@ -469,7 +481,10 @@ function start ({ communication, isSystem }) {
             availabilitySortingActive = true
             availabilitySortingOrder = step[name]
           } else {
-            throw createError(422, `${sortableAvailabilityAttribute} sorting should come as the first element of the sorting array`)
+            throw createError(
+              422,
+              `${sortableAvailabilityAttribute} sorting should come as the first element of the sorting array`,
+            )
           }
         } else if (isSortableBuiltInAttributesKeyword) {
           // remove the built-in character indicator '_' if needed
@@ -489,27 +504,34 @@ function start ({ communication, isSystem }) {
           sortParams.push({
             [sortKey]: {
               order: step[name],
-              missing: '_last'
-            // All assets should have a price
-            // but in the future other built-in attributes could be missing
-            }
+              missing: '_last',
+              // All assets should have a price
+              // but in the future other built-in attributes could be missing
+            },
           })
-        } else if (customAttribute && _.includes(sortableAttributesTypes, customAttribute.type)) {
+        } else if (
+          customAttribute &&
+          _.includes(sortableAttributesTypes, customAttribute.type)
+        ) {
           // Add '.keyword' to text field key to allow sorting
           // https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html
-          const customAttributeKey =
-            `customAttributes.${name}${customAttribute.type === 'text' ? '.keyword' : ''}`
+          const customAttributeKey = `customAttributes.${name}${
+            customAttribute.type === 'text' ? '.keyword' : ''
+          }`
           sortParams.push({
             [customAttributeKey]: {
               order: step[name],
-              missing: '_last'
-            // We must deal with assets missing this custom attribute
-            }
+              missing: '_last',
+              // We must deal with assets missing this custom attribute
+            },
           })
         } else {
-          throw createError(422, `Can't sort by custom attribute ${name} of type ${
-            customAttribute && customAttribute.type
-          }`)
+          throw createError(
+            422,
+            `Can't sort by custom attribute ${name} of type ${
+              customAttribute && customAttribute.type
+            }`,
+          )
         }
       })
 
@@ -531,12 +553,14 @@ function start ({ communication, isSystem }) {
     if (queryBody.bool && moreLikeThis) {
       if (!queryBody.bool.must) {
         queryBody.bool.must = { more_like_this: moreLikeThis }
+      } else if (Array.isArray(queryBody.bool.must)) {
+        queryBody.bool.must = queryBody.bool.must.concat([
+          { more_like_this: moreLikeThis },
+        ])
       } else {
-        if (Array.isArray(queryBody.bool.must)) {
-          queryBody.bool.must = queryBody.bool.must.concat([{ more_like_this: moreLikeThis }])
-        } else {
-          queryBody.bool.must = [queryBody.bool.must].concat([{ more_like_this: moreLikeThis }])
-        }
+        queryBody.bool.must = [queryBody.bool.must].concat([
+          { more_like_this: moreLikeThis },
+        ])
       }
     } else if (moreLikeThis) {
       queryBody.more_like_this = moreLikeThis
@@ -553,10 +577,7 @@ function start ({ communication, isSystem }) {
       body.sort = sortParams
     } else {
       // need to have some sort params for ES "search after" pagination
-      body.sort = [
-        '_score',
-        { createdDate: { order: 'desc' } }
-      ]
+      body.sort = ['_score', { createdDate: { order: 'desc' } }]
     }
 
     debug('ElasticSearch Query Body %j', body)
@@ -584,7 +605,7 @@ function start ({ communication, isSystem }) {
       if (searchAfterParams) {
         const escapedSearchAfterParams = []
 
-        searchAfterParams.forEach(value => {
+        searchAfterParams.forEach((value) => {
           let escapedValue = value
 
           // When sort params has integer that goes beyond JS limit (Number.MIN_SAFE_INTEGER or Number.MAX_SAFE_INTEGER)
@@ -616,7 +637,7 @@ function start ({ communication, isSystem }) {
 
       const { body: searchResults } = await client.search({
         index,
-        body
+        body,
       })
       results = searchResults
 
@@ -642,7 +663,7 @@ function start ({ communication, isSystem }) {
       let tmpResults = []
 
       // only keep assets that haven't already been processed during previous runs
-      results.forEach(asset => {
+      results.forEach((asset) => {
         if (!indexedResultAssetsIds[asset.id]) {
           indexedResultAssetsIds[asset.id] = true
           tmpResults.push(asset)
@@ -660,10 +681,13 @@ function start ({ communication, isSystem }) {
       tmpResults = null
 
       results = removeIrrelevantResults(results)
-      debug('Results:', results.map(r => _.pick(r, ['id', 'name', '_score', '_sort'])))
+      debug(
+        'Results:',
+        results.map((r) => _.pick(r, ['id', 'name', '_score', '_sort'])),
+      )
       results = removeESMetaField(results)
 
-      const assetsIds = results.map(asset => asset.id)
+      const assetsIds = results.map((asset) => asset.id)
 
       const allAvailable = await availabilityRequester.send({
         type: '_isAvailable',
@@ -674,13 +698,13 @@ function start ({ communication, isSystem }) {
         fullPeriod: availabilityFilter.fullPeriod,
         unavailableWhen: availabilityFilter.unavailableWhen,
         platformId,
-        env
+        env,
       })
 
       // show only available assets
       // do not take into account availability sort as only available assets will be displayed
       if (availabilityFilter.enabled) {
-        results = results.filter(asset => {
+        results = results.filter((asset) => {
           const available = allAvailable[asset.id]
           return available
         })
@@ -689,7 +713,7 @@ function start ({ communication, isSystem }) {
         currentNbResults += results.length
       } else {
         // add the attribute 'available' to the assets
-        results.forEach(asset => {
+        results.forEach((asset) => {
           const available = allAvailable[asset.id]
           asset.available = available
         })
@@ -697,10 +721,10 @@ function start ({ communication, isSystem }) {
         // if the availability sorting is active, we separate available from unavailable assets
         // so we can easily perform the sort by concatenate the two arrays in the right order
         if (availabilitySortingActive) {
-          const [
-            availableAssets,
-            unavailableAssets
-          ] = _.partition(results, asset => asset.available)
+          const [availableAssets, unavailableAssets] = _.partition(
+            results,
+            (asset) => asset.available,
+          )
 
           availableResults = availableResults.concat(availableAssets)
           unavailableResults = unavailableResults.concat(unavailableAssets)
@@ -736,9 +760,13 @@ function start ({ communication, isSystem }) {
     // because we are sure all results are covered so the order is correct
     if (availabilitySortingActive && !hasAdditionalResults) {
       if (availabilitySortingOrder === 'desc') {
-        allResults = allResults.concat(availableResults).concat(unavailableResults)
+        allResults = allResults
+          .concat(availableResults)
+          .concat(unavailableResults)
       } else {
-        allResults = allResults.concat(unavailableResults).concat(availableResults)
+        allResults = allResults
+          .concat(unavailableResults)
+          .concat(availableResults)
       }
 
       currentNbResults = allResults.length
@@ -746,7 +774,11 @@ function start ({ communication, isSystem }) {
 
     debug('Availability filtering on search results done')
 
-    let exposedResults = getResultsByPagination(allResults, page, nbResultsPerPage)
+    let exposedResults = getResultsByPagination(
+      allResults,
+      page,
+      nbResultsPerPage,
+    )
     exposedResults = formatResults(exposedResults)
     exposedResults = Asset.exposeAll(exposedResults, { req })
 
@@ -758,7 +790,7 @@ function start ({ communication, isSystem }) {
       searchQuery,
       eventDate,
       platformId,
-      env
+      env,
     })
 
     return {
@@ -767,84 +799,106 @@ function start ({ communication, isSystem }) {
       nbResults: currentNbResults,
       nbPages: Math.ceil(currentNbResults / nbResultsPerPage),
       exhaustiveNbResults: !hasAdditionalResults,
-      results: exposedResults
+      results: exposedResults,
     }
   })
 
   // EVENTS
 
-  subscriber.on('assetsSearched', async ({
-    firstResult,
-    resultsIds,
-    searchQuery,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'assetsSearched',
+    async ({
+      firstResult,
+      resultsIds,
+      searchQuery,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'assets__searched',
-        objectType: 'asset',
-        objectId: firstResult ? firstResult.id : null, // event without object is an exception
-        object: firstResult || null,
-        metadata: {
-          resultsIds,
-          searchQuery
-        }
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'assets__searched',
+            objectType: 'asset',
+            objectId: firstResult ? firstResult.id : null, // event without object is an exception
+            object: firstResult || null,
+            metadata: {
+              resultsIds,
+              searchQuery,
+            },
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { searchQuery, resultsIds },
+          message: 'Fail to create event assets__searched',
+        })
+      }
+    },
+  )
+
+  assetSubscriber.on(
+    'assetCreated',
+    async ({ asset, eventDate, platformId, env } = {}) => {
+      syncAssetsWithElasticsearch({
+        assetId: asset.id,
+        asset,
+        action: 'create',
         platformId,
         env,
-        custom: { searchQuery, resultsIds },
-        message: 'Fail to create event assets__searched'
       })
-    }
-  })
+    },
+  )
 
-  assetSubscriber.on('assetCreated', async ({ asset, eventDate, platformId, env } = {}) => {
-    syncAssetsWithElasticsearch({
-      assetId: asset.id,
-      asset,
-      action: 'create',
-      platformId,
-      env
-    })
-  })
-
-  assetSubscriber.on('assetUpdated', async ({ assetId, updateAttrs, newAsset, eventDate, platformId, env } = {}) => {
-    syncAssetsWithElasticsearch({
+  assetSubscriber.on(
+    'assetUpdated',
+    async ({
       assetId,
-      asset: newAsset, // pass the entire object as it is needed in the search sync process
-      action: 'update',
+      updateAttrs,
+      newAsset,
+      eventDate,
       platformId,
-      env
-    })
-  })
+      env,
+    } = {}) => {
+      syncAssetsWithElasticsearch({
+        assetId,
+        asset: newAsset, // pass the entire object as it is needed in the search sync process
+        action: 'update',
+        platformId,
+        env,
+      })
+    },
+  )
 
-  assetSubscriber.on('assetDeleted', async ({ assetId, eventDate, platformId, env } = {}) => {
-    syncAssetsWithElasticsearch({
-      assetId,
-      action: 'delete',
-      platformId,
-      env
-    })
-  })
+  assetSubscriber.on(
+    'assetDeleted',
+    async ({ assetId, eventDate, platformId, env } = {}) => {
+      syncAssetsWithElasticsearch({
+        assetId,
+        action: 'delete',
+        platformId,
+        env,
+      })
+    },
+  )
 }
 
-function builtInUsedInFilterRegex (name) {
+function builtInUsedInFilterRegex(name) {
   return new RegExp(`["'\\s(!]${name}`)
 }
 
-function checkFilterBuiltIn (filter, regexp) {
+function checkFilterBuiltIn(filter, regexp) {
   // add one leading space to keep regex above simple
   return filter && regexp.test(` ${filter}`)
 }
 
-function getNbTotalResults (res) {
+function getNbTotalResults(res) {
   if (!res) return 0
 
   const total = _.get(res, 'hits.total')
@@ -856,12 +910,12 @@ function getNbTotalResults (res) {
   return total.value
 }
 
-function formatElasticsearchResults (res) {
+function formatElasticsearchResults(res) {
   if (!res || !res.hits) {
     return []
   }
 
-  return res.hits.hits.map(value => {
+  return res.hits.hits.map((value) => {
     const asset = value._source
 
     asset.id = value._id
@@ -872,27 +926,27 @@ function formatElasticsearchResults (res) {
   })
 }
 
-function removeIrrelevantResults (results) {
-  return results.filter(result => result._score > 0)
+function removeIrrelevantResults(results) {
+  return results.filter((result) => result._score > 0)
 }
 
-function getResultsByPagination (results, page, limit) {
+function getResultsByPagination(results, page, limit) {
   return results.slice((page - 1) * limit, page * limit)
 }
 
-function formatResults (results) {
+function formatResults(results) {
   return results.reduce((memo, result) => {
-    const newResult = Object.assign({}, result)
+    const newResult = { ...result }
 
     // rebuild locations as in the API
     if (newResult.rawLocations) {
       newResult.locations = newResult.rawLocations
     } else {
       // remove those lines when the reindexing with field `rawLocations` is done
-      newResult.locations = newResult.locations.map(loc => {
+      newResult.locations = newResult.locations.map((loc) => {
         return {
           latitude: loc.lat,
-          longitude: loc.lon
+          longitude: loc.lon,
         }
       })
     }
@@ -903,16 +957,19 @@ function formatResults (results) {
   }, [])
 }
 
-function removeESMetaField (results) {
-  return results.map(result => {
+function removeESMetaField(results) {
+  return results.map((result) => {
     return _.omit(result, ['_score', '_sort'])
   })
 }
 
-function transformCustomAttributesQuery ({ customAttributesQuery, indexedCustomAttributes }) {
+function transformCustomAttributesQuery({
+  customAttributesQuery,
+  indexedCustomAttributes,
+}) {
   const filter = []
 
-  Object.keys(customAttributesQuery).forEach(name => {
+  Object.keys(customAttributesQuery).forEach((name) => {
     const customAttribute = indexedCustomAttributes[name]
     const key = `customAttributes.${name}`
     const value = customAttributesQuery[name]
@@ -926,40 +983,54 @@ function transformCustomAttributesQuery ({ customAttributesQuery, indexedCustomA
       case 'number':
         if (typeof value === 'number') {
           filter.push({
-            term: { [key]: value }
+            term: { [key]: value },
           })
         } else if (typeof value === 'object' && !Array.isArray(value)) {
-          const diff = _.difference(Object.keys(value), ['gt', 'gte', 'lt', 'lte'])
+          const diff = _.difference(Object.keys(value), [
+            'gt',
+            'gte',
+            'lt',
+            'lte',
+          ])
           if (diff.length) {
-            _throwInvalidCustomAttributeError({ name, type: customAttribute.type })
+            _throwInvalidCustomAttributeError({
+              name,
+              type: customAttribute.type,
+            })
           }
 
           filter.push({
-            range: { [key]: value }
+            range: { [key]: value },
           })
         } else {
-          _throwInvalidCustomAttributeError({ name, type: customAttribute.type })
+          _throwInvalidCustomAttributeError({
+            name,
+            type: customAttribute.type,
+          })
         }
         break
 
       case 'boolean':
         if (typeof value === 'boolean') {
           filter.push({
-            term: { [key]: value }
+            term: { [key]: value },
           })
         } else {
-          _throwInvalidCustomAttributeError({ name, type: customAttribute.type })
+          _throwInvalidCustomAttributeError({
+            name,
+            type: customAttribute.type,
+          })
         }
         break
 
       case 'select':
         if (Array.isArray(value)) {
           filter.push({
-            terms: { [key]: value }
+            terms: { [key]: value },
           })
         } else {
           filter.push({
-            term: { [key]: value }
+            term: { [key]: value },
           })
         }
         break
@@ -969,14 +1040,14 @@ function transformCustomAttributesQuery ({ customAttributesQuery, indexedCustomA
           filter.push({
             bool: {
               // TODO: rework this if performance issue for long lists of values
-              must: value.map(val => {
+              must: value.map((val) => {
                 return { term: { [key]: val } }
-              })
-            }
+              }),
+            },
           })
         } else {
           filter.push({
-            term: { [key]: value }
+            term: { [key]: value },
           })
         }
         break
@@ -984,10 +1055,13 @@ function transformCustomAttributesQuery ({ customAttributesQuery, indexedCustomA
       case 'text':
         if (typeof value === 'string') {
           filter.push({
-            term: { [`${key}.keyword`]: value }
+            term: { [`${key}.keyword`]: value },
           })
         } else {
-          _throwInvalidCustomAttributeError({ name, type: customAttribute.type })
+          _throwInvalidCustomAttributeError({
+            name,
+            type: customAttribute.type,
+          })
         }
         break
 
@@ -997,15 +1071,18 @@ function transformCustomAttributesQuery ({ customAttributesQuery, indexedCustomA
   })
 
   return {
-    filter: filter.length ? filter : null
+    filter: filter.length ? filter : null,
   }
 
-  function _throwInvalidCustomAttributeError ({ name, type }) {
-    throw createError(422, `Invalid value for custom attribute ${name} of type ${type}`)
+  function _throwInvalidCustomAttributeError({ name, type }) {
+    throw createError(
+      422,
+      `Invalid value for custom attribute ${name} of type ${type}`,
+    )
   }
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -1027,5 +1104,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

@@ -1,7 +1,7 @@
 const debug = require('debug')('saltana:api')
 
-function testMiddleware (req, res, next) {
-  if (process.env.NODE_ENV === 'test') {
+function testMiddleware(req, res, next) {
+  if (config.get('Env') === 'test') {
     req.workingTestMiddleware = true
     debug('Link plugin test middleware is working fine')
   }
@@ -9,5 +9,5 @@ function testMiddleware (req, res, next) {
 }
 
 module.exports = {
-  testMiddleware
+  testMiddleware,
 }

@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
@@ -16,23 +14,21 @@ test.after(after())
 test('creates a successful batch', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:list:all',
-      'asset:read:all',
-      'asset:edit:all'
-    ]
+    permissions: ['asset:list:all', 'asset:read:all', 'asset:edit:all'],
   })
 
   const assetId1 = 'ast_2l7fQps1I3a1gJYz2I3a'
   const assetId2 = 'ast_dmM034s1gi81giDergi8'
 
-  const { body: { results: beforeAssets } } = await request(t.context.serverUrl)
+  const {
+    body: { results: beforeAssets },
+  } = await request(t.context.serverUrl)
     .get(`/assets?id=${assetId1},${assetId2}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const beforeAsset1 = beforeAssets.find(asset => asset.id === assetId1)
-  const beforeAsset2 = beforeAssets.find(asset => asset.id === assetId2)
+  const beforeAsset1 = beforeAssets.find((asset) => asset.id === assetId1)
+  const beforeAsset2 = beforeAssets.find((asset) => asset.id === assetId2)
 
   t.truthy(beforeAsset1)
   t.is(beforeAsset1.active, false)
@@ -50,34 +46,40 @@ test('creates a successful batch', async (t) => {
         {
           objectId: 'ast_2l7fQps1I3a1gJYz2I3a',
           payload: {
-            active: true
-          }
+            active: true,
+          },
         },
         {
           objectId: 'ast_dmM034s1gi81giDergi8',
           payload: {
-            validated: true
-          }
-        }
-      ]
+            validated: true,
+          },
+        },
+      ],
     })
     .expect(200)
 
   t.is(typeof batchResult.processingTime, 'number')
   t.is(batchResult.success, true)
-  t.true(_.isEmpty(_.difference(
-    batchResult.completed,
-    ['ast_2l7fQps1I3a1gJYz2I3a', 'ast_dmM034s1gi81giDergi8']
-  )))
+  t.true(
+    _.isEmpty(
+      _.difference(batchResult.completed, [
+        'ast_2l7fQps1I3a1gJYz2I3a',
+        'ast_dmM034s1gi81giDergi8',
+      ]),
+    ),
+  )
   t.deepEqual(batchResult.errors, [])
 
-  const { body: { results: afterAssets } } = await request(t.context.serverUrl)
+  const {
+    body: { results: afterAssets },
+  } = await request(t.context.serverUrl)
     .get(`/assets?id=${assetId1},${assetId2}`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const afterAsset1 = afterAssets.find(asset => asset.id === assetId1)
-  const afterAsset2 = afterAssets.find(asset => asset.id === assetId2)
+  const afterAsset1 = afterAssets.find((asset) => asset.id === assetId1)
+  const afterAsset2 = afterAssets.find((asset) => asset.id === assetId2)
 
   t.truthy(afterAsset1)
   t.is(afterAsset1.active, true)
@@ -89,9 +91,7 @@ test('creates a successful batch', async (t) => {
 test('creating a batch with failed steps returns formatted error', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:edit:all'
-    ]
+    permissions: ['asset:edit:all'],
   })
 
   const { body: batchResult } = await request(t.context.serverUrl)
@@ -104,22 +104,22 @@ test('creating a batch with failed steps returns formatted error', async (t) => 
         {
           objectId: 'ast_lCfxJNs10rP1g2Mww0rP',
           payload: {
-            active: true
-          }
+            active: true,
+          },
         },
         {
           objectId: 'ast_g29VxDs1DEa1gEk9KDEa',
           payload: {
-            validated: '1' // validation error
-          }
+            validated: '1', // validation error
+          },
         },
         {
           objectId: 'ast_QT1QJcs1m0N1gnVvem0N',
           payload: {
-            categoryId: 'unknown' // not existing category
-          }
-        }
-      ]
+            categoryId: 'unknown', // not existing category
+          },
+        },
+      ],
     })
     .expect(400) // has the error status from the first error
 
@@ -144,7 +144,7 @@ test('fails to create a batch if missing or invalid parameters', async (t) => {
     .post('/batch')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -156,7 +156,7 @@ test('fails to create a batch if missing or invalid parameters', async (t) => {
     .post('/batch')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -171,12 +171,12 @@ test('fails to create a batch if missing or invalid parameters', async (t) => {
     .post('/batch')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       objectType: true,
       method: true,
-      objects: true
+      objects: true,
     })
     .expect(400)
 
@@ -189,9 +189,7 @@ test('fails to create a batch if missing or invalid parameters', async (t) => {
 test('cannot provide too many batch objects', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'asset:edit:all'
-    ]
+    permissions: ['asset:edit:all'],
   })
 
   // maximum is 100
@@ -199,8 +197,8 @@ test('cannot provide too many batch objects', async (t) => {
     return {
       objectId: 'ast_2l7fQps1I3a1gJYz2I3a',
       payload: {
-        active: true
-      }
+        active: true,
+      },
     }
   })
 
@@ -210,7 +208,7 @@ test('cannot provide too many batch objects', async (t) => {
     .send({
       objectType: 'asset',
       method: 'PATCH',
-      objects
+      objects,
     })
     .expect(400)
 

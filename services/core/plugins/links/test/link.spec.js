@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -88,13 +86,15 @@ test('lists links with advanced filter', async (t) => {
 
   obj1.results.forEach((rating) => {
     t.true(
-      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(rating.authorId)
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(
+        rating.authorId,
+      ),
     )
   })
 
   const result2 = await request(t.context.serverUrl)
     .get(
-      '/ratings?authorId[]=usr_WHlfQps1I3a1gJYz2I3a&authorId[]=user-external-id'
+      '/ratings?authorId[]=usr_WHlfQps1I3a1gJYz2I3a&authorId[]=user-external-id',
     )
     .set(authorizationHeaders)
     .expect(200)
@@ -103,7 +103,9 @@ test('lists links with advanced filter', async (t) => {
 
   obj2.results.forEach((rating) => {
     t.true(
-      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(rating.authorId)
+      ['usr_WHlfQps1I3a1gJYz2I3a', 'user-external-id'].includes(
+        rating.authorId,
+      ),
     )
   })
 
@@ -120,7 +122,7 @@ test('lists links with advanced filter', async (t) => {
 
   const result4 = await request(t.context.serverUrl)
     .get(
-      '/ratings?assetId=ast_0TYM7rs1OwP1gQRuCOwP&transactionId=trn_UG1fQps1I3a1gJYz2I3a'
+      '/ratings?assetId=ast_0TYM7rs1OwP1gQRuCOwP&transactionId=trn_UG1fQps1I3a1gJYz2I3a',
     )
     .set(authorizationHeaders)
     .expect(200)
@@ -483,7 +485,7 @@ test.serial(
       authorizationHeaders,
       orderBy: 'avg',
     })
-  }
+  },
 )
 
 // run this test serially because there is no filter and some other tests create events
@@ -576,7 +578,7 @@ test.serial(
         }
       },
     })
-  }
+  },
 )
 
 // need serial to ensure there is no insertion/deletion during pagination scenario

@@ -1,13 +1,14 @@
 /* eslint-disable */
 
+const config = require('config')
 const { serializeError } = require('serialize-error')
 
-const PROD = process.env.NODE_ENV === 'production'
+const PROD = config.get('Env') === 'production'
 
-function initErrors () {
+function initErrors() {
   if (!('toJSON' in Error.prototype)) {
     Object.defineProperty(Error.prototype, 'toJSON', {
-      value: function () {
+      value: function() {
         const alt = serializeError(this)
 
         alt.name = alt.name || 'Internal Server Error'

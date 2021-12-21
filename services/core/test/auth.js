@@ -1,23 +1,21 @@
-require('@saltana/common').load()
-
 const jwt = require('jsonwebtoken')
 const request = require('supertest')
 
 const defaultUserId = 'usr_QVQfQps1I3a1gJYz2I3a'
 
-async function getAccessTokenHeaders ({
+async function getAccessTokenHeaders({
   userId = defaultUserId,
   permissions = [],
   readNamespaces = [],
   editNamespaces = [],
   apiVersion,
-  t
+  t,
 }) {
   const accessToken = await getAccessToken({
     userId,
     permissions,
     readNamespaces,
-    editNamespaces
+    editNamespaces,
   })
 
   const headers = {
@@ -35,26 +33,33 @@ async function getAccessTokenHeaders ({
   return headers
 }
 
-async function getAccessToken ({
+async function getAccessToken({
   userId = defaultUserId,
   permissions = [],
   readNamespaces = [],
-  editNamespaces = []
+  editNamespaces = [],
 } = {}) {
-  const token = jwt.sign({
-    sub: userId,
-    scope: permissions.join(' '),
-    readNamespaces,
-    editNamespaces
-  }, 'secret', {
-    algorithm: 'HS256',
-    expiresIn: '2h'
-  })
+  const token = jwt.sign(
+    {
+      sub: userId,
+      scope: permissions.join(' '),
+      readNamespaces,
+      editNamespaces,
+    },
+    'secret',
+    {
+      algorithm: 'HS256',
+      expiresIn: '2h',
+    },
+  )
 
   return token
 }
 
-async function refreshAccessToken (refreshToken, { status = 200, userAgent, requester, t } = {}) {
+async function refreshAccessToken(
+  refreshToken,
+  { status = 200, userAgent, requester, t } = {},
+) {
   const res = await requester
     .post('/auth/token')
     .set('user-agent', userAgent || 'node-superagent/3.8.3')
@@ -62,33 +67,35 @@ async function refreshAccessToken (refreshToken, { status = 200, userAgent, requ
     .set('x-saltana-env', t.context.env)
     .send({
       grantType: 'refreshToken',
-      refreshToken
+      refreshToken,
     })
     .expect(status)
 
   return res.body
 }
 
-function getSystemKey () {
+function getSystemKey() {
   return process.env.SYSTEM_KEY
 }
 
-async function getApiKey ({
+async function getApiKey({
   t,
   name = 'New Api key',
   type = 'seck',
   roles,
   permissions,
-  env
+  env,
 }) {
-  const accessToken = await getAccessToken({ permissions: ['apiKey:create:all'] })
+  const accessToken = await getAccessToken({
+    permissions: ['apiKey:create:all'],
+  })
 
   const { body: apiKey } = await request(t.context.serverUrl)
     .post('/api-keys')
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': env || t.context.env
+      'x-saltana-env': env || t.context.env,
     })
     .send({ name, type, roles, permissions })
     .expect(200)
@@ -103,5 +110,5 @@ module.exports = {
   getAccessToken,
   refreshAccessToken,
   getSystemKey,
-  getApiKey
+  getApiKey,
 }

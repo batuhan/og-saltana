@@ -1,11 +1,6 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 
-const {
-  sumDecimals,
-  roundDecimal
-} = require('../../../src/util/math')
+const { sumDecimals, roundDecimal } = require('../../../src/util/math')
 
 test('sum numbers', (t) => {
   t.is(sumDecimals([8.1, 8.2]), 16.3) // 16.299999999999997 in JS

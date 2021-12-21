@@ -1,12 +1,6 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 
-const {
-  getModelInfo,
-  User,
-  Asset
-} = require('../../../src/models')
+const { getModelInfo, User, Asset } = require('../../../src/models')
 
 test('get model info', (t) => {
   const info = getModelInfo({ objectId: 'org_xC3ZlGs1Jo71gb2G0Jo7' })
@@ -38,9 +32,18 @@ test('get ID prefix', (t) => {
 })
 
 test('get Object type', (t) => {
-  t.is(getModelInfo({ objectId: 'usr_WHlfQps1I3a1gJYz2I3a' }).objectType, 'user')
-  t.is(getModelInfo({ objectId: 'org_xC3ZlGs1Jo71gb2G0Jo7' }).objectType, 'user')
-  t.is(getModelInfo({ objectId: 'ast_lCfxJNs10rP1g2Mww0rP' }).objectType, 'asset')
+  t.is(
+    getModelInfo({ objectId: 'usr_WHlfQps1I3a1gJYz2I3a' }).objectType,
+    'user',
+  )
+  t.is(
+    getModelInfo({ objectId: 'org_xC3ZlGs1Jo71gb2G0Jo7' }).objectType,
+    'user',
+  )
+  t.is(
+    getModelInfo({ objectId: 'ast_lCfxJNs10rP1g2Mww0rP' }).objectType,
+    'asset',
+  )
 
   t.is(getModelInfo({ idPrefix: 'usr' }).objectType, 'user')
   t.is(getModelInfo({ idPrefix: 'org' }).objectType, 'user')

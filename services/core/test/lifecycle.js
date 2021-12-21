@@ -1,4 +1,3 @@
-require('@saltana/common').load()
 require('../src/secure-env').config()
 
 process.env.ELASTIC_APM_DISABLED = true
@@ -7,13 +6,13 @@ const bluebird = require('bluebird')
 const _ = require('lodash')
 
 const request = require('superagent')
+const debug = require('debug')('saltana:test')
+const Uuid = require('uuid')
 const store = require('./store')
 const database = require('./database')
 const data = require('./fixtures/data')
 const getInstantData = require('./fixtures/instant-data')
 const elasticsearch = require('./elasticsearch')
-const debug = require('debug')('saltana:test')
-const Uuid = require('uuid')
 
 const { getSystemKey } = require('./auth')
 
@@ -22,26 +21,26 @@ const { getPlugins } = require('../plugins')
 const {
   getPostgresqlConnection,
   getElasticsearchConnection,
-  getAuthenticationSettings
+  getAuthenticationSettings,
 } = require('./connection')
 
 // use two environments to test that one server can handle multiple environments at the same time
 const testingEnvs = ['test', 'live']
 const defaultTestingEnv = testingEnvs[0]
 
-function getDataFixtures (env) {
+function getDataFixtures(env) {
   const plugins = getPlugins()
 
   let fixtures
   if (process.env.INSTANT_DATA === 'true') {
-    fixtures = Object.assign({}, getInstantData(env))
+    fixtures = { ...getInstantData(env) }
   } else {
-    fixtures = Object.assign({}, data)
+    fixtures = { ...data }
   }
 
-  plugins.forEach(plugin => {
+  plugins.forEach((plugin) => {
     if (plugin.fixtures && process.env.INSTANT_DATA !== 'true') {
-      Object.keys(plugin.fixtures).forEach(modelName => {
+      Object.keys(plugin.fixtures).forEach((modelName) => {
         const models = plugin.fixtures[modelName]
         fixtures[modelName] = (fixtures[modelName] || []).concat(models)
       })
@@ -53,7 +52,7 @@ function getDataFixtures (env) {
 
 // clean databases before tests (instead of after)
 // to ease test debugging by viewing database data after failure
-async function dropTestPlatforms () {
+async function dropTestPlatforms() {
   const { serverUrl } = await createServer({ enableSignal: false })
 
   const systemKey = getSystemKey()
@@ -93,13 +92,19 @@ async function dropTestPlatforms () {
   await store.setPlatformId(10)
 }
 
-function before ({ name, platformId, env, enableSignal = true, useFreePort } = {}) {
+function before({
+  name,
+  platformId,
+  env,
+  enableSignal = true,
+  useFreePort,
+} = {}) {
   const fn = async (t) => {
     const systemKey = getSystemKey()
 
     const result = await createServer({ enableSignal, useFreePort })
-    const server = result.server
-    const serverPort = result.serverPort
+    const { server } = result
+    const { serverPort } = result
 
     if (name) {
       debug(`Starting test suite "${name}" with platformId ${platformId}`)
@@ -113,7 +118,7 @@ function before ({ name, platformId, env, enableSignal = true, useFreePort } = {
     let existingPlatformId = false
 
     if (platformId) {
-      platformId = '' + platformId // platformId can be passed as an integer
+      platformId = `${platformId}` // platformId can be passed as an integer
 
       const { body: platformIds } = await request
         .get(`${t.context.serverUrl}/store/platforms`)
@@ -123,7 +128,9 @@ function before ({ name, platformId, env, enableSignal = true, useFreePort } = {
     }
 
     if (!existingPlatformId) {
-      const { body: { id: newPlatformId } } = await request
+      const {
+        body: { id: newPlatformId },
+      } = await request
         .post(`${t.context.serverUrl}/store/platforms`)
         .send({ platformId })
         .set(getAuthorizationHeaders({ systemKey }))
@@ -142,7 +149,7 @@ function before ({ name, platformId, env, enableSignal = true, useFreePort } = {
         serverUrl: t.context.serverUrl,
         platformId,
         env,
-        systemKey
+        systemKey,
       })
     }
 
@@ -153,9 +160,9 @@ function before ({ name, platformId, env, enableSignal = true, useFreePort } = {
   return fn
 }
 
-function beforeEach ({ minimumFixtures = false } = {}) {
+function beforeEach({ minimumFixtures = false } = {}) {
   const fn = async (t) => {
-    const platformId = t.context.platformId
+    const { platformId } = t.context
 
     for (const env of testingEnvs) {
       await startPlatformDatabases({
@@ -170,7 +177,12 @@ function beforeEach ({ minimumFixtures = false } = {}) {
   return fn
 }
 
-async function startPlatformDatabases ({ serverUrl, platformId, env, minimumFixtures }) {
+async function startPlatformDatabases({
+  serverUrl,
+  platformId,
+  env,
+  minimumFixtures,
+}) {
   const systemKey = getSystemKey()
 
   await request
@@ -185,11 +197,7 @@ async function startPlatformDatabases ({ serverUrl, platformId, env, minimumFixt
   let fixtures = getDataFixtures(env)
 
   if (minimumFixtures) {
-    fixtures = _.pick(fixtures, [
-      'config',
-      'roles',
-      'user'
-    ])
+    fixtures = _.pick(fixtures, ['config', 'roles', 'user'])
   }
 
   const connection = getPostgresqlConnection({ platformId, env })
@@ -198,7 +206,7 @@ async function startPlatformDatabases ({ serverUrl, platformId, env, minimumFixt
   await elasticsearch.init({ platformId, env })
 }
 
-function after () {
+function after() {
   const fn = async (t) => {
     await stopServer(t.context.server)
   }
@@ -206,10 +214,12 @@ function after () {
   return fn
 }
 
-async function createPlatform ({ t, minimumFixtures = false }) {
+async function createPlatform({ t, minimumFixtures = false }) {
   const systemKey = getSystemKey()
 
-  const { body: { id: platformId } } = await request
+  const {
+    body: { id: platformId },
+  } = await request
     .post(`${t.context.serverUrl}/store/platforms`)
     .set(getAuthorizationHeaders({ systemKey }))
 
@@ -218,7 +228,7 @@ async function createPlatform ({ t, minimumFixtures = false }) {
       serverUrl: t.context.serverUrl,
       platformId,
       env,
-      systemKey
+      systemKey,
     })
 
     await startPlatformDatabases({
@@ -238,13 +248,13 @@ async function createPlatform ({ t, minimumFixtures = false }) {
   }
 }
 
-async function createServer ({ enableSignal, useFreePort = true }) {
+async function createServer({ enableSignal, useFreePort = true }) {
   const { start } = require('../server')
 
   const server = await start({
     useFreePort,
     communicationEnv: Uuid.v4(),
-    enableSignal
+    enableSignal,
   })
 
   const serverPort = server.address().port
@@ -253,11 +263,11 @@ async function createServer ({ enableSignal, useFreePort = true }) {
   return {
     server,
     serverPort,
-    serverUrl
+    serverUrl,
   }
 }
 
-async function stopServer (server) {
+async function stopServer(server) {
   const { stop } = require('../server')
 
   await stop({ server })
@@ -265,18 +275,18 @@ async function stopServer (server) {
 
 // use endpoints to set databases credentials and some other settings
 // this is to check if platforms are correctly initialized
-async function initSettings ({ serverUrl, platformId, env, systemKey }) {
+async function initSettings({ serverUrl, platformId, env, systemKey }) {
   await request
     .put(`${serverUrl}/store/platforms/${platformId}/data/${env}`)
     .set(getAuthorizationHeaders({ systemKey }))
     .send({
       postgresql: getPostgresqlConnection({ platformId, env }),
       elasticsearch: getElasticsearchConnection(),
-      auth: getAuthenticationSettings()
+      auth: getAuthenticationSettings(),
     })
 }
 
-function handleDropDatabaseError (err) {
+function handleDropDatabaseError(err) {
   const errorMessage = _.get(err, 'response.body._message')
 
   if (!errorMessage) throw err
@@ -288,7 +298,7 @@ function handleDropDatabaseError (err) {
   }
 }
 
-function getAuthorizationHeaders ({ env, systemKey }) {
+function getAuthorizationHeaders({ env, systemKey }) {
   const headers = {}
   if (!_.isUndefined(systemKey)) headers['x-saltana-system-key'] = systemKey
   if (!_.isUndefined(env)) headers['x-saltana-env'] = env
@@ -303,5 +313,5 @@ module.exports = {
 
   before,
   beforeEach,
-  after
+  after,
 }

@@ -4,6 +4,7 @@ const semver = require('semver')
 const _ = require('lodash')
 const parseGithubUrl = require('parse-github-url')
 const chalk = require('chalk')
+const config = require('config').get('Plugins')
 
 const log = console.log
 const info = str => log(`${chalk.green(str)}`)
@@ -13,9 +14,11 @@ const warn = (err, msg, note) => {
   if (err) log(err)
 }
 
+// eslint-disable-next-line import/no-dynamic-require
 const { version: serverVersion } = require(path.join(__dirname, '../package.json'))
 
-const { IGNORED_LOCAL_PLUGINS, INSTALLED_PLUGINS } = process.env
+const ignored = config.get('ignored')
+const installed = config.get('installed')
 
 const saltanaServerPath = path.resolve(__dirname, '..')
 const pluginsLoadedManually = []
@@ -32,7 +35,7 @@ function getPlugins () {
     cwd: __dirname
   })
 
-  const ignore = fromEnvVar(IGNORED_LOCAL_PLUGINS)
+  const ignore = fromEnvVar(ignored)
   const localPlugins = pluginsFiles
     .filter(file => {
       const dir = path.dirname(file)
@@ -42,7 +45,7 @@ function getPlugins () {
     .map(p => load(p, { isLocalModule: true }))
 
   let externalPlugins = []
-  if (INSTALLED_PLUGINS) {
+  if (installed) {
     externalPlugins = getInstalledPluginsNames().map(p => load(p, { useInstalledCopy: true }))
   }
 
@@ -54,7 +57,7 @@ function getPlugins () {
 }
 
 function getInstalledPluginsNames () {
-  return (process.env.INSTALLED_PLUGINS || '')
+  return (installed || '')
     .split(',')
     .map(getPluginName)
     .filter(Boolean)
@@ -109,8 +112,9 @@ function load (name, { isLocalModule, isManual, useInstalledCopy } = {}) {
 
   if (versions && !semver.satisfies(serverVersion, versions)) {
     throw new Error(`${serverVersion} Saltana server version not supported by ${
-      p.name
-    } plugin (${versions || 'missing range'})`)
+        p.name
+      } plugin (${versions || 'missing range'})`,
+    )
   }
 
   if (!logged[p.name]) info(`${chalk.bold(p.name)} plugin enabled`)

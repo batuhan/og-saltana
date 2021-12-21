@@ -53,7 +53,7 @@ const customJoi = Joi.extend(
         } catch (ignoreErr) {}
       },
     },
-  }
+  },
 )
 
 /**
@@ -88,7 +88,7 @@ function isValidObjectId({
     // whose encoded platformId is '1'.
     // Ignore this exception for unit tests so that we can also check real behavior.
     const realPlatformId =
-      process.env.NODE_ENV === 'test' && !unitTest ? '1' : platformId
+      config.get('Env') === 'test' && !unitTest ? '1' : platformId
 
     validPlatformId = platformId ? realPlatformId === decodedPlatformId : true
     hasValidFormat =
@@ -139,7 +139,7 @@ const sortSchema = customJoi
     customJoi
       .object()
       .length(1)
-      .pattern(/.*/, customJoi.string().allow('desc', 'asc'))
+      .pattern(/.*/, customJoi.string().allow('desc', 'asc')),
   )
   .single() // converts unique {sortStep} to [{sortStep}]
 

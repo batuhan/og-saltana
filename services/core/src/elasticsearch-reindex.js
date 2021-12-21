@@ -3,6 +3,7 @@
 // https://dzone.com/articles/elasticsearch-fault-tolerance-reindexing-need-and-1
 
 const _ = require('lodash')
+const config = require('config')
 const { getRedisClient } = require('./redis')
 
 const {
@@ -10,35 +11,45 @@ const {
   createIndex,
   getClient,
   getCurrentIndex,
-  getMapping
+  getMapping,
 } = require('./elasticsearch')
 
-const isTestEnv = process.env.NODE_ENV === 'test'
+const isTestEnv = config.get('Env') === 'test'
 
 const {
   autoExpandReplicas,
-  getCustomAttributesMapping
+  getCustomAttributesMapping,
 } = require('./elasticsearch-templates')
 
-async function shouldReindex ({ platformId, env, newCustomAttributeName, newCustomAttributeType }) {
-  const customAttributesMapping = getCustomAttributesMapping([{
-    name: newCustomAttributeName,
-    type: newCustomAttributeType
-  }])
+async function shouldReindex({
+  platformId,
+  env,
+  newCustomAttributeName,
+  newCustomAttributeType,
+}) {
+  const customAttributesMapping = getCustomAttributesMapping([
+    {
+      name: newCustomAttributeName,
+      type: newCustomAttributeType,
+    },
+  ])
 
   // get the type that will be used in Elasticsearch
   const esType = customAttributesMapping.properties[newCustomAttributeName].type
 
   const currentMapping = await getMapping({ platformId, env })
 
-  const existingCustomAttribute = currentMapping.properties.customAttributes.properties &&
-    currentMapping.properties.customAttributes.properties[newCustomAttributeName]
+  const existingCustomAttribute =
+    currentMapping.properties.customAttributes.properties &&
+    currentMapping.properties.customAttributes.properties[
+      newCustomAttributeName
+    ]
 
   // compare if the existing ES type and the new ES type is the same (no conflict)
   return !!(existingCustomAttribute && existingCustomAttribute.type !== esType)
 }
 
-async function checkReindexing ({ COMMUNICATION_ID }) {
+async function checkReindexing({ COMMUNICATION_ID }) {
   const tasks = await getPendingReindexingTasks()
   if (!tasks) return
 
@@ -51,7 +62,7 @@ async function checkReindexing ({ COMMUNICATION_ID }) {
       taskId,
       fromIndex,
       toIndex,
-      COMMUNICATION_ID: taskCommunicationId
+      COMMUNICATION_ID: taskCommunicationId,
     } = task
 
     // only takes care of reindexing tasks initiated by this instance of server
@@ -65,13 +76,19 @@ async function checkReindexing ({ COMMUNICATION_ID }) {
         platformId,
         env,
         fromIndex,
-        toIndex
+        toIndex,
       })
     }
   }
 }
 
-async function startReindexingProcess ({ platformId, env, customAttributes, newCustomAttributeName, COMMUNICATION_ID }) {
+async function startReindexingProcess({
+  platformId,
+  env,
+  customAttributes,
+  newCustomAttributeName,
+  COMMUNICATION_ID,
+}) {
   const client = await getClient({ platformId, env })
 
   const fromIndex = await getCurrentIndex({ platformId, env })
@@ -89,24 +106,24 @@ async function startReindexingProcess ({ platformId, env, customAttributes, newC
       _.set(body, 'settings.index.auto_expand_replicas', false)
       _.set(body, 'settings.index.refresh_interval', -1)
       return body
-    }
+    },
   })
 
   const { body: reindexResult } = await client.reindex({
     body: {
       conflicts: 'proceed',
       source: {
-        index: fromIndex
+        index: fromIndex,
       },
       dest: {
         index: toIndex,
         version_type: 'external',
 
         // only create if missing documents so there will be no conflicts with sync process
-        op_type: 'create'
-      }
+        op_type: 'create',
+      },
     },
-    waitForCompletion: false // default on ES v6.
+    waitForCompletion: false, // default on ES v6.
     // The task has to be destroyed manually after completion
   })
 
@@ -119,22 +136,26 @@ async function startReindexingProcess ({ platformId, env, customAttributes, newC
     fromIndex,
     toIndex,
     newCustomAttributeName,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   }
 
   await createReindexingTask({ platformId, env, data })
 }
 
-async function _endReindexingProcess ({ platformId, env, fromIndex, toIndex }) {
+async function _endReindexingProcess({ platformId, env, fromIndex, toIndex }) {
   const client = await getClient({ platformId, env })
 
-  const { body: fromIndexExists } = await client.indices.exists({ index: fromIndex })
-  const { body: toIndexExists } = await client.indices.exists({ index: toIndex })
+  const { body: fromIndexExists } = await client.indices.exists({
+    index: fromIndex,
+  })
+  const { body: toIndexExists } = await client.indices.exists({
+    index: toIndex,
+  })
 
   if (!fromIndexExists || !toIndexExists) return
 
   const { body: fromIndexSettings } = await client.indices.getSettings({
-    index: fromIndex
+    index: fromIndex,
   })
   const fromSettings = fromIndexSettings[fromIndex].settings
 
@@ -145,13 +166,14 @@ async function _endReindexingProcess ({ platformId, env, fromIndex, toIndex }) {
     body: {
       index: {
         auto_expand_replicas: env === 'live' ? autoExpandReplicas : false,
-        number_of_replicas: fromSettings.index.number_of_replicas || defaultNumberReplicas,
-        refresh_interval: fromSettings.index.refresh_interval || null
-      }
-    }
+        number_of_replicas:
+          fromSettings.index.number_of_replicas || defaultNumberReplicas,
+        refresh_interval: fromSettings.index.refresh_interval || null,
+      },
+    },
   })
 
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise((resolve) => setTimeout(resolve, 100))
 
   const currentAlias = getIndex({ platformId, env })
   const newAlias = getIndex({ platformId, env, tag: 'new' })
@@ -160,12 +182,12 @@ async function _endReindexingProcess ({ platformId, env, fromIndex, toIndex }) {
     body: {
       actions: [
         { add: { index: toIndex, alias: currentAlias } },
-        { remove: { index: fromIndex, alias: currentAlias } }
-      ]
-    }
+        { remove: { index: fromIndex, alias: currentAlias } },
+      ],
+    },
   })
 
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise((resolve) => setTimeout(resolve, 2000))
 
   await removeReindexingTask({ platformId, env })
 
@@ -175,10 +197,8 @@ async function _endReindexingProcess ({ platformId, env, fromIndex, toIndex }) {
     try {
       await client.indices.updateAliases({
         body: {
-          actions: [
-            { remove: { index: toIndex, alias: newAlias } }
-          ]
-        }
+          actions: [{ remove: { index: toIndex, alias: newAlias } }],
+        },
       })
 
       await client.indices.delete({ index: fromIndex })
@@ -188,7 +208,7 @@ async function _endReindexingProcess ({ platformId, env, fromIndex, toIndex }) {
   }, 1000)
 }
 
-async function getPendingReindexingTask ({ platformId, env }) {
+async function getPendingReindexingTask({ platformId, env }) {
   if (!platformId) {
     throw new Error('Missing platform ID')
   }
@@ -204,19 +224,19 @@ async function getPendingReindexingTask ({ platformId, env }) {
   return JSON.parse(res)
 }
 
-async function getPendingReindexingTasks () {
+async function getPendingReindexingTasks() {
   const client = getRedisClient()
 
   const res = await client.hgetallAsync('esReindexing')
   if (!res) return []
 
-  return Object.keys(res).map(key => {
+  return Object.keys(res).map((key) => {
     const value = res[key]
     return JSON.parse(value)
   }, [])
 }
 
-async function createReindexingTask ({ platformId, env, data }) {
+async function createReindexingTask({ platformId, env, data }) {
   if (!platformId) {
     throw new Error('Missing platform ID')
   }
@@ -229,10 +249,14 @@ async function createReindexingTask ({ platformId, env, data }) {
 
   const client = getRedisClient()
 
-  await client.hsetAsync('esReindexing', `${platformId}_${env}`, JSON.stringify(data))
+  await client.hsetAsync(
+    'esReindexing',
+    `${platformId}_${env}`,
+    JSON.stringify(data),
+  )
 }
 
-async function removeReindexingTask ({ platformId, env }) {
+async function removeReindexingTask({ platformId, env }) {
   if (!platformId) {
     throw new Error('Missing platform ID')
   }
@@ -253,5 +277,5 @@ module.exports = {
   getPendingReindexingTask,
   getPendingReindexingTasks,
   createReindexingTask,
-  removeReindexingTask
+  removeReindexingTask,
 }

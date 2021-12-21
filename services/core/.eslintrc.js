@@ -8,7 +8,6 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'prettier',
-    'promise',
   ],
   plugins: ['prettier'],
   rules: {

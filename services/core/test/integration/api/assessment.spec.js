@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 
@@ -12,7 +10,7 @@ const {
   checkCursorPaginatedListObject,
 } = require('../../util')
 
-test.before(async t => {
+test.before(async (t) => {
   await before({ name: 'assessment' })(t)
   await beforeEach()(t)
 })
@@ -20,7 +18,10 @@ test.before(async t => {
 test.after(after())
 
 const createAssessment = async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:create:all'],
+  })
 
   const { body: assessment } = await request(t.context.serverUrl)
     .post('/assessments')
@@ -33,20 +34,23 @@ const createAssessment = async (t) => {
       receiverId: '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
       signers: {
         'user-external-id': {},
-        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {}
+        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {},
       },
       signCodes: {
         'user-external-id': 'secret',
-        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': 'secret2'
+        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': 'secret2',
       },
-      nbSigners: 1
+      nbSigners: 1,
     })
 
   return assessment
 }
 
 test('list assessments', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:list:all'],
+  })
 
   const { body: obj } = await request(t.context.serverUrl)
     .get('/assessments?assetId=ast_2l7fQps1I3a1gJYz2I3a')
@@ -57,7 +61,10 @@ test('list assessments', async (t) => {
 })
 
 test('finds an assessment', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
@@ -70,7 +77,10 @@ test('finds an assessment', async (t) => {
 })
 
 test('shows the sign code only for the current signer if the user has normal rights', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:read:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
@@ -84,32 +94,40 @@ test('shows the sign code only for the current signer if the user has normal rig
 
   const result2 = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
+    })
     .expect(200)
 
   const assessment2 = result2.body
 
   t.is(assessment2.id, 'assm_SWtQps1I3a1gJYz2I3a')
-  t.deepEqual(typeof assessment2.signCodes['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'], 'string')
+  t.deepEqual(
+    typeof assessment2.signCodes['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'],
+    'string',
+  )
 
   const result3 = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': 'user-external-id'
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-user-id': 'user-external-id' })
     .expect(200)
 
   const assessment3 = result3.body
 
   t.is(assessment3.id, 'assm_SWtQps1I3a1gJYz2I3a')
-  t.is(typeof assessment3.signCodes['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'], 'undefined')
+  t.is(
+    typeof assessment3.signCodes['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'],
+    'undefined',
+  )
   t.is(typeof assessment3.signCodes['user-external-id'], 'string')
 })
 
 test('shows all sign codes if there is the config right', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:read:all', 'assessment:config:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:read:all', 'assessment:config:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .get('/assessments/assm_SWtQps1I3a1gJYz2I3a')
@@ -119,12 +137,18 @@ test('shows all sign codes if there is the config right', async (t) => {
   const assessment = result.body
 
   t.is(assessment.id, 'assm_SWtQps1I3a1gJYz2I3a')
-  t.is(typeof assessment.signCodes['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'], 'string')
+  t.is(
+    typeof assessment.signCodes['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'],
+    'string',
+  )
   t.is(typeof assessment.signCodes['user-external-id'], 'string')
 })
 
 test('creates an assessment', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:create:all'],
+  })
 
   const result = await request(t.context.serverUrl)
     .post('/assessments')
@@ -140,11 +164,11 @@ test('creates an assessment', async (t) => {
       receiverId: '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
       signers: {
         'user-external-id': {},
-        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {}
+        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {},
       },
       nbSigners: 1,
       expirationDate: null,
-      metadata: { dummy: true }
+      metadata: { dummy: true },
     })
     .expect(200)
 
@@ -160,10 +184,7 @@ test('creates an assessment', async (t) => {
 test('updates an assessment with configuration parameters', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'assessment:edit:all',
-      'assessment:config:all'
-    ]
+    permissions: ['assessment:edit:all', 'assessment:config:all'],
   })
 
   const result = await request(t.context.serverUrl)
@@ -174,10 +195,10 @@ test('updates an assessment with configuration parameters', async (t) => {
       receiverId: '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
       signers: {
         'user-external-id': {
-          comment: 'Nothing to report'
-        }
+          comment: 'Nothing to report',
+        },
       },
-      nbSigners: 2
+      nbSigners: 2,
     })
     .expect(200)
 
@@ -191,7 +212,7 @@ test('updates an assessment with configuration parameters using simple config pe
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['assessment:edit:all', 'assessment:config'],
-    userId: 'user-external-id'
+    userId: 'user-external-id',
   })
 
   const result = await request(t.context.serverUrl)
@@ -202,9 +223,9 @@ test('updates an assessment with configuration parameters using simple config pe
       receiverId: '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
       signers: {
         'user-external-id': {
-          comment: 'Nothing to report'
-        }
-      }
+          comment: 'Nothing to report',
+        },
+      },
     })
     .expect(200)
 
@@ -217,7 +238,7 @@ test('updates an assessment with configuration parameters using simple config pe
 test('fails to update an assessment with configuration parameters using simple config permission if the user is not specified in signers list', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:edit:all', 'assessment:config']
+    permissions: ['assessment:edit:all', 'assessment:config'],
   })
 
   await request(t.context.serverUrl)
@@ -228,9 +249,9 @@ test('fails to update an assessment with configuration parameters using simple c
       receiverId: '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
       signers: {
         'user-external-id': {
-          comment: 'Nothing to report'
-        }
-      }
+          comment: 'Nothing to report',
+        },
+      },
     })
     .expect(403)
 
@@ -240,7 +261,7 @@ test('fails to update an assessment with configuration parameters using simple c
 test('adds a signer to an assessment will generate a new sign code if not specified', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:edit:all', 'assessment:config:all']
+    permissions: ['assessment:edit:all', 'assessment:config:all'],
   })
 
   const result = await request(t.context.serverUrl)
@@ -248,8 +269,8 @@ test('adds a signer to an assessment will generate a new sign code if not specif
     .set(authorizationHeaders)
     .send({
       signers: {
-        'user-external-id': {}
-      }
+        'user-external-id': {},
+      },
     })
     .expect(200)
 
@@ -262,7 +283,7 @@ test('adds a signer to an assessment will generate a new sign code if not specif
 test('adds a signer to an assessment and generates a sign code for her', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:edit:all', 'assessment:config:all']
+    permissions: ['assessment:edit:all', 'assessment:config:all'],
   })
 
   const assessment = await createAssessment(t)
@@ -272,11 +293,11 @@ test('adds a signer to an assessment and generates a sign code for her', async (
     .set(authorizationHeaders)
     .send({
       signers: {
-        'user-external-id': {}
+        'user-external-id': {},
       },
       signCodes: {
-        'user-external-id': null
-      }
+        'user-external-id': null,
+      },
     })
     .expect(200)
 
@@ -288,11 +309,11 @@ test('adds a signer to an assessment and generates a sign code for her', async (
     .set(authorizationHeaders)
     .send({
       signers: {
-        '3a6b266e-ed58-483c-873f-aee68c3b11d2': {}
+        '3a6b266e-ed58-483c-873f-aee68c3b11d2': {},
       },
       signCodes: {
-        '3a6b266e-ed58-483c-873f-aee68c3b11d2': 'secret'
-      }
+        '3a6b266e-ed58-483c-873f-aee68c3b11d2': 'secret',
+      },
     })
     .expect(200)
 
@@ -304,7 +325,7 @@ test('signs an assessment', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['assessment:sign:all'],
-    userId: 'user-external-id'
+    userId: 'user-external-id',
   })
 
   const assessment = await createAssessment(t)
@@ -313,7 +334,7 @@ test('signs an assessment', async (t) => {
     .post(`/assessments/${assessment.id}/signatures`)
     .set(authorizationHeaders)
     .send({
-      signCode: 'secret'
+      signCode: 'secret',
     })
     .expect(200)
 
@@ -332,14 +353,14 @@ test('signs an assessment', async (t) => {
   // TODO: find an elegant way to solve this issue (same for other tests below)
   // add a delay because the assessment signature can lead to a series of events (webhooks here)
   // that generates database queries during its reset (after each test)
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 })
 
 test('signs an assessment with a challenge statement', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['assessment:sign:all', 'assessment:edit:all'],
-    userId: 'user-external-id'
+    userId: 'user-external-id',
   })
 
   const assessment = await createAssessment(t)
@@ -350,16 +371,16 @@ test('signs an assessment with a challenge statement', async (t) => {
     .send({
       signers: {
         'user-external-id': {
-          statement: 'challenge'
-        }
-      }
+          statement: 'challenge',
+        },
+      },
     })
 
   const { body: updatedAssessment } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
     .set(authorizationHeaders)
     .send({
-      signCode: 'secret'
+      signCode: 'secret',
     })
     .expect(200)
 
@@ -373,14 +394,18 @@ test('signs an assessment with a challenge statement', async (t) => {
 
   // add a delay because the assessment signature can lead to a series of events (webhooks here)
   // that generates database queries during its reset (after each test)
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 })
 
 test('signs an assessment partially will propagate the user statement to the global assessment statement', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:sign:all', 'assessment:edit:all', 'assessment:config:all'],
-    userId: 'user-external-id'
+    permissions: [
+      'assessment:sign:all',
+      'assessment:edit:all',
+      'assessment:config:all',
+    ],
+    userId: 'user-external-id',
   })
 
   const assessment = await createAssessment(t)
@@ -392,10 +417,10 @@ test('signs an assessment partially will propagate the user statement to the glo
     .send({
       signers: {
         'user-external-id': {
-          statement: 'pass'
-        }
+          statement: 'pass',
+        },
       },
-      nbSigners: 4
+      nbSigners: 4,
     })
     .expect(200)
 
@@ -403,7 +428,7 @@ test('signs an assessment partially will propagate the user statement to the glo
     .post(`/assessments/${assessment.id}/signatures`)
     .set(authorizationHeaders)
     .send({
-      signCode: 'secret'
+      signCode: 'secret',
     })
     .expect(200)
 
@@ -419,19 +444,20 @@ test('signs an assessment partially will propagate the user statement to the glo
     .send({
       signers: {
         '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {
-          statement: 'challenge'
-        }
-      }
+          statement: 'challenge',
+        },
+      },
     })
     .expect(200)
 
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
+    })
     .send({
-      signCode: 'secret2'
+      signCode: 'secret2',
     })
     .expect(200)
 
@@ -442,14 +468,18 @@ test('signs an assessment partially will propagate the user statement to the glo
 
   // add a delay because the assessment signature can lead to a series of events (webhooks here)
   // that generates database queries during its reset (after each test)
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 })
 
 test('updating a partial signed challenge assessment to pass will reset the statement', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:sign:all', 'assessment:edit:all', 'assessment:config:all'],
-    userId: 'user-external-id'
+    permissions: [
+      'assessment:sign:all',
+      'assessment:edit:all',
+      'assessment:config:all',
+    ],
+    userId: 'user-external-id',
   })
 
   const assessment = await createAssessment(t)
@@ -461,10 +491,10 @@ test('updating a partial signed challenge assessment to pass will reset the stat
     .send({
       signers: {
         'user-external-id': {
-          statement: 'challenge'
-        }
+          statement: 'challenge',
+        },
       },
-      nbSigners: 4
+      nbSigners: 4,
     })
     .expect(200)
 
@@ -472,7 +502,7 @@ test('updating a partial signed challenge assessment to pass will reset the stat
     .post(`/assessments/${assessment.id}/signatures`)
     .set(authorizationHeaders)
     .send({
-      signCode: 'secret'
+      signCode: 'secret',
     })
     .expect(200)
 
@@ -488,19 +518,20 @@ test('updating a partial signed challenge assessment to pass will reset the stat
     .send({
       signers: {
         '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {
-          statement: 'pass'
-        }
-      }
+          statement: 'pass',
+        },
+      },
     })
     .expect(200)
 
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
+    })
     .send({
-      signCode: 'secret2'
+      signCode: 'secret2',
     })
     .expect(200)
 
@@ -511,14 +542,18 @@ test('updating a partial signed challenge assessment to pass will reset the stat
 
   // add a delay because the assessment signature can lead to a series of events (webhooks here)
   // that generates database queries during its reset (after each test)
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 })
 
 test('updating a partial signed to pass after a challenge statement will get a global challenge statement', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:sign:all', 'assessment:edit:all', 'assessment:config:all'],
-    userId: 'user-external-id'
+    permissions: [
+      'assessment:sign:all',
+      'assessment:edit:all',
+      'assessment:config:all',
+    ],
+    userId: 'user-external-id',
   })
 
   const assessment = await createAssessment(t)
@@ -530,10 +565,10 @@ test('updating a partial signed to pass after a challenge statement will get a g
     .send({
       signers: {
         'user-external-id': {
-          statement: 'challenge'
-        }
+          statement: 'challenge',
+        },
       },
-      nbSigners: 4
+      nbSigners: 4,
     })
     .expect(200)
 
@@ -541,7 +576,7 @@ test('updating a partial signed to pass after a challenge statement will get a g
     .post(`/assessments/${assessment.id}/signatures`)
     .set(authorizationHeaders)
     .send({
-      signCode: 'secret'
+      signCode: 'secret',
     })
     .expect(200)
 
@@ -555,7 +590,7 @@ test('updating a partial signed to pass after a challenge statement will get a g
     .patch(`/assessments/${assessment.id}`)
     .set(authorizationHeaders)
     .send({
-      statement: 'pass'
+      statement: 'pass',
     })
     .expect(200)
 
@@ -566,19 +601,20 @@ test('updating a partial signed to pass after a challenge statement will get a g
     .send({
       signers: {
         '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {
-          statement: 'pass'
-        }
-      }
+          statement: 'pass',
+        },
+      },
     })
     .expect(200)
 
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
+    })
     .send({
-      signCode: 'secret2'
+      signCode: 'secret2',
     })
     .expect(200)
 
@@ -589,14 +625,18 @@ test('updating a partial signed to pass after a challenge statement will get a g
 
   // add a delay because the assessment signature can lead to a series of events (webhooks here)
   // that generates database queries during its reset (after each test)
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 })
 
 test('signs an assessment as many times as it should to be completely signed', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: ['assessment:sign:all', 'assessment:edit:all', 'assessment:config:all'],
-    userId: 'user-external-id'
+    permissions: [
+      'assessment:sign:all',
+      'assessment:edit:all',
+      'assessment:config:all',
+    ],
+    userId: 'user-external-id',
   })
 
   const assessment = await createAssessment(t)
@@ -605,7 +645,7 @@ test('signs an assessment as many times as it should to be completely signed', a
     .patch(`/assessments/${assessment.id}`)
     .set(authorizationHeaders)
     .send({
-      nbSigners: 2
+      nbSigners: 2,
     })
     .expect(200)
 
@@ -613,7 +653,7 @@ test('signs an assessment as many times as it should to be completely signed', a
     .post(`/assessments/${assessment.id}/signatures`)
     .set(authorizationHeaders)
     .send({
-      signCode: 'secret'
+      signCode: 'secret',
     })
     .expect(200)
 
@@ -623,21 +663,27 @@ test('signs an assessment as many times as it should to be completely signed', a
 
   const { body: assessment2 } = await request(t.context.serverUrl)
     .post(`/assessments/${assessment.id}/signatures`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
-    }))
+    .set({
+      ...authorizationHeaders,
+      'x-saltana-user-id': '7e779b5f-876c-4cbc-934c-2fdbcacef4d6',
+    })
     .send({
-      signCode: 'secret2'
+      signCode: 'secret2',
     })
     .expect(200)
 
   t.is(assessment2.id, assessment.id)
-  t.truthy(assessment2.signers['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'].signedDate)
+  t.truthy(
+    assessment2.signers['7e779b5f-876c-4cbc-934c-2fdbcacef4d6'].signedDate,
+  )
   t.truthy(assessment2.signedDate)
 })
 
 test('removes an assessment', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['assessment:remove:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['assessment:remove:all'],
+  })
 
   const assessment = await createAssessment(t)
 
@@ -664,7 +710,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
     .post('/assessments')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -676,7 +722,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
     .post('/assessments')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -689,7 +735,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
     .post('/assessments')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       status: true,
@@ -703,7 +749,7 @@ test('fails to create an assessment if missing or invalid parameters', async (t)
       signers: true,
       nbSigners: true,
       signCodes: true,
-      expirationDate: true
+      expirationDate: true,
     })
     .expect(400)
 
@@ -731,7 +777,7 @@ test('fails to update an assessment if missing or invalid parameters', async (t)
     .patch('/assessments/assm_SWtQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -743,7 +789,7 @@ test('fails to update an assessment if missing or invalid parameters', async (t)
     .patch('/assessments/assm_SWtQps1I3a1gJYz2I3a')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       status: true,
@@ -753,7 +799,7 @@ test('fails to update an assessment if missing or invalid parameters', async (t)
       signers: true,
       nbSigners: true,
       signCodes: true,
-      expirationDate: true
+      expirationDate: true,
     })
     .expect(400)
 
@@ -777,7 +823,7 @@ test('fails to sign an assessment if missing or invalid parameters', async (t) =
     .post('/assessments/assm_SWtQps1I3a1gJYz2I3a/signatures')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -789,10 +835,10 @@ test('fails to sign an assessment if missing or invalid parameters', async (t) =
     .post('/assessments/assm_SWtQps1I3a1gJYz2I3a/signatures')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      signCode: true
+      signCode: true,
     })
     .expect(400)
 
@@ -815,10 +861,10 @@ test.serial('generates assessment__* events', async (t) => {
       'assessment:sign:all',
       'assessment:remove:all',
       'platformData:edit:all',
-      'event:list:all'
+      'event:list:all',
     ],
     readNamespaces: ['custom'],
-    editNamespaces: ['custom']
+    editNamespaces: ['custom'],
   })
 
   const assessmentCreatedBody = {
@@ -830,7 +876,7 @@ test.serial('generates assessment__* events', async (t) => {
     nbSigners: 2,
     expirationDate: null,
     metadata: { dataOnly: true },
-    platformData: { platformDataOnly: true }
+    platformData: { platformDataOnly: true },
   }
 
   const { body: assessment } = await request(t.context.serverUrl)
@@ -839,16 +885,13 @@ test.serial('generates assessment__* events', async (t) => {
     .send(assessmentCreatedBody)
     .expect(200)
 
-  const signers = [
-    'user-external-id',
-    '7e779b5f-876c-4cbc-934c-2fdbcacef4d6'
-  ]
+  const signers = ['user-external-id', '7e779b5f-876c-4cbc-934c-2fdbcacef4d6']
   const patchPayload = {
     signers: {
       [signers[0]]: {},
-      [signers[1]]: {}
+      [signers[1]]: {},
     },
-    platformData: { hasplatformData: { test: true } }
+    platformData: { hasplatformData: { test: true } },
   }
 
   const { body: assessmentUpdated } = await request(t.context.serverUrl)
@@ -857,9 +900,11 @@ test.serial('generates assessment__* events', async (t) => {
     .send(patchPayload)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -867,20 +912,26 @@ test.serial('generates assessment__* events', async (t) => {
   const assessmentCreatedEvent = getObjectEvent({
     events,
     eventType: 'assessment__created',
-    objectId: assessment.id
+    objectId: assessment.id,
   })
-  await testEventMetadata({ event: assessmentCreatedEvent, object: assessment, t })
+  await testEventMetadata({
+    event: assessmentCreatedEvent,
+    object: assessment,
+    t,
+  })
   t.is(assessmentCreatedEvent.object.assetId, assessment.assetId)
   t.is(assessmentCreatedEvent.object.ownerId, assessment.ownerId)
   t.is(assessmentCreatedEvent.object.emitterId, assessment.emitterId)
   t.is(assessmentCreatedEvent.object.nbSigners, assessment.nbSigners)
   t.deepEqual(assessmentCreatedEvent.object.metadata, { dataOnly: true })
-  t.deepEqual(assessmentCreatedEvent.object.platformData, { platformDataOnly: true })
+  t.deepEqual(assessmentCreatedEvent.object.platformData, {
+    platformDataOnly: true,
+  })
 
   const assessmentUpdatedEvent = getObjectEvent({
     events,
     eventType: 'assessment__draft_updated',
-    objectId: assessmentUpdated.id
+    objectId: assessmentUpdated.id,
   })
 
   // Lack of DRYness in assessment service makes
@@ -889,48 +940,53 @@ test.serial('generates assessment__* events', async (t) => {
     event: assessmentUpdatedEvent,
     object: assessmentUpdated,
     t,
-    patchPayload: Object.assign({}, patchPayload, {
+    patchPayload: {
+      ...patchPayload,
       signers: {
         '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {
           comment: null,
           statement: null,
-          signedDate: null
+          signedDate: null,
         },
         'user-external-id': {
           comment: null,
           statement: null,
-          signedDate: null
-        }
+          signedDate: null,
+        },
       },
       signCodes: {
         '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': null,
-        'user-external-id': null
-      }
-    })
+        'user-external-id': null,
+      },
+    },
   })
   t.is(assessmentUpdatedEvent.object.assetId, assessment.assetId)
   t.is(assessmentUpdatedEvent.object.ownerId, assessment.ownerId)
   t.is(assessmentUpdatedEvent.object.emitterId, assessment.emitterId)
   t.is(assessmentUpdatedEvent.object.nbSigners, assessment.nbSigners)
-  t.true(Object.keys(assessmentUpdatedEvent.object.signers).includes(signers[0]))
-  t.true(Object.keys(assessmentUpdatedEvent.object.signers).includes(signers[1]))
+  t.true(
+    Object.keys(assessmentUpdatedEvent.object.signers).includes(signers[0]),
+  )
+  t.true(
+    Object.keys(assessmentUpdatedEvent.object.signers).includes(signers[1]),
+  )
   t.deepEqual(assessmentUpdatedEvent.object.metadata, { dataOnly: true })
   t.deepEqual(assessmentUpdatedEvent.object.platformData, {
     platformDataOnly: true,
-    hasplatformData: { test: true }
+    hasplatformData: { test: true },
   })
 
   const { body: assessmentSignedOnce } = await request(t.context.serverUrl)
     .post(`/assessments/${assessmentUpdated.id}/signatures`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': signers[0]
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-user-id': signers[0] })
     .send({})
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterSignedOnce } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterSignedOnce },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -938,21 +994,25 @@ test.serial('generates assessment__* events', async (t) => {
   const assessmentAfterSignedOnce = getObjectEvent({
     events: eventsAfterSignedOnce,
     eventType: 'assessment__signed_once',
-    objectId: assessmentSignedOnce.id
+    objectId: assessmentSignedOnce.id,
   })
-  await testEventMetadata({ event: assessmentAfterSignedOnce, object: assessmentSignedOnce, t })
+  await testEventMetadata({
+    event: assessmentAfterSignedOnce,
+    object: assessmentSignedOnce,
+    t,
+  })
 
   const { body: assessmentSigned } = await request(t.context.serverUrl)
     .post(`/assessments/${assessmentUpdated.id}/signatures`)
-    .set(Object.assign({}, authorizationHeaders, {
-      'x-saltana-user-id': signers[1]
-    }))
+    .set({ ...authorizationHeaders, 'x-saltana-user-id': signers[1] })
     .send({})
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterSigned } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterSigned },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -960,9 +1020,13 @@ test.serial('generates assessment__* events', async (t) => {
   const assessmentAfterSigned = getObjectEvent({
     events: eventsAfterSigned,
     eventType: 'assessment__signed',
-    objectId: assessmentSigned.id
+    objectId: assessmentSigned.id,
   })
-  await testEventMetadata({ event: assessmentAfterSigned, object: assessmentSigned, t })
+  await testEventMetadata({
+    event: assessmentAfterSigned,
+    object: assessmentSigned,
+    t,
+  })
 
   // Can’t delete signed assessment, so we create a new one
   const { body: assessmentToDelete } = await request(t.context.serverUrl)
@@ -976,9 +1040,11 @@ test.serial('generates assessment__* events', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterDelete } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterDelete },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -986,9 +1052,13 @@ test.serial('generates assessment__* events', async (t) => {
   const assessmentDeletedEvent = getObjectEvent({
     events: eventsAfterDelete,
     eventType: 'assessment__deleted',
-    objectId: assessmentToDelete.id
+    objectId: assessmentToDelete.id,
   })
-  await testEventMetadata({ event: assessmentDeletedEvent, object: assessmentToDelete, t })
+  await testEventMetadata({
+    event: assessmentDeletedEvent,
+    object: assessmentToDelete,
+    t,
+  })
 })
 
 // //////// //
@@ -999,7 +1069,7 @@ test('2019-05-20: list assessments', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['assessment:list:all']
+    permissions: ['assessment:list:all'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)

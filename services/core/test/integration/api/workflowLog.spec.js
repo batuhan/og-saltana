@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
@@ -22,7 +20,7 @@ const {
   checkCursorPaginatedHistoryObject,
 } = require('../../util')
 
-function getAuthorizationHeaders ({ t, systemKey }) {
+function getAuthorizationHeaders({ t, systemKey }) {
   const headers = {
     'x-saltana-system-key': systemKey,
     'x-platform-id': t.context.platformId,
@@ -37,7 +35,7 @@ const defaultTestDelay = 4000
 
 let createdWorkflows
 
-async function createWorkflowLogs (t) {
+async function createWorkflowLogs(t) {
   if (createdWorkflows) return createdWorkflows
 
   const authorizationHeaders = await getAccessTokenHeaders({
@@ -48,7 +46,7 @@ async function createWorkflowLogs (t) {
       'category:create:all',
       'entry:create:all',
       'message:create:all',
-    ]
+    ],
   })
 
   // should create workflows that listen to events that are not triggered by any tests below
@@ -59,15 +57,17 @@ async function createWorkflowLogs (t) {
     .send({
       name: 'Workflow for category creation',
       event: 'category__created',
-      run: { // single-step object allowed
+      run: {
+        // single-step object allowed
         endpointMethod: 'PATCH',
         endpointUri: '/categories/${object.id}',
-        endpointPayload: JSON.stringify({ // simulate real API call (string JSON only)
+        endpointPayload: JSON.stringify({
+          // simulate real API call (string JSON only)
           metadata: {
-            updated: true
-          }
-        })
-      }
+            updated: true,
+          },
+        }),
+      },
     })
     .expect(200)
 
@@ -77,15 +77,17 @@ async function createWorkflowLogs (t) {
     .send({
       name: 'Workflow for message creation',
       event: 'message__created',
-      run: { // single-step object allowed
+      run: {
+        // single-step object allowed
         endpointMethod: 'PATCH',
         endpointUri: '/messages/${object.id}',
-        endpointPayload: JSON.stringify({ // simulate real API call (string JSON only)
+        endpointPayload: JSON.stringify({
+          // simulate real API call (string JSON only)
           metadata: {
-            updated: true
-          }
-        })
-      }
+            updated: true,
+          },
+        }),
+      },
     })
     .expect(200)
 
@@ -95,23 +97,24 @@ async function createWorkflowLogs (t) {
     .send({
       name: 'Workflow for entry creation',
       event: 'entry__created',
-      run: { // single-step object allowed
+      run: {
+        // single-step object allowed
         endpointMethod: 'PATCH',
         endpointUri: '/entries/${object.id}',
-        endpointPayload: JSON.stringify({ // simulate real API call (string JSON only)
+        endpointPayload: JSON.stringify({
+          // simulate real API call (string JSON only)
           metadata: {
-            updated: true
-          }
-        })
-      }
+            updated: true,
+          },
+        }),
+      },
     })
     .expect(200)
 
-  createdWorkflows = _.keyBy([
-    categoryWorkflow,
-    messageWorkflow,
-    entryWorkflow,
-  ], 'event')
+  createdWorkflows = _.keyBy(
+    [categoryWorkflow, messageWorkflow, entryWorkflow],
+    'event',
+  )
 
   await request(t.context.serverUrl)
     .post('/categories')
@@ -143,15 +146,15 @@ async function createWorkflowLogs (t) {
         content: 'Random content',
         nestedContent: {
           random1: {
-            random2: 'hello'
+            random2: 'hello',
           },
-          random3: 'bye'
-        }
-      }
+          random3: 'bye',
+        },
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, defaultTestDelay))
+  await new Promise((resolve) => setTimeout(resolve, defaultTestDelay))
 }
 
 test.before(async (t) => {
@@ -202,7 +205,10 @@ test.after(async (t) => {
 // run this test serially because there is no filter and some other tests create workflow logs
 // that can turn the check on `count` property incorrect
 test.serial('get workflow logs history with pagination', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+  const authorizationHeaders = getAuthorizationHeaders({
+    t,
+    systemKey: getSystemKey(),
+  })
 
   const groupByValues = ['hour', 'day', 'month']
 
@@ -221,9 +227,14 @@ test.serial('get workflow logs history with pagination', async (t) => {
 // run this test serially because there is no filter and some other tests create workflow logs
 // that can turn the check on `count` property incorrect
 test.serial('get workflow logs history', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+  const authorizationHeaders = getAuthorizationHeaders({
+    t,
+    systemKey: getSystemKey(),
+  })
 
-  const { body: { results: workflowLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: workflowLogs },
+  } = await request(t.context.serverUrl)
     .get('/workflow-logs')
     .set(authorizationHeaders)
     .expect(200)
@@ -240,17 +251,22 @@ test.serial('get workflow logs history', async (t) => {
       t,
       obj: dayObj,
       groupBy,
-      results: workflowLogs
+      results: workflowLogs,
     })
   }
 })
 
 test('get workflow logs history with filters', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+  const authorizationHeaders = getAuthorizationHeaders({
+    t,
+    systemKey: getSystemKey(),
+  })
 
   const filters = 'type=action'
 
-  const { body: { results: workflowLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: workflowLogs },
+  } = await request(t.context.serverUrl)
     .get(`/workflow-logs?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -266,19 +282,24 @@ test('get workflow logs history with filters', async (t) => {
     t,
     obj,
     groupBy,
-    results: workflowLogs
+    results: workflowLogs,
   })
 })
 
 test('get workflow logs history with date filter', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+  const authorizationHeaders = getAuthorizationHeaders({
+    t,
+    systemKey: getSystemKey(),
+  })
 
   const now = new Date().toISOString()
 
   const minCreatedDate = computeDate(now, '-10d')
   const filters = `type=action&createdDate[gte]=${minCreatedDate}`
 
-  const { body: { results: workflowLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: workflowLogs },
+  } = await request(t.context.serverUrl)
     .get(`/workflow-logs?${filters}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -294,25 +315,32 @@ test('get workflow logs history with date filter', async (t) => {
     t,
     obj,
     groupBy,
-    results: workflowLogs
+    results: workflowLogs,
   })
 })
 
 test('fails to get workflow logs history with redundant relational operators', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+  const authorizationHeaders = getAuthorizationHeaders({
+    t,
+    systemKey: getSystemKey(),
+  })
 
   const now = new Date().toISOString()
   const date = computeDate(now, '-10d')
 
   const { body: error1 } = await request(t.context.serverUrl)
-    .get(`/workflow-logs/history?groupBy=day&createdDate[gt]=${date}&createdDate[gte]=${date}`)
+    .get(
+      `/workflow-logs/history?groupBy=day&createdDate[gt]=${date}&createdDate[gte]=${date}`,
+    )
     .set(authorizationHeaders)
     .expect(400)
 
   t.true(error1.message.includes('optional exclusive peers'))
 
   const { body: error2 } = await request(t.context.serverUrl)
-    .get(`/workflow-logs/history?groupBy=day&createdDate[lt]=${date}&createdDate[lte]=${date}`)
+    .get(
+      `/workflow-logs/history?groupBy=day&createdDate[lt]=${date}&createdDate[lte]=${date}`,
+    )
     .set(authorizationHeaders)
     .expect(400)
 
@@ -321,43 +349,56 @@ test('fails to get workflow logs history with redundant relational operators', a
 
 // run this test serially because there is no filter and some other tests create workflow logs
 // that can turn the check on `count` property incorrect
-test.serial('can apply filters only with created date within the retention log period', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+test.serial(
+  'can apply filters only with created date within the retention log period',
+  async (t) => {
+    const authorizationHeaders = getAuthorizationHeaders({
+      t,
+      systemKey: getSystemKey(),
+    })
 
-  const now = new Date().toISOString()
+    const now = new Date().toISOString()
 
-  const oldCreatedDate = computeDate(now, '-1y')
-  const filters = `eventId=evt_Qtup0Ae1BJI1k6MK0BJI&type=action&createdDate[gte]=${oldCreatedDate}`
+    const oldCreatedDate = computeDate(now, '-1y')
+    const filters = `eventId=evt_Qtup0Ae1BJI1k6MK0BJI&type=action&createdDate[gte]=${oldCreatedDate}`
 
-  const groupBy = 'day'
+    const groupBy = 'day'
 
-  await request(t.context.serverUrl)
-    .get(`/workflow-logs/history?groupBy=${groupBy}&${filters}`)
-    .set(authorizationHeaders)
-    .expect(400)
+    await request(t.context.serverUrl)
+      .get(`/workflow-logs/history?groupBy=${groupBy}&${filters}`)
+      .set(authorizationHeaders)
+      .expect(400)
 
-  const minCreatedDate = computeDate(now, '-10d')
+    const minCreatedDate = computeDate(now, '-10d')
 
-  const { body: { results: workflowLogs } } = await request(t.context.serverUrl)
-    .get(`/workflow-logs?createdDate[gte]=${minCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const {
+      body: { results: workflowLogs },
+    } = await request(t.context.serverUrl)
+      .get(`/workflow-logs?createdDate[gte]=${minCreatedDate}`)
+      .set(authorizationHeaders)
+      .expect(200)
 
-  const { body: obj } = await request(t.context.serverUrl)
-    .get(`/workflow-logs/history?groupBy=${groupBy}&createdDate[gte]=${minCreatedDate}`)
-    .set(authorizationHeaders)
-    .expect(200)
+    const { body: obj } = await request(t.context.serverUrl)
+      .get(
+        `/workflow-logs/history?groupBy=${groupBy}&createdDate[gte]=${minCreatedDate}`,
+      )
+      .set(authorizationHeaders)
+      .expect(200)
 
-  checkCursorPaginatedHistoryObject({
-    t,
-    obj,
-    groupBy,
-    results: workflowLogs
-  })
-})
+    checkCursorPaginatedHistoryObject({
+      t,
+      obj,
+      groupBy,
+      results: workflowLogs,
+    })
+  },
+)
 
 test('can apply type filter beyond the retention log period', async (t) => {
-  const authorizationHeaders = getAuthorizationHeaders({ t, systemKey: getSystemKey() })
+  const authorizationHeaders = getAuthorizationHeaders({
+    t,
+    systemKey: getSystemKey(),
+  })
 
   const now = new Date().toISOString()
   const oldCreatedDate = computeDate(now, '-1y')
@@ -384,7 +425,10 @@ test('can apply type filter beyond the retention log period', async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list workflow logs', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['workflowLog:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['workflowLog:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -394,9 +438,14 @@ test.serial('list workflow logs', async (t) => {
 })
 
 test('list workflow logs with id filter', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['workflowLog:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['workflowLog:list:all'],
+  })
 
-  const { body: { results: workflowLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: workflowLogs },
+  } = await request(t.context.serverUrl)
     .get('/workflow-logs')
     .set(authorizationHeaders)
     .expect(200)
@@ -413,7 +462,10 @@ test('list workflow logs with id filter', async (t) => {
 })
 
 test('list workflow logs with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['workflowLog:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['workflowLog:list:all'],
+  })
 
   const now = new Date().toISOString()
   const minDate = computeDate(now, '-10d')
@@ -423,7 +475,8 @@ test('list workflow logs with advanced filters', async (t) => {
     message__created: messageWorkflow,
   } = createdWorkflows
 
-  const params = `createdDate[gte]=${encodeURIComponent(minDate)}` +
+  const params =
+    `createdDate[gte]=${encodeURIComponent(minDate)}` +
     `&workflowId[]=${categoryWorkflow.id}` +
     `&workflowId[]=${messageWorkflow.id}`
 
@@ -434,7 +487,11 @@ test('list workflow logs with advanced filters', async (t) => {
 
   const checkResultsFn = (t, workflowLog) => {
     t.true(workflowLog.createdDate >= minDate)
-    t.true([categoryWorkflow.id, messageWorkflow.id].includes(workflowLog.workflowId))
+    t.true(
+      [categoryWorkflow.id, messageWorkflow.id].includes(
+        workflowLog.workflowId,
+      ),
+    )
   }
 
   checkCursorPaginatedListObject(t, obj, { checkResultsFn })
@@ -443,13 +500,12 @@ test('list workflow logs with advanced filters', async (t) => {
 test('finds a workflow log', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'workflowLog:list:all',
-      'workflowLog:read:all'
-    ]
+    permissions: ['workflowLog:list:all', 'workflowLog:read:all'],
   })
 
-  const { body: { results: workflowLogs } } = await request(t.context.serverUrl)
+  const {
+    body: { results: workflowLogs },
+  } = await request(t.context.serverUrl)
     .get('/workflow-logs')
     .set(authorizationHeaders)
     .expect(200)

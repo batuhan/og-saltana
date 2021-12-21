@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const express = require('express')
@@ -22,7 +20,7 @@ const { apiVersions } = require('../../../src/versions')
 
 let userWebhookUrl
 
-const getIds = (elements) => elements.map(e => e.id)
+const getIds = (elements) => elements.map((e) => e.id)
 
 /* eslint-disable no-template-curly-in-string */
 
@@ -37,7 +35,8 @@ test.before(async (t) => {
   userServer.post('*', function (req, res) {
     const webhookName = req.path.replace('/', '')
 
-    if (!Array.isArray(userServerCalls[webhookName])) userServerCalls[webhookName] = []
+    if (!Array.isArray(userServerCalls[webhookName]))
+      userServerCalls[webhookName] = []
     userServerCalls[webhookName].unshift(req.body)
 
     res.json({ ok: true })
@@ -64,7 +63,10 @@ test.after(async (t) => {
 
 // need serial to ensure there is no insertion/deletion during pagination scenario
 test.serial('list webhooks', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhook:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhook:list:all'],
+  })
 
   await checkCursorPaginationScenario({
     t,
@@ -74,12 +76,17 @@ test.serial('list webhooks', async (t) => {
 })
 
 test('list webhooks with advanced filters', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhook:list:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhook:list:all'],
+  })
 
   const minDate = '2019-01-01T00:00:00.000Z'
 
   const { body: obj } = await request(t.context.serverUrl)
-    .get(`/webhooks?createdDate[gte]=${encodeURIComponent(minDate)}&active=true`)
+    .get(
+      `/webhooks?createdDate[gte]=${encodeURIComponent(minDate)}&active=true`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
@@ -95,7 +102,7 @@ test('list webhooks with custom namespace', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
     permissions: ['webhook:list:all'],
-    readNamespaces: ['custom']
+    readNamespaces: ['custom'],
   })
 
   const { body: obj } = await request(t.context.serverUrl)
@@ -108,15 +115,19 @@ test('list webhooks with custom namespace', async (t) => {
   const webhooks = obj.results
 
   let hasAtLeastOneCustomNamespace = false
-  webhooks.forEach(webhook => {
-    hasAtLeastOneCustomNamespace = typeof webhook.platformData._custom !== 'undefined'
+  webhooks.forEach((webhook) => {
+    hasAtLeastOneCustomNamespace =
+      typeof webhook.platformData._custom !== 'undefined'
   })
 
   t.true(hasAtLeastOneCustomNamespace)
 })
 
 test('finds a webhook', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhook:read:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhook:read:all'],
+  })
 
   const { body: webhook } = await request(t.context.serverUrl)
     .get('/webhooks/whk_SEIfQps1I3a1gJYz2I3a')
@@ -135,8 +146,8 @@ test('creates a webhook', async (t) => {
       'webhook:read:all',
       'webhookLog:list:all',
       'asset:create:all',
-      'platformData:edit:all'
-    ]
+      'platformData:edit:all',
+    ],
   })
 
   const { body: webhook } = await request(t.context.serverUrl)
@@ -144,8 +155,8 @@ test('creates a webhook', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Custom webhook',
-      targetUrl: userWebhookUrl + 'webhook1',
-      event: 'asset__created'
+      targetUrl: `${userWebhookUrl}webhook1`,
+      event: 'asset__created',
     })
     .expect(200)
 
@@ -162,23 +173,28 @@ test('creates a webhook', async (t) => {
       quantity: 0,
       price: 20,
       platformData: {
-        platformDataField: 'test'
-      }
+        platformDataField: 'test',
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
   t.is(userServerCalls.webhook1.length, 1)
   t.is(userServerCalls.webhook1[0].event.objectId, asset.id)
-  t.is(userServerCalls.webhook1[0].event.object.platformData.platformDataField, 'test')
+  t.is(
+    userServerCalls.webhook1[0].event.object.platformData.platformDataField,
+    'test',
+  )
 
   const { body: webhookAfterCall } = await request(t.context.serverUrl)
     .get(`/webhooks/${webhook.id}?logs=`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const { body: { results: webhookLogsAfterCall } } = await request(t.context.serverUrl)
+  const {
+    body: { results: webhookLogsAfterCall },
+  } = await request(t.context.serverUrl)
     .get(`/webhook-logs?webhookId=${webhook.id}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -198,8 +214,8 @@ test('creates a webhook with specified API version', async (t) => {
       'webhook:read:all',
       'webhookLog:list:all',
       'assetType:create:all',
-      'platformData:edit:all'
-    ]
+      'platformData:edit:all',
+    ],
   })
 
   const apiVersion = '2019-05-20'
@@ -209,9 +225,9 @@ test('creates a webhook with specified API version', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Webhook with version',
-      targetUrl: userWebhookUrl + 'webhook2',
+      targetUrl: `${userWebhookUrl}webhook2`,
       apiVersion,
-      event: 'asset_type__created'
+      event: 'asset_type__created',
     })
     .expect(200)
 
@@ -227,24 +243,32 @@ test('creates a webhook with specified API version', async (t) => {
       timeBased: false,
       infiniteStock: false,
       platformData: {
-        platformDataField: 'test'
-      }
+        platformDataField: 'test',
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
   t.is(userServerCalls.webhook2.length, 1)
   t.is(userServerCalls.webhook2[0].event.objectId, assetType.id)
-  t.is(userServerCalls.webhook2[0].event.object.platformData.platformDataField, 'test')
-  t.truthy(userServerCalls.webhook2[0].event.object.platformData.platformDataField, 'test')
+  t.is(
+    userServerCalls.webhook2[0].event.object.platformData.platformDataField,
+    'test',
+  )
+  t.truthy(
+    userServerCalls.webhook2[0].event.object.platformData.platformDataField,
+    'test',
+  )
 
   const { body: webhookAfterCall } = await request(t.context.serverUrl)
     .get(`/webhooks/${webhook.id}?logs=`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const { body: { results: webhookLogsAfterCall } } = await request(t.context.serverUrl)
+  const {
+    body: { results: webhookLogsAfterCall },
+  } = await request(t.context.serverUrl)
     .get(`/webhook-logs?webhookId=${webhook.id}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -263,8 +287,8 @@ test('creates a webhook with a custom event type', async (t) => {
       'webhook:create:all',
       'webhook:read:all',
       'webhookLog:list:all',
-      'event:create:all'
-    ]
+      'event:create:all',
+    ],
   })
 
   const { body: webhook } = await request(t.context.serverUrl)
@@ -272,8 +296,8 @@ test('creates a webhook with a custom event type', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Custom webhook',
-      targetUrl: userWebhookUrl + 'customEvent',
-      event: 'asset_viewed'
+      targetUrl: `${userWebhookUrl}customEvent`,
+      event: 'asset_viewed',
     })
     .expect(200)
 
@@ -284,11 +308,11 @@ test('creates a webhook with a custom event type', async (t) => {
     .post('/events')
     .set(authorizationHeaders)
     .send({
-      type: 'asset_viewed'
+      type: 'asset_viewed',
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
   t.is(userServerCalls.customEvent.length, 1)
   t.is(userServerCalls.customEvent[0].event.id, event.id)
@@ -298,7 +322,9 @@ test('creates a webhook with a custom event type', async (t) => {
     .set(authorizationHeaders)
     .expect(200)
 
-  const { body: { results: webhookLogsAfterCall } } = await request(t.context.serverUrl)
+  const {
+    body: { results: webhookLogsAfterCall },
+  } = await request(t.context.serverUrl)
     .get(`/webhook-logs?webhookId=${webhook.id}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -316,8 +342,8 @@ test('creates a webhook with targetUrl server returning errors', async (t) => {
       'webhook:create:all',
       'webhook:read:all',
       'webhookLog:list:all',
-      'category:create:all'
-    ]
+      'category:create:all',
+    ],
   })
 
   const { body: webhook } = await request(t.context.serverUrl)
@@ -325,8 +351,8 @@ test('creates a webhook with targetUrl server returning errors', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Custom webhook with targetUrl error',
-      targetUrl: userWebhookUrl + 'error',
-      event: 'category__created'
+      targetUrl: `${userWebhookUrl}error`,
+      event: 'category__created',
     })
     .expect(200)
 
@@ -338,14 +364,16 @@ test('creates a webhook with targetUrl server returning errors', async (t) => {
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, testEventDelay))
+  await new Promise((resolve) => setTimeout(resolve, testEventDelay))
 
   const { body: webhookAfterCall } = await request(t.context.serverUrl)
     .get(`/webhooks/${webhook.id}?logs=`)
     .set(authorizationHeaders)
     .expect(200)
 
-  const { body: { results: webhookLogsAfterCall } } = await request(t.context.serverUrl)
+  const {
+    body: { results: webhookLogsAfterCall },
+  } = await request(t.context.serverUrl)
     .get(`/webhook-logs?webhookId=${webhook.id}`)
     .set(authorizationHeaders)
     .expect(200)
@@ -358,7 +386,10 @@ test('creates a webhook with targetUrl server returning errors', async (t) => {
 })
 
 test('cannot create a webhook with a invalid event', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhook:create:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhook:create:all'],
+  })
 
   await request(t.context.serverUrl)
     .post('/webhooks')
@@ -366,7 +397,7 @@ test('cannot create a webhook with a invalid event', async (t) => {
     .send({
       name: 'Custom webhook',
       targetUrl: 'https://example.com',
-      event: 'incorrect__event_type'
+      event: 'incorrect__event_type',
     })
     .expect(422)
 
@@ -374,14 +405,17 @@ test('cannot create a webhook with a invalid event', async (t) => {
 })
 
 test('updates a webhook', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: ['webhook:edit:all'] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: ['webhook:edit:all'],
+  })
 
   const { body: webhook } = await request(t.context.serverUrl)
     .patch('/webhooks/whk_SEIfQps1I3a1gJYz2I3a')
     .set(authorizationHeaders)
     .send({
       active: true,
-      event: 'asset__deleted'
+      event: 'asset__deleted',
     })
     .expect(200)
 
@@ -395,8 +429,8 @@ test('removes a webhook', async (t) => {
     permissions: [
       'webhook:read:all',
       'webhook:create:all',
-      'webhook:remove:all'
-    ]
+      'webhook:remove:all',
+    ],
   })
 
   const { body: webhook } = await request(t.context.serverUrl)
@@ -404,8 +438,8 @@ test('removes a webhook', async (t) => {
     .set(authorizationHeaders)
     .send({
       name: 'Webhook to remove',
-      targetUrl: userWebhookUrl + 'webhookToRemove',
-      event: 'category__created'
+      targetUrl: `${userWebhookUrl}webhookToRemove`,
+      event: 'category__created',
     })
     .expect(200)
 
@@ -435,7 +469,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -447,7 +481,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -460,7 +494,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
@@ -468,7 +502,7 @@ test('fails to create a webhook if missing or invalid parameters', async (t) => 
       event: true,
       active: 'invalid',
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -486,11 +520,11 @@ test('fails to create a webhook with an invalid API version', async (t) => {
     .post('/webhooks')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'Invalid API version webhook',
-      apiVersion: '2016-01-01'
+      apiVersion: '2016-01-01',
     })
     .expect(400)
 
@@ -506,7 +540,7 @@ test('fails to update a webhook if missing or invalid parameters', async (t) => 
     .patch('/webhooks/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -518,14 +552,14 @@ test('fails to update a webhook if missing or invalid parameters', async (t) => 
     .patch('/webhooks/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: true,
       event: true,
       active: 'invalid',
       metadata: true,
-      platformData: true
+      platformData: true,
     })
     .expect(400)
 
@@ -542,10 +576,10 @@ test('fails to update a webhook with an invalid API version', async (t) => {
     .patch('/webhooks/webh_SEIxTFR4SHMx7koS0txovaA3HlHHMxJ')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      apiVersion: '2016-01-01'
+      apiVersion: '2016-01-01',
     })
     .expect(400)
 
@@ -560,7 +594,7 @@ test('2019-05-20: list webhooks', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     apiVersion: '2019-05-20',
     t,
-    permissions: ['webhook:list:all']
+    permissions: ['webhook:list:all'],
   })
 
   const { body: webhooks } = await request(t.context.serverUrl)
@@ -576,7 +610,7 @@ test('2019-05-20: list webhooks with custom namespace', async (t) => {
     apiVersion: '2019-05-20',
     t,
     permissions: ['webhook:list:all'],
-    readNamespaces: ['custom']
+    readNamespaces: ['custom'],
   })
 
   const { body: webhooks } = await request(t.context.serverUrl)
@@ -587,8 +621,9 @@ test('2019-05-20: list webhooks with custom namespace', async (t) => {
   t.true(Array.isArray(webhooks))
 
   let hasAtLeastOneCustomNamespace = false
-  webhooks.forEach(webhook => {
-    hasAtLeastOneCustomNamespace = typeof webhook.platformData._custom !== 'undefined'
+  webhooks.forEach((webhook) => {
+    hasAtLeastOneCustomNamespace =
+      typeof webhook.platformData._custom !== 'undefined'
   })
 
   t.true(hasAtLeastOneCustomNamespace)

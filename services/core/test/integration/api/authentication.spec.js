@@ -1,5 +1,3 @@
-require('@saltana/common').load()
-
 const test = require('ava')
 const request = require('supertest')
 const jwt = require('jsonwebtoken')
@@ -9,11 +7,16 @@ const _ = require('lodash')
 const puppeteer = require('puppeteer-core')
 
 const { before, beforeEach, after } = require('../../lifecycle')
-const { getAccessTokenHeaders, refreshAccessToken, getSystemKey, getAccessToken } = require('../../auth')
+const {
+  getAccessTokenHeaders,
+  refreshAccessToken,
+  getSystemKey,
+  getAccessToken,
+} = require('../../auth')
 const { getObjectEvent, testEventMetadata } = require('../../util')
 const { encodeBase64 } = require('../../../src/util/encoding')
 
-const createOidcServer = require('../../../test/oauth/server')
+const createOidcServer = require('../../oauth/server')
 
 const OAUTH_TEST_CONFIGS = (() => {
   try {
@@ -46,22 +49,31 @@ const shouldExecuteBuiltInSSOTest = (() => {
   // Running the test too often may rise security barriers from the providers
   // that cannot be handled by Puppeteer
   // (Captcha, SMS verification...)
-  return typeof !process.env.CIRCLECI ||
-    (
-      process.env.CIRCLECI &&
-        (process.env.CIRCLE_BRANCH !== 'dev' || !process.env.CIRCLE_BRANCH.startsWith('dependabot/'))
-    )
+  return (
+    typeof !process.env.CIRCLECI ||
+    (process.env.CIRCLECI &&
+      (process.env.CIRCLE_BRANCH !== 'dev' ||
+        !process.env.CIRCLE_BRANCH.startsWith('dependabot/')))
+  )
 })()
 
-function getOAuthConfiguration (provider) {
+function getOAuthConfiguration(provider) {
   const config = OAUTH_TEST_CONFIGS[provider]
   if (!config) return
 
-  if (!config.credentials || !config.credentials.username || !config.credentials.password) {
+  if (
+    !config.credentials ||
+    !config.credentials.username ||
+    !config.credentials.password
+  ) {
     throw new Error(`Invalid credentials for provider: ${provider}`)
   }
 
-  if (!config.ssoConnection || !config.ssoConnection.clientId || !config.ssoConnection.clientSecret) {
+  if (
+    !config.ssoConnection ||
+    !config.ssoConnection.clientId ||
+    !config.ssoConnection.clientSecret
+  ) {
     throw new Error(`Invalid SSO connection for provider: ${provider}`)
   }
 
@@ -71,32 +83,41 @@ function getOAuthConfiguration (provider) {
   }
 }
 
-async function checkElementVisible (page, selector, { timeout = 5000, isButton = true } = {}) {
+async function checkElementVisible(
+  page,
+  selector,
+  { timeout = 5000, isButton = true } = {},
+) {
   try {
     if (isButton) {
       // https://github.com/puppeteer/puppeteer/blob/v5.0.0/docs/api.md#framewaitforfunctionpagefunction-options-args
       // waits until the element exists, is visible and isn't disabled
-      await page.waitForFunction(selector => {
-        // visibility logic copied from:
-        // https://github.com/puppeteer/puppeteer/blob/e2e050259f9749fad676b4ea5c78f748db8f6bcb/src/common/DOMWorld.ts#L549-L559
+      await page.waitForFunction(
+        (selector) => {
+          // visibility logic copied from:
+          // https://github.com/puppeteer/puppeteer/blob/e2e050259f9749fad676b4ea5c78f748db8f6bcb/src/common/DOMWorld.ts#L549-L559
 
-        const element = document.querySelector(selector)
-        if (!element) return false
+          const element = document.querySelector(selector)
+          if (!element) return false
 
-        const style = window.getComputedStyle(element)
-        const isVisible = style && style.visibility !== 'hidden' && hasVisibleBoundingBox()
-        const isDisabled = style && (
-          element.classList.contains('disabled') ||
-          element.getAttribute('disabled') !== null
-        )
+          const style = window.getComputedStyle(element)
+          const isVisible =
+            style && style.visibility !== 'hidden' && hasVisibleBoundingBox()
+          const isDisabled =
+            style &&
+            (element.classList.contains('disabled') ||
+              element.getAttribute('disabled') !== null)
 
-        return isVisible && !isDisabled
+          return isVisible && !isDisabled
 
-        function hasVisibleBoundingBox () {
-          const rect = element.getBoundingClientRect()
-          return !!(rect.top || rect.bottom || rect.width || rect.height)
-        }
-      }, { timeout }, selector)
+          function hasVisibleBoundingBox() {
+            const rect = element.getBoundingClientRect()
+            return !!(rect.top || rect.bottom || rect.width || rect.height)
+          }
+        },
+        { timeout },
+        selector,
+      )
     } else {
       // https://github.com/puppeteer/puppeteer/blob/v5.0.0/docs/api.md#pagewaitforselectorselector-options
       // waits until the element exists and is visible
@@ -118,32 +139,38 @@ let authorizationApp
 const oauthSSOData = {
   userId: '123456789',
   name: 'Github user',
-  email: 'oauth2@github.com'
+  email: 'oauth2@github.com',
 }
 const openIdSSOData = {
   userId: '23121d3c-84df-44ac-b458-3d63a9a05497', // string ID
   name: 'OpenID user',
-  email: 'openid@example.com'
+  email: 'openid@example.com',
 }
 const openIdSSOData2 = {
   userId: '23121d3c-84df-44ac-b458-3d63a9a05497',
   name: null,
   email: null,
   firstname: 'New firstname',
-  lastname: 'New lastname'
+  lastname: 'New lastname',
 }
 
 const authorizationServerInfo = {
   issuer: 'http://issuer.com',
   clientId: 'clientId',
   clientSecret: 'clientSecret',
-  scope: 'openid email name'
+  scope: 'openid email name',
 }
 
 let apiServerUrl
 let publicPlatformId
 
-async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticationUrl, executeBrowserScenario }) {
+async function checkOAuthProcess({
+  t,
+  provider,
+  ssoConnection,
+  afterAuthenticationUrl,
+  executeBrowserScenario,
+}) {
   const systemKey = getSystemKey()
 
   // add SSO connection
@@ -152,37 +179,40 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       saltana: {
         ssoConnections: {
-          [provider]: Object.assign({}, ssoConnection, {
+          [provider]: {
+            ...ssoConnection,
             protocol: 'oauth2',
             afterAuthenticationUrl,
-            active: true
-          })
-        }
-      }
+            active: true,
+          },
+        },
+      },
     })
     .expect(200)
 
   const browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
-    args: ['--disable-dev-shm-usage', '--no-sandbox']
+    args: ['--disable-dev-shm-usage', '--no-sandbox'],
   })
 
   const page = await browser.newPage()
 
   // Chrome on Linux
-  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')
+  await page.setUserAgent(
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+  )
 
   await executeBrowserScenario({ browser, page })
 
   // add one second delay to ensure the final redirection URL after login
   // is the application URL
   // `page.waitForNavigation()` doesn't seem to always work (multiple redirections)
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   const afterLoginRedirectUrl = page.url()
   t.true(afterLoginRedirectUrl.startsWith(afterAuthenticationUrl))
@@ -195,11 +225,11 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: applicationCodeUrlObj.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(200)
 
@@ -220,11 +250,11 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: applicationCodeUrlObj.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(422)
 
@@ -233,7 +263,7 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
   const ssoAuthorizationHeaders = {
     'x-platform-id': t.context.platformId,
     'x-saltana-env': t.context.env,
-    authorization: `${obj.tokenType} ${obj.accessToken}`
+    authorization: `${obj.tokenType} ${obj.accessToken}`,
   }
 
   // fetch the created user
@@ -248,7 +278,7 @@ async function checkOAuthProcess ({ t, provider, ssoConnection, afterAuthenticat
   await browser.close()
 }
 
-test.before(async t => {
+test.before(async (t) => {
   // set fixed port numbers to be able to test OAuth authentication with external providers
   // with stable URLs
   // App URL: http://localhost:9461
@@ -260,7 +290,7 @@ test.before(async t => {
   await before({
     name: 'authentication',
     platformId: 3,
-    useFreePort: false
+    useFreePort: false,
   })(t)
   await beforeEach()(t)
 
@@ -272,12 +302,12 @@ test.before(async t => {
     const authorizationServer = createOidcServer({
       loginRedirectUrl: [
         `${apiServerUrl}/auth/sso/${publicPlatformId}/my_github/callback`,
-        `${apiServerUrl}/auth/sso/${publicPlatformId}/custom_openid/callback`
+        `${apiServerUrl}/auth/sso/${publicPlatformId}/custom_openid/callback`,
       ],
       logoutRedirectUrl: `${apiServerUrl}/auth/sso/${publicPlatformId}/custom_openid/logout/callback`,
       clientId: authorizationServerInfo.clientId,
       clientSecret: authorizationServerInfo.clientSecret,
-      issuer: authorizationServerInfo.issuer
+      issuer: authorizationServerInfo.issuer,
     })
 
     // add new routes to be used after login or logout redirection
@@ -313,11 +343,11 @@ test('login', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'user',
-      password: 'user'
+      password: 'user',
     })
     .expect(200)
 
@@ -342,11 +372,11 @@ test('login', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      authorization: `${obj1.tokenType} ${obj1.accessToken}`
+      authorization: `${obj1.tokenType} ${obj1.accessToken}`,
     })
     .send({
       username: 'user',
-      password: 'user'
+      password: 'user',
     })
     .expect(200)
 
@@ -364,27 +394,38 @@ test('login', async (t) => {
 })
 
 test('logout', async (t) => {
-  await refreshAccessToken('refreshToken1', { status: 200, t, requester: request(t.context.serverUrl) })
+  await refreshAccessToken('refreshToken1', {
+    status: 200,
+    t,
+    requester: request(t.context.serverUrl),
+  })
 
   await request(t.context.serverUrl)
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      refreshToken: 'refreshToken1'
+      refreshToken: 'refreshToken1',
     })
     .expect(200)
 
   // cannot refresh token anymore
-  await refreshAccessToken('refreshToken1', { status: 403, t, requester: request(t.context.serverUrl) })
+  await refreshAccessToken('refreshToken1', {
+    status: 403,
+    t,
+    requester: request(t.context.serverUrl),
+  })
 
   t.pass()
 })
 
 test('refreshes access token', async (t) => {
-  const result = await refreshAccessToken('refreshToken1', { t, requester: request(t.context.serverUrl) })
+  const result = await refreshAccessToken('refreshToken1', {
+    t,
+    requester: request(t.context.serverUrl),
+  })
 
   t.is(typeof result, 'object')
   t.is(result.tokenType, 'Bearer')
@@ -398,99 +439,134 @@ test('refreshes access token', async (t) => {
 })
 
 test('fails to refresh token if the refresh token is forged', async (t) => {
-  await refreshAccessToken('fakeRefreshToken', { status: 403, t, requester: request(t.context.serverUrl) })
+  await refreshAccessToken('fakeRefreshToken', {
+    status: 403,
+    t,
+    requester: request(t.context.serverUrl),
+  })
 
   t.pass()
 })
 
 // Must be serial because the test bends time and changes the config
-test.serial('fails to refresh token if the refresh token is expired', async (t) => {
-  const systemKey = getSystemKey()
+test.serial(
+  'fails to refresh token if the refresh token is expired',
+  async (t) => {
+    const systemKey = getSystemKey()
 
-  // Must specify which functions Sinon should fake
-  // By default, it fakes all timer functions, that can lead the server to not respond anymore.
-  // https://github.com/sinonjs/sinon/issues/960
-  const clock = sinon.useFakeTimers({
-    now: new Date(),
-    toFake: ['Date'] // we're only interested in faking dates
-  })
-
-  const defaultExpirationDuration = 14 * 24 * 3600 * 1000 // 14 days
-
-  const { body: { refreshToken } } = await request(t.context.serverUrl)
-    .post('/auth/login')
-    .set({
-      'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+    // Must specify which functions Sinon should fake
+    // By default, it fakes all timer functions, that can lead the server to not respond anymore.
+    // https://github.com/sinonjs/sinon/issues/960
+    const clock = sinon.useFakeTimers({
+      now: new Date(),
+      toFake: ['Date'], // we're only interested in faking dates
     })
-    .send({
-      username: 'admin',
-      password: 'admin'
+
+    const defaultExpirationDuration = 14 * 24 * 3600 * 1000 // 14 days
+
+    const {
+      body: { refreshToken },
+    } = await request(t.context.serverUrl)
+      .post('/auth/login')
+      .set({
+        'x-platform-id': t.context.platformId,
+        'x-saltana-env': t.context.env,
+      })
+      .send({
+        username: 'admin',
+        password: 'admin',
+      })
+      .expect(200)
+
+    await refreshAccessToken(refreshToken, {
+      status: 200,
+      t,
+      requester: request(t.context.serverUrl),
     })
-    .expect(200)
-
-  await refreshAccessToken(refreshToken, { status: 200, t, requester: request(t.context.serverUrl) })
-  clock.tick(defaultExpirationDuration)
-  await refreshAccessToken(refreshToken, { status: 200, t, requester: request(t.context.serverUrl) })
-
-  clock.tick(1000)
-  await refreshAccessToken(refreshToken, { status: 403, t, requester: request(t.context.serverUrl) })
-
-  // set the refresh token expiration duration at 1 day
-  await request(t.context.serverUrl)
-    .patch('/config/private')
-    .set({
-      'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+    clock.tick(defaultExpirationDuration)
+    await refreshAccessToken(refreshToken, {
+      status: 200,
+      t,
+      requester: request(t.context.serverUrl),
     })
-    .send({
-      saltana: {
-        saltanaAuthRefreshTokenExpiration: { d: 1 }
-      }
+
+    clock.tick(1000)
+    await refreshAccessToken(refreshToken, {
+      status: 403,
+      t,
+      requester: request(t.context.serverUrl),
     })
-    .expect(200)
 
-  const { body: { refreshToken: refreshToken2 } } = await request(t.context.serverUrl)
-    .post('/auth/login')
-    .set({
-      'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+    // set the refresh token expiration duration at 1 day
+    await request(t.context.serverUrl)
+      .patch('/config/private')
+      .set({
+        'x-platform-id': t.context.platformId,
+        'x-saltana-env': t.context.env,
+        'x-saltana-system-key': systemKey,
+      })
+      .send({
+        saltana: {
+          saltanaAuthRefreshTokenExpiration: { d: 1 },
+        },
+      })
+      .expect(200)
+
+    const {
+      body: { refreshToken: refreshToken2 },
+    } = await request(t.context.serverUrl)
+      .post('/auth/login')
+      .set({
+        'x-platform-id': t.context.platformId,
+        'x-saltana-env': t.context.env,
+      })
+      .send({
+        username: 'admin',
+        password: 'admin',
+      })
+      .expect(200)
+
+    const oneDayInMs = 24 * 3600 * 1000
+
+    await refreshAccessToken(refreshToken2, {
+      status: 200,
+      t,
+      requester: request(t.context.serverUrl),
     })
-    .send({
-      username: 'admin',
-      password: 'admin'
+    clock.tick(oneDayInMs)
+    await refreshAccessToken(refreshToken2, {
+      status: 200,
+      t,
+      requester: request(t.context.serverUrl),
     })
-    .expect(200)
 
-  const oneDayInMs = 24 * 3600 * 1000
-
-  await refreshAccessToken(refreshToken2, { status: 200, t, requester: request(t.context.serverUrl) })
-  clock.tick(oneDayInMs)
-  await refreshAccessToken(refreshToken2, { status: 200, t, requester: request(t.context.serverUrl) })
-
-  clock.tick(1000)
-  await refreshAccessToken(refreshToken2, { status: 403, t, requester: request(t.context.serverUrl) })
-
-  // reset the refresh token expiration duration
-  await request(t.context.serverUrl)
-    .patch('/config/private')
-    .set({
-      'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+    clock.tick(1000)
+    await refreshAccessToken(refreshToken2, {
+      status: 403,
+      t,
+      requester: request(t.context.serverUrl),
     })
-    .send({
-      saltana: {
-        saltanaAuthRefreshTokenExpiration: null
-      }
-    })
-    .expect(200)
 
-  t.pass()
+    // reset the refresh token expiration duration
+    await request(t.context.serverUrl)
+      .patch('/config/private')
+      .set({
+        'x-platform-id': t.context.platformId,
+        'x-saltana-env': t.context.env,
+        'x-saltana-system-key': systemKey,
+      })
+      .send({
+        saltana: {
+          saltanaAuthRefreshTokenExpiration: null,
+        },
+      })
+      .expect(200)
 
-  clock.restore()
-})
+    t.pass()
+
+    clock.restore()
+  },
+)
 
 // Must run serially because config and plan are updated
 test.serial('configures built-in SSO providers', async (t) => {
@@ -512,10 +588,10 @@ test.serial('configures built-in SSO providers', async (t) => {
     userInfoUrl: `${authorizationServerUrl}/user`,
     userInfoMapping: {
       displayName: 'name',
-      email: 'email'
+      email: 'email',
     },
     afterAuthenticationUrl,
-    active: true
+    active: true,
   }
 
   const { body: error } = await request(t.context.serverUrl)
@@ -523,14 +599,14 @@ test.serial('configures built-in SSO providers', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       saltana: {
         ssoConnections: {
-          github: githubConnection
-        }
-      }
+          github: githubConnection,
+        },
+      },
     })
     .expect(400)
 
@@ -541,7 +617,7 @@ test.serial('configures built-in SSO providers', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       saltana: {
@@ -550,10 +626,10 @@ test.serial('configures built-in SSO providers', async (t) => {
             'protocol', // protocol is optional for built-in connections
             'authorizationUrl',
             'tokenUrl',
-            'userInfoUrl'
-          ])
-        }
-      }
+            'userInfoUrl',
+          ]),
+        },
+      },
     })
     .expect(200)
 })
@@ -562,9 +638,7 @@ test.serial('configures built-in SSO providers', async (t) => {
 test.serial('performs a OAuth2 authentication', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:list:all'
-    ]
+    permissions: ['event:list:all'],
   })
 
   const systemKey = getSystemKey()
@@ -579,7 +653,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-system-key': systemKey,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       saltana: {
@@ -601,19 +675,19 @@ test.serial('performs a OAuth2 authentication', async (t) => {
               // displayName: 'name', // default
               // email: 'email', // default
               'metadata.name': 'name',
-              'metadata.email': 'email'
+              'metadata.email': 'email',
             },
             afterAuthenticationUrl,
             active: true,
-          }
-        }
-      }
+          },
+        },
+      },
     })
     .expect(200)
 
   const browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
-    args: ['--disable-dev-shm-usage', '--no-sandbox']
+    args: ['--disable-dev-shm-usage', '--no-sandbox'],
   })
 
   const page = await browser.newPage()
@@ -633,7 +707,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
 
   await Promise.all([
     page.click('button[type="submit"]'),
-    page.waitForNavigation()
+    page.waitForNavigation(),
   ])
 
   const afterLoginRedirectUrl = page.url() // redirect to afterAuthorizationUrl (like SPA homepage)
@@ -647,11 +721,11 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: saltanaCodeUrlObj.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(200)
 
@@ -672,11 +746,11 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: saltanaCodeUrlObj.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(422)
 
@@ -685,7 +759,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
   const ssoAuthorizationHeaders = {
     'x-platform-id': t.context.platformId,
     'x-saltana-env': t.context.env,
-    authorization: `${obj.tokenType} ${obj.accessToken}`
+    authorization: `${obj.tokenType} ${obj.accessToken}`,
   }
 
   // fetch the created user
@@ -715,16 +789,18 @@ test.serial('performs a OAuth2 authentication', async (t) => {
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      username
+      username,
     })
     .expect(403) // forbidden for SSO users
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterSSOLogin } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterSSOLogin },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -732,7 +808,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
   const userCreatedEvent = getObjectEvent({
     events: eventsAfterSSOLogin,
     eventType: 'user__created',
-    objectId: user.id
+    objectId: user.id,
   })
   await testEventMetadata({ event: userCreatedEvent, object: user, t })
   t.is(userCreatedEvent.object.displayName, oauthSSOData.name)
@@ -745,9 +821,7 @@ test.serial('performs a OAuth2 authentication', async (t) => {
 test.serial('performs an OpenID authentication', async (t) => {
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:list:all'
-    ]
+    permissions: ['event:list:all'],
   })
 
   const systemKey = getSystemKey()
@@ -763,7 +837,7 @@ test.serial('performs an OpenID authentication', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       saltana: {
@@ -793,19 +867,19 @@ test.serial('performs an OpenID authentication', async (t) => {
               'metadata.deep.name': 'name',
               'metadata.deep.email': 'email',
               'metadata.firstname': 'first_name',
-              'metadata.lastname': 'last_name'
+              'metadata.lastname': 'last_name',
             },
             active: true,
-            pkceEnabled: true
-          }
-        }
-      }
+            pkceEnabled: true,
+          },
+        },
+      },
     })
     .expect(200)
 
   let browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
-    args: ['--disable-dev-shm-usage', '--no-sandbox']
+    args: ['--disable-dev-shm-usage', '--no-sandbox'],
   })
 
   let page = await browser.newPage()
@@ -824,7 +898,7 @@ test.serial('performs an OpenID authentication', async (t) => {
 
   await Promise.all([
     page.click('button[type="submit"]'),
-    page.waitForNavigation()
+    page.waitForNavigation(),
   ])
 
   const afterLoginRedirectUrl = page.url() // redirect to afterAuthorizationUrl (like SPA homepage)
@@ -839,11 +913,11 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: saltanaCodeUrlObj.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(200)
 
@@ -864,11 +938,11 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: saltanaCodeUrlObj.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(422)
 
@@ -877,7 +951,7 @@ test.serial('performs an OpenID authentication', async (t) => {
   const ssoAuthorizationHeaders = {
     'x-platform-id': t.context.platformId,
     'x-saltana-env': t.context.env,
-    authorization: `${obj.tokenType} ${obj.accessToken}`
+    authorization: `${obj.tokenType} ${obj.accessToken}`,
   }
 
   // fetch the created user
@@ -905,9 +979,9 @@ test.serial('performs an OpenID authentication', async (t) => {
         name: null,
         deep: {
           name: null,
-          something: 'updated'
-        }
-      }
+          something: 'updated',
+        },
+      },
     })
     .expect(200)
 
@@ -918,10 +992,10 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      username
+      username,
     })
     .expect(403) // forbidden for SSO users
 
@@ -931,7 +1005,7 @@ test.serial('performs an OpenID authentication', async (t) => {
     .set(ssoAuthorizationHeaders)
     .send({
       refreshToken: obj.refreshToken,
-      logoutFromExternalProvider: true // destroys the external authentication session as well
+      logoutFromExternalProvider: true, // destroys the external authentication session as well
     })
     .expect(301)
 
@@ -943,7 +1017,7 @@ test.serial('performs an OpenID authentication', async (t) => {
 
   await Promise.all([
     page.click('button[name="logout"][type="submit"]'),
-    page.waitForNavigation()
+    page.waitForNavigation(),
   ])
 
   const afterLogoutRedirectUrl = page.url()
@@ -961,13 +1035,15 @@ test.serial('performs an OpenID authentication', async (t) => {
     })
     .send({
       refreshToken: obj.refreshToken,
-      grantType: 'refreshToken'
+      grantType: 'refreshToken',
     })
     .expect(403)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterSSOLogin } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterSSOLogin },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -975,7 +1051,7 @@ test.serial('performs an OpenID authentication', async (t) => {
   const userCreatedEvent = getObjectEvent({
     events: eventsAfterSSOLogin,
     eventType: 'user__created',
-    objectId: user.id
+    objectId: user.id,
   })
   await testEventMetadata({ event: userCreatedEvent, object: user, t })
   t.is(userCreatedEvent.object.displayName, openIdSSOData.name)
@@ -990,7 +1066,7 @@ test.serial('performs an OpenID authentication', async (t) => {
   // Maybe that's because of the login redirection that is cached by puppeteer
   browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
-    args: ['--disable-dev-shm-usage', '--no-sandbox']
+    args: ['--disable-dev-shm-usage', '--no-sandbox'],
   })
 
   page = await browser.newPage()
@@ -1009,7 +1085,7 @@ test.serial('performs an OpenID authentication', async (t) => {
 
   await Promise.all([
     page.click('button[type="submit"]'),
-    page.waitForNavigation()
+    page.waitForNavigation(),
   ])
 
   const afterLoginRedirectUrl2 = page.url() // redirect to afterAuthorizationUrl (like SPA homepage)
@@ -1024,11 +1100,11 @@ test.serial('performs an OpenID authentication', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       code: saltanaCodeUrlObj2.searchParams.get('code'),
-      grantType: 'authorizationCode'
+      grantType: 'authorizationCode',
     })
     .expect(200)
 
@@ -1047,7 +1123,7 @@ test.serial('performs an OpenID authentication', async (t) => {
   const ssoAuthorizationHeaders2 = {
     'x-platform-id': t.context.platformId,
     'x-saltana-env': t.context.env,
-    authorization: `${obj2.tokenType} ${obj2.accessToken}`
+    authorization: `${obj2.tokenType} ${obj2.accessToken}`,
   }
 
   // fetch the user that logs a second time
@@ -1071,21 +1147,27 @@ test.serial('performs an OpenID authentication', async (t) => {
     deep: {
       email: openIdSSOData.email,
       name: openIdSSOData2.name,
-      something: 'updated' // all existing attributes are preserved
-    }
+      something: 'updated', // all existing attributes are preserved
+    },
   })
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterSecondSSOLogin } } = await request(t.context.serverUrl)
-    .get(`/events?createdDate[gt]=${encodeURIComponent(userCreatedEvent.createdDate)}`)
+  const {
+    body: { results: eventsAfterSecondSSOLogin },
+  } = await request(t.context.serverUrl)
+    .get(
+      `/events?createdDate[gt]=${encodeURIComponent(
+        userCreatedEvent.createdDate,
+      )}`,
+    )
     .set(authorizationHeaders)
     .expect(200)
 
   const userUpdatedEvent = getObjectEvent({
     events: eventsAfterSecondSSOLogin,
     eventType: 'user__updated',
-    objectId: user.id
+    objectId: user.id,
   })
   await testEventMetadata({
     event: userUpdatedEvent,
@@ -1096,13 +1178,13 @@ test.serial('performs an OpenID authentication', async (t) => {
       lastname: openIdSSOData2.lastname,
       metadata: {
         deep: {
-          name: openIdSSOData2.name
+          name: openIdSSOData2.name,
         },
         firstname: openIdSSOData2.firstname,
         lastname: openIdSSOData2.lastname,
-        name: openIdSSOData2.name
-      }
-    }
+        name: openIdSSOData2.name,
+      },
+    },
   })
   t.is(userUpdatedEvent.object.displayName, openIdSSOData.name)
   t.is(userUpdatedEvent.object.email, openIdSSOData.email)
@@ -1134,7 +1216,9 @@ if (shouldExecuteBuiltInSSOTest) {
 
       const executeBrowserScenario = async ({ page }) => {
         // trigger the SSO authentication (user clicks on the SSO button)
-        await page.goto(`${apiServerUrl}/auth/sso/${publicPlatformId}/${provider}`)
+        await page.goto(
+          `${apiServerUrl}/auth/sso/${publicPlatformId}/${provider}`,
+        )
 
         const usernameSelector = 'input[name="login"]'
 
@@ -1150,7 +1234,7 @@ if (shouldExecuteBuiltInSSOTest) {
         const authorizeButtonExists = await checkElementVisible(
           page,
           authorizeButtonSelector,
-          { isButton: true }
+          { isButton: true },
         )
         if (authorizeButtonExists) {
           await page.click(authorizeButtonSelector)
@@ -1163,7 +1247,7 @@ if (shouldExecuteBuiltInSSOTest) {
         provider,
         ssoConnection,
         afterAuthenticationUrl: authorizationServerUrl,
-        executeBrowserScenario
+        executeBrowserScenario,
       })
     })
   }
@@ -1181,7 +1265,9 @@ if (shouldExecuteBuiltInSSOTest) {
 
       const executeBrowserScenario = async ({ page }) => {
         // trigger the SSO authentication (user clicks on the SSO button)
-        await page.goto(`${apiServerUrl}/auth/sso/${publicPlatformId}/${provider}`)
+        await page.goto(
+          `${apiServerUrl}/auth/sso/${publicPlatformId}/${provider}`,
+        )
 
         const usernameSelector = 'input[name="email"]'
 
@@ -1197,7 +1283,7 @@ if (shouldExecuteBuiltInSSOTest) {
         const authorizeButtonExists = await checkElementVisible(
           page,
           authorizeButtonSelector,
-          { isButton: true }
+          { isButton: true },
         )
         if (authorizeButtonExists) {
           await page.click(authorizeButtonSelector)
@@ -1210,7 +1296,7 @@ if (shouldExecuteBuiltInSSOTest) {
         provider,
         ssoConnection,
         afterAuthenticationUrl: authorizationServerUrl,
-        executeBrowserScenario
+        executeBrowserScenario,
       })
     })
   }
@@ -1221,29 +1307,21 @@ if (shouldExecuteBuiltInSSOTest) {
     // Must run serially because config is updated
     // test.serial('Google OAuth authentication works', async (t) => {
     //   const provider = 'google'
-
     //   const { credentials, ssoConnection } = getOAuthConfiguration(provider)
     //   const { username, password } = credentials
-
     //   const executeBrowserScenario = async ({ page }) => {
     //     // trigger the SSO authentication (user clicks on the SSO button)
     //     await page.goto(`${apiServerUrl}/auth/sso/${publicPlatformId}/${provider}`)
-
     //     const usernameSelector = 'input[name="identifier"]'
-
     //     await page.waitForSelector(usernameSelector)
-
     //     // fill identifier form
     //     await page.type(usernameSelector, username)
     //     await page.click('#identifierNext')
-
     //     // fill password form
     //     await page.type('input[type="password"]', password)
     //     await page.click('#passwordNext')
-
     //     await page.waitForNavigation()
     //   }
-
     //   await checkOAuthProcess({
     //     t,
     //     provider,
@@ -1256,19 +1334,21 @@ if (shouldExecuteBuiltInSSOTest) {
 }
 
 test('rejects if the user agent does not match the user agent that created the refresh token', async (t) => {
-  const userAgent = 'Mozilla/5.0 (Windows; U; Win98; en-US; rv:0.9.2) Gecko/20010725 Netscape6/6.1'
-  await refreshAccessToken('refreshToken1', { status: 403, userAgent, t, requester: request(t.context.serverUrl) })
+  const userAgent =
+    'Mozilla/5.0 (Windows; U; Win98; en-US; rv:0.9.2) Gecko/20010725 Netscape6/6.1'
+  await refreshAccessToken('refreshToken1', {
+    status: 403,
+    userAgent,
+    t,
+    requester: request(t.context.serverUrl),
+  })
 
   t.pass()
 })
 
 test('impersonates access token for a user', async (t) => {
   const accessToken = await getAccessToken({
-    permissions: [
-      'user:edit:all',
-      'user:config:all',
-      'auth:impersonate'
-    ]
+    permissions: ['user:edit:all', 'user:config:all', 'auth:impersonate'],
   })
 
   const { body: result } = await request(t.context.serverUrl)
@@ -1277,12 +1357,12 @@ test('impersonates access token for a user', async (t) => {
       'user-agent': 'node-superagent/3.8.3',
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      authorization: `Bearer ${accessToken}`
+      authorization: `Bearer ${accessToken}`,
     })
     .send({
       grantType: 'impersonateToken',
       refreshToken: 'refreshToken1',
-      userId: 'usr_QVQfQps1I3a1gJYz2I3a'
+      userId: 'usr_QVQfQps1I3a1gJYz2I3a',
     })
     .expect(200)
 
@@ -1307,14 +1387,14 @@ test('impersonates access token for a user via system', async (t) => {
       'user-agent': 'node-superagent/3.8.3',
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       grantType: 'impersonateToken',
       refreshToken: 'refreshToken1',
       roles: ['admin'],
       userId: 'user-external-id1',
-      sourceUserId: 'user-external-id2'
+      sourceUserId: 'user-external-id2',
     })
     .expect(200)
 
@@ -1337,12 +1417,12 @@ test('checks a refresh token', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       tokenType: 'refreshToken',
       token: 'refreshToken1',
-      userAgent: 'node-superagent/3.8.3'
+      userAgent: 'node-superagent/3.8.3',
     })
     .expect(200)
 
@@ -1354,12 +1434,12 @@ test('checks a refresh token', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       tokenType: 'refreshToken',
       token: 'unknownRefreshToken',
-      userAgent: 'node-superagent/3.8.3'
+      userAgent: 'node-superagent/3.8.3',
     })
     .expect(200)
 
@@ -1370,18 +1450,21 @@ test('checks a refresh token', async (t) => {
 test('checks an access token', async (t) => {
   const systemKey = getSystemKey()
 
-  const accessToken = await getAccessToken({ permissions: [], userId: 'user-external-id' })
+  const accessToken = await getAccessToken({
+    permissions: [],
+    userId: 'user-external-id',
+  })
 
   const { body: result1 } = await request(t.context.serverUrl)
     .post('/auth/token/check')
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       tokenType: 'accessToken',
-      token: accessToken
+      token: accessToken,
     })
     .expect(200)
 
@@ -1393,11 +1476,11 @@ test('checks an access token', async (t) => {
     .set({
       'x-platform-id': t.context.platformId,
       'x-saltana-env': t.context.env,
-      'x-saltana-system-key': systemKey
+      'x-saltana-system-key': systemKey,
     })
     .send({
       tokenType: 'accessToken',
-      token: 'unknownAccessToken'
+      token: 'unknownAccessToken',
     })
     .expect(200)
 
@@ -1406,7 +1489,10 @@ test('checks an access token', async (t) => {
 })
 
 test('can only check tokens if system', async (t) => {
-  const authorizationHeaders = await getAccessTokenHeaders({ t, permissions: [] })
+  const authorizationHeaders = await getAccessTokenHeaders({
+    t,
+    permissions: [],
+  })
 
   await request(t.context.serverUrl)
     .post('/auth/token/check')
@@ -1414,7 +1500,7 @@ test('can only check tokens if system', async (t) => {
     .send({
       tokenType: 'refreshToken',
       token: 'refreshToken1',
-      userAgent: 'node-superagent/3.8.3'
+      userAgent: 'node-superagent/3.8.3',
     })
     .expect(403)
 
@@ -1424,7 +1510,7 @@ test('can only check tokens if system', async (t) => {
     .send({
       tokenType: 'accessToken',
       token: 'accessToken1',
-      userAgent: 'node-superagent/3.8.3'
+      userAgent: 'node-superagent/3.8.3',
     })
     .expect(403)
 
@@ -1438,11 +1524,11 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'user2',
-      password: 'user2'
+      password: 'user2',
     })
     .expect(200)
 
@@ -1454,11 +1540,11 @@ test('changes the password and emits event', async (t) => {
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       currentPassword: 'wrongPassword',
-      newPassword: 'newUser2'
+      newPassword: 'newUser2',
     })
     .expect(422)
 
@@ -1467,11 +1553,11 @@ test('changes the password and emits event', async (t) => {
     .set({
       authorization: `Bearer ${accessToken}`,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       currentPassword: 'user2',
-      newPassword: 'newUser2'
+      newPassword: 'newUser2',
     })
     .expect(200)
 
@@ -1479,10 +1565,10 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      refreshToken
+      refreshToken,
     })
     .expect(200)
 
@@ -1490,11 +1576,11 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'user2',
-      password: 'user2'
+      password: 'user2',
     })
     .expect(403)
 
@@ -1502,45 +1588,46 @@ test('changes the password and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'user2',
-      password: 'newUser2'
+      password: 'newUser2',
     })
     .expect(200)
 
   const eventAccessTokenHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:list:all',
-      'user:read:all'
-    ]
+    permissions: ['event:list:all', 'user:read:all'],
   })
 
   const { body: user } = await request(t.context.serverUrl)
     .get(`/users/${userId}`)
-    .set(Object.assign({}, eventAccessTokenHeaders, {
+    .set({
+      ...eventAccessTokenHeaders,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
-    }))
+      'x-saltana-env': t.context.env,
+    })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
-    .set(Object.assign({}, eventAccessTokenHeaders, {
+    .set({
+      ...eventAccessTokenHeaders,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
-    }))
+      'x-saltana-env': t.context.env,
+    })
     .expect(200)
 
   const passwordChangedEvent = getObjectEvent({
     events,
     objectType: 'user',
     eventType: 'password__changed',
-    objectId: userId
+    objectId: userId,
   })
   await testEventMetadata({ event: passwordChangedEvent, object: user, t })
 })
@@ -1550,52 +1637,60 @@ test.serial('requests the password reset and emits event', async (t) => {
 
   const accessTokenHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:list:all',
-      'user:read:all'
-    ]
+    permissions: ['event:list:all', 'user:read:all'],
   })
 
   const { body: user } = await request(t.context.serverUrl)
     .get(`/users/${userId}`)
-    .set(Object.assign({}, accessTokenHeaders, {
+    .set({
+      ...accessTokenHeaders,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
-    }))
+      'x-saltana-env': t.context.env,
+    })
     .expect(200)
 
   await request(t.context.serverUrl)
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      username: 'user3'
+      username: 'user3',
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
-    .set(Object.assign({}, accessTokenHeaders, {
+    .set({
+      ...accessTokenHeaders,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
-    }))
+      'x-saltana-env': t.context.env,
+    })
     .expect(200)
 
   const resetPasswordRequestedEvent = getObjectEvent({
     events,
     eventType: 'password__reset_requested',
     objectType: 'user',
-    objectId: userId
+    objectId: userId,
   })
-  await testEventMetadata({ event: resetPasswordRequestedEvent, object: user, t })
+  await testEventMetadata({
+    event: resetPasswordRequestedEvent,
+    object: user,
+    t,
+  })
   const eventData = resetPasswordRequestedEvent.metadata
   t.true(typeof resetPasswordRequestedEvent.metadata.resetToken === 'string')
   t.is(eventData.resetToken.length, 16) // hard-coded in services/authentication.js
-  t.is(eventData.expirationDate, new Date(eventData.expirationDate).toISOString())
+  t.is(
+    eventData.expirationDate,
+    new Date(eventData.expirationDate).toISOString(),
+  )
 })
 
 test('confirms the password reset and emits event', async (t) => {
@@ -1604,11 +1699,11 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'admin',
-      password: 'newAdmin'
+      password: 'newAdmin',
     })
     .expect(403)
 
@@ -1617,11 +1712,11 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       resetToken: 'resetToken1',
-      newPassword: 'newAdmin'
+      newPassword: 'newAdmin',
     })
     .expect(200)
 
@@ -1630,11 +1725,11 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: 'admin',
-      password: 'newAdmin'
+      password: 'newAdmin',
     })
     .expect(200)
 
@@ -1643,45 +1738,50 @@ test('confirms the password reset and emits event', async (t) => {
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       resetToken: 'resetToken1',
-      newPassword: 'newAdmin'
+      newPassword: 'newAdmin',
     })
     .expect(403)
 
   const accessTokenHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'event:list:all',
-      'user:read:all'
-    ]
+    permissions: ['event:list:all', 'user:read:all'],
   })
 
   const { body: user } = await request(t.context.serverUrl)
     .get(`/users/${adminUserId}`)
-    .set(Object.assign({}, accessTokenHeaders, {
+    .set({
+      ...accessTokenHeaders,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
-    }))
+      'x-saltana-env': t.context.env,
+    })
     .expect(200)
 
-  const { body: { results: events } } = await request(t.context.serverUrl)
+  const {
+    body: { results: events },
+  } = await request(t.context.serverUrl)
     .get('/events')
-    .set(Object.assign({}, accessTokenHeaders, {
+    .set({
+      ...accessTokenHeaders,
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
-    }))
+      'x-saltana-env': t.context.env,
+    })
     .expect(200)
 
   const resetPasswordConfirmedEvent = getObjectEvent({
     events,
     objectType: 'user',
     eventType: 'password__reset_confirmed',
-    objectId: adminUserId
+    objectId: adminUserId,
   })
-  await testEventMetadata({ event: resetPasswordConfirmedEvent, object: user, t })
+  await testEventMetadata({
+    event: resetPasswordConfirmedEvent,
+    object: user,
+    t,
+  })
 })
 
 test('fails to confirm the password reset using an expired token', async (t) => {
@@ -1689,11 +1789,11 @@ test('fails to confirm the password reset using an expired token', async (t) => 
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       resetToken: 'expiredResetToken',
-      newPassword: 'newAdmin'
+      newPassword: 'newAdmin',
     })
     .expect(403)
 
@@ -1705,14 +1805,13 @@ test('triggers a token check process', async (t) => {
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'token:check',
-      'event:list:all'
-    ],
-    userId
+    permissions: ['token:check', 'event:list:all'],
+    userId,
   })
 
-  const expirationDate = new Date((new Date().getTime() + 3600 * 1000)).toISOString()
+  const expirationDate = new Date(
+    new Date().getTime() + 3600 * 1000,
+  ).toISOString()
 
   await request(t.context.serverUrl)
     .post('/token/check/request')
@@ -1721,14 +1820,16 @@ test('triggers a token check process', async (t) => {
       type: 'email',
       expirationDate,
       data: {
-        testData: true
-      }
+        testData: true,
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterRequestingToken } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterRequestingToken },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1736,7 +1837,7 @@ test('triggers a token check process', async (t) => {
   const tokenRequestedEvent = getObjectEvent({
     events: eventsAfterRequestingToken,
     eventType: 'token__check_requested',
-    objectId: userId
+    objectId: userId,
   })
 
   t.is(tokenRequestedEvent.object.id, userId)
@@ -1756,9 +1857,11 @@ test('triggers a token check process', async (t) => {
   t.is(tokenResult.userId, userId)
   t.is(tokenResult.expirationDate, expirationDate)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterCheckingToken } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterCheckingToken },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1766,7 +1869,7 @@ test('triggers a token check process', async (t) => {
   const tokenCheckedEvent = getObjectEvent({
     events: eventsAfterCheckingToken,
     eventType: 'token__check_confirmed',
-    objectId: userId
+    objectId: userId,
   })
 
   t.is(tokenCheckedEvent.object.id, userId)
@@ -1787,14 +1890,13 @@ test('triggers a token check process with a redirection', async (t) => {
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'token:check',
-      'event:list:all'
-    ],
-    userId
+    permissions: ['token:check', 'event:list:all'],
+    userId,
   })
 
-  const expirationDate = new Date((new Date().getTime() + 3600 * 1000)).toISOString()
+  const expirationDate = new Date(
+    new Date().getTime() + 3600 * 1000,
+  ).toISOString()
 
   await request(t.context.serverUrl)
     .post('/token/check/request')
@@ -1804,14 +1906,16 @@ test('triggers a token check process with a redirection', async (t) => {
       expirationDate,
       redirectUrl: 'https://example.com',
       data: {
-        testData: true
-      }
+        testData: true,
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterRequestingToken } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterRequestingToken },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1819,7 +1923,7 @@ test('triggers a token check process with a redirection', async (t) => {
   const tokenRequestedEvent = getObjectEvent({
     events: eventsAfterRequestingToken,
     eventType: 'token__check_requested',
-    objectId: userId
+    objectId: userId,
   })
 
   t.is(tokenRequestedEvent.object.id, userId)
@@ -1832,12 +1936,17 @@ test('triggers a token check process with a redirection', async (t) => {
 
   await request(t.context.serverUrl)
     .get(`/token/check/${tokenValue}?redirect=true`) // no authorization headers
-    .expect('Location', `https://example.com/?token=${tokenRequestedEvent.metadata.token}&status=valid`)
+    .expect(
+      'Location',
+      `https://example.com/?token=${tokenRequestedEvent.metadata.token}&status=valid`,
+    )
     .expect(301)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterCheckingToken } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterCheckingToken },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -1845,7 +1954,7 @@ test('triggers a token check process with a redirection', async (t) => {
   const tokenCheckedEvent = getObjectEvent({
     events: eventsAfterCheckingToken,
     eventType: 'token__check_confirmed',
-    objectId: userId
+    objectId: userId,
   })
 
   t.is(tokenCheckedEvent.object.id, userId)
@@ -1865,120 +1974,127 @@ test('triggers a token check process with a redirection', async (t) => {
 })
 
 // use .serial() because the token check process is long and we don't want other tests to interfere with it
-test.serial('triggers a token check process with the fallback redirection', async (t) => {
-  const userId = 'usr_em9SToe1nI01iG4yRnHz'
+test.serial(
+  'triggers a token check process with the fallback redirection',
+  async (t) => {
+    const userId = 'usr_em9SToe1nI01iG4yRnHz'
 
-  const authorizationHeaders = await getAccessTokenHeaders({
-    t,
-    permissions: [
-      'token:check',
-      'event:list:all',
-      'config:edit:all'
-    ],
-    userId
-  })
-
-  const expirationDate = new Date((new Date().getTime() + 3600 * 1000)).toISOString()
-
-  await request(t.context.serverUrl)
-    .patch('/config')
-    .set(authorizationHeaders)
-    .send({
-      saltana: {
-        tokenCheckRedirectUrl: 'https://example.com'
-      }
+    const authorizationHeaders = await getAccessTokenHeaders({
+      t,
+      permissions: ['token:check', 'event:list:all', 'config:edit:all'],
+      userId,
     })
 
-  await request(t.context.serverUrl)
-    .post('/token/check/request')
-    .set(authorizationHeaders)
-    .send({
-      type: 'email',
-      expirationDate,
-      data: {
-        testData: true
-      }
+    const expirationDate = new Date(
+      new Date().getTime() + 3600 * 1000,
+    ).toISOString()
+
+    await request(t.context.serverUrl)
+      .patch('/config')
+      .set(authorizationHeaders)
+      .send({
+        saltana: {
+          tokenCheckRedirectUrl: 'https://example.com',
+        },
+      })
+
+    await request(t.context.serverUrl)
+      .post('/token/check/request')
+      .set(authorizationHeaders)
+      .send({
+        type: 'email',
+        expirationDate,
+        data: {
+          testData: true,
+        },
+      })
+      .expect(200)
+
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const {
+      body: { results: eventsAfterRequestingToken },
+    } = await request(t.context.serverUrl)
+      .get('/events')
+      .set(authorizationHeaders)
+      .expect(200)
+
+    const tokenRequestedEvent = getObjectEvent({
+      events: eventsAfterRequestingToken,
+      eventType: 'token__check_requested',
+      objectId: userId,
     })
-    .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+    t.is(tokenRequestedEvent.object.id, userId)
+    t.truthy(tokenRequestedEvent.metadata.token)
+    t.is(tokenRequestedEvent.metadata.type, 'email')
+    t.is(tokenRequestedEvent.metadata.expirationDate, expirationDate)
+    t.deepEqual(tokenRequestedEvent.metadata.data, { testData: true })
 
-  const { body: { results: eventsAfterRequestingToken } } = await request(t.context.serverUrl)
-    .get('/events')
-    .set(authorizationHeaders)
-    .expect(200)
+    const tokenValue = tokenRequestedEvent.metadata.token
 
-  const tokenRequestedEvent = getObjectEvent({
-    events: eventsAfterRequestingToken,
-    eventType: 'token__check_requested',
-    objectId: userId
-  })
+    await request(t.context.serverUrl)
+      .get(`/token/check/${tokenValue}?redirect=true`) // no authorization headers
+      .expect(
+        'Location',
+        `https://example.com/?token=${tokenRequestedEvent.metadata.token}&status=valid`,
+      )
+      .expect(301)
 
-  t.is(tokenRequestedEvent.object.id, userId)
-  t.truthy(tokenRequestedEvent.metadata.token)
-  t.is(tokenRequestedEvent.metadata.type, 'email')
-  t.is(tokenRequestedEvent.metadata.expirationDate, expirationDate)
-  t.deepEqual(tokenRequestedEvent.metadata.data, { testData: true })
+    await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const tokenValue = tokenRequestedEvent.metadata.token
+    const {
+      body: { results: eventsAfterCheckingToken },
+    } = await request(t.context.serverUrl)
+      .get('/events')
+      .set(authorizationHeaders)
+      .expect(200)
 
-  await request(t.context.serverUrl)
-    .get(`/token/check/${tokenValue}?redirect=true`) // no authorization headers
-    .expect('Location', `https://example.com/?token=${tokenRequestedEvent.metadata.token}&status=valid`)
-    .expect(301)
-
-  await new Promise(resolve => setTimeout(resolve, 300))
-
-  const { body: { results: eventsAfterCheckingToken } } = await request(t.context.serverUrl)
-    .get('/events')
-    .set(authorizationHeaders)
-    .expect(200)
-
-  const tokenCheckedEvent = getObjectEvent({
-    events: eventsAfterCheckingToken,
-    eventType: 'token__check_confirmed',
-    objectId: userId
-  })
-
-  t.is(tokenCheckedEvent.object.id, userId)
-  t.truthy(tokenCheckedEvent.metadata.token)
-  t.is(tokenCheckedEvent.metadata.type, 'email')
-  t.is(tokenCheckedEvent.metadata.expirationDate, expirationDate)
-  t.deepEqual(tokenCheckedEvent.metadata.data, { testData: true })
-
-  const { body: tokenResult } = await request(t.context.serverUrl)
-    .get(`/token/check/${tokenValue}`) // no authorization headers
-    .expect(200)
-
-  t.is(tokenResult.status, 'alreadyChecked')
-  t.is(tokenResult.type, 'email')
-  t.is(tokenResult.userId, userId)
-  t.is(tokenResult.expirationDate, expirationDate)
-
-  // restore for other tests
-  await request(t.context.serverUrl)
-    .patch('/config')
-    .set(authorizationHeaders)
-    .send({
-      saltana: {
-        tokenCheckRedirectUrl: null
-      }
+    const tokenCheckedEvent = getObjectEvent({
+      events: eventsAfterCheckingToken,
+      eventType: 'token__check_confirmed',
+      objectId: userId,
     })
-})
+
+    t.is(tokenCheckedEvent.object.id, userId)
+    t.truthy(tokenCheckedEvent.metadata.token)
+    t.is(tokenCheckedEvent.metadata.type, 'email')
+    t.is(tokenCheckedEvent.metadata.expirationDate, expirationDate)
+    t.deepEqual(tokenCheckedEvent.metadata.data, { testData: true })
+
+    const { body: tokenResult } = await request(t.context.serverUrl)
+      .get(`/token/check/${tokenValue}`) // no authorization headers
+      .expect(200)
+
+    t.is(tokenResult.status, 'alreadyChecked')
+    t.is(tokenResult.type, 'email')
+    t.is(tokenResult.userId, userId)
+    t.is(tokenResult.expirationDate, expirationDate)
+
+    // restore for other tests
+    await request(t.context.serverUrl)
+      .patch('/config')
+      .set(authorizationHeaders)
+      .send({
+        saltana: {
+          tokenCheckRedirectUrl: null,
+        },
+      })
+  },
+)
 
 test('displays text error when triggering token check process with missing redirect url', async (t) => {
   const userId = 'usr_bF9Mpoe1cDG1i4xyxcDG'
 
   const authorizationHeaders = await getAccessTokenHeaders({
     t,
-    permissions: [
-      'token:check',
-      'event:list:all'
-    ],
-    userId
+    permissions: ['token:check', 'event:list:all'],
+    userId,
   })
 
-  const expirationDate = new Date((new Date().getTime() + 3600 * 1000)).toISOString()
+  const expirationDate = new Date(
+    new Date().getTime() + 3600 * 1000,
+  ).toISOString()
 
   await request(t.context.serverUrl)
     .post('/token/check/request')
@@ -1987,14 +2103,16 @@ test('displays text error when triggering token check process with missing redir
       type: 'email',
       expirationDate,
       data: {
-        testData: true
-      }
+        testData: true,
+      },
     })
     .expect(200)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
-  const { body: { results: eventsAfterRequestingToken } } = await request(t.context.serverUrl)
+  const {
+    body: { results: eventsAfterRequestingToken },
+  } = await request(t.context.serverUrl)
     .get('/events')
     .set(authorizationHeaders)
     .expect(200)
@@ -2002,7 +2120,7 @@ test('displays text error when triggering token check process with missing redir
   const tokenRequestedEvent = getObjectEvent({
     events: eventsAfterRequestingToken,
     eventType: 'token__check_requested',
-    objectId: userId
+    objectId: userId,
   })
 
   t.is(tokenRequestedEvent.object.id, userId)
@@ -2032,7 +2150,7 @@ test('fails to login if missing or invalid parameters', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -2044,7 +2162,7 @@ test('fails to login if missing or invalid parameters', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -2058,11 +2176,11 @@ test('fails to login if missing or invalid parameters', async (t) => {
     .post('/auth/login')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       username: true,
-      password: true
+      password: true,
     })
     .expect(400)
 
@@ -2080,7 +2198,7 @@ test('fails to logout if missing or invalid parameters', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -2092,7 +2210,7 @@ test('fails to logout if missing or invalid parameters', async (t) => {
     .post('/auth/logout')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -2105,10 +2223,10 @@ test('fails to logout if missing or invalid parameters', async (t) => {
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      refreshToken: true
+      refreshToken: true,
     })
     .expect(400)
 
@@ -2125,7 +2243,7 @@ test('fails to refresh access token if missing or invalid parameters', async (t)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -2137,7 +2255,7 @@ test('fails to refresh access token if missing or invalid parameters', async (t)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -2150,11 +2268,11 @@ test('fails to refresh access token if missing or invalid parameters', async (t)
     .post('/auth/token')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       refreshToken: true,
-      grantType: true
+      grantType: true,
     })
     .expect(400)
 
@@ -2172,7 +2290,7 @@ test('fails to change the password if missing or invalid parameters', async (t) 
     .post('/password/change')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -2184,7 +2302,7 @@ test('fails to change the password if missing or invalid parameters', async (t) 
     .post('/password/change')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -2198,11 +2316,11 @@ test('fails to change the password if missing or invalid parameters', async (t) 
     .post('/password/change')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       currentPassword: true,
-      newPassword: true
+      newPassword: true,
     })
     .expect(400)
 
@@ -2220,7 +2338,7 @@ test('fails to request the password reset if missing or invalid parameters', asy
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -2232,7 +2350,7 @@ test('fails to request the password reset if missing or invalid parameters', asy
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -2245,10 +2363,10 @@ test('fails to request the password reset if missing or invalid parameters', asy
     .post('/password/reset/request')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
-      username: true
+      username: true,
     })
     .expect(400)
 
@@ -2265,7 +2383,7 @@ test('fails to confirm the password reset if missing or invalid parameters', asy
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .expect(400)
 
@@ -2277,7 +2395,7 @@ test('fails to confirm the password reset if missing or invalid parameters', asy
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({})
     .expect(400)
@@ -2291,11 +2409,11 @@ test('fails to confirm the password reset if missing or invalid parameters', asy
     .post('/password/reset/confirm')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       resetToken: true,
-      newPassword: true
+      newPassword: true,
     })
     .expect(400)
 
@@ -2313,16 +2431,16 @@ test('check authentication information', async (t) => {
     .post('/api-keys')
     .set({
       'x-platform-id': t.context.platformId,
-      'x-saltana-env': t.context.env
+      'x-saltana-env': t.context.env,
     })
     .send({
       name: 'New custom api key',
       roles: ['dev'],
-      type: 'custom'
+      type: 'custom',
     })
     .expect(200)
 
-  const getBasicAuthHeader = key => `Basic ${encodeBase64(`${key}:`)}`
+  const getBasicAuthHeader = (key) => `Basic ${encodeBase64(`${key}:`)}`
 
   const apiKey = apiKeyObj.key
   const apiKeyAuthorization = getBasicAuthHeader(apiKey)
@@ -2330,11 +2448,11 @@ test('check authentication information', async (t) => {
   const { body: loginObj } = await request(t.context.serverUrl)
     .post('/auth/login')
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .send({
       username: 'user',
-      password: 'user'
+      password: 'user',
     })
     .expect(200)
 
@@ -2346,7 +2464,7 @@ test('check authentication information', async (t) => {
   const invalidUserAuthorization1 = `SaltanaCore-v1 apiKey=${invalidApiKey}, token=${loginObj.accessToken}`
   const invalidUserAuthorization2 = `SaltanaCore-v1 apiKey=${apiKey}, token=a.b.c`
 
-  function checkValidApiKey (apiKey, type = 'custom') {
+  function checkValidApiKey(apiKey, type = 'custom') {
     t.is(typeof apiKey, 'object')
     t.is(apiKey.type, type)
     t.is(apiKey.env, t.context.env)
@@ -2354,7 +2472,7 @@ test('check authentication information', async (t) => {
     t.is(apiKey.hasValidFormat, true)
   }
 
-  function checkValidToken (token, decoded = decodedToken) {
+  function checkValidToken(token, decoded = decodedToken) {
     t.deepEqual(token, decoded)
   }
 
@@ -2366,7 +2484,7 @@ test('check authentication information', async (t) => {
     .post('/auth/check')
     .send({ apiKey })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2379,7 +2497,7 @@ test('check authentication information', async (t) => {
     .post('/auth/check')
     .send({ apiKey: 'invalid_api_key' })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2395,10 +2513,10 @@ test('check authentication information', async (t) => {
   const { body: authorizationCheck1 } = await request(t.context.serverUrl)
     .post('/auth/check')
     .send({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2410,10 +2528,10 @@ test('check authentication information', async (t) => {
   const { body: authorizationCheck2 } = await request(t.context.serverUrl)
     .post('/auth/check')
     .send({
-      authorization: invalidApiKeyAuthorization
+      authorization: invalidApiKeyAuthorization,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2425,10 +2543,10 @@ test('check authentication information', async (t) => {
   const { body: authorizationCheck3 } = await request(t.context.serverUrl)
     .post('/auth/check')
     .send({
-      authorization: userAuthorization
+      authorization: userAuthorization,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2440,10 +2558,10 @@ test('check authentication information', async (t) => {
   const { body: authorizationCheck4 } = await request(t.context.serverUrl)
     .post('/auth/check')
     .send({
-      authorization: invalidUserAuthorization1
+      authorization: invalidUserAuthorization1,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2455,10 +2573,10 @@ test('check authentication information', async (t) => {
   const { body: authorizationCheck5 } = await request(t.context.serverUrl)
     .post('/auth/check')
     .send({
-      authorization: invalidUserAuthorization1
+      authorization: invalidUserAuthorization1,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2470,10 +2588,10 @@ test('check authentication information', async (t) => {
   const { body: authorizationCheck6 } = await request(t.context.serverUrl)
     .post('/auth/check')
     .send({
-      authorization: invalidUserAuthorization2
+      authorization: invalidUserAuthorization2,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(200)
 
@@ -2489,10 +2607,10 @@ test('check authentication information', async (t) => {
   await request(t.context.serverUrl)
     .post('/auth/check')
     .set({
-      authorization: apiKeyAuthorization // authorization isn't used in this endpoint
+      authorization: apiKeyAuthorization, // authorization isn't used in this endpoint
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(400)
 
@@ -2504,10 +2622,10 @@ test('check authentication information', async (t) => {
     .post('/auth/check')
     .send({
       apiKey,
-      authorization: userAuthorization
+      authorization: userAuthorization,
     })
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(400)
 
@@ -2518,7 +2636,7 @@ test('check authentication information', async (t) => {
   await request(t.context.serverUrl)
     .post('/auth/check')
     .set({
-      authorization: apiKeyAuthorization
+      authorization: apiKeyAuthorization,
     })
     .expect(400)
 
@@ -2526,7 +2644,5 @@ test('check authentication information', async (t) => {
   // MISSING API KEY //
   // /////////////// //
 
-  await request(t.context.serverUrl)
-    .post('/auth/check')
-    .expect(401)
+  await request(t.context.serverUrl).post('/auth/check').expect(401)
 })
