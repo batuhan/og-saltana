@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--combineblock {
+    @apply bg-gray-100;
+    @apply mt-8;
+    @apply rounded-lg;
+    &__title {
+      @apply text-xl;
+      @apply leading-7;
+      @apply font-semibold;
+      @apply text-gray-900;
+    }
+    &__description {
+      @apply text-base;
+      @apply leading-6;
+      @apply font-normal;
+      color: #075985;
+      @apply mt-5;
+    }
+    &__button {
+      @apply text-lg;
+      @apply leading-7;
+      @apply font-semibold;
+      color: #0c4a6e;
+      @apply mt-14;
+    }
+    &__image {
+      @apply w-full;
+      @apply h-full;
+    }
+  }
+}

@@ -571,7 +571,7 @@ function setSystemKeyHashWithFunction(fn, { passphrase } = {}) {
     throw new Error('Function expected for system hash function')
 
   systemKeyHashFunction = fn
-  systemHash = fn(process.env.SYSTEM_KEY)
+  systemHash = fn(config.get('SystemKey'))
 }
 
 function getSystemKeyHashFunction(passphrase) {

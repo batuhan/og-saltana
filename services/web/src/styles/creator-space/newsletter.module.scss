@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--newsletter {
+    @apply bg-blue-600;
+    @apply p-8;
+    @apply rounded-lg;
+    @apply mt-8;
+    &__title {
+      @apply text-4xl;
+      @apply leading-9;
+      @apply font-extrabold;
+      @apply text-white;
+    }
+    &__description {
+      @apply py-4;
+      @apply text-xl;
+      @apply leading-6;
+      @apply font-normal;
+      @apply text-indigo-200;
+    }
+    &__input {
+      @apply rounded-md;
+      @apply mb-2;
+      @apply xl:mr-2;
+      @apply lg:mr-2;
+      @apply md:mb-2;
+      @apply sm:mb-2;
+    }
+    &__button {
+      @apply py-4;
+      @apply rounded-md;
+      @apply px-5;
+      @apply mb-2;
+      @apply md:mb-2;
+      @apply sm:mb-2;
+      @apply text-lg;
+      @apply leading-6;
+      @apply font-normal;
+      @apply text-center;
+      background-color: #f0f9ff;
+      color: #0c4a6e;
+    }
+    &__privacy {
+      @apply pt-4;
+      @apply text-lg;
+      @apply leading-5;
+      @apply font-normal;
+      @apply text-indigo-200;
+      &__link {
+        @apply underline;
+        @apply text-white;
+      }
+    }
+  }
+}

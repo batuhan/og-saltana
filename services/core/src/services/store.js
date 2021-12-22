@@ -4,11 +4,7 @@ const { serializeError } = require('serialize-error')
 const _ = require('lodash')
 const bluebird = require('bluebird')
 
-const {
-  createSchema,
-  dropSchema,
-  dropSchemaViews,
-} = require('../database')
+const { createSchema, dropSchema, dropSchemaViews } = require('../database')
 
 const {
   addPlatform,
@@ -26,25 +22,18 @@ const {
   removeSaltanaTaskExecutionDates,
 } = require('../redis')
 
-const {
-  getConnection,
-  getModels
-} = require('../models')
+const { getConnection, getModels } = require('../models')
 
 const {
   getClient,
   isIndexExisting,
   createIndex,
-  getIndex
+  getIndex,
 } = require('../elasticsearch')
 
-const {
-  syncAssetsWithElasticsearch
-} = require('../elasticsearch-sync')
+const { syncAssetsWithElasticsearch } = require('../elasticsearch-sync')
 
-const {
-  removeReindexingTask
-} = require('../elasticsearch-reindex')
+const { removeReindexingTask } = require('../elasticsearch-reindex')
 
 const { logError } = require('../../server/logger')
 const { getEnvironments } = require('../util/environment')
@@ -55,38 +44,34 @@ let roleRequester
 let configRequester
 let authorizationRequester
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getSubscriber,
-    getRequester,
-    COMMUNICATION_ID
-  } = communication
+function start({ communication }) {
+  const { getResponder, getSubscriber, getRequester, COMMUNICATION_ID } =
+    communication
 
   responder = getResponder({
     name: 'Store Responder',
-    key: 'store'
+    key: 'store',
   })
 
   subscriber = getSubscriber({
     name: 'Store subscriber',
     key: 'store',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   roleRequester = getRequester({
     name: 'Store service > Role Requester',
-    key: 'role'
+    key: 'role',
   })
 
   configRequester = getRequester({
     name: 'Store service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   authorizationRequester = getRequester({
     name: 'Store service > Authorization Requester',
-    key: 'authorization'
+    key: 'authorization',
   })
 
   // ///////// //
@@ -121,10 +106,7 @@ function start ({ communication }) {
   // //////// //
 
   responder.on('getPlatformEnvData', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -134,11 +116,7 @@ function start ({ communication }) {
   })
 
   responder.on('setPlatformEnvData', async (req) => {
-    const {
-      platformId,
-      env,
-      data
-    } = req
+    const { platformId, env, data } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -148,10 +126,7 @@ function start ({ communication }) {
   })
 
   responder.on('removePlatformEnvData', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -162,11 +137,7 @@ function start ({ communication }) {
   })
 
   responder.on('getPlatformEnvDataByKey', async (req) => {
-    const {
-      platformId,
-      env,
-      key
-    } = req
+    const { platformId, env, key } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -176,12 +147,7 @@ function start ({ communication }) {
   })
 
   responder.on('setPlatformEnvDataByKey', async (req) => {
-    const {
-      platformId,
-      env,
-      key,
-      data
-    } = req
+    const { platformId, env, key, data } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -191,11 +157,7 @@ function start ({ communication }) {
   })
 
   responder.on('removePlatformEnvDataByKey', async (req) => {
-    const {
-      platformId,
-      env,
-      key
-    } = req
+    const { platformId, env, key } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -210,9 +172,7 @@ function start ({ communication }) {
   // ////////// //
 
   responder.on('initPlatform', async (req) => {
-    const {
-      platformId
-    } = req
+    const { platformId } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -220,12 +180,12 @@ function start ({ communication }) {
     const result = {
       database: {
         ok: true,
-        envErrors: {}
+        envErrors: {},
       },
       elasticsearch: {
         ok: true,
-        envErrors: {}
-      }
+        envErrors: {},
+      },
     }
 
     const environments = getEnvironments()
@@ -252,9 +212,7 @@ function start ({ communication }) {
   })
 
   responder.on('checkPlatform', async (req) => {
-    const {
-      platformId
-    } = req
+    const { platformId } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -262,16 +220,16 @@ function start ({ communication }) {
     const result = {
       database: {
         ok: true,
-        envErrors: {}
+        envErrors: {},
       },
       elasticsearch: {
         ok: true,
-        envErrors: {}
+        envErrors: {},
       },
       cache: {
         ok: true,
-        envErrors: {}
-      }
+        envErrors: {},
+      },
     }
 
     const environments = getEnvironments()
@@ -304,7 +262,10 @@ function start ({ communication }) {
         const cachedTasks = await getAllSaltanaTasks({ platformId, env })
         const tasks = await Task.query().where({ active: true })
 
-        const { needSync } = computeCacheDifference({ tasks, cachedTasks: cachedTasks.map(t => t.task) })
+        const { needSync } = computeCacheDifference({
+          tasks,
+          cachedTasks: cachedTasks.map((t) => t.task),
+        })
         result.cache.ok = !needSync
       } catch (err) {
         result.cache.ok = false
@@ -316,11 +277,7 @@ function start ({ communication }) {
   })
 
   responder.on('migrateDatabase', async (req) => {
-    const {
-      platformId,
-      env,
-      dataVersion
-    } = req
+    const { platformId, env, dataVersion } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -335,10 +292,7 @@ function start ({ communication }) {
   })
 
   responder.on('dropDatabase', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -349,10 +303,7 @@ function start ({ communication }) {
   })
 
   responder.on('initElasticsearch', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -363,10 +314,7 @@ function start ({ communication }) {
   })
 
   responder.on('syncElasticsearch', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -388,13 +336,13 @@ function start ({ communication }) {
         .offset((page - 1) * limit)
         .limit(limit)
 
-      assets.forEach(asset => {
+      assets.forEach((asset) => {
         syncAssetsWithElasticsearch({
           assetId: asset.id,
           asset,
           action: 'update',
           platformId,
-          env
+          env,
         })
       })
 
@@ -405,10 +353,7 @@ function start ({ communication }) {
   })
 
   responder.on('dropElasticsearch', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -420,10 +365,12 @@ function start ({ communication }) {
     try {
       client = await getClient({ platformId, env })
     } catch (err) {
-      logError(err, { // should mostly affect tests, we’re logging this just in case
+      logError(err, {
+        // should mostly affect tests, we’re logging this just in case
         platformId,
         env,
-        message: 'Could not getClient to drop ElasticSearch index, probably already dropped.'
+        message:
+          'Could not getClient to drop ElasticSearch index, probably already dropped.',
       })
     }
 
@@ -435,10 +382,7 @@ function start ({ communication }) {
   })
 
   responder.on('syncCache', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
@@ -448,29 +392,33 @@ function start ({ communication }) {
     const cachedTasks = await getAllSaltanaTasks({ platformId, env })
     const tasks = await Task.query().where({ active: true })
 
-    const cacheDifference = computeCacheDifference({ tasks, cachedTasks: cachedTasks.map(t => t.task) })
+    const cacheDifference = computeCacheDifference({
+      tasks,
+      cachedTasks: cachedTasks.map((t) => t.task),
+    })
     await syncCache(Object.assign({}, cacheDifference, { platformId, env }))
 
     return { success: true }
   })
 
   responder.on('deleteCache', async (req) => {
-    const {
-      platformId,
-      env
-    } = req
+    const { platformId, env } = req
 
     const exists = await hasPlatform(platformId)
     if (!exists) throw createError(404, 'Platform does not exist')
 
-    const removedTaskIds = await removeSaltanaTask({ platformId, env, taskId: '*' })
+    const removedTaskIds = await removeSaltanaTask({
+      platformId,
+      env,
+      taskId: '*',
+    })
     await removeSaltanaTaskExecutionDates({ taskId: removedTaskIds })
 
     return { success: true }
   })
 }
 
-async function migrateDatabase ({ platformId, env }) {
+async function migrateDatabase({ platformId, env }) {
   const { connection, schema } = await getConnection({ platformId, env })
 
   const knex = await createSchema({ connection, schema })
@@ -484,7 +432,7 @@ async function migrateDatabase ({ platformId, env }) {
   await knex.destroy()
 }
 
-async function dropDatabase ({ platformId, env }) {
+async function dropDatabase({ platformId, env }) {
   try {
     const { connection, schema } = await getConnection({ platformId, env })
 
@@ -495,15 +443,16 @@ async function dropDatabase ({ platformId, env }) {
     const knex = await dropSchemaViews({ connection, schema })
     await dropSchema({ knex, schema, cascade: true, returnKnex: true })
   } catch (err) {
-    logError(err, { // should mostly affect tests, we’re logging this just in case
+    logError(err, {
+      // should mostly affect tests, we’re logging this just in case
       platformId,
       env,
-      message: `Could not drop database ${platformId}_${env}, probably already dropped.`
+      message: `Could not drop database ${platformId}_${env}, probably already dropped.`,
     })
   }
 }
 
-async function migrateDatabaseVersion ({ platformId, env, version }) {
+async function migrateDatabaseVersion({ platformId, env, version }) {
   let migrationFile
 
   try {
@@ -515,7 +464,7 @@ async function migrateDatabaseVersion ({ platformId, env, version }) {
   await migrationFile.run({ platformId, env })
 }
 
-async function initElasticsearch ({ platformId, env }) {
+async function initElasticsearch({ platformId, env }) {
   const exists = await isIndexExisting({ platformId, env })
   if (exists) return
 
@@ -526,24 +475,23 @@ async function initElasticsearch ({ platformId, env }) {
   await createIndex({ platformId, env, useAlias: true, customAttributes })
 }
 
-function omitTaskMetadata (task) {
+function omitTaskMetadata(task) {
   return _.omit(task, ['metadata', 'platformData'])
 }
 
-function computeCacheDifference ({ tasks, cachedTasks }) {
+function computeCacheDifference({ tasks, cachedTasks }) {
   const tasksById = _.keyBy(tasks, 'id')
   const cachedTasksById = _.keyBy(cachedTasks, 'id')
 
   const allIds = _.uniqBy(
-    tasks.map(t => t.id)
-      .concat(cachedTasks.map(t => t.id))
+    tasks.map((t) => t.id).concat(cachedTasks.map((t) => t.id)),
   )
 
   const tasksToAdd = []
   const taskIdsToRemove = []
   const tasksUpdated = []
 
-  allIds.forEach(id => {
+  allIds.forEach((id) => {
     const task = tasksById[id]
     const cachedTask = cachedTasksById[id]
 
@@ -551,31 +499,47 @@ function computeCacheDifference ({ tasks, cachedTasks }) {
       tasksToAdd.push(task)
     } else if (!task && cachedTask) {
       taskIdsToRemove.push(cachedTask.id)
-    } else if (!_.isEqual(omitTaskMetadata(task), omitTaskMetadata(cachedTask))) {
+    } else if (
+      !_.isEqual(omitTaskMetadata(task), omitTaskMetadata(cachedTask))
+    ) {
       tasksUpdated.push(task)
     }
   })
 
-  const needSync = !!(tasksToAdd.length || taskIdsToRemove.length || tasksUpdated.length)
+  const needSync = !!(
+    tasksToAdd.length ||
+    taskIdsToRemove.length ||
+    tasksUpdated.length
+  )
 
   return {
     tasksToAdd,
     taskIdsToRemove,
     tasksUpdated,
-    needSync
+    needSync,
   }
 }
 
-async function syncCache ({ platformId, env, tasksToAdd, taskIdsToRemove, tasksUpdated }) {
+async function syncCache({
+  platformId,
+  env,
+  tasksToAdd,
+  taskIdsToRemove,
+  tasksUpdated,
+}) {
   await removeSaltanaTask({ platformId, env, taskId: taskIdsToRemove })
   await removeSaltanaTaskExecutionDates({ taskId: taskIdsToRemove })
 
-  await bluebird.map(tasksToAdd.concat(tasksUpdated), (task) => {
-    return setSaltanaTask({ platformId, env, task: omitTaskMetadata(task) })
-  }, { concurrency: 10 })
+  await bluebird.map(
+    tasksToAdd.concat(tasksUpdated),
+    (task) => {
+      return setSaltanaTask({ platformId, env, task: omitTaskMetadata(task) })
+    },
+    { concurrency: 10 },
+  )
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -594,5 +558,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

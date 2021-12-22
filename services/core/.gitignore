@@ -54,3 +54,6 @@ jspm_packages
 artillery_report*.json
 
 .idea/
+
+
+config/local.json

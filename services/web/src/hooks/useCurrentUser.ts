@@ -11,7 +11,7 @@ export default function useCurrentUser() {
 
   const user = currentUser.isFetched ? currentUser.data : null
   if (user) {
-    user.isCreator = user.roles.includes('provider')
+    user.isCreator = user?.roles?.includes('provider')
   }
   return { user }
 }

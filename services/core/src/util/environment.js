@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const config = require('config')
 
-const instanceEnv = config.get("InstanceEnv")
+const instanceEnv = config.get('InstanceEnv')
 
 let environments
 
@@ -11,29 +11,29 @@ let environments
  * e.g. INSTANCE_ENV=test,live => environments = ['test', 'live']
  *      INSTANCE_ENV=staging => environments = ['staging']
  */
-function loadEnvironments () {
+function loadEnvironments() {
   if (environments) return
 
   if (!instanceEnv || typeof instanceEnv !== 'string') {
     environments = []
   } else {
-    environments = _.uniq(_.compact(process.env.INSTANCE_ENV.split(',')))
+    environments = _.uniq(_.compact(instanceEnv.split(',')))
   }
 }
 
-function getDefaultEnvironment () {
+function getDefaultEnvironment() {
   loadEnvironments()
 
   if (environments.length !== 1) return null
   return environments[0]
 }
 
-function isValidEnvironment (env) {
+function isValidEnvironment(env) {
   loadEnvironments()
   return environments.includes(env)
 }
 
-function getEnvironments () {
+function getEnvironments() {
   loadEnvironments()
   return environments
 }
@@ -41,5 +41,5 @@ function getEnvironments () {
 module.exports = {
   getDefaultEnvironment,
   isValidEnvironment,
-  getEnvironments
+  getEnvironments,
 }

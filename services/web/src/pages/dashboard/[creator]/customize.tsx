@@ -86,9 +86,7 @@ function CustomizeCreatorSpace() {
                   Username
                 </label>
                 <div className="mt-1 flex rounded-md shadow-sm">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                    saltana.com/
-                  </span>
+
                   <input
                     type="text"
                     name="username"
@@ -99,6 +97,9 @@ function CustomizeCreatorSpace() {
                     className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300"
                     placeholder="RickAstley"
                   />
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                    .saltana.com/
+                  </span>
                 </div>
               </div>
             </div>
@@ -124,7 +125,32 @@ function CustomizeCreatorSpace() {
 
             <div className="sm:col-span-6">
               <label
-                htmlFor="displayName"
+                htmlFor="metadata.instant.notionDomain"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Notion Domain
+              </label>
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                  https://
+                </span>
+                <input
+                  type="text"
+                  {...register('metadata.instant.notionDomain', {
+                    required: true,
+                  })}
+                  id="metadata.instant.notionDomain"
+                  className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
+                />
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                  .notion.site
+                </span>
+              </div>
+            </div>
+
+            <div className="sm:col-span-6">
+              <label
+                htmlFor="metadata.instant.mainColor"
                 className="block text-sm font-medium text-gray-700"
               >
                 Main color

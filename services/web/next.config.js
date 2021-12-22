@@ -1,9 +1,10 @@
+const withTM = require('next-transpile-modules')(['cruip-js-toolkit'])
+
 const BASE_DOMAIN =
   process.env.BASE_DOMAIN || process.env.VERCEL_URL || 'dev.saltana.com'
 const MARKETING_DOMAIN =
   process.env.MARKETING_DOMAIN || 'landing-g6g19yr3n-saltana.vercel.app'
 
-const CORE_API_URL = process.env.CORE_API_URL || 'http://localhost:4100'
 const MAIN_SITE_HAS_RULES = [
   {
     type: 'host',
@@ -12,7 +13,6 @@ const MAIN_SITE_HAS_RULES = [
 ]
 
 console.log('BASE_DOMAIN', BASE_DOMAIN)
-const path = require('path')
 
 const CREATOR_SPACE_HAS_RULES = [
   // Match only one item
@@ -94,7 +94,7 @@ const CREATOR_SPACE_REWRITES = {
   ],
 }
 
-module.exports = {
+module.exports = withTM({
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -146,4 +146,4 @@ module.exports = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-}
+})

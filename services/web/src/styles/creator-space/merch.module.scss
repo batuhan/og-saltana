@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--merch {
+    &__form {
+      background-color: #ffe4e6;
+      @apply px-10;
+      @apply py-10;
+      @apply rounded;
+    }
+    &__banner {
+      @apply w-full;
+    }
+    &__category__box {
+      @apply bg-red-900;
+      @apply rounded-full;
+      @apply text-white;
+      @apply text-center;
+    }
+    &__rate__box {
+      @apply bg-red-100;
+      @apply w-10;
+      @apply rounded-full;
+      @apply relative;
+      @apply z-10;
+      top: 40px;
+      right: 40px;
+      @apply text-right;
+      @apply px-2;
+    }
+    &__rate__box__text {
+      @apply text-center;
+      @apply text-red-800;
+    }
+    &__fields {
+      input {
+        &:first-child {
+          border: 1px solid #6366f1 !important;
+        }
+      }
+    }
+    &__form__image {
+      @apply rounded-full;
+      @apply ml-2;
+      @apply z-10;
+      @apply absolute;
+      bottom: 90%;
+    }
+    &__form__title {
+      @apply text-3xl;
+      @apply leading-9;
+      @apply font-extrabold;
+      color: #111827;
+    }
+    &__form__description__text {
+      @apply text-sm;
+      @apply leading-6;
+      @apply font-normal;
+      color: #0c4a6e;
+    }
+    &__form__pay__button {
+      @apply w-full;
+      @apply text-center;
+      @apply bg-black;
+      @apply text-white;
+      @apply font-bold;
+      @apply p-2;
+      @apply rounded;
+      @apply mt-3;
+    }
+  }
+}

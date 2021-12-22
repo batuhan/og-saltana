@@ -2,6 +2,7 @@
 
 const Joi = require('joi')
 const Bourne = require('@hapi/bourne')
+const config = require('config')
 
 const {
   getRandomStringRegex,

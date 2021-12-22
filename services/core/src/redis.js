@@ -17,21 +17,18 @@ const dataKeys = [
   'plan',
   'postgresql',
   'sparkpost', // DEPRECATED
-  'version'
+  'version',
 ]
 
 // keys only available in test environment
-const testDataKeys = [
-  'custom',
-  'custom2'
-]
+const testDataKeys = ['custom', 'custom2']
 
 function getRedisConnection() {
   const params = {
     host: config.get('ExternalServices.redis.host'),
     port: config.get('ExternalServices.redis.port'),
     db: config.get('ExternalServices.redis.dbnum'),
-    password: config.get('ExternalServices.redis.password') || undefined
+    password: config.get('ExternalServices.redis.password') || undefined,
   }
 
   const ssl = config.get('ExternalServices.redis.tls') || false
@@ -43,10 +40,7 @@ function getRedisConnection() {
 }
 
 function isCompleteRedisConnection(connection) {
-  const {
-    host,
-    db
-  } = connection
+  const { host, db } = connection
 
   return host && db
 }
@@ -67,7 +61,7 @@ function getRedisClient({ exclusive = false } = {}) {
         client.end(true)
         client = null
       }
-    }
+    },
   })
 
   const newClient = redis.createClient(connection)
@@ -228,24 +222,32 @@ async function setPlatformEnvData(platformId, env, key, data) {
   if (Array.isArray(key)) {
     const redisKeys = _getRedisDataKeys(key, { data, platformId, env })
     // Node-redis expects [key1, data1, key2, data2, …] array
-    const keyDataPairs = _.flatMap(redisKeys, (k, i) => [k, JSON.stringify(data[key[i]])])
+    const keyDataPairs = _.flatMap(redisKeys, (k, i) => [
+      k,
+      JSON.stringify(data[key[i]]),
+    ])
     await client.msetAsync(keyDataPairs)
   } else {
-    await client.setAsync(`data:${platformId}:${env}:${key}`, JSON.stringify(data))
+    await client.setAsync(
+      `data:${platformId}:${env}:${key}`,
+      JSON.stringify(data),
+    )
   }
 }
 
 function _getRedisDataKeys(keys, { data, platformId, env }) {
   const validKeys = dataKeys.concat(isTestEnv ? testDataKeys : [])
   const invalidKeys = _.difference(keys, validKeys)
-  if (invalidKeys.length) throw new Error(`${invalidKeys.join(', ')} do(es) not exist.`)
+  if (invalidKeys.length)
+    throw new Error(`${invalidKeys.join(', ')} do(es) not exist.`)
 
   if (_.isObjectLike(data)) {
     const keysWithNoData = _.difference(keys, Object.keys(data))
-    if (keysWithNoData.length) throw new Error(`Missing data for ${invalidKeys.join(', ')}`)
+    if (keysWithNoData.length)
+      throw new Error(`Missing data for ${invalidKeys.join(', ')}`)
   }
 
-  return keys.map(k => `data:${platformId}:${env}:${k}`)
+  return keys.map((k) => `data:${platformId}:${env}:${k}`)
 }
 
 function _getClient({ platformId, env } = {}) {
@@ -296,7 +298,10 @@ async function getPlatformMetrics(platformId, env) {
 async function setPlatformMetrics(platformId, env, metrics = {}) {
   const client = _getClient({ platformId, env })
 
-  const res = await client.hmsetAsync(`metrics:${platformId}:${env}:keys:objects`, metrics)
+  const res = await client.hmsetAsync(
+    `metrics:${platformId}:${env}:keys:objects`,
+    metrics,
+  )
   return res
 }
 
@@ -310,8 +315,8 @@ async function getAllSaltanaTasks({ platformId, env } = {}) {
   const platformRegex = new RegExp(`"platformId":"${platformId}"`)
   const envRegex = new RegExp(`"env":"${env}"`)
   return _scanAndFilterTasks({
-    filterFn: r =>
-      (!platformId || platformRegex.test(r)) && (!env || envRegex.test(r))
+    filterFn: (r) =>
+      (!platformId || platformRegex.test(r)) && (!env || envRegex.test(r)),
   })
 }
 
@@ -331,7 +336,7 @@ async function setSaltanaTask({ platformId, env, task }) {
   const payload = {
     platformId,
     env,
-    task
+    task,
   }
 
   await client.hsetAsync('saltana_tasks', task.id, JSON.stringify(payload))
@@ -354,8 +359,8 @@ async function removeSaltanaTask({ platformId, env, taskId }) {
     const platformRegex = new RegExp(`"platformId":"${platformId}"`)
     taskIds = await _scanAndFilterTasks({
       client,
-      filterFn: r => platformRegex.test(r),
-      mapFn: t => t.task.id
+      filterFn: (r) => platformRegex.test(r),
+      mapFn: (t) => t.task.id,
     })
   }
 
@@ -376,7 +381,10 @@ async function didSaltanaTaskExecute({ taskId, executionDate }) {
 
   const client = getRedisClient()
 
-  const res = await client.zrankAsync(`saltana_tasks_execution_date:${taskId}`, executionDate)
+  const res = await client.zrankAsync(
+    `saltana_tasks_execution_date:${taskId}`,
+    executionDate,
+  )
   return res !== null
 }
 
@@ -387,7 +395,11 @@ async function didSaltanaTaskExecute({ taskId, executionDate }) {
  * @param {String} executionDate
  * @param {String} [nbSavedDates = 5] - only keep this number of dates to save space
  */
-async function addSaltanaTaskExecutionDate({ taskId, executionDate, nbSavedDates = 5 }) {
+async function addSaltanaTaskExecutionDate({
+  taskId,
+  executionDate,
+  nbSavedDates = 5,
+}) {
   if (!taskId) {
     throw new Error('Expected Task ID')
   }
@@ -412,7 +424,9 @@ async function removeSaltanaTaskExecutionDates({ taskId }) {
   if (!taskId) throw new Error('Expected Task ID(s)')
   const client = getRedisClient()
 
-  const keys = _.flatten([taskId]).map(id => `saltana_tasks_execution_date:${id}`)
+  const keys = _.flatten([taskId]).map(
+    (id) => `saltana_tasks_execution_date:${id}`,
+  )
   if (keys.length) await client.delAsync(keys)
 }
 
@@ -424,7 +438,11 @@ async function removeSaltanaTaskExecutionDates({ taskId }) {
  * @param {Object} [redisClient] - redis client
  * @private
  */
-async function _scanAndFilterTasks({ filterFn = _ => _, mapFn = _ => _, client }) {
+async function _scanAndFilterTasks({
+  filterFn = (_) => _,
+  mapFn = (_) => _,
+  client,
+}) {
   let tasks = []
   const cl = client || getRedisClient()
 
@@ -438,7 +456,7 @@ async function _scanAndFilterTasks({ filterFn = _ => _, mapFn = _ => _, client }
     // probably faster than using JSON.parse
     const platformTasks = results
       // TODO: use idPrefix of task model when migrating task related redis functions to Task plugin.
-      .filter(r => !r.startsWith('task_') && filterFn(r))
+      .filter((r) => !r.startsWith('task_') && filterFn(r))
       .map(JSON.parse)
 
     cursor = parseInt(cursor, 10)
@@ -476,5 +494,5 @@ module.exports = {
 
   didSaltanaTaskExecute,
   addSaltanaTaskExecutionDate,
-  removeSaltanaTaskExecutionDates
+  removeSaltanaTaskExecutionDates,
 }

@@ -11,6 +11,7 @@ const {
   getPgSSLServerCertificate,
   getPgSSLCACertificate,
 } = require('../../connection')
+const { config } = require('process')
 
 const instanceEnv = getEnvironments()[0] || 'test'
 
@@ -305,11 +306,13 @@ test('creates a platform, init and reset databases', async (t) => {
     .send(getPostgresqlConnection({ platformId, env }))
     .expect(200)
 
-  await request(t.context.serverUrl)
-    .put(`/store/platforms/${platformId}/data/${env}/elasticsearch`)
-    .set({ 'x-saltana-system-key': systemKey })
-    .send(getElasticsearchConnection())
-    .expect(200)
+  if (config.get('ExternalServices.elasticsearch.enabled') === true) {
+    await request(t.context.serverUrl)
+      .put(`/store/platforms/${platformId}/data/${env}/elasticsearch`)
+      .set({ 'x-saltana-system-key': systemKey })
+      .send(getElasticsearchConnection())
+      .expect(200)
+  }
 
   await request(t.context.serverUrl)
     .post(`/store/platforms/${platformId}/init`)

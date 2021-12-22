@@ -23,5 +23,5 @@ module.exports = {
     'domain:remove:all',
   ],
 
-  fixtures: require('./test/fixtures'),
+  // fixtures: require('./test/fixtures'),
 }

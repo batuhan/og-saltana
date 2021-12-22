@@ -57,16 +57,21 @@ function start({ communication }) {
   const { COMMUNICATION_ID } = communication
   communicationId = COMMUNICATION_ID
 
-  if (!client) {
-    client = getRedisClient()
-  }
-  if (!redlock) {
-    redlock = new Redlock([client], {
-      retryCount: 3,
-    })
-  }
+  try {
+    if (!client) {
+      client = getRedisClient()
+    }
+    if (!redlock) {
+      redlock = new Redlock([client], {
+        retryCount: 3,
+      })
+    }
 
-  job.start()
+    job.start()
+  } catch (error) {
+    console.error('Error from redis client generation', error)
+    throw Error("Can't check ElasticSearch reindex; Redis connection error")
+  }
 }
 
 function stop() {

@@ -19,7 +19,7 @@ const log = Logger('CheckoutForm')
 
 function WhoAmI() {
   const { user } = useCurrentUser()
-  return <div>You are logged in as {user.email} Click here to logout</div>
+  return <div>You are logged in as {user?.email} Click here to logout</div>
 }
 const PaymentStatus = ({
   status,

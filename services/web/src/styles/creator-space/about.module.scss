@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--about {
+    background-color: #e0f2fe;
+    &__banner {
+      @apply md:px-10;
+      @apply lg:py-7;
+      @apply lg:px-0;
+    }
+    &__image {
+      @apply w-full;
+    }
+    &__image__caption {
+      @apply flex;
+      @apply justify-between;
+      @apply rounded-b-2xl;
+      @apply p-3;
+      background-color: #f0f9ff;
+      color: #0284c7;
+      @apply text-sm;
+    }
+    &__text {
+      @apply text-sm;
+      @apply xl:py-20;
+      @apply lg:py-16;
+      @apply lg:px-8;
+      @apply md:py-12;
+      @apply md:px-10;
+      color: #0c4a6e;
+    }
+    &__title {
+      @apply text-3xl;
+      @apply leading-8;
+      @apply font-extrabold;
+      @apply tracking-tight;
+    }
+    &__socialmedia {
+      @apply flex;
+    }
+  }
+}

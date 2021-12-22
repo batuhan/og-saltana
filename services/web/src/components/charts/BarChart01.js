@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react'
-import { focusHandling } from 'cruip-js-toolkit'
+import { focusHandling } from 'cruip-js-toolkit/lib/focusHandling'
 
 import {
   Chart,

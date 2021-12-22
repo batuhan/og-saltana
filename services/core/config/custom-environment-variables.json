@@ -22,11 +22,14 @@
     "ignored": "CORE_IGNORED_LOCAL_PLUGINS",
     "installed": "CORE_INSTALLED_PLUGINS"
   },
+  "LocalEnv": {
+    "instantData": "CORE_EXPLICITLY_ENABLE_INSTANT_DATA"
+  },
   "ExternalServices": {
     "pgsql": {
       "host": "POSTGRES_HOST",
       "port": "POSTGRES_PORT",
-      "username": "POSTGRES_USER",
+      "user": "POSTGRES_USER",
       "password": "POSTGRES_PASSWORD",
       "database": "POSTGRES_DB",
       "timescaleEnabled": "POSTGRES_TIMESCALE_ENABLED",
@@ -48,6 +51,7 @@
       "apiKey": "CLERK_API_KEY"
     },
     "elasticsearch": {
+      "enabled": "ELASTIC_SEARCH_ENABLED",
       "host": "ELASTIC_SEARCH_HOST",
       "protocol": "ELASTIC_SEARCH_PROTOCOL",
       "port": "ELASTIC_SEARCH_PORT",

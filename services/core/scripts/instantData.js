@@ -1,12 +1,15 @@
 const test = require('ava')
 const request = require('supertest')
+const config = require('config')
 
 const { before, beforeEach, after } = require('../test/lifecycle')
 const { getAccessTokenHeaders } = require('../test/auth')
 
-const seedData = process.env.INSTANT_DATA === 'true'
+const seedData = config.get('LocalEnv.instantData') === 'true'
 
-// only trigger lifecycle methods if INSTANT_DATA is true
+console.log('Seed data is', seedData)
+
+// only trigger lifecycle methods if CORE_EXPLICITLY_ENABLE_INSTANT_DATA is true
 if (seedData) {
   test.before(
     before({

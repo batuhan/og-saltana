@@ -11,7 +11,10 @@ const CreatorSpaceShell = ({ children, mode = 'withLayout' }) => {
 
   return (
     <>
-      <NextSeo title={title} />
+      <NextSeo
+        title={undefined}
+        defaultTitle={title}
+        titleTemplate={`%s - ${title}`} />
       {showLayout ? (
         <section className="text-black ">
           <div className="container items-center px-5 py-8 mx-auto">

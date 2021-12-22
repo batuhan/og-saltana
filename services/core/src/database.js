@@ -1,11 +1,12 @@
 const bluebird = require('bluebird')
 const Knex = require('knex')
+const config = require('config')
 
 // Proper migration would be needed to update PostgreSQL function name
 const jsonDeepMergeDef = require('../migrations/util/stl_jsonb_deep_merge')
 
-async function existColumns (knex, tableName, columns) {
-  const mapExist = await bluebird.map(columns, column => {
+async function existColumns(knex, tableName, columns) {
+  const mapExist = await bluebird.map(columns, (column) => {
     return knex.schema.hasColumn(tableName, column)
   })
 
@@ -15,12 +16,12 @@ async function existColumns (knex, tableName, columns) {
   }, {})
 }
 
-async function dropColumnsIfExist (knex, tableName, columns) {
+async function dropColumnsIfExist(knex, tableName, columns) {
   if (!Array.isArray(columns)) {
     columns = [columns]
   }
 
-  const mapExist = await bluebird.map(columns, column => {
+  const mapExist = await bluebird.map(columns, (column) => {
     return knex.schema.hasColumn(tableName, column)
   })
 
@@ -33,8 +34,8 @@ async function dropColumnsIfExist (knex, tableName, columns) {
 
   if (!columnsToDrop.length) return
 
-  await knex.schema.alterTable(tableName, table => {
-    columnsToDrop.forEach(column => {
+  await knex.schema.alterTable(tableName, (table) => {
+    columnsToDrop.forEach((column) => {
       table.dropColumn(column)
     })
   })
@@ -47,12 +48,16 @@ async function dropColumnsIfExist (knex, tableName, columns) {
  * @param {String}  [returnKnex = false] - if true, knex is returned so it can be reused
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
-async function createSchema ({ connection, schema, knex, returnKnex = false }) {
+async function createSchema({ connection, schema, knex, returnKnex = false }) {
   if (!knex) knex = getKnex({ connection, schema })
 
-  const adminUser = process.env.POSTGRES_ADMIN_USER || 'postgres'
+  const adminUser = config.get('ExternalServices.pgsql.adminUser') || 'postgres'
 
-  await knex.raw('CREATE SCHEMA IF NOT EXISTS ?? AUTHORIZATION ??', [schema, adminUser])
+  // await knex.raw('CREATE SCHEMA IF NOT EXISTS ?? AUTHORIZATION ??', [
+  //   schema,
+  //   adminUser,
+  // ])
+  await knex.raw('CREATE SCHEMA IF NOT EXISTS ??', [schema])
 
   if (returnKnex) {
     await knex.destroy()
@@ -69,7 +74,13 @@ async function createSchema ({ connection, schema, knex, returnKnex = false }) {
  * @param {String}  [returnKnex = false] - if true, knex is returned so it can be reused
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
-async function dropSchema ({ connection, schema, knex, cascade = false, returnKnex = false }) {
+async function dropSchema({
+  connection,
+  schema,
+  knex,
+  cascade = false,
+  returnKnex = false,
+}) {
   if (!knex) knex = getKnex({ connection, schema })
 
   let sqlQuery = 'DROP SCHEMA IF EXISTS ??'
@@ -96,10 +107,16 @@ async function dropSchema ({ connection, schema, knex, cascade = false, returnKn
  * @param {String}  [returnKnex = false] - if true, knex is returned so it can be reused
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
-async function dropSchemaViews ({ connection, schema, knex, returnKnex = false }) {
+async function dropSchemaViews({
+  connection,
+  schema,
+  knex,
+  returnKnex = false,
+}) {
   if (!knex) knex = getKnex({ connection, schema })
 
-  const viewsQuery = 'SELECT table_name FROM INFORMATION_SCHEMA.views WHERE table_schema = ?'
+  const viewsQuery =
+    'SELECT table_name FROM INFORMATION_SCHEMA.views WHERE table_schema = ?'
 
   const { rows } = await knex.raw(viewsQuery, [schema])
   const views = rows.map(({ table_name }) => table_name) // eslint-disable-line camelcase
@@ -121,12 +138,12 @@ async function dropSchemaViews ({ connection, schema, knex, returnKnex = false }
   }
 }
 
-function getKnex ({ connection, schema }) {
+function getKnex({ connection, schema }) {
   const params = {
     client: 'pg',
     useNullAsDefault: true,
     connection,
-    searchPath: [schema]
+    searchPath: [schema],
   }
 
   return Knex(params)
@@ -146,5 +163,5 @@ module.exports = {
 
   dropSchemaViews,
 
-  mergeFunctionName
+  mergeFunctionName,
 }

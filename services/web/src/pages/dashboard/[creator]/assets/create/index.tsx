@@ -6,12 +6,7 @@ import { useRouter } from 'next/router'
 import getServerSidePropsForCreatorDashboardPages from '@/server/getServerSidePropsForCreatorDashboardPages'
 import CreatorDashboardAssetsLayout from 'components/Dashboard/Creator/Assets/Layout'
 import useApiMutation from 'hooks/useApiMutation'
-import CreatorSlugField from 'components/Dashboard/Common/Inputs/CreatorPageSlug'
 import useCreatorSpace from 'hooks/useCreatorSpace'
-
-import AssetPriceField from 'components/Dashboard/Creator/Fields/AssetPriceField'
-import AssetTypeSelector from 'components/Dashboard/Creator/Fields/AssetTypeSelector'
-import AssetCategorySelector from 'components/Dashboard/Creator/Fields/AssetCategorySelector'
 import classNames from '@/common/classnames'
 import GenericFormFieldError from 'components/GenericFormFieldError'
 
@@ -54,94 +49,35 @@ export default function CreatorDashboardCreateAsset(props) {
                 your new
               </p>
             </div>
-
-            <>
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Name
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    {...register('name', {
-                      required: true,
-                    })}
-                    id="name"
-                    className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
-                  />
-                </div>
-                <GenericFormFieldError errors={errors} fieldName="name" />
-
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Name
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  {...register('name', {
+                    required: true,
+                  })}
+                  id="name"
+                  className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
+                />
               </div>
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Describe your asset with one or two sentences
-                </label>
-                <div className="mt-1">
-                  <textarea
-                    id="description"
-                    {...register('description', {
-                      required: true,
-                    })}
-                    rows={3}
-                    className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border border-gray-300 rounded-md"
-                    defaultValue=""
-                  />
-                </div>
-                <GenericFormFieldError errors={errors} fieldName="name" />
+              <GenericFormFieldError errors={errors} fieldName="name" />
 
-              </div>
-              {/* <div>
-                <label
-                  htmlFor="categoryId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  categoryId
-                </label>
-                <div className="mt-1">
-
-                  <AssetCategorySelector
-                    register={register}
-                    control={control}
-                    setValue={setValue}
-                    FIELD_NAME='categoryId'
-                  />
-                </div>
-                <GenericFormFieldError errors={errors} fieldName="categoryId" />
-
-              </div> */}
-              <div>
-                {/* <label
-                  htmlFor="assetTypeId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  assetTypeId
-                </label> */}
-                <div className="mt-1">
-                  <AssetTypeSelector
-                    register={register}
-                    control={control}
-                    setValue={setValue}
-                    FIELD_NAME='assetTypeId'
-                  />
-                </div>
-                <GenericFormFieldError errors={errors} fieldName="assetTypeId" />
-
-              </div>
-              <div>
-
-              </div>
-              <AssetPriceField register={register}
-                priceFieldName={'price'}
-                currencyFieldName={'currency'} />
-            </>
+            </div>
+            <CreatorDashboardCreateAsset form={{
+              register,
+              handleSubmit,
+              control,
+              setValue,
+              formState: { errors, isSubmitting },
+            }} />
             <div>Deliverables for this asset can be added in the next page.</div>
+
             <div className="flex justify-end bg-black">
               <button
                 type="submit"
@@ -157,7 +93,7 @@ export default function CreatorDashboardCreateAsset(props) {
           </div>
         </form>
       </main>
-    </CreatorDashboardAssetsLayout>
+    </CreatorDashboardAssetsLayout >
   )
 }
 

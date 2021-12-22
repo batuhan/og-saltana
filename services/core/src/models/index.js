@@ -1,12 +1,27 @@
 const _ = require('lodash')
 const { raw } = require('@saltana/objection')
 const pg = require('pg')
+const fs = require('fs')
+const path = require('path')
 const { extractDataFromObjectId } = require('@saltana/util-keys')
 
 const pgConfig = require('config').get('ExternalServices.pgsql')
 
 const { getKnex } = require('./util')
 const { mergeFunctionName } = require('../database')
+
+const _cachedCAs = {}
+function getCA(fileName) {
+  if (_cachedCAs[fileName]) {
+    return _cachedCAs[fileName]
+  }
+
+  const ca = fs.readFileSync(
+    path.resolve(__dirname, '../..', 'trusted-certs', fileName),
+  )
+  _cachedCAs[fileName] = ca
+  return ca
+}
 
 const models = {
   ApiKey: require('./ApiKey'),
@@ -128,17 +143,13 @@ async function getConnection({ platformId, env } = {}) {
     schema: _schema,
   }
 
-  const enableSsl = pgConfig.get('ssl.enabled')
-
   const schema = _schema
 
-  if (enableSsl) {
-    connection.ssl = getSSLOptions({
-      ssl: true,
-      sslcert: pgConfig.get('ssl.sslcert'),
-      sslkey: pgConfig.get('ssl.sslkey'),
-      sslca: pgConfig.get('ssl.sslca'),
-    })
+  if (pgConfig.has('ssl.ca')) {
+    const ca = getCA(pgConfig.get('ssl.ca'))
+    connection.ssl = { ca }
+  } else {
+    connection.ssl = !!pgConfig.get('ssl.enabled')
   }
 
   return {

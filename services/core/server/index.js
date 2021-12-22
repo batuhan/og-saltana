@@ -814,26 +814,21 @@ let stl // keeping track of server (last one if several were started)
 
 /**
  * @param {Boolean} [enableSignal = true] - has an impact on performance and can be disabled
- * @param {Boolean} [useFreePort = false] - if true, will find a free port by itself
  * @param {String}  [communicationEnv] - sets an environment for communication between services (useful for testing)
  */
-function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
+function start({ enableSignal = true, communicationEnv } = {}) {
   return new Promise((resolve, reject) => {
     const server = loadServer()
     stl = server
 
+    debug('getting server ready')
     if (communicationEnv) {
       communication.setEnvironment(communicationEnv)
     }
+    debug('getting server ready communicationEnv %s', communicationEnv)
 
     let app
     let saltanaIO
-
-    if (useFreePort) {
-      app = server.listen(onStarted)
-    } else {
-      app = server.listen(config.get('Cote.port'), onStarted)
-    }
 
     function onStarted(err) {
       if (err) return reject(err)
@@ -848,12 +843,19 @@ function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
       communication.setServerPort(serverPort)
 
       const startParams = { ...saltanaTooling, serverPort, saltanaIO }
-
-      auth.start(startParams)
-      services.start(startParams)
-      middlewares.start(startParams)
-      routes.start(startParams)
-      crons.start(startParams)
+      try {
+        auth.start(startParams)
+        services.start(startParams)
+        middlewares.start(startParams)
+        routes.start(startParams)
+        crons.start(startParams)
+      } catch (serviceStartError) {
+        logError(serviceStartError, {
+          message:
+            "Some services couldn't be started, check errors. Destroying this process.",
+        })
+        process.exit(1)
+      }
 
       configRequester = communication.getRequester({
         name: 'Config requester',
@@ -874,8 +876,10 @@ function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
 
       debug('%s listening at %s', server.name, server.url)
 
-      resolve(server)
+      return resolve(server)
     }
+
+    app = server.listen(config.get('Cote.port'), onStarted)
   })
 }
 

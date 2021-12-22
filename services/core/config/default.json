@@ -6,7 +6,7 @@
   "DebugEnabled": true,
   "DebugEmails": "batuhan@saltana.com",
   "InstanceId": "default",
-  "InstanceEnv": "staging,dev",
+  "InstanceEnv": "staging,dev,live",
   "Public": {
     "api": {
       "host": "dev.saltana.com"
@@ -20,9 +20,9 @@
   },
   "ExternalServices": {
     "pgsql": {
-      "host": "164.90.174.135",
+      "host": "127.0.0.1",
       "port": "6543",
-      "username": "user",
+      "user": "user",
       "password": "password",
       "database": "saltana-core",
       "schema": "public",
@@ -30,14 +30,12 @@
         "enabled": false
       },
       "ssl": {
-        "enabled": false,
-        "cert": "",
-        "key": "",
-        "ca": ""
+        "enabled": false
       },
       "adminUser": "postgres"
     },
     "elasticsearch": {
+      "enabled": false,
       "host": "164.90.174.135",
       "protocol": "http",
       "port": 9200,
@@ -55,9 +53,9 @@
       "paymentDescription": "SALTANAHQ"
     },
     "redis": {
-      "host": "164.90.174.135",
+      "host": "127.0.0.1",
       "port": 36379,
-      "dbnum": 0,
+      "dbnum": "0",
       "password": "",
       "tls": false
     },

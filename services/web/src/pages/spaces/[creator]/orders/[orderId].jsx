@@ -1,6 +1,6 @@
 import * as React from 'react'
 import CreatorSpaceShell from 'components/CreatorSpace/Shell'
-import AuthRequiredShell from 'components/CreatorSpace/AuthRequiredShell'
+import AuthRequiredShell from 'components/AuthRequiredShell'
 import getStaticPropsForCreatorSpacePages from '@/server/getStaticPropsForCreatorSpacePages'
 import { useRouter } from 'next/router'
 import useCurrentUser from 'hooks/useCurrentUser'

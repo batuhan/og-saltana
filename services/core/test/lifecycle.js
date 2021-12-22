@@ -4,6 +4,7 @@ process.env.ELASTIC_APM_DISABLED = true
 
 const bluebird = require('bluebird')
 const _ = require('lodash')
+const config = require('config')
 
 const request = require('superagent')
 const debug = require('debug')('saltana:test')
@@ -32,14 +33,14 @@ function getDataFixtures(env) {
   const plugins = getPlugins()
 
   let fixtures
-  if (process.env.INSTANT_DATA === 'true') {
+  if (config.get('LocalEnv.instantData')) {
     fixtures = { ...getInstantData(env) }
   } else {
     fixtures = { ...data }
   }
 
   plugins.forEach((plugin) => {
-    if (plugin.fixtures && process.env.INSTANT_DATA !== 'true') {
+    if (plugin.fixtures && config.get('LocalEnv.instantData') !== 'true') {
       Object.keys(plugin.fixtures).forEach((modelName) => {
         const models = plugin.fixtures[modelName]
         fixtures[modelName] = (fixtures[modelName] || []).concat(models)
@@ -56,7 +57,6 @@ async function dropTestPlatforms() {
   const { serverUrl } = await createServer({ enableSignal: false })
 
   const systemKey = getSystemKey()
-
   const { body: platformIds } = await request
     .get(`${serverUrl}/store/platforms`)
     .set(getAuthorizationHeaders({ systemKey }))
@@ -160,23 +160,6 @@ function before({
   return fn
 }
 
-function beforeEach({ minimumFixtures = false } = {}) {
-  const fn = async (t) => {
-    const { platformId } = t.context
-
-    for (const env of testingEnvs) {
-      await startPlatformDatabases({
-        platformId,
-        env,
-        serverUrl: t.context.serverUrl,
-        minimumFixtures,
-      })
-    }
-  }
-
-  return fn
-}
-
 async function startPlatformDatabases({
   serverUrl,
   platformId,
@@ -204,6 +187,25 @@ async function startPlatformDatabases({
   await database.createFixture({ platformId, env, connection, data: fixtures })
 
   await elasticsearch.init({ platformId, env })
+}
+
+function beforeEach({ minimumFixtures = false } = {}) {
+  const fn = async (t) => {
+    const { platformId } = t.context
+
+    await Promise.all(
+      testingEnvs.map((env) =>
+        startPlatformDatabases({
+          platformId,
+          env,
+          serverUrl: t.context.serverUrl,
+          minimumFixtures,
+        }),
+      ),
+    )
+  }
+
+  return fn
 }
 
 function after() {
@@ -276,14 +278,21 @@ async function stopServer(server) {
 // use endpoints to set databases credentials and some other settings
 // this is to check if platforms are correctly initialized
 async function initSettings({ serverUrl, platformId, env, systemKey }) {
+  // eslint-disable-next-line no-underscore-dangle
+  const _dataForPlatform = {
+    postgresql: getPostgresqlConnection({ platformId, env }),
+    auth: getAuthenticationSettings(),
+  }
+
+  const esEnabled = config.get('ExternalServices.elasticsearch.enabled')
+
+  if (esEnabled) {
+    _dataForPlatform.elasticsearch = getElasticsearchConnection()
+  }
   await request
     .put(`${serverUrl}/store/platforms/${platformId}/data/${env}`)
     .set(getAuthorizationHeaders({ systemKey }))
-    .send({
-      postgresql: getPostgresqlConnection({ platformId, env }),
-      elasticsearch: getElasticsearchConnection(),
-      auth: getAuthenticationSettings(),
-    })
+    .send(_dataForPlatform)
 }
 
 function handleDropDatabaseError(err) {

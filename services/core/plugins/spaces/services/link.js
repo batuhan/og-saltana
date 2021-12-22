@@ -118,6 +118,25 @@ module.exports = function createService(deps) {
       })
       .catch(handleRemoteNotFoundError)
     if (!doc || doc.type !== 'link') {
+      console.log('dsf', req.linkId)
+
+      if (req.linkId === 'index') {
+        return {
+          id: req.linkId,
+          createdDate: null,
+          updatedDate: null,
+          slug: 'index',
+          ownerId: null,
+          name: null,
+          linkType: 'emptyIndex',
+          destination: null,
+          content: null,
+          accessType: null,
+          assetIds: null,
+          metadata: {},
+          platformData: {},
+        }
+      }
       throw createError(404)
     }
 

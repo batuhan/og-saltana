@@ -20,8 +20,8 @@ module.exports = {
     'link:edit',
     'link:edit:all',
     'link:remove',
-    'link:remove:all'
+    'link:remove:all',
   ],
 
-  fixtures: require('./test/fixtures')
+  // fixtures: require('./test/fixtures')
 }

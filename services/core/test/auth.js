@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const request = require('supertest')
+const config = require('config')
 
 const defaultUserId = 'usr_QVQfQps1I3a1gJYz2I3a'
 
@@ -75,7 +76,7 @@ async function refreshAccessToken(
 }
 
 function getSystemKey() {
-  return process.env.SYSTEM_KEY
+  return config.get('SystemKey')
 }
 
 async function getApiKey({

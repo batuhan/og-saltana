@@ -29,16 +29,18 @@ test('checks objectId is valid', async (t) => {
 
   for (let i = 0; i < 1000; i++) {
     const platformId = getRandomPlatformId()
+    const id = await getObjectId({
+      prefix,
+      platformId,
+    })
+
     t.true(
       isValidObjectId({
-        id: await getObjectId({
-          prefix,
-          platformId,
-        }),
+        id,
         prefix,
         platformId,
         unitTest: true, // testing real platformIds despite NODE_ENV being test
-      })
+      }),
     )
     t.false(isValidObjectId(Uuid.v4()))
   }
@@ -48,7 +50,7 @@ test('checks objectId is valid', async (t) => {
       // randomString faking objectId without encoded platformId required
       id: await getRandomString(objectIdLength, { prefix, separator: '_' }),
       prefix,
-    })
+    }),
   )
 
   t.false(
@@ -59,7 +61,7 @@ test('checks objectId is valid', async (t) => {
           platformId: getRandomPlatformId(),
         })) + 'A', // expected length + 1
       prefix,
-    })
+    }),
   )
 
   t.false(
@@ -71,7 +73,7 @@ test('checks objectId is valid', async (t) => {
         })
       ).slice(1), // expected length - 1
       prefix,
-    })
+    }),
   )
 
   t.false(
@@ -85,7 +87,7 @@ test('checks objectId is valid', async (t) => {
           })
         ).slice(3), // change prefix
       prefix,
-    })
+    }),
   )
 
   t.false(isValidObjectId(true))

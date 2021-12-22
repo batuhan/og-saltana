@@ -131,6 +131,7 @@ function Stats() {
     </dl>
   )
 }
+
 function AssetTable({ assets }) {
   return (
     <div className="relative h-screen flex overflow-hidden bg-white">
@@ -138,7 +139,7 @@ function AssetTable({ assets }) {
         <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
           <div className="px-4 mt-6 sm:px-6 lg:px-8">
             <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
-              Pinned Projects
+              Summary
             </h2>
             <Stats />
           </div>
@@ -465,16 +466,6 @@ export const CreatorDashboardAssets = () => {
     </CreatorDashboardAssetsLink>}>
       <NextSeo title="Assets" />
 
-      <div className="max-w-7xl mx-auto pb-16 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-          Assets
-        </h1>
-        <p className="mt-4 max-w-xl text-sm text-gray-700">
-          Our thoughtfully designed workspace objects are crafted in limited
-          runs. Improve your productivity and organization with these sale items
-          before we run out.
-        </p>
-      </div>
       {assetsQuery.data ? (
         <AssetTable assets={assetsQuery.data} />
       ) : (

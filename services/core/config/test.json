@@ -1,7 +1,7 @@
 {
   "Env": "test",
   "InstanceId": "test",
-  "InstanceEnv": "test",
+  "InstanceEnv": "test,live",
   "Cote": {
     "logging": false
   }
