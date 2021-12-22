@@ -4,17 +4,9 @@
 name: Run tests
 on:
   push:
-    paths:
-      - ./services/core/**
-      - ./.github/workflows/**
-      - ./packages/**
     branches:
       - '**'
   pull_request:
-    paths:
-      - ./services/core/**
-      - .github/workflows/**
-      - ./packages/**
     branches:
       - '**'
 
@@ -36,4 +28,5 @@ jobs:
           cache: 'yarn'
       - run: yarn
       - run: yarn bootstrap
-      - run: cd ./services/core && test:ci:unit
+      - run: cd ./services/core && yarn devdeps:up
+      - run: cd ./services/core && yarn test:ci:unit
