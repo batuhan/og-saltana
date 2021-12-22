@@ -42,5 +42,8 @@ module.exports = () => ({
   files,
   serial: false,
   cache: false,
+  failFast: true,
   timeout: '30s',
+  verbose: true,
+  nodeArguments: ['--trace-deprecation', '--trace-warnings', '--napi-modules'],
 })

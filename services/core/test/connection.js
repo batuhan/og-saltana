@@ -75,11 +75,11 @@ function getElasticsearchConnection() {
   }
 
   return {
-    host: process.env.ELASTIC_SEARCH_HOST,
-    protocol: process.env.ELASTIC_SEARCH_PROTOCOL,
-    user: process.env.ELASTIC_SEARCH_USER,
-    password: process.env.ELASTIC_SEARCH_PASSWORD,
-    port: process.env.ELASTIC_SEARCH_PORT,
+    host: esConfig.get('host'),
+    protocol: esConfig.get('protocol'),
+    user: esConfig.get('user'),
+    password: esConfig.get('password'),
+    port: esConfig.get('port'),
   }
 }
 

@@ -1,6 +1,7 @@
 const test = require('ava')
 const request = require('supertest')
 const config = require('config')
+const debug = require('debug')('saltana:instantData')
 
 const { before, beforeEach, after } = require('../test/lifecycle')
 const { getAccessTokenHeaders } = require('../test/auth')
@@ -35,6 +36,7 @@ test('initializing data', async (t) => {
       'apiKey:create:all', // needed to "reveal" the secret key
     ],
   })
+  debugger
 
   const {
     body: { results: apiKeys },
@@ -42,6 +44,7 @@ test('initializing data', async (t) => {
     .get('/api-keys?reveal=1')
     .set(authorizationHeaders)
     .expect(200)
+  debugger
 
   const secretApiKey = apiKeys.find((apiKey) => apiKey.key.startsWith('seck'))
   const publishableApiKey = apiKeys.find((apiKey) =>

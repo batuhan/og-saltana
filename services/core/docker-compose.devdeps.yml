@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  redis:
+    extends:
+      file: ../redis/docker-compose.yml
+      service: redis
+    volumes:
+      - redis-v5.0.1-devdata:/data
+  pgsql:
+    extends:
+      file: ../timescaledb/docker-compose.yml
+      service: postgresql
+    volumes:
+      - timescaledb-v1.7.1-pg12-devdata:/var/lib/postgresql/data/pgdata
+  es:
+    extends:
+      file: ../elasticsearch/docker-compose.dev.yml
+      service: elasticsearch
+    volumes:
+      - es-v7.3.2-devdata:/usr/share/elasticsearch/data
+
+volumes:
+  timescaledb-v1.7.1-pg12-devdata:
+  es-v7.3.2-devdata:
+  redis-v5.0.1-devdata:

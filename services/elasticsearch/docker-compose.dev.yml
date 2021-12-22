@@ -14,8 +14,8 @@ services:
       # If `xpack.security.enabled` is omitted or false, Elasticsearch won't verify the sent credentials
       # https://www.elastic.co/guide/en/elasticsearch/reference/current/security-settings.html#general-security-settings
       # https://www.elastic.co/guide/en/elasticsearch/reference/current/built-in-users.html
-      - xpack.security.enabled=true
-      - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
+      - xpack.security.enabled=false
+      - ELASTIC_PASSWORD="${ELASTIC_SEARCH_PASSWORD:-elastic_password}"
     volumes:
       - es-v7.3.2-data:/usr/share/elasticsearch/data
 

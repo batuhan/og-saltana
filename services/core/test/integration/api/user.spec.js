@@ -19,7 +19,11 @@ const {
 const { encodeBase64 } = require('../../../src/util/encoding')
 
 test.before(async (t) => {
-  await before({ name: 'user' })(t)
+  try {
+    await before({ name: 'user' })(t)
+  } catch (err) {
+    debugger
+  }
   await beforeEach()(t)
 })
 // test.beforeEach(beforeEach()) // Concurrent tests are much faster

@@ -3,6 +3,6 @@
   "InstanceId": "test",
   "InstanceEnv": "test,live",
   "Cote": {
-    "logging": false
+    "logging": true
   }
 }

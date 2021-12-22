@@ -413,6 +413,8 @@ function checkPermissions(
           organizationId = getOrganizationIdFn(req)
         }
 
+        debugger
+
         console.log('organizationId', organizationId)
         if (organizationId !== null && organizationId !== undefined) {
           if (!userId) {
@@ -487,6 +489,7 @@ function checkPermissions(
         })
       }
 
+      debugger
       const {
         roles,
         arrayPermissions,
@@ -540,6 +543,7 @@ function checkPermissions(
 
       next()
     } catch (err) {
+      debugger
       next(err)
     } finally {
       apmSpan && apmSpan.end()

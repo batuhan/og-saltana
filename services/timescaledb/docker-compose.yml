@@ -10,9 +10,9 @@ services:
       - '4101:5432'
     command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: '${POSTGRES_DB:-saltana_core}'
+      POSTGRES_USER: '${POSTGRES_USER:-user}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-password}'
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - timescaledb-v1.7.1-pg12-data:/var/lib/postgresql/data/pgdata

@@ -10,8 +10,8 @@ services:
       - esmaxdays=15
   elasticsearch:
     build:
-      context: "."
-      dockerfile: Dockerfile.elasticsearch
+      context: '.'
+      dockerfile: Dockerfile
     environment:
       - http.host=0.0.0.0
       - transport.host=localhost

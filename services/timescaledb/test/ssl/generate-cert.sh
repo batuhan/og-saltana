@@ -33,4 +33,4 @@ openssl req -new -key ${BASEDIR}/server.key -out ${BASEDIR}/server.csr -config $
 openssl x509 -req -sha256 -days 365 -in ${BASEDIR}/server.csr -CA ${BASEDIR}/rootCA.crt -CAkey ${BASEDIR}/rootCA.key -CAcreateserial -out ${BASEDIR}/server.crt -extensions req_ext -extfile ${BASEDIR}/openssl.conf
 
 rm ${BASEDIR}/server.csr
-rm ${BASEDIR}/server.srl
+rm ${BASEDIR}/rootCA.srl

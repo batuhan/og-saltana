@@ -1,12 +1,12 @@
 {
   "Env": "dev",
   "SystemKey": "system",
-  "SystemHashFnPassphrase": "SYSTEM_HASH_FUNCTION_PASSPHRASE",
+  "SystemHashFnPassphrase": "secret",
   "ApiSecretKey": "seck_test_wakWA41rBTUXs1Y5oNRjeY5o",
   "DebugEnabled": true,
   "DebugEmails": "batuhan@saltana.com",
   "InstanceId": "default",
-  "InstanceEnv": "staging,dev,live",
+  "InstanceEnv": "test,live",
   "Public": {
     "api": {
       "host": "dev.saltana.com"
@@ -21,30 +21,31 @@
   "ExternalServices": {
     "pgsql": {
       "host": "127.0.0.1",
-      "port": "6543",
+      "port": 4101,
       "user": "user",
       "password": "password",
-      "database": "saltana-core",
+      "database": "saltana_core",
       "schema": "public",
       "timescale": {
-        "enabled": false
+        "enabled": true
       },
       "ssl": {
-        "enabled": false
+        "enabled": true,
+        "ca": "devdb-in-repo.crt"
       },
       "adminUser": "postgres"
     },
     "elasticsearch": {
       "enabled": false,
-      "host": "164.90.174.135",
+      "host": "127.0.0.1",
       "protocol": "http",
       "port": 9200,
       "user": "elastic",
       "password": "elastic_password",
       "apm": {
         "enabled": false,
-        "serverUrl": "",
-        "secretToken": ""
+        "serverUrl": "http://localhost:8200",
+        "secretToken": "xxVpmQB2HMzCL9PgBHVrnxjNXXw5J7bd79DFm6sjBJR5HPXDhcF8MSb3vv4bpg44"
       }
     },
     "stripe": {

@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "apm": "COMPOSE_PROJECT_NAME=saltana_monitoring docker-compose -f docker-compose.monitoring.yml",
+    "apm:up": "yarn run apm up -d",
+    "es": "COMPOSE_PROJECT_NAME=saltana_es docker-compose -f docker-compose.dev.yml",
+    "es:up": "yarn run es up -d"
+  }
+}

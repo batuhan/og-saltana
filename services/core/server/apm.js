@@ -1,12 +1,14 @@
 const apm = require('elastic-apm-node')
 const _ = require('lodash')
+const config = require('config')
 
 const { getCurrentUserId } = require('../src/util/user')
 const { isSystem } = require('../src/auth')
 
-const serverUrl = process.env.ELASTIC_APM_SERVER_URL
-const secretToken = process.env.ELASTIC_APM_SECRET_TOKEN
-const isDisabled = process.env.ELASTIC_APM_DISABLED // generally, we don't want APM to send metrics during tests
+const serverUrl = config.get('ExternalServices.elasticsearch.apm.serverUrl')
+const secretToken = config.get('ExternalServices.elasticsearch.apm.secretToken')
+const isDisabled =
+  config.get('ExternalServices.elasticsearch.apm.enabled') === false // generally, we don't want APM to send metrics during tests
 
 const isActive = !isDisabled && !!serverUrl
 
@@ -114,7 +116,7 @@ function getLabelsFromRequest(req) {
     userId: getCurrentUserId(req),
     isSystem: isSystem(req._systemHash),
     requestId: req._requestId,
-    instanceId: process.env.INSTANCE_ID,
+    instanceId: config.get('InstanceId'),
   })
 }
 

@@ -43,6 +43,7 @@
     "typescriptreact": "javascript"
   },
   "tailwindCSS.lint.cssConflict": "ignore",
+  "avaExplorer.cwd": "./services/core",
   "files.exclude": {
     "**/logs": true,
     "**/*.log": true,

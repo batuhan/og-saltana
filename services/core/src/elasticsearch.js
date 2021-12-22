@@ -1,25 +1,8 @@
-module.exports = {
-  getClient,
-  isReady,
-
-  isIndexExisting,
-  createIndex,
-  deleteIndex,
-  getIndex,
-  getListIndices,
-  getCurrentIndex,
-
-  getMapping,
-  updateMapping,
-
-  getErrorType,
-}
-
 // Elasticsearch Node.js API: https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html
 const { Client } = require('@elastic/elasticsearch')
 const createError = require('http-errors')
 const _ = require('lodash')
-
+const esConfig = require('config').get('ExternalServices.elasticsearch')
 const { getPlatformEnvData } = require('./redis')
 const {
   autoExpandReplicas,
@@ -79,19 +62,20 @@ async function getClient({ platformId, env } = {}) {
   if (!env) {
     throw new Error('Missing environment when creating an Elasticsearch client')
   }
+  if (esConfig.get('enabled') === false) {
+    throw Error('Elasticsearch is not enabled')
+  }
 
   const cacheKey = `${platformId}_${env}`
 
   if (cacheClients[cacheKey]) return cacheClients[cacheKey]
 
-  let connection
-
-  connection = {
-    host: process.env.ELASTIC_SEARCH_HOST,
-    protocol: process.env.ELASTIC_SEARCH_PROTOCOL,
-    port: process.env.ELASTIC_SEARCH_PORT,
-    user: process.env.ELASTIC_SEARCH_USER,
-    password: process.env.ELASTIC_SEARCH_PASSWORD,
+  const connection = {
+    host: esConfig.get('host'),
+    protocol: esConfig.get('protocol'),
+    user: esConfig.get('user'),
+    password: esConfig.get('password'),
+    port: esConfig.get('port'),
   }
 
   const client = getConnectionClient(connection)
@@ -293,4 +277,21 @@ function getErrorType(message) {
   } else {
     return 'OTHER'
   }
+}
+
+module.exports = {
+  getClient,
+  isReady,
+
+  isIndexExisting,
+  createIndex,
+  deleteIndex,
+  getIndex,
+  getListIndices,
+  getCurrentIndex,
+
+  getMapping,
+  updateMapping,
+
+  getErrorType,
 }
