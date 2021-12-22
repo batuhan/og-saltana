@@ -11,7 +11,11 @@ const {
 } = require('../../util')
 
 test.before(async (t) => {
-  await before({ name: 'assessment' })(t)
+  try {
+    await before({ name: 'assessment' })(t)
+  } catch (error) {
+    debugger
+  }
   await beforeEach()(t)
 })
 // test.beforeEach(beforeEach()) // Concurrent tests are much faster
