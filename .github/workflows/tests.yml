@@ -6,8 +6,17 @@ on:
   push:
     paths:
       - ./services/core/**
+      - ./.github/workflows/**
+      - ./packages/**
     branches:
-      - main
+      - '**'
+  pull_request:
+    paths:
+      - ./services/core/**
+      - .github/workflows/**
+      - ./packages/**
+    branches:
+      - '**'
 
 jobs:
   build:
