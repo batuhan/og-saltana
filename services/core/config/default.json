@@ -3,7 +3,6 @@
   "SystemKey": "system",
   "SystemHashFnPassphrase": "secret",
   "ApiSecretKey": "seck_test_wakWA41rBTUXs1Y5oNRjeY5o",
-  "DebugEnabled": true,
   "DebugEmails": "batuhan@saltana.com",
   "InstanceId": "default",
   "InstanceEnv": "test,live",

@@ -186,8 +186,7 @@ async function checkAuthToken({
     })
 
     data.user = {
-      id: decodedToken.sub,
-      roles: decodedToken.roles,
+      ...decodedToken,
     }
   } catch (err) {
     if (err && config.get('Env') === 'test') {
@@ -230,6 +229,7 @@ async function tokenValidator({
     env,
   })
 
+  // debugger
   return validationResult
 }
 
@@ -255,12 +255,12 @@ function loadStrategies(server) {
       })
 
       if (!validatorResult.user) {
-        debugger
+        // debugger
       }
 
       req.auth = {
         sub: validatorResult.user.id,
-        roles: validatorResult.user.roles,
+        ...validatorResult.user,
       }
 
       req._saltanaAuthToken = true
@@ -408,12 +408,13 @@ function checkPermissions(
           scopePermissions = token.scope.split(' ')
         }
 
+        // debugger
         // routes/services can override the `organizationId` (like in user.joinOrganizationOrUpdateRights)
         if (typeof getOrganizationIdFn === 'function') {
           organizationId = getOrganizationIdFn(req)
         }
 
-        debugger
+        // debugger
 
         console.log('organizationId', organizationId)
         if (organizationId !== null && organizationId !== undefined) {
@@ -489,7 +490,7 @@ function checkPermissions(
         })
       }
 
-      debugger
+      // debugger
       const {
         roles,
         arrayPermissions,
@@ -543,7 +544,7 @@ function checkPermissions(
 
       next()
     } catch (err) {
-      debugger
+      // debugger
       next(err)
     } finally {
       apmSpan && apmSpan.end()

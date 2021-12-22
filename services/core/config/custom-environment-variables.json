@@ -4,7 +4,6 @@
   "SystemHashFnPassphrase": "SYSTEM_HASH_FUNCTION_PASSPHRASE",
   "ApiSecretKey": "CORE_API_SECRET_KEY",
   "InstanceEnv": "CORE_INSTANCE_ENV",
-  "DebugEnabled": "CORE_EXPLICITLY_ENABLE_DEBUG_MODE",
   "DebugEmails": "CORE_DEBUG_EMAILS",
   "Public": {
     "api": {

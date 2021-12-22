@@ -36,7 +36,7 @@ test('initializing data', async (t) => {
       'apiKey:create:all', // needed to "reveal" the secret key
     ],
   })
-  debugger
+  // debugger
 
   const {
     body: { results: apiKeys },
@@ -44,7 +44,7 @@ test('initializing data', async (t) => {
     .get('/api-keys?reveal=1')
     .set(authorizationHeaders)
     .expect(200)
-  debugger
+  // debugger
 
   const secretApiKey = apiKeys.find((apiKey) => apiKey.key.startsWith('seck'))
   const publishableApiKey = apiKeys.find((apiKey) =>
