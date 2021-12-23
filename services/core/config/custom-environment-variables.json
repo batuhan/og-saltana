@@ -31,7 +31,9 @@
       "user": "POSTGRES_USER",
       "password": "POSTGRES_PASSWORD",
       "database": "POSTGRES_DB",
-      "timescaleEnabled": "POSTGRES_TIMESCALE_ENABLED",
+      "timescale": {
+        "enabled": "POSTGRES_TIMESCALE_ENABLED"
+      },
       "ssl": {
         "enabled": "POSTGRES_SSL",
         "cert": "POSTGRES_SSL_CERT",

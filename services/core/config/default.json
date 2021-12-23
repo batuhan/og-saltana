@@ -26,7 +26,7 @@
       "database": "saltana_core",
       "schema": "public",
       "timescale": {
-        "enabled": true
+        "enabled": false
       },
       "ssl": {
         "enabled": true,

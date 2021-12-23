@@ -1,4 +1,5 @@
 const debug = require('debug')('saltana:api')
+const config = require('config')
 
 function testMiddleware(req, res, next) {
   if (config.get('Env') === 'test') {
