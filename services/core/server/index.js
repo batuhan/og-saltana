@@ -814,9 +814,10 @@ let stl // keeping track of server (last one if several were started)
 
 /**
  * @param {Boolean} [enableSignal = true] - has an impact on performance and can be disabled
+ * @param {Boolean} [useFreePort = false] - if true, will find a free port by itself
  * @param {String}  [communicationEnv] - sets an environment for communication between services (useful for testing)
  */
-function start({ enableSignal = true, communicationEnv } = {}) {
+function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
   return new Promise((resolve, reject) => {
     const server = loadServer()
     stl = server
@@ -879,7 +880,11 @@ function start({ enableSignal = true, communicationEnv } = {}) {
       return resolve(server)
     }
 
-    app = server.listen(config.get('Cote.port'), onStarted)
+    if (useFreePort) {
+      app = server.listen(onStarted)
+    } else {
+      app = server.listen(config.get('Cote.port'), onStarted)
+    }
   })
 }
 

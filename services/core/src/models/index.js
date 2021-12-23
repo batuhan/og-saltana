@@ -128,7 +128,6 @@ async function getConnection({ platformId, env } = {}) {
   }
 
   const isPlatformEnv = platformId && env
-
   // eslint-disable-next-line no-underscore-dangle
   const _schema = isPlatformEnv
     ? `s${platformId}_${env}`
@@ -176,9 +175,10 @@ async function getModels({ platformId, env } = {}) {
 
   const knex = getKnex(connection)
 
-  const customModels = Object.keys(models).reduce((memo, key) => {
-    const Model = models[key]
+  const customModels = {}
 
+  Object.keys(models).forEach((modelName) => {
+    const Model = models[modelName]
     // Set the schema automatically
     // https://github.com/Vincit/objection.js/issues/85
     class SchemaModel extends Model {
@@ -277,11 +277,11 @@ async function getModels({ platformId, env } = {}) {
       }
     }
 
-    memo[key] = SchemaModel.bindKnex(knex)
-    return memo
-  }, {})
+    customModels[modelName] = SchemaModel.bindKnex(knex)
+  })
 
   cacheModels[cacheKey] = customModels
+
   return customModels
 }
 

@@ -2,55 +2,44 @@ const createError = require('http-errors')
 const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 
+const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
 const { getModels } = require('../models')
-
-const { getObjectId } = require('@saltana/util-keys')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 const { mergeOrOverwrite } = require('../util/merging')
 
-const {
-  computeTransitionsMeta
-} = require('../util/transition')
+const { computeTransitionsMeta } = require('../util/transition')
 
 let responder
 let subscriber
 let publisher
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getSubscriber,
-    getPublisher,
-    COMMUNICATION_ID
-  } = communication
+function start({ communication }) {
+  const { getResponder, getSubscriber, getPublisher, COMMUNICATION_ID } =
+    communication
 
   responder = getResponder({
     name: 'Asset type Responder',
-    key: 'asset-type'
+    key: 'asset-type',
   })
 
   subscriber = getSubscriber({
     name: 'Asset type subscriber',
     key: 'asset-type',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'assetTypeCreated',
-      'assetTypeUpdated',
-      'assetTypeDeleted'
-    ]
+    subscribesTo: ['assetTypeCreated', 'assetTypeUpdated', 'assetTypeDeleted'],
   })
 
   publisher = getPublisher({
     name: 'Asset type publisher',
     key: 'asset-type',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId, env } = req
+
     const { AssetType } = await getModels({ platformId, env })
 
     const {
@@ -67,7 +56,7 @@ function start ({ communication }) {
       createdDate,
       updatedDate,
       isDefault,
-      active
+      active,
     } = req
 
     const queryBuilder = AssetType.query()
@@ -79,25 +68,25 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         isDefault: {
           dbField: 'isDefault',
-          value: isDefault
+          value: isDefault,
         },
         active: {
           dbField: 'active',
-          value: active
+          value: active,
         },
       },
       paginationActive: true,
@@ -110,20 +99,22 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
     })
 
-    paginationMeta.results = AssetType.exposeAll(paginationMeta.results, { req })
+    paginationMeta.results = AssetType.exposeAll(paginationMeta.results, {
+      req,
+    })
     return paginationMeta
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { AssetType } = await getModels({ platformId, env })
 
-    const assetTypeId = req.assetTypeId
+    const { assetTypeId } = req
 
     const assetType = await AssetType.query().findById(assetTypeId)
     if (!assetType) {
@@ -134,8 +125,8 @@ function start ({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { AssetType } = await getModels({ platformId, env })
 
     const fields = [
@@ -150,16 +141,18 @@ function start ({ communication }) {
       'isDefault',
       'active',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: AssetType.idPrefix, platformId, env })
-    }, payload)
+    const createAttrs = {
+      id: await getObjectId({ prefix: AssetType.idPrefix, platformId, env }),
+      ...payload,
+    }
 
-    if (_.isUndefined(createAttrs.infiniteStock)) createAttrs.infiniteStock = false
+    if (_.isUndefined(createAttrs.infiniteStock))
+      createAttrs.infiniteStock = false
 
     if (createAttrs.transactionProcess) {
       checkTransactionProcess(createAttrs.transactionProcess)
@@ -184,24 +177,24 @@ function start ({ communication }) {
           eventDate: assetType.createdDate,
           platformId,
           env,
-          req
+          req,
         })
       },
       isDefault: createAttrs.isDefault,
       platformId,
       env,
-      req
+      req,
     })
 
     return AssetType.expose(assetType, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { AssetType } = await getModels({ platformId, env })
 
-    const assetTypeId = req.assetTypeId
+    const { assetTypeId } = req
 
     const fields = [
       'name',
@@ -216,7 +209,7 @@ function start ({ communication }) {
       'isDefault',
       'active',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
@@ -229,7 +222,7 @@ function start ({ communication }) {
       namespaces,
       isDefault,
       metadata,
-      platformData
+      platformData,
     } = payload
 
     const assetType = await AssetType.query().findById(assetTypeId)
@@ -238,7 +231,7 @@ function start ({ communication }) {
     }
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     if (pricing) {
       updateAttrs.pricing = AssetType.rawJsonbMerge('pricing', pricing)
@@ -250,8 +243,16 @@ function start ({ communication }) {
       updateAttrs.unavailableWhen = unavailableWhen
     }
     if (transactionProcess) {
-      updateAttrs.transactionProcess = AssetType.rawJsonbMerge('transactionProcess', transactionProcess)
-      const newTransactionProcess = _.mergeWith({}, assetType.transactionProcess, transactionProcess, mergeOrOverwrite)
+      updateAttrs.transactionProcess = AssetType.rawJsonbMerge(
+        'transactionProcess',
+        transactionProcess,
+      )
+      const newTransactionProcess = _.mergeWith(
+        {},
+        assetType.transactionProcess,
+        transactionProcess,
+        mergeOrOverwrite,
+      )
       checkTransactionProcess(newTransactionProcess)
     }
     if (namespaces) {
@@ -262,7 +263,10 @@ function start ({ communication }) {
       updateAttrs.metadata = AssetType.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = AssetType.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = AssetType.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
     // the parameter `isDefault` can change other asset types
@@ -278,38 +282,38 @@ function start ({ communication }) {
           eventDate: newAssetType.updatedDate,
           platformId,
           env,
-          req
+          req,
         })
       },
       isDefault,
       platformId,
       env,
-      req
+      req,
     })
 
     return AssetType.expose(newAssetType, { req })
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      Asset,
-      AssetType
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { Asset, AssetType } = await getModels({ platformId, env })
 
-    const {
-      assetTypeId
-    } = req
+    const { assetTypeId } = req
 
     const assetType = await AssetType.query().findById(assetTypeId)
     if (!assetType) {
       return { id: assetTypeId }
     }
 
-    const [{ count: nbAssets }] = await Asset.query().count().where({ assetTypeId })
+    const [{ count: nbAssets }] = await Asset.query()
+      .count()
+      .where({ assetTypeId })
     if (nbAssets) {
-      throw createError(422, 'Some assets are still associated with this asset type')
+      throw createError(
+        422,
+        'Some assets are still associated with this asset type',
+      )
     }
 
     await AssetType.query().deleteById(assetTypeId)
@@ -320,7 +324,7 @@ function start ({ communication }) {
       eventDate: new Date().toISOString(),
       platformId,
       env,
-      req
+      req,
     })
 
     return { id: assetTypeId }
@@ -328,74 +332,103 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('assetTypeCreated', async ({ assetType, eventDate, platformId, env, req } = {}) => {
-    try {
-      const { Event, AssetType } = await getModels({ platformId, env })
+  subscriber.on(
+    'assetTypeCreated',
+    async ({ assetType, eventDate, platformId, env, req } = {}) => {
+      try {
+        const { Event, AssetType } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'asset_type__created',
-        objectId: assetType.id,
-        object: AssetType.expose(assetType, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assetTypeId: assetType.id },
-        message: 'Fail to create event asset_type__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'asset_type__created',
+            objectId: assetType.id,
+            object: AssetType.expose(assetType, { req, namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assetTypeId: assetType.id },
+          message: 'Fail to create event asset_type__created',
+        })
+      }
+    },
+  )
 
-  subscriber.on('assetTypeUpdated', async ({
-    assetTypeId,
-    updateAttrs,
-    newAssetType,
-    eventDate,
-    platformId,
-    env,
-    req
-  } = {}) => {
-    try {
-      const { Event, AssetType } = await getModels({ platformId, env })
+  subscriber.on(
+    'assetTypeUpdated',
+    async ({
+      assetTypeId,
+      updateAttrs,
+      newAssetType,
+      eventDate,
+      platformId,
+      env,
+      req,
+    } = {}) => {
+      try {
+        const { Event, AssetType } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'asset_type__updated',
-        objectId: assetTypeId,
-        object: AssetType.expose(newAssetType, { req, namespaces: ['*'] }),
-        changesRequested: AssetType.expose(updateAttrs, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assetTypeId },
-        message: 'Fail to create event asset_type__updated and associated events'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'asset_type__updated',
+            objectId: assetTypeId,
+            object: AssetType.expose(newAssetType, { req, namespaces: ['*'] }),
+            changesRequested: AssetType.expose(updateAttrs, {
+              req,
+              namespaces: ['*'],
+            }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assetTypeId },
+          message:
+            'Fail to create event asset_type__updated and associated events',
+        })
+      }
+    },
+  )
 
-  subscriber.on('assetTypeDeleted', async ({ assetTypeId, assetType, eventDate, platformId, env, req } = {}) => {
-    try {
-      const { AssetType, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'assetTypeDeleted',
+    async ({
+      assetTypeId,
+      assetType,
+      eventDate,
+      platformId,
+      env,
+      req,
+    } = {}) => {
+      try {
+        const { AssetType, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'asset_type__deleted',
-        objectId: assetTypeId,
-        object: AssetType.expose(assetType, { req, namespaces: ['*'] }),
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assetTypeId },
-        message: 'Fail to create event asset_type__deleted'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'asset_type__deleted',
+            objectId: assetTypeId,
+            object: AssetType.expose(assetType, { req, namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assetTypeId },
+          message: 'Fail to create event asset_type__deleted',
+        })
+      }
+    },
+  )
 
   // INTERNAL
 
@@ -409,24 +442,30 @@ function start ({ communication }) {
   })
 }
 
-function checkTransactionProcess (transactionProcess) {
+function checkTransactionProcess(transactionProcess) {
   const meta = computeTransitionsMeta(transactionProcess)
 
   if (!meta.initStates.includes(transactionProcess.initStatus)) {
-    throw createError(422, 'The provided init status does not appear as `from` property in transitions')
+    throw createError(
+      422,
+      'The provided init status does not appear as `from` property in transitions',
+    )
   }
   if (!meta.allStates.includes(transactionProcess.cancelStatus)) {
-    throw createError(422, 'The provided cancel status does not appear in transitions')
+    throw createError(
+      422,
+      'The provided cancel status does not appear in transitions',
+    )
   }
 }
 
-async function updateDefaultAssetType ({
+async function updateDefaultAssetType({
   changeAssetTypeFn,
   publishEventsFn,
   isDefault,
   platformId,
   env,
-  req
+  req,
 }) {
   const { AssetType } = await getModels({ platformId, env })
 
@@ -451,7 +490,7 @@ async function updateDefaultAssetType ({
   publishEventsFn(newAssetType)
 
   if (impactedAssetTypes) {
-    impactedAssetTypes.forEach(assetType => {
+    impactedAssetTypes.forEach((assetType) => {
       publisher.publish('assetTypeUpdated', {
         assetTypeId: assetType.id,
         newAssetType: assetType,
@@ -459,7 +498,7 @@ async function updateDefaultAssetType ({
         eventDate: assetType.updatedDate,
         platformId,
         env,
-        req
+        req,
       })
     })
   }
@@ -467,7 +506,7 @@ async function updateDefaultAssetType ({
   return newAssetType
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -480,5 +519,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

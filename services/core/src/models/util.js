@@ -2,6 +2,28 @@ const Knex = require('knex')
 
 const knexInstances = {}
 
+function getKnexCacheKey(connection) {
+  const {
+    host,
+    user,
+    password,
+    database,
+    port,
+    schema = 'public',
+    ssl,
+  } = connection
+
+  return JSON.stringify({
+    host,
+    user,
+    password,
+    database,
+    port,
+    schema,
+    ssl,
+  })
+}
+
 function getKnex(connection = {}, options = {}) {
   const key = getKnexCacheKey(connection)
   if (knexInstances[key]) return knexInstances[key]
@@ -32,19 +54,6 @@ function getKnex(connection = {}, options = {}) {
   knexInstances[key] = knex
 
   return knex
-}
-
-function getKnexCacheKey(connection) {
-  const { host, user, password, database, port, ssl } = connection
-
-  return JSON.stringify({
-    host,
-    user,
-    password,
-    database,
-    port,
-    ssl,
-  })
 }
 
 module.exports = {

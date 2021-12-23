@@ -1,7 +1,6 @@
 const test = require('ava')
 const request = require('supertest')
 const config = require('config')
-const debug = require('debug')('saltana:instantData')
 
 const { before, beforeEach, after } = require('../test/lifecycle')
 const { getAccessTokenHeaders } = require('../test/auth')

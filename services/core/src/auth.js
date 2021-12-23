@@ -416,7 +416,6 @@ function checkPermissions(
 
         // debugger
 
-        console.log('organizationId', organizationId)
         if (organizationId !== null && organizationId !== undefined) {
           if (!userId) {
             throw createError(

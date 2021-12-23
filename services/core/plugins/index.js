@@ -7,7 +7,7 @@ const chalk = require('chalk')
 const config = require('config').get('Plugins')
 
 const log = console.log
-const info = str => log(`${chalk.green(str)}`)
+const info = (str) => log(`${chalk.green(str)}`)
 const warn = (err, msg, note) => {
   if (msg) log(chalk.red(msg))
   if (note) log(chalk.yellow(note))
@@ -15,7 +15,10 @@ const warn = (err, msg, note) => {
 }
 
 // eslint-disable-next-line import/no-dynamic-require
-const { version: serverVersion } = require(path.join(__dirname, '../package.json'))
+const { version: serverVersion } = require(path.join(
+  __dirname,
+  '../package.json',
+))
 
 const ignored = config.get('ignored')
 const installed = config.get('installed')
@@ -30,37 +33,32 @@ module.exports = {
   loadPlugin,
 }
 
-function getPlugins () {
+function getPlugins() {
   const pluginsFiles = glob.sync('*/index.js', {
-    cwd: __dirname
+    cwd: __dirname,
   })
 
   const ignore = fromEnvVar(ignored)
   const localPlugins = pluginsFiles
-    .filter(file => {
+    .filter((file) => {
       const dir = path.dirname(file)
       if (ignore.includes(dir)) return false
       return true
     })
-    .map(p => load(p, { isLocalModule: true }))
+    .map((p) => load(p, { isLocalModule: true }))
 
   let externalPlugins = []
   if (installed) {
-    externalPlugins = getInstalledPluginsNames().map(p => load(p, { useInstalledCopy: true }))
+    externalPlugins = getInstalledPluginsNames().map((p) =>
+      load(p, { useInstalledCopy: true }),
+    )
   }
 
-  return [
-    ...pluginsLoadedManually,
-    ...localPlugins,
-    ...externalPlugins
-  ]
+  return [...pluginsLoadedManually, ...localPlugins, ...externalPlugins]
 }
 
-function getInstalledPluginsNames () {
-  return (installed || '')
-    .split(',')
-    .map(getPluginName)
-    .filter(Boolean)
+function getInstalledPluginsNames() {
+  return (installed || '').split(',').map(getPluginName).filter(Boolean)
 }
 
 /**
@@ -68,7 +66,7 @@ function getInstalledPluginsNames () {
  * must exactly match the name of the repository.
  * @param {String} str - Either npm module name or github repository name
  */
-function getPluginName (str) {
+function getPluginName(str) {
   const repo = parseGithubUrl(str)
   if (!_.has(repo, 'name')) return str
   return repo.name
@@ -80,23 +78,25 @@ function getPluginName (str) {
  * This lets external plugins manually load themselves to run their own test suite.
  * @param {String} path - Absolute path loaded with server `require`
  */
-function loadPlugin (path) {
+function loadPlugin(path) {
   load(path, { isManual: true })
 }
 
-function load (name, { isLocalModule, isManual, useInstalledCopy } = {}) {
+function load(name, { isLocalModule, isManual, useInstalledCopy } = {}) {
   let p
   try {
     let mod = isLocalModule ? `./${name}` : name
-    if (useInstalledCopy) mod = path.join(saltanaServerPath, 'plugins/installed', name)
+    if (useInstalledCopy)
+      mod = path.join(saltanaServerPath, 'plugins/installed', name)
     p = require(mod)
   } catch (err) {
-    const installedModuleError = err.code === 'MODULE_NOT_FOUND' &&
+    const installedModuleError =
+      err.code === 'MODULE_NOT_FOUND' &&
       /plugins[\\/]index\.js/.test(_.get(err, 'requireStack[0]', ''))
     const shouldInstall = !isLocalModule && !isManual && installedModuleError
-    const note = shouldInstall ? `Maybe you just forgot to run \`${
-      chalk.bold('yarn plugins')
-    }\`.\n` : ''
+    const note = shouldInstall
+      ? `Maybe you just forgot to run \`${chalk.bold('yarn plugins')}\`.\n`
+      : ''
     warn(err, `\n${chalk.bold(name)} plugin error`, note)
     process.exit(0)
   }
@@ -111,7 +111,8 @@ function load (name, { isLocalModule, isManual, useInstalledCopy } = {}) {
   if (!p.version) throw new Error('Missing plugin version')
 
   if (versions && !semver.satisfies(serverVersion, versions)) {
-    throw new Error(`${serverVersion} Saltana server version not supported by ${
+    throw new Error(
+      `${serverVersion} Saltana server version not supported by ${
         p.name
       } plugin (${versions || 'missing range'})`,
     )
@@ -125,6 +126,6 @@ function load (name, { isLocalModule, isManual, useInstalledCopy } = {}) {
   return p
 }
 
-function fromEnvVar (v = '') {
+function fromEnvVar(v = '') {
   return _.compact(v.split(',').map(_.trim))
 }

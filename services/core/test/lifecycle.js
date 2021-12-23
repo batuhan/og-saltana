@@ -7,6 +7,7 @@ const _ = require('lodash')
 
 const debug = require('debug')('saltana:test')
 const Uuid = require('uuid')
+const config = require('config').get('LocalEnv')
 
 const request = require('superagent')
 const store = require('./store')
@@ -28,21 +29,19 @@ const {
 const testingEnvs = ['test', 'live']
 const defaultTestingEnv = testingEnvs[0]
 
+const enableInstantData = config.get('instantData') === 'true'
+
 function getDataFixtures(env) {
   const plugins = getPlugins()
 
-  let fixtures
-  if (process.env.CORE_EXPLICITLY_ENABLE_INSTANT_DATA === 'true') {
-    fixtures = { ...getInstantData(env) }
-  } else {
-    fixtures = { ...data }
+  const fixtures = enableInstantData ? { ...getInstantData(env) } : { ...data }
+
+  if (enableInstantData === true) {
+    return fixtures
   }
 
   plugins.forEach((plugin) => {
-    if (
-      plugin.fixtures &&
-      process.env.CORE_EXPLICITLY_ENABLE_INSTANT_DATA !== 'true'
-    ) {
+    if (plugin.fixtures) {
       Object.keys(plugin.fixtures).forEach((modelName) => {
         const models = plugin.fixtures[modelName]
         fixtures[modelName] = (fixtures[modelName] || []).concat(models)
@@ -197,11 +196,10 @@ async function startPlatformDatabases({
     .post(`${serverUrl}/store/platforms/${platformId}/database/migrate`)
     .set(getAuthorizationHeaders({ systemKey, env }))
 
-  let fixtures = getDataFixtures(env)
-
-  if (minimumFixtures) {
-    fixtures = _.pick(fixtures, ['config', 'roles', 'user'])
-  }
+  const rawFixtures = getDataFixtures(env)
+  const fixtures = minimumFixtures
+    ? _.pick(rawFixtures, ['config', 'roles', 'user'])
+    : rawFixtures
 
   const connection = getPostgresqlConnection({ platformId, env })
   await database.createFixture({ platformId, env, connection, data: fixtures })

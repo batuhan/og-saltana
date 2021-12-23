@@ -23,7 +23,9 @@ Cote.CustomResponder = CustomResponder
 function _getCote(env) {
   let cote = coteEnvInstances[env]
   if (!cote) {
-    const enableLogging = config.get('Cote.logging') === 'true' || config.get('Cote.logging') === true
+    const enableLogging =
+      config.get('Cote.logging') === 'true' ||
+      config.get('Cote.logging') === true
 
     cote = Cote({
       environment: env,
@@ -95,7 +97,6 @@ function setEnvironment(env) {
   environment = env
 }
 
-
 function handleRemoteNotFoundError(err) {
   if (err && err.statusCode === 404) {
     return null
@@ -147,7 +148,7 @@ async function saltanaApiRequest(
   const defaultHeaders = {
     'x-platform-id': platformId,
     'x-saltana-env': env,
-    'x-saltana-system-key': process.env.SYSTEM_KEY,
+    'x-saltana-system-key': config.get('SystemKey'),
 
     // force the new version to have cursor pagination
     'x-saltana-version': '2020-08-10',

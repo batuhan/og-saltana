@@ -16,9 +16,7 @@ const asset1 = {
   description: 'Beautiful car',
   categoryId: 'ctgy_ejQQps1I3a1gJYz2I3a',
   validated: true,
-  locations: [
-    { latitude: 34.05223, longitude: -118.24368 }
-  ],
+  locations: [{ latitude: 34.05223, longitude: -118.24368 }],
   active: true,
   assetTypeId: 'typ_RFpfQps1I3a1gJYz2I3a',
   quantity: 1,
@@ -26,26 +24,26 @@ const asset1 = {
   price: 200,
   customAttributes: {
     seatingCapacity: 4,
-    options: ['tinted-glass', 'convertible']
+    options: ['tinted-glass', 'convertible'],
   },
   metadata: {
     metadataOnly: 'notPlatformData',
     _private: {
-      test: true
+      test: true,
     },
     _protected: {
-      test: true
-    }
+      test: true,
+    },
   },
   platformData: {
     platformDataOnly: 'notMetadata',
     _private: {
-      test: true
+      test: true,
     },
     _protected: {
-      test: true
-    }
-  }
+      test: true,
+    },
+  },
 }
 
 const assetType1 = {
@@ -57,17 +55,17 @@ const assetType1 = {
   infiniteStock: false,
   pricing: {
     ownerFeesPercent: 5,
-    takerFeesPercent: 15
+    takerFeesPercent: 15,
   },
   timing: {
     timeUnit: 'd',
     minDuration: { d: 1 },
-    maxDuration: { d: 100 }
+    maxDuration: { d: 100 },
   },
   isDefault: true,
   active: true,
   metadata: {},
-  platformData: {}
+  platformData: {},
 }
 
 const asset2 = {
@@ -79,9 +77,7 @@ const asset2 = {
   description: 'Awesome',
   categoryId: 'ctgy_ejQQps1I3a1gJYz2I3a',
   validated: true,
-  locations: [
-    { latitude: 34.05223, longitude: -118.24368 }
-  ],
+  locations: [{ latitude: 34.05223, longitude: -118.24368 }],
   active: true,
   assetTypeId: 'typ_rL6IBMe1wlK1iJ9NNwlK',
   quantity: 1,
@@ -89,26 +85,26 @@ const asset2 = {
   price: 200,
   customAttributes: {
     seatingCapacity: 4,
-    options: ['tinted-glass', 'convertible']
+    options: ['tinted-glass', 'convertible'],
   },
   metadata: {
     metadataOnly: 'notPlatformData',
     _private: {
-      test: true
+      test: true,
     },
     _protected: {
-      test: true
-    }
+      test: true,
+    },
   },
   platformData: {
     platformDataOnly: 'notMetadata',
     _private: {
-      test: true
+      test: true,
     },
     _protected: {
-      test: true
-    }
-  }
+      test: true,
+    },
+  },
 }
 
 const assetType2 = {
@@ -120,17 +116,17 @@ const assetType2 = {
   infiniteStock: false,
   pricing: {
     ownerFeesPercent: 0,
-    takerFeesPercent: 0
+    takerFeesPercent: 0,
   },
   timing: {
     timeUnit: 'd',
     minDuration: { d: 1 },
-    maxDuration: { d: 100 }
+    maxDuration: { d: 100 },
   },
   isDefault: false,
   active: true,
   metadata: {},
-  platformData: {}
+  platformData: {},
 }
 
 const validatedTransaction1 = {
@@ -145,7 +141,7 @@ const validatedTransaction1 = {
   statusHistory: [
     { status: 'validated', date: now },
     { status: 'pending-acceptance', date: now },
-    { status: 'draft', date: now }
+    { status: 'draft', date: now },
   ],
   ownerId: 'usr_QVQfQps1I3a1gJYz2I3a',
   takerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
@@ -168,16 +164,18 @@ const validatedTransaction1 = {
   metadata: {
     someObject: {
       someValue: 10,
-      arrayValues: [{
-        deepArrayValue: [10]
-      }]
+      arrayValues: [
+        {
+          deepArrayValue: [10],
+        },
+      ],
     },
     otherObject: {
       status: 'validated',
-      arrayStatuses: ['validated']
-    }
+      arrayStatuses: ['validated'],
+    },
   },
-  platformData: {}
+  platformData: {},
 }
 
 const validatedTransaction2 = {
@@ -192,7 +190,7 @@ const validatedTransaction2 = {
   statusHistory: [
     { status: 'validated', date: now },
     { status: 'pending-acceptance', date: now },
-    { status: 'draft', date: now }
+    { status: 'draft', date: now },
   ],
   ownerId: 'usr_QVQfQps1I3a1gJYz2I3a',
   takerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
@@ -215,16 +213,18 @@ const validatedTransaction2 = {
   metadata: {
     someObject: {
       someValue: 2,
-      arrayValues: [{
-        deepArrayValue: [2]
-      }]
+      arrayValues: [
+        {
+          deepArrayValue: [2],
+        },
+      ],
     },
     otherObject: {
       status: 'validated',
-      arrayStatuses: ['validated']
-    }
+      arrayStatuses: ['validated'],
+    },
   },
-  platformData: {}
+  platformData: {},
 }
 
 const paidTransaction = {
@@ -238,7 +238,7 @@ const paidTransaction = {
   status: 'pending-acceptance',
   statusHistory: [
     { status: 'pending-acceptance', date: now },
-    { status: 'draft', date: now }
+    { status: 'draft', date: now },
   ],
   ownerId: 'fd7b4ea9-a899-4dba-b9b0-ef8537a70efe',
   takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
@@ -261,16 +261,18 @@ const paidTransaction = {
   metadata: {
     someObject: {
       someValue: 3,
-      arrayValues: [{
-        deepArrayValue: [3]
-      }]
+      arrayValues: [
+        {
+          deepArrayValue: [3],
+        },
+      ],
     },
     otherObject: {
       status: 'pending-acceptance',
-      arrayStatuses: ['pending-acceptance']
-    }
+      arrayStatuses: ['pending-acceptance'],
+    },
   },
-  platformData: {}
+  platformData: {},
 }
 
 const acceptedTransaction = {
@@ -284,7 +286,7 @@ const acceptedTransaction = {
   status: 'accepted',
   statusHistory: [
     { status: 'accepted', date: now },
-    { status: 'draft', date: now }
+    { status: 'draft', date: now },
   ],
   ownerId: 'fd7b4ea9-a899-4dba-b9b0-ef8537a70efe',
   takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
@@ -307,20 +309,21 @@ const acceptedTransaction = {
   metadata: {
     someObject: {
       someValue: 5,
-      arrayValues: [{
-        deepArrayValue: [5]
-      }]
+      arrayValues: [
+        {
+          deepArrayValue: [5],
+        },
+      ],
     },
     otherObject: {
       status: 'accepted',
-      arrayStatuses: ['accepted']
-    }
+      arrayStatuses: ['accepted'],
+    },
   },
-  platformData: {}
+  platformData: {},
 }
 
 module.exports = {
-
   apiKey: [
     createModel({
       id: 'apik_aHZQps1I3a1gJYz2I3a',
@@ -333,7 +336,7 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -347,7 +350,7 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -361,7 +364,7 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // api key to use for test updates
@@ -376,7 +379,7 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // api key to use for test updates
@@ -391,7 +394,7 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -405,7 +408,7 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -419,8 +422,8 @@ module.exports = {
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   assessment: [
@@ -440,25 +443,25 @@ module.exports = {
         'user-external-id': {
           comment: null,
           statement: null,
-          signedDate: null
+          signedDate: null,
         },
         '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': {
           comment: null,
           statement: null,
-          signedDate: null
-        }
+          signedDate: null,
+        },
       },
       signCodes: {
         'user-external-id': 'secret',
-        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': 'secret2'
+        '7e779b5f-876c-4cbc-934c-2fdbcacef4d6': 'secret2',
       },
       nbSigners: 1,
       expirationDate: null,
       signedDate: null,
       assessmentDate: now,
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   authMean: [
@@ -469,7 +472,7 @@ module.exports = {
       provider: '_local_',
       password: '$2a$10$u.c3b5155ZgPXR72Gi8gOu/psVF0K6.AnGJzENF/gPTj.RQst4.1S', // admin
       userId: 'usr_WHlfQps1I3a1gJYz2I3a',
-      tokens: {}
+      tokens: {},
     }),
     createModel({
       id: 'amn_MVRfQps1I3a1gJYz2I3a',
@@ -478,7 +481,7 @@ module.exports = {
       provider: '_local_',
       password: '$2a$10$w63W0DNgHpijKglc0Vjh9etBNGL9086DvHsyQeg/kS3btLrq3AsBi', // user
       userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
-      tokens: {}
+      tokens: {},
     }),
     createModel({
       id: 'amn_75ZIFNe1IIX1hl3HNIIX',
@@ -487,7 +490,7 @@ module.exports = {
       provider: '_local_',
       password: '$2b$10$CaaEI54nPhE5aZfInIoplOSCx8YO/9gLNJ2P9y73mvQ/taXnqvX/a', // user2
       userId: 'usr_em9SToe1nI01iG4yRnHz',
-      tokens: {}
+      tokens: {},
     }),
     createModel({
       id: 'amn_0ppE0Be1N7y1hpsiWN7y',
@@ -496,8 +499,8 @@ module.exports = {
       provider: '_local_',
       password: '$2b$10$cVHtLqGx/55YXdHv.6QBLuhr1gPX.QCUYNlkjlnymv6T7kQU8fqf6', // user3
       userId: 'usr_bF9Mpoe1cDG1i4xyxcDG',
-      tokens: {}
-    })
+      tokens: {},
+    }),
   ],
 
   authToken: [
@@ -510,8 +513,8 @@ module.exports = {
       userId: 'usr_WHlfQps1I3a1gJYz2I3a',
       expirationDate: computeDate(now, '14d'),
       reference: {
-        userAgent: 'node-superagent/3.8.3'
-      }
+        userAgent: 'node-superagent/3.8.3',
+      },
     }),
     createModel({
       id: 'atk_d1QfQps1I3a1gJYz2I3a',
@@ -522,8 +525,8 @@ module.exports = {
       userId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       expirationDate: computeDate(now, '14d'),
       reference: {
-        userAgent: 'node-superagent/3.8.3'
-      }
+        userAgent: 'node-superagent/3.8.3',
+      },
     }),
     createModel({
       id: 'atk_VWFfQps1I3a1gJYz2I3a',
@@ -533,7 +536,7 @@ module.exports = {
       value: 'resetToken1',
       userId: 'usr_WHlfQps1I3a1gJYz2I3a',
       expirationDate: computeDate(now, '1h'),
-      reference: {}
+      reference: {},
     }),
     createModel({
       id: 'atk_QmtfQps1I3a1gJYz2I3a',
@@ -543,8 +546,8 @@ module.exports = {
       value: 'expiredResetToken',
       userId: 'usr_WHlfQps1I3a1gJYz2I3a',
       expirationDate: computeDate(now, '-1h'),
-      reference: {}
-    })
+      reference: {},
+    }),
   ],
 
   config: [
@@ -555,11 +558,11 @@ module.exports = {
       access: 'default',
       saltana: {
         instant: {
-          locale: 'en'
-        }
+          locale: 'en',
+        },
       },
       custom: {},
-      theme: {}
+      theme: {},
     }),
 
     createModel({
@@ -572,20 +575,20 @@ module.exports = {
           contexts: {
             test: {
               TEST_ENV_VARIABLE: 'true',
-              TEST_ENV_VARIABLE_2: 'Not overwritten'
+              TEST_ENV_VARIABLE_2: 'Not overwritten',
             },
             other: {
-              OTHER_ENV_VARIABLE: 'test'
+              OTHER_ENV_VARIABLE: 'test',
             },
             override: {
               TEST_ENV_VARIABLE: "'Overwritten'",
-              OTHER_ENV_VARIABLE: 'Overwritten "too"'
-            }
+              OTHER_ENV_VARIABLE: 'Overwritten "too"',
+            },
           },
-        }
+        },
       },
       custom: {},
-      theme: {}
+      theme: {},
     }),
 
     createModel({
@@ -595,8 +598,8 @@ module.exports = {
       access: 'system',
       saltana: {},
       custom: {},
-      theme: {}
-    })
+      theme: {},
+    }),
   ],
 
   customAttribute: [
@@ -608,7 +611,7 @@ module.exports = {
       type: 'number',
       listValues: null,
       metadata: { existingData: [true] },
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -619,7 +622,7 @@ module.exports = {
       type: 'number',
       listValues: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -630,7 +633,7 @@ module.exports = {
       type: 'text',
       listValues: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -641,7 +644,7 @@ module.exports = {
       type: 'text',
       listValues: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -650,9 +653,15 @@ module.exports = {
       updatedDate: now,
       name: 'options',
       type: 'tags',
-      listValues: ['convertible', 'tinted-glass', 'gps', 'bluetooth', 'sunroof'],
+      listValues: [
+        'convertible',
+        'tinted-glass',
+        'gps',
+        'bluetooth',
+        'sunroof',
+      ],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -663,7 +672,7 @@ module.exports = {
       type: 'tags',
       listValues: null, // default: same as empty array
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -674,7 +683,7 @@ module.exports = {
       type: 'boolean',
       listValues: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -685,7 +694,7 @@ module.exports = {
       type: 'select',
       listValues: ['BMW', 'Honda', 'Toyota', 'Chevrolet'],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -696,8 +705,8 @@ module.exports = {
       type: 'text',
       listValues: null,
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   document: [
@@ -710,10 +719,10 @@ module.exports = {
       type: 'invoice',
       label: null,
       data: {
-        invoiceUrl: 'https://example.com/invoice'
+        invoiceUrl: 'https://example.com/invoice',
       },
       metadata: { existingData: [true] },
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -726,10 +735,10 @@ module.exports = {
       label: null,
       data: {
         title: 'Awesome post',
-        content: 'Some content to publish'
+        content: 'Some content to publish',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -742,10 +751,10 @@ module.exports = {
       label: 'main:random',
       data: {
         title: 'Title 2',
-        content: 'Content 2'
+        content: 'Content 2',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -758,10 +767,10 @@ module.exports = {
       label: 'main:random',
       data: {
         title: 'Title 3',
-        content: 'Content 3'
+        content: 'Content 3',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -774,10 +783,10 @@ module.exports = {
       label: 'main:random',
       data: {
         title: 'Title 4',
-        content: 'Content 4'
+        content: 'Content 4',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -790,10 +799,10 @@ module.exports = {
       label: 'main:popular',
       data: {
         title: 'Title 5',
-        content: 'Content 5'
+        content: 'Content 5',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -806,10 +815,10 @@ module.exports = {
       label: 'main:popular',
       data: {
         title: 'Title 6',
-        content: 'Content 6'
+        content: 'Content 6',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -826,10 +835,10 @@ module.exports = {
         duration: 125,
         score: 8.6,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -846,10 +855,10 @@ module.exports = {
         duration: 125,
         score: 9.3,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -866,10 +875,10 @@ module.exports = {
         duration: 86,
         score: 8.2,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -886,10 +895,10 @@ module.exports = {
         duration: 86,
         score: 7.9,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -910,11 +919,11 @@ module.exports = {
         tags: {
           awesome: true,
           timesSeen: 10,
-          heroes: ['Sheeta', 'Pazu']
-        }
+          heroes: ['Sheeta', 'Pazu'],
+        },
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -931,10 +940,10 @@ module.exports = {
         duration: 119,
         score: 8.5,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -951,10 +960,10 @@ module.exports = {
         duration: 134,
         score: 8.4,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -971,10 +980,10 @@ module.exports = {
         duration: 134,
         score: 8.7,
         director: 'Hayao Miyazaki',
-        composer: 'Joe Hisaishi'
+        composer: 'Joe Hisaishi',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -991,10 +1000,10 @@ module.exports = {
         duration: 88,
         score: 8.3,
         director: 'Akira Kurosawa',
-        composer: 'Fumio Hayasaka'
+        composer: 'Fumio Hayasaka',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1011,10 +1020,10 @@ module.exports = {
         duration: 88,
         score: 7.8,
         director: 'Akira Kurosawa',
-        composer: 'Fumio Hayasaka'
+        composer: 'Fumio Hayasaka',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1034,10 +1043,10 @@ module.exports = {
         composer: 'Fumio Hayasaka',
         tags: {
           awesome: true,
-        }
+        },
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1054,10 +1063,10 @@ module.exports = {
         duration: 207,
         score: 8.9,
         director: 'Akira Kurosawa',
-        composer: 'Fumio Hayasaka'
+        composer: 'Fumio Hayasaka',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1074,10 +1083,10 @@ module.exports = {
         duration: 162,
         score: 8,
         director: 'Akira Kurosawa',
-        composer: 'Shin’ichirō Ikebe'
+        composer: 'Shin’ichirō Ikebe',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1094,10 +1103,10 @@ module.exports = {
         duration: 162,
         score: 7.4,
         director: 'Akira Kurosawa',
-        composer: 'Shin’ichirō Ikebe'
+        composer: 'Shin’ichirō Ikebe',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1114,10 +1123,10 @@ module.exports = {
         duration: 126,
         score: 8.1,
         director: 'Akira Kurosawa',
-        composer: 'Masaru Sato'
+        composer: 'Masaru Sato',
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1134,11 +1143,11 @@ module.exports = {
         duration: 126,
         score: 8.2,
         director: 'Akira Kurosawa',
-        composer: 'Masaru Sato'
+        composer: 'Masaru Sato',
       },
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   event: [
@@ -1153,13 +1162,13 @@ module.exports = {
       relatedObjectsIds: {
         assetTypeId: asset1.assetTypeId,
         categoryId: asset1.categoryId,
-        ownerId: asset1.ownerId
+        ownerId: asset1.ownerId,
       },
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1178,9 +1187,9 @@ module.exports = {
       metadata: {
         nested: {
           object: true,
-          string: 'true'
-        }
-      }
+          string: 'true',
+        },
+      },
     }),
 
     createModel({
@@ -1201,9 +1210,9 @@ module.exports = {
         name: 'DMC-12',
         nested: {
           object: true,
-          string: 'true'
-        }
-      }
+          string: 'true',
+        },
+      },
     }),
 
     createModel({
@@ -1224,9 +1233,9 @@ module.exports = {
         name: 'DMC-12',
         nested: {
           object: true,
-          string: 'true'
-        }
-      }
+          string: 'true',
+        },
+      },
     }),
 
     createModel({
@@ -1238,15 +1247,16 @@ module.exports = {
       objectId: validatedTransaction1.id,
       object: Object.assign({}, validatedTransaction1, {
         status: 'draft',
-        statusHistory: validatedTransaction1.statusHistory
-          .filter(status => status === 'draft')
+        statusHistory: validatedTransaction1.statusHistory.filter(
+          (status) => status === 'draft',
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1258,15 +1268,16 @@ module.exports = {
       objectId: validatedTransaction1.id,
       object: Object.assign({}, validatedTransaction1, {
         status: 'pending-acceptance',
-        statusHistory: validatedTransaction1.statusHistory
-          .filter(status => ['draft', 'pending-acceptance'].includes(status))
+        statusHistory: validatedTransaction1.statusHistory.filter((status) =>
+          ['draft', 'pending-acceptance'].includes(status),
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1282,7 +1293,7 @@ module.exports = {
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1294,15 +1305,16 @@ module.exports = {
       objectId: validatedTransaction2.id,
       object: Object.assign({}, validatedTransaction2, {
         status: 'draft',
-        statusHistory: validatedTransaction2.statusHistory
-          .filter(status => status === 'draft')
+        statusHistory: validatedTransaction2.statusHistory.filter(
+          (status) => status === 'draft',
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1314,15 +1326,16 @@ module.exports = {
       objectId: validatedTransaction2.id,
       object: Object.assign({}, validatedTransaction2, {
         status: 'pending-acceptance',
-        statusHistory: validatedTransaction2.statusHistory
-          .filter(status => ['draft', 'pending-acceptance'].includes(status))
+        statusHistory: validatedTransaction2.statusHistory.filter((status) =>
+          ['draft', 'pending-acceptance'].includes(status),
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1338,7 +1351,7 @@ module.exports = {
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1350,15 +1363,16 @@ module.exports = {
       objectId: paidTransaction.id,
       object: Object.assign({}, paidTransaction, {
         status: 'draft',
-        statusHistory: paidTransaction.statusHistory
-          .filter(status => status === 'draft')
+        statusHistory: paidTransaction.statusHistory.filter(
+          (status) => status === 'draft',
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1370,15 +1384,16 @@ module.exports = {
       objectId: paidTransaction.id,
       object: Object.assign({}, paidTransaction, {
         status: 'pending-acceptance',
-        statusHistory: paidTransaction.statusHistory
-          .filter(status => ['draft', 'pending-acceptance'].includes(status))
+        statusHistory: paidTransaction.statusHistory.filter((status) =>
+          ['draft', 'pending-acceptance'].includes(status),
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1390,15 +1405,16 @@ module.exports = {
       objectId: acceptedTransaction.id,
       object: Object.assign({}, acceptedTransaction, {
         status: 'draft',
-        statusHistory: acceptedTransaction.statusHistory
-          .filter(status => status === 'draft')
+        statusHistory: acceptedTransaction.statusHistory.filter(
+          (status) => status === 'draft',
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
 
     createModel({
@@ -1410,15 +1426,16 @@ module.exports = {
       objectId: acceptedTransaction.id,
       object: Object.assign({}, acceptedTransaction, {
         status: 'accepted',
-        statusHistory: acceptedTransaction.statusHistory
-          .filter(status => ['draft', 'accepted'].includes(status))
+        statusHistory: acceptedTransaction.statusHistory.filter((status) =>
+          ['draft', 'accepted'].includes(status),
+        ),
       }),
       relatedObjectsIds: {},
       apiVersion: '2019-05-20',
       parentId: null,
       emitter: 'core',
       emitterId: null,
-      metadata: {}
+      metadata: {},
     }),
   ],
 
@@ -1435,12 +1452,12 @@ module.exports = {
         description: '',
         nestedContent: {
           random1: {
-            random2: 'hello'
+            random2: 'hello',
           },
-          random3: 'bye'
-        }
+          random3: 'bye',
+        },
       },
-      metadata: {}
+      metadata: {},
     }),
     createModel({
       id: 'ent_f5HQIUs1Wwq1hKPjJWwq',
@@ -1451,9 +1468,9 @@ module.exports = {
       name: 'aboutUs',
       fields: {
         title: 'About us',
-        description: 'Our team is wonderful.'
+        description: 'Our team is wonderful.',
       },
-      metadata: {}
+      metadata: {},
     }),
     createModel({
       id: 'ent_9WLLTGs1wnR1hkGQwwnR',
@@ -1464,10 +1481,10 @@ module.exports = {
       name: 'signup',
       fields: {
         subject: 'Hi, welcome to Saltana',
-        content: 'You just signed up. Please check your email.'
+        content: 'You just signed up. Please check your email.',
       },
-      metadata: {}
-    })
+      metadata: {},
+    }),
   ],
 
   asset: [
@@ -1482,9 +1499,7 @@ module.exports = {
       description: null,
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
       validated: true,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: true,
       assetTypeId: 'typ_Vr001Be1JBF1hlzxYJBE',
       quantity: 5,
@@ -1492,7 +1507,7 @@ module.exports = {
       price: 200,
       customAttributes: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1504,9 +1519,7 @@ module.exports = {
       description: null,
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
       validated: false,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: false,
       assetTypeId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       quantity: 1,
@@ -1514,7 +1527,7 @@ module.exports = {
       price: 200,
       customAttributes: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1526,9 +1539,7 @@ module.exports = {
       description: null,
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
       validated: false,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: false,
       assetTypeId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       quantity: 1,
@@ -1536,7 +1547,7 @@ module.exports = {
       price: 200,
       customAttributes: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1548,9 +1559,7 @@ module.exports = {
       description: null,
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
       validated: false,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: false,
       assetTypeId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       quantity: 1,
@@ -1558,7 +1567,7 @@ module.exports = {
       price: 200,
       customAttributes: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1570,9 +1579,7 @@ module.exports = {
       description: null,
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
       validated: true,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: true,
       assetTypeId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       quantity: 0,
@@ -1580,7 +1587,7 @@ module.exports = {
       price: 200,
       customAttributes: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1592,9 +1599,7 @@ module.exports = {
       description: null,
       categoryId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       validated: true,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: true,
       assetTypeId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       quantity: 1,
@@ -1602,7 +1607,7 @@ module.exports = {
       price: 200,
       customAttributes: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1614,9 +1619,7 @@ module.exports = {
       description: null,
       categoryId: 'ctgy_N1FQps1I3a1gJYz2I3a',
       validated: true,
-      locations: [
-        { latitude: 32.05223, longitude: -120.24368 }
-      ],
+      locations: [{ latitude: 32.05223, longitude: -120.24368 }],
       active: true,
       assetTypeId: 'typ_T3ZfQps1I3a1gJYz2I3a',
       quantity: 1,
@@ -1624,8 +1627,8 @@ module.exports = {
       price: 50,
       customAttributes: {},
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   availability: [
@@ -1641,7 +1644,7 @@ module.exports = {
       recurringTimezone: null,
       recurringDuration: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1656,7 +1659,7 @@ module.exports = {
       recurringTimezone: null,
       recurringDuration: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1671,7 +1674,7 @@ module.exports = {
       recurringTimezone: null,
       recurringDuration: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1686,7 +1689,7 @@ module.exports = {
       recurringTimezone: null,
       recurringDuration: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1701,8 +1704,8 @@ module.exports = {
       recurringTimezone: null,
       recurringDuration: null,
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   category: [
@@ -1713,11 +1716,11 @@ module.exports = {
       name: 'Sport',
       parentId: null,
       metadata: {
-        metadataOnly: 'notPlatformData'
+        metadataOnly: 'notPlatformData',
       },
       platformData: {
-        platformDataOnly: 'notMetadata'
-      }
+        platformDataOnly: 'notMetadata',
+      },
     }),
 
     createModel({
@@ -1727,9 +1730,9 @@ module.exports = {
       name: 'Compact car',
       parentId: null,
       metadata: {
-        metadataOnly: true
+        metadataOnly: true,
       },
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1739,7 +1742,7 @@ module.exports = {
       name: 'Unused category',
       parentId: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1749,8 +1752,8 @@ module.exports = {
       name: 'Unused category child',
       parentId: 'ctgy_WW5Qps1I3a1gJYz2I3a',
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   assetType: [
@@ -1765,17 +1768,17 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 0,
-        takerFeesPercent: 20
+        takerFeesPercent: 20,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       isDefault: false,
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1787,16 +1790,16 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       timing: {
         timeUnit: 'd',
         minDuration: null,
-        maxDuration: null
+        maxDuration: null,
       },
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // asset type with no assets (for tests)
@@ -1809,21 +1812,21 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 0,
-        takerFeesPercent: 0
+        takerFeesPercent: 0,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       isDefault: false,
       active: true,
       metadata: {
-        metadataOnly: 'notPlatformData'
+        metadataOnly: 'notPlatformData',
       },
       platformData: {
-        platformDataOnly: 'notMetadata'
-      }
+        platformDataOnly: 'notMetadata',
+      },
     }),
 
     createModel({
@@ -1835,17 +1838,17 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       isDefault: false,
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1857,18 +1860,18 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       unavailableWhen: ['confirmed', 'validated', 'completed'],
       isDefault: false,
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // asset type with all possible custom attributes
@@ -1881,17 +1884,17 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       isDefault: false,
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // asset type with all assessment hooks disabled
@@ -1904,17 +1907,17 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 5,
-        takerFeesPercent: 15
+        takerFeesPercent: 15,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       isDefault: false,
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1926,18 +1929,18 @@ module.exports = {
       infiniteStock: false,
       pricing: {
         ownerFeesPercent: 0,
-        takerFeesPercent: 0
+        takerFeesPercent: 0,
       },
       timing: {
         timeUnit: 'd',
         minDuration: { d: 1 },
-        maxDuration: { d: 100 }
+        maxDuration: { d: 100 },
       },
       isDefault: false,
       active: true,
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   message: [
@@ -1953,7 +1956,7 @@ module.exports = {
       senderId: 'user-external-id',
       receiverId: 'usr_WHlfQps1I3a1gJYz2I3a',
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -1968,8 +1971,8 @@ module.exports = {
       senderId: 'usr_QVQfQps1I3a1gJYz2I3a',
       receiverId: 'usr_WHlfQps1I3a1gJYz2I3a',
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   order: [
@@ -1992,7 +1995,7 @@ module.exports = {
           platformAmount: 177,
           currency: 'USD',
           metadata: {},
-          platformData: {}
+          platformData: {},
         },
         {
           id: 'ordl_BLusYs1mlp1h0inwmlp',
@@ -2008,12 +2011,10 @@ module.exports = {
           platformAmount: 50,
           currency: 'USD',
           metadata: {},
-          platformData: {}
-        }
+          platformData: {},
+        },
       ],
-      moves: [
-
-      ],
+      moves: [],
       amountDue: 1177,
       amountPaid: 0,
       amountRemaining: 1177,
@@ -2021,7 +2022,7 @@ module.exports = {
       payerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       paymentAttempted: false,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2037,7 +2038,7 @@ module.exports = {
       payerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       paymentAttempted: false,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2059,8 +2060,8 @@ module.exports = {
           platformAmount: 36,
           currency: 'EUR',
           metadata: {},
-          platformData: {}
-        }
+          platformData: {},
+        },
       ],
       moves: [],
       amountDue: 216,
@@ -2070,7 +2071,7 @@ module.exports = {
       payerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       paymentAttempted: false,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2092,7 +2093,7 @@ module.exports = {
           platformAmount: 0,
           currency: 'USD',
           metadata: {},
-          platformData: {}
+          platformData: {},
         },
         {
           id: 'ordl_C0jh2s1pO81h3L6wpO8',
@@ -2108,8 +2109,8 @@ module.exports = {
           platformAmount: 0,
           currency: 'USD',
           metadata: {},
-          platformData: {}
-        }
+          platformData: {},
+        },
       ],
       moves: [
         {
@@ -2128,11 +2129,11 @@ module.exports = {
           real: {
             payerAmount: 173,
             platformAmount: 0,
-            currency: 'EUR'
+            currency: 'EUR',
           },
           metadata: {},
-          platformData: {}
-        }
+          platformData: {},
+        },
       ],
       amountDue: 200,
       amountPaid: 200,
@@ -2141,8 +2142,8 @@ module.exports = {
       payerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       paymentAttempted: true,
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   role: [
@@ -2150,38 +2151,40 @@ module.exports = {
       id: 'role_C5ZIBs105v1gHK1i05v',
       createdDate: now,
       updatedDate: now,
-      ...roles.dev
+      ...roles.dev,
     }),
 
     createModel({
       id: 'role_6toGqs1vyG1hDNAsvyG',
       createdDate: now,
       updatedDate: now,
-      ...roles.user
+      ...roles.user,
     }),
 
     createModel({
       id: 'role_Lpisxs1W0L1hDWL1W0L',
       createdDate: now,
       updatedDate: now,
-      ...roles.provider
+      ...roles.provider,
     }),
 
     createModel({
       id: 'role_lj840s1v7v1hCM29v7v',
       createdDate: now,
       updatedDate: now,
-      ..._.mapValues( // remove this default public permission for testing purpose
+      ..._.mapValues(
+        // remove this default public permission for testing purpose
         roles.public,
-        (v, k) => k === 'permissions' ? _.difference(v, ['asset:list:all']) : v
-      )
+        (v, k) =>
+          k === 'permissions' ? _.difference(v, ['asset:list:all']) : v,
+      ),
     }),
 
     createModel({
       id: 'role_cdFiOs1MTM1gdhTMMTM',
       createdDate: now,
       updatedDate: now,
-      ...roles.organization
+      ...roles.organization,
     }),
 
     createModel({
@@ -2195,12 +2198,12 @@ module.exports = {
         'asset:read:all',
         'asset:create:all',
         'asset:edit:all',
-        'asset:remove:all'
+        'asset:remove:all',
       ],
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // unused role (to remove)
@@ -2215,13 +2218,13 @@ module.exports = {
         'asset:read:all',
         'asset:create:all',
         'asset:edit:all',
-        'asset:remove:all'
+        'asset:remove:all',
       ],
       readNamespaces: [],
       editNamespaces: [],
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   task: [
@@ -2237,7 +2240,7 @@ module.exports = {
       eventObjectId: 'ast_2l7fQps1I3a1gJYz2I3a',
       active: true,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2252,8 +2255,8 @@ module.exports = {
       eventObjectId: 'ast_lCfxJNs10rP1g2Mww0rP',
       active: true,
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   transaction: [
@@ -2267,9 +2270,7 @@ module.exports = {
       assetTypeId: assetType1.id,
       assetType: assetType1,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: 'fd7b4ea9-a899-4dba-b9b0-ef8537a70efe',
       takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       quantity: 1,
@@ -2289,7 +2290,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // transaction paid
@@ -2308,9 +2309,7 @@ module.exports = {
       assetTypeId: assetType1.id,
       assetType: assetType1,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: 'fd7b4ea9-a899-4dba-b9b0-ef8537a70efe',
       takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       quantity: 1,
@@ -2330,7 +2329,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // transaction paid and accepted
@@ -2349,9 +2348,7 @@ module.exports = {
       assetTypeId: assetType1.id,
       assetType: assetType1,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: 'usr_QVQfQps1I3a1gJYz2I3a',
       takerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       quantity: 1,
@@ -2371,7 +2368,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // empty transaction with no information
@@ -2384,9 +2381,7 @@ module.exports = {
       assetTypeId: null,
       assetType: null,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: null,
       takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       quantity: 1,
@@ -2406,7 +2401,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2418,9 +2413,7 @@ module.exports = {
       assetTypeId: assetType1.id,
       assetType: assetType1,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: 'usr_QVQfQps1I3a1gJYz2I3a',
       takerId: 'org_xC3ZlGs1Jo71gb2G0Jo7',
       quantity: 1,
@@ -2440,7 +2433,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2452,9 +2445,7 @@ module.exports = {
       assetTypeId: assetType2.id,
       assetType: assetType2,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: 'usr_QVQfQps1I3a1gJYz2I3a',
       takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       quantity: 1,
@@ -2474,7 +2465,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2486,9 +2477,7 @@ module.exports = {
       assetTypeId: assetType2.id,
       assetType: assetType2,
       status: 'draft',
-      statusHistory: [
-        { status: 'draft', date: now }
-      ],
+      statusHistory: [{ status: 'draft', date: now }],
       ownerId: 'usr_QVQfQps1I3a1gJYz2I3a',
       takerId: 'ff4bf0dd-b1d9-49c9-8c61-3e3baa04181c',
       quantity: 1,
@@ -2508,7 +2497,7 @@ module.exports = {
       cancelledDate: null,
       cancellationReason: null,
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
   ],
 
@@ -2525,11 +2514,11 @@ module.exports = {
       roles: ['dev', 'user', 'provider'],
       organizations: {
         org_xC3ZlGs1Jo71gb2G0Jo7: {
-          roles: ['user', 'provider']
-        }
+          roles: ['user', 'provider'],
+        },
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2544,17 +2533,17 @@ module.exports = {
       roles: ['user', 'provider', 'custom'],
       organizations: {
         org_yiBSnhs1zaP1hh8rczaP: {
-          roles: ['user', 'provider']
+          roles: ['user', 'provider'],
         },
         org_4YsuuQe1X0h1hznSoX0g: {
-          roles: ['user', 'provider']
+          roles: ['user', 'provider'],
         },
         org_VPq2HKe1uSC1iNF5JuSB: {
-          roles: ['user', 'provider']
-        }
+          roles: ['user', 'provider'],
+        },
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
     createModel({
       id: 'usr_AAtfQps1I3a1gJYz2I3a',
@@ -2568,17 +2557,17 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {
         org_xC3ZlGs1Jo71gb2G0Jo7: {
-          roles: ['user', 'provider']
+          roles: ['user', 'provider'],
         },
         org_yiBSnhs1zaP1hh8rczaP: {
-          roles: ['user', 'provider']
+          roles: ['user', 'provider'],
         },
         org_VPq2HKe1uSC1iNF5JuSB: {
-          roles: ['user', 'provider']
-        }
+          roles: ['user', 'provider'],
+        },
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2593,11 +2582,11 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {
         org_yiBSnhs1zaP1hh8rczaP: {
-          roles: ['user', 'provider']
-        }
+          roles: ['user', 'provider'],
+        },
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2612,7 +2601,7 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2627,7 +2616,7 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // unused user
@@ -2643,7 +2632,7 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // user to remove
@@ -2659,7 +2648,7 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2674,25 +2663,25 @@ module.exports = {
       roles: ['user', 'provider'],
       organizations: {
         org_toMLWis1EpB1gwNcfEpB: {
-          roles: ['user', 'provider']
-        }
+          roles: ['user', 'provider'],
+        },
       },
       metadata: {
         _private: {
-          test: true
+          test: true,
         },
         _protected: {
-          test: true
-        }
+          test: true,
+        },
       },
       platformData: {
         _private: {
-          test: true
+          test: true,
         },
         _protected: {
-          test: true
-        }
-      }
+          test: true,
+        },
+      },
     }),
 
     createModel({
@@ -2707,7 +2696,7 @@ module.exports = {
       roles: ['dev'],
       organizations: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2723,7 +2712,7 @@ module.exports = {
       organizations: {},
       orgOwnerId: 'usr_WHlfQps1I3a1gJYz2I3a',
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2738,7 +2727,7 @@ module.exports = {
       roles: ['organization', 'user', 'provider'],
       organizations: {},
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2752,10 +2741,10 @@ module.exports = {
       email: null,
       roles: ['organization', 'user', 'provider'],
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
+        org_toMLWis1EpB1gwNcfEpB: {},
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     createModel({
@@ -2769,10 +2758,10 @@ module.exports = {
       email: null,
       roles: ['organization', 'user', 'provider'],
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
+        org_toMLWis1EpB1gwNcfEpB: {},
       },
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // organization to remove
@@ -2787,11 +2776,11 @@ module.exports = {
       email: null,
       roles: ['organization', 'user', 'provider'],
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
+        org_toMLWis1EpB1gwNcfEpB: {},
       },
       orgOwnerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       metadata: {},
-      platformData: {}
+      platformData: {},
     }),
 
     // organization to remove
@@ -2806,12 +2795,12 @@ module.exports = {
       email: null,
       roles: ['organization', 'user', 'provider'],
       organizations: {
-        org_toMLWis1EpB1gwNcfEpB: {}
+        org_toMLWis1EpB1gwNcfEpB: {},
       },
       orgOwnerId: 'usr_Y0tfQps1I3a1gJYz2I3a',
       metadata: {},
-      platformData: {}
-    })
+      platformData: {},
+    }),
   ],
 
   workflow: [
@@ -2824,16 +2813,16 @@ module.exports = {
       run: null,
       active: false,
       stats: {
-        nbTimesRun: 0
+        nbTimesRun: 0,
       },
       metadata: {},
       platformData: {
         test: true,
         _custom: {
-          test: true
-        }
-      }
-    })
+          test: true,
+        },
+      },
+    }),
   ],
 
   webhook: [
@@ -2849,10 +2838,9 @@ module.exports = {
       platformData: {
         test: true,
         _custom: {
-          test: true
-        }
-      }
-    })
-  ]
-
+          test: true,
+        },
+      },
+    }),
+  ],
 }

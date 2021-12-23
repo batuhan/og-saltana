@@ -86,7 +86,7 @@
   },
   "Plugins": {
     "paths": "",
-    "ignored": "",
+    "ignored": "saved-search,search-filter-dsl-parser,",
     "installed": ""
   }
 }
