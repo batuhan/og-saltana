@@ -220,7 +220,7 @@ function init(server, { middlewares, helpers } = {}) {
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
       const { dataVersion } = req.query
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
@@ -243,7 +243,7 @@ function init(server, { middlewares, helpers } = {}) {
     allowSystem,
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
@@ -265,7 +265,7 @@ function init(server, { middlewares, helpers } = {}) {
     allowSystem,
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
@@ -287,7 +287,7 @@ function init(server, { middlewares, helpers } = {}) {
     allowSystem,
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
@@ -309,7 +309,7 @@ function init(server, { middlewares, helpers } = {}) {
     allowSystem,
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
@@ -331,7 +331,7 @@ function init(server, { middlewares, helpers } = {}) {
     allowSystem,
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
@@ -351,7 +351,7 @@ function init(server, { middlewares, helpers } = {}) {
     allowSystem,
     wrapAction(async (req, res) => {
       const { id: platformId } = req.params
-      const env = req.env
+      const { env } = req
 
       if (!env) throw createError(400, 'Missing environment')
 
