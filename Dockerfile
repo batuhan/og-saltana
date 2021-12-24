@@ -5,21 +5,7 @@ FROM node:14-alpine
 
 ENV CHROME_BIN="/usr/bin/chromium-browser"
 
-RUN apk --no-cache add \
-  python \
-  make \
-  g++ \
-  git \
-  # needed for SSH using Docker BuildKit
-  openssh-client \
-  # Puppeteer/chromium
-  udev \
-  ttf-freefont \
-  chromium
-
-# Preparing to install private plugins from Github with SSH
-RUN mkdir -p -m 0600 ~/.ssh && \
-  ssh-keyscan github.com >> ~/.ssh/known_hosts
+RUN apk --no-cache add git
 
 WORKDIR /usr/src/app
 
