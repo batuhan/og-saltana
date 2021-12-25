@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--statistics {
+    background-color: #fed7aa;
+    @apply p-7;
+    @apply mt-8;
+    @apply text-center;
+    @apply mx-0;
+    @apply rounded-lg;
+    &__box {
+      @apply md:pt-3;
+    }
+    &__number {
+      @apply text-6xl;
+      @apply leading-none;
+      @apply font-extrabold;
+      @apply tracking-tight;
+      color: #0c4a6e;
+    }
+    &__text {
+      @apply text-lg;
+      @apply leading-6;
+      @apply font-light;
+      @apply pt-1;
+      color: #0c4a6e;
+    }
+  }
+}

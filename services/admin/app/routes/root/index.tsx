@@ -8,7 +8,6 @@ type LoaderData = {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-  console.log('loading')
   const api = await getApiFromRequest(request)
 
   const response = await api.get('store/platforms')

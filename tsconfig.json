@@ -5,9 +5,11 @@
     "baseUrl": ".",
     "paths": {
       "@saltana/*": [
+        "services/admin",
         "services/web",
         "services/edge",
         "services/core",
+        "services/spaces",
         "packages/common",
         "packages/fil",
         "packages/sdk",

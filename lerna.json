@@ -1,8 +1,10 @@
 {
   "packages": [
+    "services/admin",
     "services/web",
     "services/edge",
     "services/core",
+    "services/services",
     "packages/common",
     "packages/fil",
     "packages/sdk",

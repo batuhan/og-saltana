@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--findlayout {
+    @apply bg-gray-900;
+    @apply rounded-lg;
+    @apply text-white;
+    @apply p-9;
+    @apply mt-8;
+    &__title {
+      @apply text-3xl;
+      @apply leading-9;
+      @apply font-extrabold;
+    }
+    &__description {
+      @apply text-base;
+      @apply leading-6;
+      @apply font-normal;
+      @apply pt-5;
+    }
+    &__buttons {
+      @apply mt-3;
+      @apply text-gray-900;
+      .button--buy {
+        @apply bg-yellow-500;
+        @apply py-2;
+        @apply px-4;
+        @apply rounded-md;
+        @apply text-center;
+        @apply md:mr-0;
+        @apply md:block;
+        @apply xl:mr-2;
+        @apply lg:mr-2;
+        @apply mr-2;
+        @apply lg:inline;
+      }
+      .button--preview {
+        @apply bg-gray-50;
+        @apply py-2;
+        @apply px-4;
+        @apply rounded-md;
+        @apply text-center;
+        @apply md:mt-3;
+        @apply md:block;
+        @apply lg:inline;
+      }
+    }
+  }
+}

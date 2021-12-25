@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--subscription {
+    background-color: #e3e1f8;
+    @apply p-1;
+    @apply md:p-2;
+    @apply sm:p-2;
+    @apply mt-8;
+    @apply rounded-lg;
+    @apply md:p-3;
+    &__text {
+      @apply xl:p-8;
+      @apply lg:p-8;
+      @apply md:p-4;
+      @apply sm:p-4;
+    }
+    &__image {
+      @apply w-full;
+      @apply md:w-full;
+      @apply sm:w-full;
+      @apply h-full;
+      @apply pt-2;
+    }
+    &__title {
+      @apply text-lg;
+      @apply leading-8;
+      @apply font-semibold;
+      @apply pt-2;
+      @apply md:pt-3;
+      color: #0c4a6e;
+    }
+    &__description {
+      @apply text-base;
+      @apply leading-7;
+      @apply font-light;
+      @apply mt-8;
+      color: #075985;
+      @apply md:break-all;
+    }
+    &__button {
+      @apply text-sm;
+      @apply leading-5;
+      @apply font-medium;
+      @apply bg-indigo-500;
+      @apply p-3;
+      @apply mt-8;
+      @apply text-white;
+      @apply rounded-md;
+      @apply md:block;
+      @apply xl:inline-block;
+      @apply lg:inline-block;
+      @apply mb-2;
+      @apply text-center;
+    }
+  }
+}

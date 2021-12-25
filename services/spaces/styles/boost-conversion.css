@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@media screen and (max-width:450px) {
+  .section--boostconversion {
+    &__icon {
+      height:40px !important;
+    }
+  }
+}
+
+@layer base {
+  .section--boostconversion {
+    background-color: #fc8ea2;
+    @apply p-5;
+    @apply mt-8;
+    @apply rounded-lg;
+    @apply flex;
+    &__icon {
+      background-color: #FCA0AE;
+      @apply rounded-lg;
+      @apply p-3; 
+      @apply mr-3;
+      @apply md:flex;
+      @apply md:justify-center;
+    }
+    &__title {
+      @apply text-xl;
+      @apply leading-7;
+      @apply font-semibold;
+      @apply text-white;
+    }
+    &__description {
+      @apply text-sm;
+      @apply leading-5;
+      @apply font-normal;
+      @apply text-white;
+    }
+  }
+}

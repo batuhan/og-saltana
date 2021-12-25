@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--slideshow {
+    @apply mt-8;
+    &__image {
+      @apply w-full;
+      &__caption {
+        @apply bg-green-100;
+        @apply w-full;
+        @apply flex;
+        @apply justify-between;
+        @apply p-4;
+        &__text {
+          @apply text-xl;
+          @apply leading-7;
+          @apply font-normal;
+          @apply w-3/5;
+        }
+        &__button {
+          @apply bg-green-900;
+          @apply rounded-md;
+          @apply h-10;
+          @apply py-2;
+          @apply px-4;
+          &__text {
+            @apply text-base;
+            @apply leading-6;
+            @apply font-light;
+            @apply text-white;
+          }
+        }
+      }
+    }
+    &__slide {
+      @apply mt-8;
+      background-color: #e0e7ff;
+      @apply rounded-lg;
+      &__image {
+        @apply w-full;
+        @apply h-full;
+      }
+      &__text {
+        @apply p-6;
+        &__title {
+          @apply text-2xl;
+          @apply leading-8;
+          @apply font-semibold;
+          color: #312e81;
+        }
+        &__button {
+          background-color: #312e81;
+          @apply py-2;
+          @apply px-6;
+          @apply mt-10;
+          @apply text-white;
+          @apply inline-block;
+          @apply rounded-lg;
+          @apply block;
+          @apply text-center;
+        }
+      }
+    }
+    &__slides {
+      @apply mt-8;
+      &__img {
+        @apply w-full;
+      }
+      &__title {
+        @apply text-purple-900;
+        @apply text-xl;
+        @apply leading-7;
+        @apply font-semibold;
+        @apply mt-4;
+      }
+      &__button {
+        @apply bg-purple-900;
+        @apply text-center;
+        @apply block;
+        @apply rounded-lg;
+        @apply text-center;
+        @apply py-3;
+        @apply px-6;
+        @apply mt-4;
+        @apply text-white;
+      }
+    }
+    &__slides2 {
+      @apply mt-8;
+      .slide--background {
+        @apply p-5;
+        @apply bg-yellow-50;
+      }
+      &__img {
+        @apply w-full;
+      }
+      &__title {
+        @apply text-yellow-900;
+        @apply text-xl;
+        @apply leading-7;
+        @apply font-semibold;
+        @apply mt-4;
+      }
+      &__button {
+        @apply bg-yellow-900;
+        @apply text-center;
+        @apply block;
+        @apply rounded-lg;
+        @apply text-center;
+        @apply py-2;
+        @apply px-6;
+        @apply mt-4;
+        @apply text-white;
+      }
+    }
+  }
+}

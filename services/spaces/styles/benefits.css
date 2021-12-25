@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .section--benefits {
+    @apply mt-4;
+    &__title {
+      @apply text-7xl;
+      @apply font-extrabold;
+    }
+    &__description {
+      @apply bg-gray-100;
+      @apply p-6;
+      @apply mt-4;
+      @apply leading-6;
+      @apply font-light;
+      @apply text-base;
+      color: #0c4a6e;
+      @apply rounded-sm;
+      p {
+        &::first-letter {
+          @apply text-7xl;
+          @apply leading-none;
+          @apply font-normal;
+          @apply float-left;
+          @apply pr-3;
+        }
+      }
+    }
+    &__video {
+      background-color: #fed7aa;
+      @apply rounded-lg;
+      @apply mt-7;
+      &__image {
+        @apply w-full;
+        @apply h-full;
+      }
+      &__text {
+        @apply p-5;
+        &__title {
+          color: #0c4a6e;
+          @apply text-2xl;
+          @apply leading-8;
+          @apply lg:font-semibold;
+          @apply pt-8;
+        }
+        &__description {
+          color: #0c4a6e;
+          @apply text-base;
+          @apply mt-8;
+          @apply leading-8;
+          @apply font-normal;
+        }
+        &__watch__button__text {
+          @apply inline-block;
+          @apply pt-5;
+          @apply mt-8;
+          color: #0c4a6e;
+          border-bottom: 2px solid #0c4a6e;
+        }
+      }
+    }
+  }
+}
