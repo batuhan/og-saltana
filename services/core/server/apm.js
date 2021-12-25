@@ -12,6 +12,7 @@ const isDisabled =
 
 const isActive = !isDisabled && !!serverUrl
 
+console.log({ isDisabled, isActive })
 // for debugging, reveal some characters in sensitive information
 const defaultNbRevealedChars = 4
 const apiKeyRegex = /^((?:.+)_(?:test|live)_)(.+)$/i
@@ -86,7 +87,7 @@ function start() {
     secretToken,
 
     // https://www.elastic.co/guide/en/apm/agent/nodejs/current/configuration.html#log-level
-    logLevel: 'fatal', // set to 'fatal' so APM agent won't be too chatty in stdout
+    logLevel: 'info', // set to 'fatal' so APM agent won't be too chatty in stdout
   })
 }
 

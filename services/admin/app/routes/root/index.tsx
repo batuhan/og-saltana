@@ -11,16 +11,18 @@ export const loader: LoaderFunction = async ({ request }) => {
   try {
     const api = await getApiFromRequest(request)
 
-    const response = await api.get('store/platforms')
+    const platformIds: Array<string> = await api.get('store/platforms').json()
 
-    const platformIds: Array<string> = await response.json()
     const platforms: Array<any> = platformIds.map((platformId) => getPlatformData(api, platformId))
 
     const data: LoaderData = {
       platforms: await Promise.all(platforms),
     }
+
+    console.log(data)
     return data
   } catch (error) {
+    console.error(error)
     return error
   }
 }

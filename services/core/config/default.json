@@ -43,7 +43,7 @@
       "password": "elastic_password",
       "apm": {
         "enabled": false,
-        "serverUrl": "http://localhost:8200",
+        "serverUrl": "https://saltana.apm.eu-central-1.aws.cloud.es.io",
         "secretToken": "xxVpmQB2HMzCL9PgBHVrnxjNXXw5J7bd79DFm6sjBJR5HPXDhcF8MSb3vv4bpg44"
       }
     },
