@@ -1,6 +1,5 @@
 {
   "packages": [
-    "services/admin",
     "services/web",
     "services/edge",
     "services/core",

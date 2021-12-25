@@ -1,6 +1,6 @@
 import { createCookieSessionStorage, redirect } from 'remix'
 
-import ky, { KyInstance } from 'ky'
+import * as ky from 'ky'
 
 let sessionSecret = 'dfgdfgd'
 // let sessionSecret = process.env.SESSION_SECRET || 'dfgdfgd'
@@ -87,7 +87,7 @@ export async function createRootSession(
 }
 
 const getPlatformDataForEnv = (
-  api: KyInstance,
+  api: any,
   platformId: string,
   env: 'test' | 'live'
 ) =>
@@ -106,7 +106,7 @@ const getPlatformDataForEnv = (
       return { ...filteredData }
     })
 
-export async function getPlatformData(api: KyInstance, platformId: string) {
+export async function getPlatformData(api: any, platformId: string) {
   const [test, live, checkResult] = await Promise.all([
     getPlatformDataForEnv(api, platformId, 'test'),
     getPlatformDataForEnv(api, platformId, 'live'),
@@ -137,7 +137,7 @@ type PlatformAction =
   | 'db-migrate'
 
 export async function handlePlatformAction(
-  api: KyInstance,
+  api: any,
   platformId: string,
   action: PlatformAction
 ) {

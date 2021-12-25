@@ -16,5 +16,13 @@ module.exports = {
         NODE_ENV: 'development',
       },
     },
+    {
+      name: 'miniflare',
+      script: 'yarn start',
+      ignore_watch: ['.'],
+      env: {
+        NODE_ENV: 'development',
+      },
+    },
   ],
 }
