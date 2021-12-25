@@ -10,19 +10,7 @@ import type { MetaFunction, LinksFunction } from "remix";
 
 import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
-import aboutCss from "./styles/about.css";
-import merchCss from "./styles/merch.css";
-import benefitsCss from "./styles/benefits.css";
-import shortCss from "./styles/short-term-staff.css";
-import slideCss from "./styles/slide-show.css";
-import newsletterCss from "./styles/newsletter.css";
-import subscriptionCss from "./styles/subscription.css";
-import boostCss from "./styles/boost-conversion.css";
-import statisticsCss from "./styles/statistics.css";
-import suitableCss from "./styles/suitable-block.css";
-import combineCss from "./styles/combine-block.css";
-import findCss from "./styles/find-layout.css";
-import discoverCss from "./styles/discover-source.css";
+
 
 export const meta: MetaFunction = () => {
   return { title: "New Remix App" };
@@ -31,19 +19,6 @@ export const meta: MetaFunction = () => {
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: globalCSS },
   { rel: 'stylesheet', href: interCSS },
-  { rel: 'stylesheet', href: aboutCss },
-  { rel: 'stylesheet', href: merchCss },
-  { rel: 'stylesheet', href: benefitsCss },
-  { rel: 'stylesheet', href: shortCss },
-  { rel: 'stylesheet', href: slideCss },
-  { rel: 'stylesheet', href: newsletterCss },
-  { rel: 'stylesheet', href: subscriptionCss },
-  { rel: 'stylesheet', href: boostCss },
-  { rel: 'stylesheet', href: statisticsCss },
-  { rel: 'stylesheet', href: suitableCss },
-  { rel: 'stylesheet', href: combineCss },
-  { rel: 'stylesheet', href: findCss },
-  { rel: 'stylesheet', href: discoverCss },
 
 
   { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },

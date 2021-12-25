@@ -21,7 +21,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return data
 }
 
-export default function JokesRoute() {
+export default function PlatformRoute() {
   const data = useLoaderData<LoaderData>()
 
   return (

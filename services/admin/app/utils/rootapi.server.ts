@@ -1,7 +1,6 @@
 import { createCookieSessionStorage, redirect } from 'remix'
 
-import ky from 'ky'
-import { KyInstance } from 'ky/distribution/types/ky'
+import ky, { KyInstance } from 'ky'
 
 let sessionSecret = 'dfgdfgd'
 // let sessionSecret = process.env.SESSION_SECRET || 'dfgdfgd'
