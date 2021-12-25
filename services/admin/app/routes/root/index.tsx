@@ -8,17 +8,21 @@ type LoaderData = {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const api = await getApiFromRequest(request)
+  try {
+    const api = await getApiFromRequest(request)
 
-  const response = await api.get('store/platforms')
+    const response = await api.get('store/platforms')
 
-  const platformIds: Array<string> = await response.json()
-  const platforms: Array<any> = platformIds.map((platformId) => getPlatformData(api, platformId))
+    const platformIds: Array<string> = await response.json()
+    const platforms: Array<any> = platformIds.map((platformId) => getPlatformData(api, platformId))
 
-  const data: LoaderData = {
-    platforms: await Promise.all(platforms),
+    const data: LoaderData = {
+      platforms: await Promise.all(platforms),
+    }
+    return data
+  } catch (error) {
+    return error
   }
-  return data
 }
 
 export default function PlatformRoute() {
