@@ -10,7 +10,7 @@ if (!sessionSecret) {
 
 let { getSession, commitSession, destroySession } = createCookieSessionStorage({
   cookie: {
-    name: 'RAPI_session',
+    name: 'PAPI_session',
     secure: false,
     secrets: [sessionSecret],
     sameSite: 'lax',
@@ -65,12 +65,12 @@ export async function getApiFromRequest(request: Request) {
 
 export async function logout(request: Request) {
   let session = await getSession(request.headers.get('Cookie'))
-  return redirect('/root/login', {
+  return redirect('/login', {
     headers: { 'Set-Cookie': await destroySession(session) },
   })
 }
 
-export async function createRootSession(
+export async function createPlatformSession(
   apiUrl: string,
   systemKey: string,
   redirectTo: string

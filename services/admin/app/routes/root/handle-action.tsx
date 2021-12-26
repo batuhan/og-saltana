@@ -1,27 +1,38 @@
+import { ActionFunction } from "remix";
+import { logout } from "~/utils/rootapi.server";
+import { logout } from "~/utils/platformapi.server";
+import { PlatformAction } from "~/utils/platforms.server";
 
 type ActionData = {
   formError?: string;
-  fieldErrors?: { url: string | undefined; systemKey: string | undefined };
-  fields?: { url: string; systemKey: string };
+  fieldErrors?: { actionType: PlatformAction; platformId: string | undefined };
+  fields?: { actionType: string; platformId: string };
 };
 
-export let action: ActionFunction = async ({
+function validateActionType(actionType: PlatformAction) {
+  if (typeof actionType !== "string") {
+    return `actionType is wrong`;
+  }
+}
+
+function validatePlatformId(platformId: string) {
+  if (typeof platformId !== "string") {
+    return `platformIds must be at least 5 characters long`;
+  }
+}
+
+export const action: ActionFunction = async ({
   request,
 }): Promise<Response | ActionData> => {
-  let { url, systemKey } = Object.fromEntries(
+  const { actionType, platformId } = Object.fromEntries(
     await request.formData()
   );
-  if (
-    typeof url !== "string" ||
-    typeof systemKey !== "string"
-  ) {
-    return { formError: `Form not submitted correctly.` };
-  }
 
-  let fields = { url, systemKey };
-  let fieldErrors = {
-    url: validateUrl(url),
-    systemKey: validateSystemKey(systemKey),
+
+  const fields = { actionType, platformId };
+  const fieldErrors = {
+    actionType: validateActionType(actionType as PlatformAction),
+    platformId: validatePlatformId(platformId as string),
   };
   if (Object.values(fieldErrors).some(Boolean)) return { fieldErrors, fields };
 

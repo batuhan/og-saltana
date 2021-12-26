@@ -1,23 +1,20 @@
 import { LoaderFunction, useLoaderData } from 'remix'
 import Layout from '~/components/Layout'
 import PlatformsView from '~/components/PlatformsView'
-import { getApiFromRequest } from '~/utils/rootapi.server'
-import { getPlatformData } from '~/utils/platforms.server'
+import { getApiFromRequest, getPlatformData } from '~/utils/rootapi.server'
 
 type LoaderData = {
-  platforms: Array<{}>
+  platformData: {}
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
   try {
     const api = await getApiFromRequest(request)
 
-    const platformIds: Array<string> = await api.get('store/platforms').json()
-
-    const platforms: Array<any> = platformIds.map((platformId) => getPlatformData(api, platformId))
+    const platformData: {} = await getPlatformData(api, params.platformId as string)
 
     const data: LoaderData = {
-      platforms: await Promise.all(platforms),
+      platformData
     }
 
     console.log(data)
@@ -34,7 +31,7 @@ export default function PlatformRoute() {
   return (
     <Layout>
 
-      <PlatformsView platforms={data.platforms} />
+      <PlatformView platformData={data.platformData} />
     </Layout>
   )
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'remix'
 
 const checkError = ({ checkResult }) => {
   if (checkResult.database.ok !== true) {
@@ -22,7 +23,8 @@ function AccordionTableItem(props) {
         <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
           <div className="flex items-center text-gray-800">
 
-            <div className="font-bold text-gray-800">Platform {props.id}</div>
+            <div className="font-bold text-gray-800">
+              <Link to={`/root/${props.id}`} > Platform {props.id}</Link></div>
           </div>
         </td>
         <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
@@ -50,6 +52,7 @@ function AccordionTableItem(props) {
         </td>
         <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
           <div className="flex items-center">
+
             <button
               className={`text-gray-400 hover:text-gray-500 transform ${open && 'rotate-180'}`}
               aria-expanded={open}
@@ -89,7 +92,7 @@ function AccordionTableItem(props) {
           </div>
         </td>
       </tr>
-    </tbody>
+    </tbody >
   );
 }
 
