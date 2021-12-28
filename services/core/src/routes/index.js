@@ -24,55 +24,61 @@ const coreRoutes = {
   transaction: require('./transaction'),
   user: require('./user'),
   webhook: require('./webhook'),
-  workflow: require('./workflow')
+  workflow: require('./workflow'),
 }
 
 const customRoutes = {}
 
-function init (...args) {
+function init(...args) {
   const routesObj = getRoutes()
 
-  Object.keys(routesObj).forEach(key => {
+  Object.keys(routesObj).forEach((key) => {
     const route = routesObj[key]
     route.init(...args)
   })
 }
 
-function start (...args) {
+function start(...args) {
   const routesObj = getRoutes()
 
-  Object.keys(routesObj).forEach(key => {
+  Object.keys(routesObj).forEach((key) => {
     const route = routesObj[key]
     route.start(...args)
   })
 }
 
-function stop (...args) {
+function stop(...args) {
   const routesObj = getRoutes()
 
-  Object.keys(routesObj).forEach(key => {
+  Object.keys(routesObj).forEach((key) => {
     const route = routesObj[key]
     route.stop(...args)
   })
 }
 
-function getRoutes () {
-  return Object.assign({}, coreRoutes, customRoutes)
+function getRoutes() {
+  return { ...coreRoutes, ...customRoutes }
 }
 
-function registerRoutes (name, routesConfig) {
-  Object.keys(routesConfig).forEach(routeKey => {
+function registerRoutes(name, routesConfig) {
+  Object.keys(routesConfig).forEach((routeKey) => {
     const routeConfig = routesConfig[routeKey]
-    const routeName = name + '.' + routeKey
+    const routeName = `${name}.${routeKey}`
 
     if (typeof routeConfig.init !== 'function') {
-      throw new Error(`Route registration: missing init function for route "${routeName}"`)
+      throw new Error(
+        `Route registration: missing init function for route "${routeName}"`,
+      )
     }
     if (typeof routeConfig.start !== 'function') {
-      throw new Error(`Route registration: missing start function for route "${routeName}"`)
+      throw new Error(
+        `Route registration: missing start function for route "${routeName}"`,
+      )
     }
     if (typeof routeConfig.stop !== 'function') {
-      throw new Error(`Route registration: missing stop function for route "${routeName}"`)
+      throw new Error(
+        `Route registration: missing stop function for route "${routeName}"`,
+      )
     }
 
     customRoutes[routeName] = routeConfig
@@ -84,5 +90,5 @@ module.exports = {
   start,
   stop,
 
-  registerRoutes
+  registerRoutes,
 }

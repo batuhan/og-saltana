@@ -1,9 +1,6 @@
-const {
-  getRedisClient,
-  setPlatformId
-} = require('../src/redis')
+const { getRedisClient, setPlatformId } = require('../src/redis')
 
-async function reset () {
+async function reset() {
   const client = getRedisClient()
 
   await client.flushdbAsync()
@@ -11,5 +8,5 @@ async function reset () {
 
 module.exports = {
   reset,
-  setPlatformId
+  setPlatformId,
 }

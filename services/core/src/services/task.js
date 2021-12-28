@@ -2,6 +2,7 @@ const createError = require('http-errors')
 const _ = require('lodash')
 const bluebird = require('bluebird')
 
+const { getObjectId } = require('@saltana/util-keys')
 const { getModels } = require('../models')
 
 const { logError } = require('../../server/logger')
@@ -9,46 +10,55 @@ const { logError } = require('../../server/logger')
 const {
   setSaltanaTask,
   removeSaltanaTask,
-  removeSaltanaTaskExecutionDates
+  removeSaltanaTaskExecutionDates,
 } = require('../redis')
-
-const { getObjectId } = require('@saltana/util-keys')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
 const {
   isValidCronPattern,
   isValidTimezone,
-  getRoundedDate
+  getRoundedDate,
 } = require('../util/time')
 
 let responder
 let eventSubscriber
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getSubscriber,
-    COMMUNICATION_ID
-  } = communication
+async function removeTask({ taskId, platformId, env }) {
+  const { Task } = await getModels({ platformId, env })
+
+  await Task.query().deleteById(taskId)
+
+  await removeSaltanaTask({ platformId, env, taskId })
+  await removeSaltanaTaskExecutionDates({ taskId })
+}
+
+function stop() {
+  responder.close()
+  responder = null
+
+  eventSubscriber.close()
+  eventSubscriber = null
+}
+
+function start({ communication }) {
+  const { getResponder, getSubscriber, COMMUNICATION_ID } = communication
 
   responder = getResponder({
     name: 'Task Responder',
-    key: 'task'
+    key: 'task',
   })
 
   eventSubscriber = getSubscriber({
     name: 'Task subscriber for events',
     key: 'event',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'eventCreated'
-    ]
+    subscribesTo: ['eventCreated'],
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Task } = await getModels({ platformId, env })
 
     const {
@@ -69,7 +79,7 @@ function start ({ communication }) {
       updatedDate,
       eventType,
       eventObjectId,
-      active
+      active,
     } = req
 
     const queryBuilder = Task.query()
@@ -81,34 +91,34 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         eventTypes: {
           dbField: 'eventType',
           value: eventType,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         eventObjectIds: {
           dbField: 'eventObjectId',
           value: eventObjectId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         active: {
           dbField: 'active',
-          value: active
-        }
+          value: active,
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -123,8 +133,9 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
+      // eslint-disable-next-line no-underscore-dangle
       useOffsetPagination: req._useOffsetPagination,
     })
 
@@ -134,11 +145,11 @@ function start ({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Task } = await getModels({ platformId, env })
 
-    const taskId = req.taskId
+    const { taskId } = req
 
     const task = await Task.query().findById(taskId)
     if (!task) throw createError(404)
@@ -147,8 +158,8 @@ function start ({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Event, Task } = await getModels({ platformId, env })
 
     const fields = [
@@ -160,24 +171,24 @@ function start ({ communication }) {
       'eventObjectId',
       'active',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: Task.idPrefix, platformId, env })
-    }, payload)
+    const createAttrs = {
+      id: await getObjectId({ prefix: Task.idPrefix, platformId, env }),
+      ...payload,
+    }
 
-    const {
-      eventType,
-      executionDate,
-      recurringPattern,
-      recurringTimezone
-    } = payload
+    const { eventType, executionDate, recurringPattern, recurringTimezone } =
+      payload
 
     if (recurringPattern && executionDate) {
-      throw createError(400, 'Cannot provide both executionDate and recurringPattern')
+      throw createError(
+        400,
+        'Cannot provide both executionDate and recurringPattern',
+      )
     }
 
     if (recurringPattern && !isValidCronPattern(recurringPattern)) {
@@ -188,7 +199,9 @@ function start ({ communication }) {
     }
 
     if (executionDate) {
-      createAttrs.executionDate = getRoundedDate(executionDate, { nbMinutes: 1 })
+      createAttrs.executionDate = getRoundedDate(executionDate, {
+        nbMinutes: 1,
+      })
     }
 
     if (Event.isCoreEventFormat(eventType)) {
@@ -199,18 +212,22 @@ function start ({ communication }) {
 
     if (task.active) {
       // Do not include `metadata` or `platformData` to save space in Redis
-      await setSaltanaTask({ platformId, env, task: _.omit(task, ['metadata', 'platformData']) })
+      await setSaltanaTask({
+        platformId,
+        env,
+        task: _.omit(task, ['metadata', 'platformData']),
+      })
     }
 
     return Task.expose(task, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Event, Task } = await getModels({ platformId, env })
 
-    const taskId = req.taskId
+    const { taskId } = req
 
     const fields = [
       'executionDate',
@@ -221,7 +238,7 @@ function start ({ communication }) {
       'eventObjectId',
       'active',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
@@ -232,7 +249,7 @@ function start ({ communication }) {
       recurringPattern,
       recurringTimezone,
       metadata,
-      platformData
+      platformData,
     } = payload
 
     const task = await Task.query().findById(taskId)
@@ -240,11 +257,18 @@ function start ({ communication }) {
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
 
-    const newExecutionDate = typeof executionDate !== 'undefined' ? executionDate : task.executionDate
-    const newRecurringPattern = typeof recurringPattern !== 'undefined' ? recurringPattern : task.recurringPattern
+    const newExecutionDate =
+      typeof executionDate !== 'undefined' ? executionDate : task.executionDate
+    const newRecurringPattern =
+      typeof recurringPattern !== 'undefined'
+        ? recurringPattern
+        : task.recurringPattern
 
     if (newExecutionDate && newRecurringPattern) {
-      throw createError(400, 'Cannot provide both executionDate and recurringPattern')
+      throw createError(
+        400,
+        'Cannot provide both executionDate and recurringPattern',
+      )
     }
 
     if (recurringPattern && !isValidCronPattern(recurringPattern)) {
@@ -255,7 +279,9 @@ function start ({ communication }) {
     }
 
     if (executionDate) {
-      updateAttrs.executionDate = getRoundedDate(executionDate, { nbMinutes: 1 })
+      updateAttrs.executionDate = getRoundedDate(executionDate, {
+        nbMinutes: 1,
+      })
     }
 
     if (eventType && Event.isCoreEventFormat(eventType)) {
@@ -266,14 +292,21 @@ function start ({ communication }) {
       updateAttrs.metadata = Task.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Task.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Task.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
     const newTask = await Task.query().patchAndFetchById(taskId, updateAttrs)
 
     if (newTask.active) {
       // Do not include `metadata` or `platformData` to save space in Redis
-      await setSaltanaTask({ platformId, env, task: _.omit(newTask, ['metadata', 'platformData']) })
+      await setSaltanaTask({
+        platformId,
+        env,
+        task: _.omit(newTask, ['metadata', 'platformData']),
+      })
     } else {
       await removeSaltanaTask({ platformId, env, taskId: newTask.id })
     }
@@ -282,8 +315,8 @@ function start ({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Task } = await getModels({ platformId, env })
 
     const { taskId } = req
@@ -300,42 +333,37 @@ function start ({ communication }) {
 
   // EVENTS
 
-  eventSubscriber.on('eventCreated', async ({ event, platformId, env } = {}) => {
-    const { Event, Task } = await getModels({ platformId, env })
+  eventSubscriber.on(
+    'eventCreated',
+    async ({ event, platformId, env } = {}) => {
+      const { Event, Task } = await getModels({ platformId, env })
 
-    const isDeletingObject = Event.isCoreEventFormat(event.type) && event.type.endsWith('__deleted')
-    if (!isDeletingObject || !event.objectId) return
+      const isDeletingObject =
+        Event.isCoreEventFormat(event.type) && event.type.endsWith('__deleted')
+      if (!isDeletingObject || !event.objectId) return
 
-    const tasks = await Task.query().where({ eventObjectId: event.objectId })
+      const tasks = await Task.query().where({ eventObjectId: event.objectId })
 
-    await bluebird.map(tasks, async (task) => {
-      try {
-        await removeTask({ taskId: task.id, platformId, env })
-      } catch (err) {
-        logError(err, { platformId, env, message: `Fail to remove task ID ${task.id} after object deletion` })
-      }
-    }, { concurrency: 5 })
-  })
-}
-
-async function removeTask ({ taskId, platformId, env }) {
-  const { Task } = await getModels({ platformId, env })
-
-  await Task.query().deleteById(taskId)
-
-  await removeSaltanaTask({ platformId, env, taskId })
-  await removeSaltanaTaskExecutionDates({ taskId })
-}
-
-function stop () {
-  responder.close()
-  responder = null
-
-  eventSubscriber.close()
-  eventSubscriber = null
+      await bluebird.map(
+        tasks,
+        async (task) => {
+          try {
+            await removeTask({ taskId: task.id, platformId, env })
+          } catch (err) {
+            logError(err, {
+              platformId,
+              env,
+              message: `Fail to remove task ID ${task.id} after object deletion`,
+            })
+          }
+        },
+        { concurrency: 5 },
+      )
+    },
+  )
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

@@ -65,11 +65,8 @@
       }
     },
     "redis": {
-      "host": "REDIS_HOST",
-      "port": "REDIS_PORT",
-      "dbnum": "REDIS_DBNUM_CORE",
-      "password": "REDIS_PASSWORD",
-      "tls": "REDIS_TLS"
+      "url": "REDIS_URL",
+      "dbnum": "REDIS_DBNUM_CORE"
     },
     "cloudflare": {
       "apiToken": "CLOUDFLARE_API_TOKEN",

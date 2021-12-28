@@ -53,11 +53,8 @@
       "paymentDescription": "SALTANAHQ"
     },
     "redis": {
-      "host": "127.0.0.1",
-      "port": 36379,
-      "dbnum": "0",
-      "password": "",
-      "tls": false
+      "url": "redis://127.0.0.1:36379",
+      "dbnum": "0"
     },
     "clerk": {
       "apiKey": "test_5DXNcvKedKBwv4zHJGjykM60ohYTwwTRlp",

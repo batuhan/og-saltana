@@ -283,7 +283,7 @@ function loadServer() {
         metrics, // manually rebuild the metrics object to have the same fields as the real metrics
         requestContext,
       },
-      enableApmLog: false, // disable APM logs here, as errors are already handled by APM connect middleware
+      enableApmLog: true, // disable APM logs here, as errors are already handled by APM connect middleware
       message: 'Error',
     })
   }
@@ -672,6 +672,13 @@ function loadServer() {
     next() // need to call next to have metrics correctly populated
   })
 
+  server.get('/favicon.ico', (req, res, next) => {
+    res.write(
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=',
+    )
+    next() // need to call next to have metrics correctly populated
+  })
+
   server.get('/', (req, res, next) => {
     res.json({
       application: 'saltana-api',
@@ -735,7 +742,7 @@ function getRouteRequestContext(req) {
 }
 
 function populateRequesterParams(req) {
-  return function (params) {
+  return function __(params) {
     const routeContext = getRouteRequestContext(req)
     return Object.assign(routeContext, params)
   }

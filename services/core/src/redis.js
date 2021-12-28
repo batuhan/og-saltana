@@ -10,7 +10,7 @@ const { isValidEnvironment } = require('./util/environment')
 
 const isTestEnv = config.get('Env') === 'test'
 
-let client
+let clientSingleton
 const dataKeys = [
   'auth',
   'elasticsearch',
@@ -23,53 +23,93 @@ const dataKeys = [
 // keys only available in test environment
 const testDataKeys = ['custom', 'custom2']
 
-function getRedisConnection() {
-  const params = {
-    host: config.get('ExternalServices.redis.host'),
-    port: config.get('ExternalServices.redis.port'),
-    db: config.get('ExternalServices.redis.dbnum'),
-    password: config.get('ExternalServices.redis.password') || undefined,
-  }
-
-  const ssl = config.get('ExternalServices.redis.tls') || false
-  if (ssl) {
-    params.tls = { servername: config.get('ExternalServices.redis.host') }
-  }
-
-  return params
-}
-
-function isCompleteRedisConnection(connection) {
-  const { host, db } = connection
-
-  return host && db
-}
-
 // Set exclusive to true to create a new client that won’t be reused (useful for pub/sub)
 function getRedisClient({ exclusive = false } = {}) {
-  if (client && exclusive !== true) return client
+  if (clientSingleton && exclusive !== true) return clientSingleton
 
-  const params = getRedisConnection()
+  const url = config.get('ExternalServices.redis.url')
 
-  if (!isCompleteRedisConnection(params)) {
-    throw new Error('Missing Redis config')
+  if (!url) {
+    throw new Error('Missing REDIS_URL or ExternalServices.redis.url')
   }
 
-  const connection = Object.assign({}, params, {
+  const connection = {
+    url,
     retry_strategy: (options) => {
       if (options.times_connected === 0) {
-        client.end(true)
-        client = null
+        clientSingleton.end(true)
+        clientSingleton = null
       }
     },
-  })
+  }
 
   const newClient = redis.createClient(connection)
 
   if (exclusive === true) return newClient
 
-  client = newClient
-  return client
+  clientSingleton = newClient
+  return newClient
+}
+
+function getRedisDataKeys(keys, { data, platformId, env }) {
+  const validKeys = dataKeys.concat(isTestEnv ? testDataKeys : [])
+  const invalidKeys = _.difference(keys, validKeys)
+  if (invalidKeys.length)
+    throw new Error(`${invalidKeys.join(', ')} do(es) not exist.`)
+
+  if (_.isObjectLike(data)) {
+    const keysWithNoData = _.difference(keys, Object.keys(data))
+    if (keysWithNoData.length)
+      throw new Error(`Missing data for ${invalidKeys.join(', ')}`)
+  }
+
+  return keys.map((k) => `data:${platformId}:${env}:${k}`)
+}
+
+function getClientForPlatform({ platformId, env } = {}) {
+  if (!isValidEnvironment(env)) throw new Error('Missing environment')
+  if (!isValidPlatformId(platformId)) throw new Error('Missing platformId')
+
+  return getRedisClient()
+}
+
+/**
+ * Use HSCAN to retrieve redis `saltana_tasks` hash values matching `filterFn`.
+ * @param {Function} [filterFn] - Invoked over all tasks of __all__ platforms,
+ *   so that you have to pay attention to performance.
+ * @param {Function} [mapFn] - Optional transformation of task objects
+ * @param {Object} [redisClient] - redis client
+ * @private
+ */
+async function scanAndFilterTasks({
+  filterFn = (_filterFn) => _filterFn,
+  mapFn = (_mapFn) => _mapFn,
+  client,
+}) {
+  let tasks = []
+  const cl = client || getRedisClient()
+
+  const getTasks = async (start = 0) => {
+    // Using HSCAN for performance, for it is non-blocking unlike KEYS
+    // and we avoid loading all tasks of all platforms in memory (COUNT).
+    // https://redis.io/commands/scan
+    // Unfortunately can’t use MATCH pattern option for hash values so we filter manually
+    const res = await cl.hscanAsync('saltana_tasks', start, 'COUNT', 100)
+    // eslint-disable-next-line prefer-const
+    let [cursor, results] = res
+    // probably faster than using JSON.parse
+    const platformTasks = results
+      // TODO: use idPrefix of task model when migrating task related redis functions to Task plugin.
+      .filter((r) => !r.startsWith('task_') && filterFn(r))
+      .map(JSON.parse)
+
+    cursor = parseInt(cursor, 10)
+    tasks = [...tasks, ...platformTasks.map(mapFn)]
+    if (cursor !== 0) await getTasks(cursor)
+  }
+  await getTasks()
+
+  return tasks
 }
 
 async function getPlatforms() {
@@ -90,14 +130,14 @@ async function getPlatformId() {
   const client = getRedisClient()
 
   const res = await client.incrAsync('id:platforms')
-  return '' + res // returns a string
+  return `${res}` // returns a string
 }
 
 async function setPlatformId(id) {
   if (typeof id === 'string') {
     const numberId = parseInt(id, 10)
 
-    if (id !== '' + numberId) {
+    if (id !== `${numberId}`) {
       throw new Error('A string number is expected')
     } else {
       id = numberId
@@ -126,8 +166,8 @@ async function addPlatform(platformId) {
 async function removePlatform(platformId) {
   const client = getRedisClient()
 
-  const dataKeys = await client.keysAsync(`data:${platformId}:*`)
-  await client.delAsync(dataKeys.join(' '))
+  const dataKeysInRedis = await client.keysAsync(`data:${platformId}:*`)
+  await client.delAsync(dataKeysInRedis.join(' '))
 
   await client.sremAsync('platforms', platformId)
 }
@@ -150,7 +190,7 @@ async function removePlatform(platformId) {
  *   or object whose keys map to each data object/string when passing `key` array.
  */
 async function getPlatformEnvData(platformId, env, key) {
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
   let res
 
   if (key === '*') {
@@ -169,7 +209,7 @@ async function getPlatformEnvData(platformId, env, key) {
       return r
     }, {})
   } else if (Array.isArray(key)) {
-    const redisKeys = _getRedisDataKeys(key, { platformId, env })
+    const redisKeys = getRedisDataKeys(key, { platformId, env })
     const objects = await client.mgetAsync(redisKeys)
 
     res = objects.reduce((r, o, i) => {
@@ -217,10 +257,10 @@ async function setPlatformEnvData(platformId, env, key, data) {
     throw new Error('Data object or string expected')
   }
 
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
 
   if (Array.isArray(key)) {
-    const redisKeys = _getRedisDataKeys(key, { data, platformId, env })
+    const redisKeys = getRedisDataKeys(key, { data, platformId, env })
     // Node-redis expects [key1, data1, key2, data2, …] array
     const keyDataPairs = _.flatMap(redisKeys, (k, i) => [
       k,
@@ -235,35 +275,13 @@ async function setPlatformEnvData(platformId, env, key, data) {
   }
 }
 
-function _getRedisDataKeys(keys, { data, platformId, env }) {
-  const validKeys = dataKeys.concat(isTestEnv ? testDataKeys : [])
-  const invalidKeys = _.difference(keys, validKeys)
-  if (invalidKeys.length)
-    throw new Error(`${invalidKeys.join(', ')} do(es) not exist.`)
-
-  if (_.isObjectLike(data)) {
-    const keysWithNoData = _.difference(keys, Object.keys(data))
-    if (keysWithNoData.length)
-      throw new Error(`Missing data for ${invalidKeys.join(', ')}`)
-  }
-
-  return keys.map((k) => `data:${platformId}:${env}:${k}`)
-}
-
-function _getClient({ platformId, env } = {}) {
-  if (!isValidEnvironment(env)) throw new Error('Missing environment')
-  if (!isValidPlatformId(platformId)) throw new Error('Missing platformId')
-
-  return getRedisClient()
-}
-
 /**
  * @param {String} platformId
  * @param {String} env
  * @param {String} key - can be the wildcard '*' to remove all keys
  */
 async function removePlatformEnvData(platformId, env, key) {
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
 
   if (key === '*') {
     const redisKeys = await client.keysAsync(`data:${platformId}:${env}:*`)
@@ -281,7 +299,7 @@ async function removePlatformEnvData(platformId, env, key) {
  * @returns {Object} Metrics object
  */
 async function getPlatformMetrics(platformId, env) {
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
 
   const res = await client.hgetallAsync(`metrics:${platformId}`)
   return res
@@ -296,7 +314,7 @@ async function getPlatformMetrics(platformId, env) {
  * @param  {Object} metrics
  */
 async function setPlatformMetrics(platformId, env, metrics = {}) {
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
 
   const res = await client.hmsetAsync(
     `metrics:${platformId}:${env}:keys:objects`,
@@ -314,7 +332,7 @@ async function getAllSaltanaTasks({ platformId, env } = {}) {
   // Avoid loading tasks of all platforms in memory at once
   const platformRegex = new RegExp(`"platformId":"${platformId}"`)
   const envRegex = new RegExp(`"env":"${env}"`)
-  return _scanAndFilterTasks({
+  return scanAndFilterTasks({
     filterFn: (r) =>
       (!platformId || platformRegex.test(r)) && (!env || envRegex.test(r)),
   })
@@ -331,7 +349,7 @@ async function setSaltanaTask({ platformId, env, task }) {
     throw new Error('Expected Task ID')
   }
 
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
 
   const payload = {
     platformId,
@@ -352,12 +370,12 @@ async function setSaltanaTask({ platformId, env, task }) {
 async function removeSaltanaTask({ platformId, env, taskId }) {
   if (!taskId) throw new Error('Expected Task ID or wildcard "*"')
 
-  const client = _getClient({ platformId, env })
+  const client = getClientForPlatform({ platformId, env })
   let taskIds = _.flatten([taskId])
 
   if (taskId === '*') {
     const platformRegex = new RegExp(`"platformId":"${platformId}"`)
-    taskIds = await _scanAndFilterTasks({
+    taskIds = await scanAndFilterTasks({
       client,
       filterFn: (r) => platformRegex.test(r),
       mapFn: (t) => t.task.id,
@@ -430,47 +448,7 @@ async function removeSaltanaTaskExecutionDates({ taskId }) {
   if (keys.length) await client.delAsync(keys)
 }
 
-/**
- * Use HSCAN to retrieve redis `saltana_tasks` hash values matching `filterFn`.
- * @param {Function} [filterFn] - Invoked over all tasks of __all__ platforms,
- *   so that you have to pay attention to performance.
- * @param {Function} [mapFn] - Optional transformation of task objects
- * @param {Object} [redisClient] - redis client
- * @private
- */
-async function _scanAndFilterTasks({
-  filterFn = (_) => _,
-  mapFn = (_) => _,
-  client,
-}) {
-  let tasks = []
-  const cl = client || getRedisClient()
-
-  const getTasks = async (start = 0) => {
-    // Using HSCAN for performance, for it is non-blocking unlike KEYS
-    // and we avoid loading all tasks of all platforms in memory (COUNT).
-    // https://redis.io/commands/scan
-    // Unfortunately can’t use MATCH pattern option for hash values so we filter manually
-    const res = await cl.hscanAsync('saltana_tasks', start, 'COUNT', 100)
-    let [cursor, results] = res
-    // probably faster than using JSON.parse
-    const platformTasks = results
-      // TODO: use idPrefix of task model when migrating task related redis functions to Task plugin.
-      .filter((r) => !r.startsWith('task_') && filterFn(r))
-      .map(JSON.parse)
-
-    cursor = parseInt(cursor, 10)
-    tasks = [...tasks, ...platformTasks.map(mapFn)]
-    if (cursor !== 0) await getTasks(cursor)
-  }
-  await getTasks()
-
-  return tasks
-}
-
 module.exports = {
-  getRedisConnection,
-  isCompleteRedisConnection,
   getRedisClient,
 
   getPlatformId,
