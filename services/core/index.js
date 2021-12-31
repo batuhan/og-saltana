@@ -7,22 +7,40 @@ const versions = require('./src/versions')
 const logger = require('./server/logger')
 const testTools = require('./test')
 
+const {
+  authentication,
+  availability,
+  currency,
+  encoding,
+  environment,
+  list,
+  listQueryBuilder,
+  locale,
+  pagination,
+  pricing,
+  time,
+  transaction,
+  transition,
+  user,
+  validation,
+} = require('./src/util')
+
 const utils = {
-  authentication: require('./src/util/authentication'),
-  availability: require('./src/util/availability'),
-  currency: require('./src/util/currency'),
-  encoding: require('./src/util/encoding'),
-  environment: require('./src/util/environment'),
-  list: require('./src/util/list'),
-  listQueryBuilder: require('./src/util/listQueryBuilder'),
-  locale: require('./src/util/locale'),
-  pagination: require('./src/util/pagination'),
-  pricing: require('./src/util/pricing'),
-  time: require('./src/util/time'),
-  transaction: require('./src/util/transaction'),
-  transition: require('./src/util/transition'),
-  user: require('./src/util/user'),
-  validation: require('./src/util/validation'),
+  authentication,
+  availability,
+  currency,
+  encoding,
+  environment,
+  list,
+  listQueryBuilder,
+  locale,
+  pagination,
+  pricing,
+  time,
+  transaction,
+  transition,
+  user,
+  validation,
 }
 
 module.exports = {

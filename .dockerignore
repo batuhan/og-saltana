@@ -1,6 +1,10 @@
-playground/
-.github/
-.vscode/
-docs/
-node_modules
-.next
+playground/*
+.github/*
+.vscode/*
+**/docs/*
+devops/*
+**/node_modules
+**/.next
+services/elasticsearch?
+services/web/public/storybook-static
+**/.cache/**

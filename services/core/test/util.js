@@ -1,10 +1,12 @@
-const { computeDate, isDateString, truncateDate } = require('../src/util/time')
-const { getModels } = require('../src/models')
-const { roundDecimal, sumDecimals } = require('../src/util/math')
-const WebhookManager = require('./webhook-manager')
 const _ = require('lodash')
 const request = require('supertest')
 const qs = require('querystring')
+const {
+  math: { roundDecimal, sumDecimals },
+  time: { computeDate, isDateString, truncateDate },
+} = require('@saltana/utils')
+const { getModels } = require('@saltana/db')
+const WebhookManager = require('./webhook-manager')
 
 /**
  * May be required to let event propagate before moving on with current test
@@ -38,8 +40,8 @@ module.exports = {
  * @param {Any} fallbackValue
  * @return {Any} value or fallback
  */
-function nullOrUndefinedFallback (value, fallbackValue) {
-  return (typeof value === 'undefined' || value === null) ? fallbackValue : value
+function nullOrUndefinedFallback(value, fallbackValue) {
+  return typeof value === 'undefined' || value === null ? fallbackValue : value
 }
 
 /**
@@ -50,9 +52,11 @@ function nullOrUndefinedFallback (value, fallbackValue) {
  * @param {String} params.objectId
  * @return {Object} Event object
  */
-function getObjectEvent ({ events, eventType, objectId }) {
+function getObjectEvent({ events, eventType, objectId }) {
   if (_.isEmpty(events)) throw new Error('No events to search for object event')
-  return events.find(event => event.type === eventType && event.objectId === objectId)
+  return events.find(
+    (event) => event.type === eventType && event.objectId === objectId,
+  )
 }
 
 /**
@@ -66,23 +70,24 @@ function getObjectEvent ({ events, eventType, objectId }) {
  * @param {Object} [params.patchPayload] - If testing update
  * @return {Object} Event object
  */
-async function testEventMetadata ({
+async function testEventMetadata({
   t,
   event,
   object,
   metadata,
   relatedObjectsIds,
-  patchPayload
+  patchPayload,
 }) {
   const { Event } = await getModels({
     platformId: t.context.platformId,
-    env: t.context.env
+    env: t.context.env,
   })
   const shouldHaveChangesRegex = Event.hasChangesRequested
   const shouldHaveObjectRegex = Event.hasObjectRegex
   const shouldHaveRelatedObjectsIdsRegex = Event.hasRelatedObjectsIdsRegex
 
-  if (!t || typeof t.fail !== 'function') throw new Error('Missing test execution object')
+  if (!t || typeof t.fail !== 'function')
+    throw new Error('Missing test execution object')
   if (_.isEmpty(event)) t.fail('Missing event')
   if (_.isEmpty(object)) t.fail('Missing object')
   if (!event.type) t.fail(`Missing event type, id: ${event.id}`)
@@ -92,9 +97,14 @@ async function testEventMetadata ({
 
   const testMessage = event.type
   const objectType = event.objectType || _.camelCase(event.type.split('__')[0])
-  const relatedIds = Object.assign(_.pick(object, Event.relatedObjectsWhitelist), relatedObjectsIds)
+  const relatedIds = Object.assign(
+    _.pick(object, Event.relatedObjectsWhitelist),
+    relatedObjectsIds,
+  )
   const shouldHaveObject = shouldHaveObjectRegex.test(event.type)
-  const shouldHaveRelatedObjectsIds = shouldHaveRelatedObjectsIdsRegex.test(event.type)
+  const shouldHaveRelatedObjectsIds = shouldHaveRelatedObjectsIdsRegex.test(
+    event.type,
+  )
   const shouldHaveChangesRequested = shouldHaveChangesRegex.test(event.type)
 
   t.truthy(event, testMessage)
@@ -107,18 +117,24 @@ async function testEventMetadata ({
     t.deepEqual(event.object.platformData, object.platformData)
   } else t.true(event.object === null, testMessage)
 
-  const changesRequested = event.changesRequested
+  const { changesRequested } = event
 
-  if (shouldHaveChangesRequested) t.deepEqual(changesRequested, patchPayload, testMessage)
+  if (shouldHaveChangesRequested)
+    t.deepEqual(changesRequested, patchPayload, testMessage)
   else t.true(event.changesRequested === null, testMessage)
 
-  if (shouldHaveRelatedObjectsIds) t.deepEqual(event.relatedObjectsIds, relatedIds, testMessage)
+  if (shouldHaveRelatedObjectsIds)
+    t.deepEqual(event.relatedObjectsIds, relatedIds, testMessage)
   else t.true(event.relatedObjectsIds === null, testMessage)
 
   if (metadata) t.deepEqual(event.metadata, metadata, testMessage)
 }
 
-function checkCursorPaginatedListObject (t, obj, { checkResultsFn, cursorCheck = true } = {}) {
+function checkCursorPaginatedListObject(
+  t,
+  obj,
+  { checkResultsFn, cursorCheck = true } = {},
+) {
   t.true(_.isPlainObject(obj))
   t.true(_.isNumber(obj.nbResultsPerPage))
   t.true(_.isBoolean(obj.hasPreviousPage))
@@ -135,10 +151,11 @@ function checkCursorPaginatedListObject (t, obj, { checkResultsFn, cursorCheck =
     t.is(obj.endCursor, null)
   }
 
-  if (_.isFunction(checkResultsFn)) obj.results.forEach(r => checkResultsFn(t, r))
+  if (_.isFunction(checkResultsFn))
+    obj.results.forEach((r) => checkResultsFn(t, r))
 }
 
-async function checkCursorPaginationScenario ({
+async function checkCursorPaginationScenario({
   t,
   endpointUrl,
   authorizationHeaders,
@@ -147,7 +164,7 @@ async function checkCursorPaginationScenario ({
   passOrderByToQuery = true,
   nbResultsPerPage = 2, // small number to be able to fetch several pages
 }) {
-  const isPaginationObject = obj => {
+  const isPaginationObject = (obj) => {
     checkCursorPaginatedListObject(t, obj, checkResultsFn)
   }
 
@@ -156,7 +173,7 @@ async function checkCursorPaginationScenario ({
   for (const order of orders) {
     let previousValue
     const checkOrder = (results) => {
-      results.forEach(r => {
+      results.forEach((r) => {
         if (!_.isUndefined(previousValue)) {
           if (order === 'desc') t.true(r[orderBy] <= previousValue)
           else t.true(r[orderBy] >= previousValue)
@@ -180,7 +197,7 @@ async function checkCursorPaginationScenario ({
 
     const getEndpoint = (endpointUrl, filters) => {
       if (endpointUrl.includes('?')) return `${endpointUrl}&${filters}`
-      else return `${endpointUrl}?${filters}`
+      return `${endpointUrl}?${filters}`
     }
 
     const { body: page1Obj } = await request(t.context.serverUrl)
@@ -209,7 +226,10 @@ async function checkCursorPaginationScenario ({
 
     isPaginationObject(page2Obj)
     checkOrder(page2Obj.results)
-    t.is(_.intersectionWith(page1Obj.results, page2Obj.results, _.isEqual).length, 0)
+    t.is(
+      _.intersectionWith(page1Obj.results, page2Obj.results, _.isEqual).length,
+      0,
+    )
 
     t.true(page2Obj.hasPreviousPage)
 
@@ -233,7 +253,7 @@ async function checkCursorPaginationScenario ({
   }
 }
 
-function checkOffsetPaginatedListObject (t, obj, { checkResultsFn } = {}) {
+function checkOffsetPaginatedListObject(t, obj, { checkResultsFn } = {}) {
   t.true(_.isPlainObject(obj))
   t.true(_.isNumber(obj.nbResults))
   t.true(_.isNumber(obj.nbPages))
@@ -242,10 +262,11 @@ function checkOffsetPaginatedListObject (t, obj, { checkResultsFn } = {}) {
   t.true(Array.isArray(obj.results))
 
   if (obj.nbPages === 1) t.is(obj.results.length, obj.nbResults)
-  if (_.isFunction(checkResultsFn)) obj.results.forEach(r => checkResultsFn(t, r))
+  if (_.isFunction(checkResultsFn))
+    obj.results.forEach((r) => checkResultsFn(t, r))
 }
 
-async function checkOffsetPaginationScenario ({
+async function checkOffsetPaginationScenario({
   t,
   endpointUrl,
   authorizationHeaders,
@@ -253,7 +274,7 @@ async function checkOffsetPaginationScenario ({
   orderBy = 'createdDate',
   nbResultsPerPage = 2, // small number to be able to fetch several pages
 }) {
-  const isPaginationObject = obj => {
+  const isPaginationObject = (obj) => {
     checkOffsetPaginatedListObject(t, obj, checkResultsFn)
   }
 
@@ -262,7 +283,7 @@ async function checkOffsetPaginationScenario ({
   for (const order of orders) {
     let previousValue
     const checkOrder = (results) => {
-      results.forEach(r => {
+      results.forEach((r) => {
         if (!_.isUndefined(previousValue)) {
           if (order === 'desc') t.true(r[orderBy] <= previousValue)
           else t.true(r[orderBy] >= previousValue)
@@ -284,7 +305,7 @@ async function checkOffsetPaginationScenario ({
 
     const getEndpoint = (endpointUrl, filters) => {
       if (endpointUrl.includes('?')) return `${endpointUrl}&${filters}`
-      else return `${endpointUrl}?${filters}`
+      return `${endpointUrl}?${filters}`
     }
 
     const { body: page1Obj } = await request(t.context.serverUrl)
@@ -355,7 +376,7 @@ async function checkOffsetPaginationScenario ({
  * @param {Function} [additionalResultCheckFn] - if defined, will perform additional check
  *     on each item of results array
  */
-function checkStatsObject ({
+function checkStatsObject({
   t,
   obj,
   groupBy,
@@ -365,23 +386,38 @@ function checkStatsObject ({
   avgPrecision = 2,
   orderBy = 'count',
   order = 'desc',
-  additionalResultCheckFn
+  additionalResultCheckFn,
 }) {
   // only consider results whose `groupBy` value is not `undefined`
-  results = results.filter(e => !_.isUndefined(_.get(e, groupBy)))
+  results = results.filter((e) => !_.isUndefined(_.get(e, groupBy)))
   const resultsByType = _.groupBy(results, groupBy)
 
-  obj.results.forEach(result => {
+  obj.results.forEach((result) => {
     const key = expandedGroupByField ? result.groupByValue : result[groupBy]
     const results = resultsByType[key] || []
     const count = results.length
 
-    const nullIfNone = (count, nb) => count === 0 ? null : nb
+    const nullIfNone = (count, nb) => (count === 0 ? null : nb)
 
-    const sum = nullIfNone(count, sumDecimals(_.compact(results.map(r => _.get(r, field)))))
+    const sum = nullIfNone(
+      count,
+      sumDecimals(_.compact(results.map((r) => _.get(r, field)))),
+    )
     const avg = nullIfNone(count, sum / results.length)
-    const min = nullIfNone(count, results.reduce((nb, r) => Math.min(_.get(r, field), nb), _.get(results[0], field)))
-    const max = nullIfNone(count, results.reduce((nb, r) => Math.max(_.get(r, field), nb), _.get(results[0], field)))
+    const min = nullIfNone(
+      count,
+      results.reduce(
+        (nb, r) => Math.min(_.get(r, field), nb),
+        _.get(results[0], field),
+      ),
+    )
+    const max = nullIfNone(
+      count,
+      results.reduce(
+        (nb, r) => Math.max(_.get(r, field), nb),
+        _.get(results[0], field),
+      ),
+    )
 
     if (expandedGroupByField) {
       t.is(result.groupBy, groupBy)
@@ -416,7 +452,7 @@ function checkStatsObject ({
 
   // check order
   let number
-  obj.results.forEach(result => {
+  obj.results.forEach((result) => {
     if (typeof number === 'undefined') {
       number = result[orderBy]
     } else {
@@ -433,7 +469,7 @@ function checkStatsObject ({
 }
 
 // Please refer to checkStatsObject for parameters list
-function checkOffsetPaginatedStatsObject (params) {
+function checkOffsetPaginatedStatsObject(params) {
   const { t, obj } = params
 
   checkStatsObject(params)
@@ -441,7 +477,7 @@ function checkOffsetPaginatedStatsObject (params) {
 }
 
 // Please refer to checkStatsObject for parameters list
-function checkCursorPaginatedStatsObject (params) {
+function checkCursorPaginatedStatsObject(params) {
   const { t, obj } = params
 
   checkStatsObject(params)
@@ -457,29 +493,28 @@ function checkCursorPaginatedStatsObject (params) {
  * @param {String}   [order = 'desc']
  * @param {Function} [additionalResultCheckFn] - if defined, will perform additional check on `result`
  */
-function checkCursorPaginatedHistoryObject ({
+function checkCursorPaginatedHistoryObject({
   t,
   obj,
   groupBy,
   results,
   order = 'desc',
-  additionalResultCheckFn
+  additionalResultCheckFn,
 }) {
-  const resultsByType = _.groupBy(results, result => {
+  const resultsByType = _.groupBy(results, (result) => {
     const date = result.createdDate
 
-    if (groupBy === 'hour') return date.slice(0, 14) + '00:00.000Z'
-    else if (groupBy === 'day') return truncateDate(date)
-
+    if (groupBy === 'hour') return `${date.slice(0, 14)}00:00.000Z`
+    if (groupBy === 'day') return truncateDate(date)
     // month time unit isn't supported in TimescaleDB
     // and we approximate it as '30 days'
     // which makes impossible to group like TimescaleDB
-    else if (groupBy === 'month') return date
+    if (groupBy === 'month') return date
   })
 
   checkCursorPaginatedListObject(t, obj)
 
-  obj.results.forEach(result => {
+  obj.results.forEach((result) => {
     const key = result[groupBy]
     const results = resultsByType[key] || []
     const count = results.length
@@ -498,7 +533,7 @@ function checkCursorPaginatedHistoryObject ({
   // check order
   const orderBy = groupBy
   let date
-  obj.results.forEach(result => {
+  obj.results.forEach((result) => {
     if (typeof date === 'undefined') {
       date = result[orderBy]
     } else {

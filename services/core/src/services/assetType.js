@@ -3,8 +3,8 @@ const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 
 const { getObjectId } = require('@saltana/util-keys')
+const { getModels } = require('@saltana/db')
 const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 const { mergeOrOverwrite } = require('../util/merging')

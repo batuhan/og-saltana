@@ -2,7 +2,7 @@ const createError = require('http-errors')
 const { UniqueViolationError } = require('objection-db-errors')
 
 const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
 
@@ -12,34 +12,26 @@ let responder
 let subscriber
 let publisher
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getSubscriber,
-    getPublisher,
-    COMMUNICATION_ID
-  } = communication
+function start({ communication }) {
+  const { getResponder, getSubscriber, getPublisher, COMMUNICATION_ID } =
+    communication
 
   responder = getResponder({
     name: 'Entry Responder',
-    key: 'entry'
+    key: 'entry',
   })
 
   subscriber = getSubscriber({
     name: 'Entry subscriber',
     key: 'entry',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'entryCreated',
-      'entryUpdated',
-      'entryDeleted'
-    ]
+    subscribesTo: ['entryCreated', 'entryUpdated', 'entryDeleted'],
   })
 
   publisher = getPublisher({
     name: 'Entry publisher',
     key: 'entry',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   responder.on('list', async (req) => {
@@ -63,7 +55,7 @@ function start ({ communication }) {
       id,
       collection,
       locale,
-      name
+      name,
     } = req
 
     const queryBuilder = Entry.query()
@@ -75,26 +67,26 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         collection: {
           dbField: 'collection',
           value: collection,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         locale: {
           dbField: 'locale',
           value: locale,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         name: {
           dbField: 'name',
           value: name,
           transformValue: 'array',
-          query: 'inList'
-        }
+          query: 'inList',
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -109,7 +101,7 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
@@ -139,13 +131,7 @@ function start ({ communication }) {
     const env = req.env
     const { Entry } = await getModels({ platformId, env })
 
-    const {
-      collection,
-      locale,
-      name,
-      fields,
-      metadata
-    } = req
+    const { collection, locale, name, fields, metadata } = req
 
     const createAttrs = {
       id: await getObjectId({ prefix: Entry.idPrefix, platformId, env }),
@@ -153,7 +139,7 @@ function start ({ communication }) {
       locale,
       name,
       fields,
-      metadata
+      metadata,
     }
 
     let entry
@@ -169,7 +155,7 @@ function start ({ communication }) {
       eventDate: entry.createdDate,
       platformId,
       env,
-      req
+      req,
     })
 
     return Entry.expose(entry, { req })
@@ -180,21 +166,14 @@ function start ({ communication }) {
     const env = req.env
     const { Entry } = await getModels({ platformId, env })
 
-    const {
-      entryId,
-      collection,
-      locale,
-      name,
-      fields,
-      metadata
-    } = req
+    const { entryId, collection, locale, name, fields, metadata } = req
 
     const payload = {
       collection,
       locale,
       name,
       fields,
-      metadata
+      metadata,
     }
 
     const entry = await Entry.query().findById(entryId)
@@ -207,12 +186,12 @@ function start ({ communication }) {
     const updateAttrs = {
       collection,
       locale,
-      name
+      name,
     }
 
     if (fields) {
       const newFields = Object.assign({}, entry.fields)
-      Object.keys(fields).forEach(key => {
+      Object.keys(fields).forEach((key) => {
         const value = fields[key]
 
         if (value === null) {
@@ -231,17 +210,14 @@ function start ({ communication }) {
     let newEntry
 
     try {
-      newEntry = await Entry.query().patchAndFetchById(
-        entryId,
-        updateAttrs
-      )
+      newEntry = await Entry.query().patchAndFetchById(entryId, updateAttrs)
     } catch (err) {
       await handleUniqueValidationError(err, {
         platformId,
         env,
         locale: locale || entry.locale,
         name: name || entry.name,
-        omitId: entryId
+        omitId: entryId,
       })
     }
 
@@ -252,7 +228,7 @@ function start ({ communication }) {
       eventDate: newEntry.updatedDate,
       platformId,
       env,
-      req
+      req,
     })
 
     return Entry.expose(newEntry, { req })
@@ -263,9 +239,7 @@ function start ({ communication }) {
     const env = req.env
     const { Entry } = await getModels({ platformId, env })
 
-    const {
-      entryId
-    } = req
+    const { entryId } = req
 
     const entry = await Entry.query().findById(entryId)
     if (!entry) {
@@ -280,7 +254,7 @@ function start ({ communication }) {
       eventDate: new Date().toISOString(),
       platformId,
       env,
-      req
+      req,
     })
 
     return { id: entryId }
@@ -288,76 +262,100 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('entryCreated', async ({ entry, eventDate, platformId, env, req } = {}) => {
-    try {
-      const { Event, Entry } = await getModels({ platformId, env })
+  subscriber.on(
+    'entryCreated',
+    async ({ entry, eventDate, platformId, env, req } = {}) => {
+      try {
+        const { Event, Entry } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'entry__created',
-        objectId: entry.id,
-        object: Entry.expose(entry, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { entryId: entry.id },
-        message: 'Fail to create event entry__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'entry__created',
+            objectId: entry.id,
+            object: Entry.expose(entry, { req, namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { entryId: entry.id },
+          message: 'Fail to create event entry__created',
+        })
+      }
+    },
+  )
 
-  subscriber.on('entryUpdated', async ({
-    entryId,
-    updateAttrs,
-    newEntry,
-    eventDate,
-    platformId,
-    env,
-    req
-  } = {}) => {
-    try {
-      const { Event, Entry } = await getModels({ platformId, env })
+  subscriber.on(
+    'entryUpdated',
+    async ({
+      entryId,
+      updateAttrs,
+      newEntry,
+      eventDate,
+      platformId,
+      env,
+      req,
+    } = {}) => {
+      try {
+        const { Event, Entry } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'entry__updated',
-        objectId: entryId,
-        object: Entry.expose(newEntry, { req, namespaces: ['*'] }),
-        changesRequested: Entry.expose(updateAttrs, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { entryId },
-        message: 'Fail to create event entry__updated'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'entry__updated',
+            objectId: entryId,
+            object: Entry.expose(newEntry, { req, namespaces: ['*'] }),
+            changesRequested: Entry.expose(updateAttrs, {
+              req,
+              namespaces: ['*'],
+            }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { entryId },
+          message: 'Fail to create event entry__updated',
+        })
+      }
+    },
+  )
 
-  subscriber.on('entryDeleted', async ({ entryId, entry, eventDate, platformId, env, req } = {}) => {
-    try {
-      const { Entry, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'entryDeleted',
+    async ({ entryId, entry, eventDate, platformId, env, req } = {}) => {
+      try {
+        const { Entry, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'entry__deleted',
-        objectId: entryId,
-        object: Entry.expose(entry, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { entryId },
-        message: 'Fail to create event entry__deleted'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'entry__deleted',
+            objectId: entryId,
+            object: Entry.expose(entry, { req, namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { entryId },
+          message: 'Fail to create event entry__deleted',
+        })
+      }
+    },
+  )
 
-  async function handleUniqueValidationError (err, { platformId, env, locale, name, omitId }) {
+  async function handleUniqueValidationError(
+    err,
+    { platformId, env, locale, name, omitId },
+  ) {
     const { Entry } = await getModels({ platformId, env })
 
     if (err instanceof UniqueViolationError) {
@@ -371,7 +369,10 @@ function start ({ communication }) {
         const msg = `The entry with ID "${conflictingEntry.id}" already has the same name and locale`
         throw createError(422, msg)
       } else {
-        throw createError(500, `Conflicting entry for locale ${locale} and name ${name} not found`)
+        throw createError(
+          500,
+          `Conflicting entry for locale ${locale} and name ${name} not found`,
+        )
       }
     } else {
       throw err
@@ -379,12 +380,12 @@ function start ({ communication }) {
   }
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

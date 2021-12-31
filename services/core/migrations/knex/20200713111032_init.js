@@ -1,11 +1,14 @@
 const config = require('config').get('ExternalServices.pgsql')
 
-const { mergeFunction, mergeFunctionName } = require('../util/stl_jsonb_deep_merge')
+const {
+  mergeFunction,
+  mergeFunctionName,
+} = require('../util/stl_jsonb_deep_merge')
 const {
   createHypertable,
   addCompressionPolicy,
   createContinuousAggregate,
-  removeContinuousAggregate
+  removeContinuousAggregate,
 } = require('../util/timescaleDB')
 
 const timestampPrecision = 3 // 10E-3 = 1 millisecond
@@ -13,10 +16,13 @@ const timestampPrecision = 3 // 10E-3 = 1 millisecond
 exports.up = async (knex) => {
   const { schema } = knex.client.connectionSettings || {}
   // We need to inject schema name in function body for recursion
-  if (!schema) throw new Error(`Schema name required to create ${mergeFunctionName} function`)
+  if (!schema)
+    throw new Error(
+      `Schema name required to create ${mergeFunctionName} function`,
+    )
   await knex.schema.raw(mergeFunction(schema))
 
-  await knex.schema.createTable('apiKey', table => {
+  await knex.schema.createTable('apiKey', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -34,7 +40,7 @@ exports.up = async (knex) => {
     table.unique('key', 'apiKey_key_unique')
   })
 
-  await knex.schema.createTable('assessment', table => {
+  await knex.schema.createTable('assessment', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -62,7 +68,7 @@ exports.up = async (knex) => {
     table.index('receiverId', 'assessment_receiverId_index')
   })
 
-  await knex.schema.createTable('asset', table => {
+  await knex.schema.createTable('asset', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -89,7 +95,7 @@ exports.up = async (knex) => {
     table.index('customAttributes', 'asset_customAttributes_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('assetType', table => {
+  await knex.schema.createTable('assetType', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -110,7 +116,7 @@ exports.up = async (knex) => {
     table.index(['updatedDate', 'id'], 'assetType_updatedDate_id_index')
   })
 
-  await knex.schema.createTable('authMean', table => {
+  await knex.schema.createTable('authMean', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -124,7 +130,7 @@ exports.up = async (knex) => {
     table.index('userId', 'authMean_userId_index')
   })
 
-  await knex.schema.createTable('authToken', table => {
+  await knex.schema.createTable('authToken', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -138,7 +144,7 @@ exports.up = async (knex) => {
     table.index('userId', 'authToken_userId_index')
   })
 
-  await knex.schema.createTable('availability', table => {
+  await knex.schema.createTable('availability', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -157,7 +163,7 @@ exports.up = async (knex) => {
     table.index('assetId', 'availability_assetId_index')
   })
 
-  await knex.schema.createTable('category', table => {
+  await knex.schema.createTable('category', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -170,7 +176,7 @@ exports.up = async (knex) => {
     table.index(['updatedDate', 'id'], 'category_updatedDate_id_index')
   })
 
-  await knex.schema.createTable('config', table => {
+  await knex.schema.createTable('config', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -182,7 +188,7 @@ exports.up = async (knex) => {
     table.unique('access', 'config_access_unique')
   })
 
-  await knex.schema.createTable('customAttribute', table => {
+  await knex.schema.createTable('customAttribute', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -197,7 +203,7 @@ exports.up = async (knex) => {
     table.unique('name', 'customAttribute_name_unique')
   })
 
-  await knex.schema.createTable('document', table => {
+  await knex.schema.createTable('document', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -217,7 +223,7 @@ exports.up = async (knex) => {
     table.index('data', 'document_data_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('entry', table => {
+  await knex.schema.createTable('entry', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -234,10 +240,13 @@ exports.up = async (knex) => {
     table.unique(['locale', 'name'], 'entry_locale_name_unique')
   })
 
-  await knex.schema.createTable('event', table => {
+  await knex.schema.createTable('event', (table) => {
     table.string('id')
     table.string('createdDate', 24)
-    table.timestamp('createdTimestamp', { useTz: true, precision: timestampPrecision })
+    table.timestamp('createdTimestamp', {
+      useTz: true,
+      precision: timestampPrecision,
+    })
     table.string('type')
     table.string('objectType')
     table.string('objectId')
@@ -261,7 +270,7 @@ exports.up = async (knex) => {
     table.index('metadata', 'event_metadata_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('internalAvailability', table => {
+  await knex.schema.createTable('internalAvailability', (table) => {
     table.bigIncrements('id').primary()
     table.string('assetId')
     table.string('transactionId')
@@ -275,10 +284,13 @@ exports.up = async (knex) => {
 
     table.index('assetId', 'internalAvailability_asset_index')
     table.index('transactionId', 'internalAvailability_transactionId_index')
-    table.index(['assetId', 'datesRange'], 'internalAvailability_assetId_datesRange_index')
+    table.index(
+      ['assetId', 'datesRange'],
+      'internalAvailability_assetId_datesRange_index',
+    )
   })
 
-  await knex.schema.createTable('message', table => {
+  await knex.schema.createTable('message', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -300,7 +312,7 @@ exports.up = async (knex) => {
     table.index('receiverId', 'message_receiverId_index')
   })
 
-  await knex.schema.createTable('order', table => {
+  await knex.schema.createTable('order', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -320,7 +332,7 @@ exports.up = async (knex) => {
     table.index('payerId', 'order_payerId_index')
   })
 
-  await knex.schema.createTable('role', table => {
+  await knex.schema.createTable('role', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -339,7 +351,7 @@ exports.up = async (knex) => {
     table.index('value', 'role_value_index')
   })
 
-  await knex.schema.createTable('task', table => {
+  await knex.schema.createTable('task', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -359,7 +371,7 @@ exports.up = async (knex) => {
     table.index('eventObjectId', 'task_eventObjectId_index')
   })
 
-  await knex.schema.createTable('transaction', table => {
+  await knex.schema.createTable('transaction', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -398,7 +410,7 @@ exports.up = async (knex) => {
     table.index('assetId', 'transaction_assetId_index')
   })
 
-  await knex.schema.createTable('user', table => {
+  await knex.schema.createTable('user', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -422,7 +434,7 @@ exports.up = async (knex) => {
     table.index('roles', 'user_roles_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('webhook', table => {
+  await knex.schema.createTable('webhook', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -439,23 +451,29 @@ exports.up = async (knex) => {
     table.index('event', 'webhook_event_index')
   })
 
-  await knex.schema.createTable('webhookLog', table => {
+  await knex.schema.createTable('webhookLog', (table) => {
     table.string('id')
     table.string('createdDate', 24)
-    table.timestamp('createdTimestamp', { useTz: true, precision: timestampPrecision })
+    table.timestamp('createdTimestamp', {
+      useTz: true,
+      precision: timestampPrecision,
+    })
     table.string('webhookId')
     table.string('eventId')
     table.string('status')
     table.jsonb('metadata')
 
     table.index('id', 'webhookLog_id_index')
-    table.index(['createdTimestamp', 'id'], 'webhookLog_createdTimestamp_id_index')
+    table.index(
+      ['createdTimestamp', 'id'],
+      'webhookLog_createdTimestamp_id_index',
+    )
     table.index('status', 'webhookLog_status_index')
     table.index('webhookId', 'webhookLog_webhookId_index')
     table.index('eventId', 'webhookLog_eventId_index')
   })
 
-  await knex.schema.createTable('workflow', table => {
+  await knex.schema.createTable('workflow', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -477,10 +495,13 @@ exports.up = async (knex) => {
     table.index('event', 'workflow_event_index')
   })
 
-  await knex.schema.createTable('workflowLog', table => {
+  await knex.schema.createTable('workflowLog', (table) => {
     table.string('id')
     table.string('createdDate', 24)
-    table.timestamp('createdTimestamp', { useTz: true, precision: timestampPrecision })
+    table.timestamp('createdTimestamp', {
+      useTz: true,
+      precision: timestampPrecision,
+    })
     table.string('workflowId')
     table.string('eventId')
     table.string('runId')
@@ -490,7 +511,10 @@ exports.up = async (knex) => {
     table.jsonb('metadata')
 
     table.index('id', 'workflowLog_id_index')
-    table.index(['createdTimestamp', 'id'], 'workflowLog_createdTimestamp_id_index')
+    table.index(
+      ['createdTimestamp', 'id'],
+      'workflowLog_createdTimestamp_id_index',
+    )
     table.index('type', 'workflowLog_type_index')
     table.index('workflowId', 'workflowLog_workflowId_index')
     table.index('eventId', 'workflowLog_eventId_index')
@@ -503,120 +527,159 @@ exports.up = async (knex) => {
     await knex.schema.raw(createHypertable(schema, 'workflowLog'))
 
     await knex.schema.raw(addCompressionPolicy(schema, 'event', 'objectId'))
-    await knex.schema.raw(addCompressionPolicy(schema, 'webhookLog', 'webhookId'))
-    await knex.schema.raw(addCompressionPolicy(schema, 'workflowLog', 'workflowId'))
+    await knex.schema.raw(
+      addCompressionPolicy(schema, 'webhookLog', 'webhookId'),
+    )
+    await knex.schema.raw(
+      addCompressionPolicy(schema, 'workflowLog', 'workflowId'),
+    )
 
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'event_hourly',
-      schema,
-      table: 'event',
-      interval: '1 hour',
-      timeBucketLabel: 'hour',
-      refreshLag: '1 hour',
-      refreshInterval: '1 hour',
-      secondaryColumn: 'type'
-    }))
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'event_daily',
-      schema,
-      table: 'event',
-      interval: '1 day',
-      timeBucketLabel: 'day',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type'
-    }))
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'event_monthly',
-      schema,
-      table: 'event',
-      interval: '30 day',
-      timeBucketLabel: 'month',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type'
-    }))
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'event_hourly',
+        schema,
+        table: 'event',
+        interval: '1 hour',
+        timeBucketLabel: 'hour',
+        refreshLag: '1 hour',
+        refreshInterval: '1 hour',
+        secondaryColumn: 'type',
+      }),
+    )
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'event_daily',
+        schema,
+        table: 'event',
+        interval: '1 day',
+        timeBucketLabel: 'day',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'event_monthly',
+        schema,
+        table: 'event',
+        interval: '30 day',
+        timeBucketLabel: 'month',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
 
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'webhookLog_hourly',
-      schema,
-      table: 'webhookLog',
-      interval: '1 hour',
-      timeBucketLabel: 'hour',
-      refreshLag: '1 hour',
-      refreshInterval: '1 hour'
-    }))
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'webhookLog_daily',
-      schema,
-      table: 'webhookLog',
-      interval: '1 day',
-      timeBucketLabel: 'day',
-      refreshLag: '1 day',
-      refreshInterval: '1 day'
-    }))
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'webhookLog_monthly',
-      schema,
-      table: 'webhookLog',
-      interval: '30 day',
-      timeBucketLabel: 'month',
-      refreshLag: '1 day',
-      refreshInterval: '1 day'
-    }))
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'webhookLog_hourly',
+        schema,
+        table: 'webhookLog',
+        interval: '1 hour',
+        timeBucketLabel: 'hour',
+        refreshLag: '1 hour',
+        refreshInterval: '1 hour',
+      }),
+    )
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'webhookLog_daily',
+        schema,
+        table: 'webhookLog',
+        interval: '1 day',
+        timeBucketLabel: 'day',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+      }),
+    )
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'webhookLog_monthly',
+        schema,
+        table: 'webhookLog',
+        interval: '30 day',
+        timeBucketLabel: 'month',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+      }),
+    )
 
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'workflowLog_hourly',
-      schema,
-      table: 'workflowLog',
-      interval: '1 hour',
-      timeBucketLabel: 'hour',
-      refreshLag: '1 hour',
-      refreshInterval: '1 hour',
-      secondaryColumn: 'type'
-    }))
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'workflowLog_daily',
-      schema,
-      table: 'workflowLog',
-      interval: '1 day',
-      timeBucketLabel: 'day',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type'
-    }))
-    await knex.schema.raw(createContinuousAggregate({
-      viewName: 'workflowLog_monthly',
-      schema,
-      table: 'workflowLog',
-      interval: '30 day',
-      timeBucketLabel: 'month',
-      refreshLag: '1 day',
-      refreshInterval: '1 day',
-      secondaryColumn: 'type'
-    }))
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'workflowLog_hourly',
+        schema,
+        table: 'workflowLog',
+        interval: '1 hour',
+        timeBucketLabel: 'hour',
+        refreshLag: '1 hour',
+        refreshInterval: '1 hour',
+        secondaryColumn: 'type',
+      }),
+    )
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'workflowLog_daily',
+        schema,
+        table: 'workflowLog',
+        interval: '1 day',
+        timeBucketLabel: 'day',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
+    await knex.schema.raw(
+      createContinuousAggregate({
+        viewName: 'workflowLog_monthly',
+        schema,
+        table: 'workflowLog',
+        interval: '30 day',
+        timeBucketLabel: 'month',
+        refreshLag: '1 day',
+        refreshInterval: '1 day',
+        secondaryColumn: 'type',
+      }),
+    )
   }
-
-
 }
 
 exports.down = async (knex) => {
   const { schema } = knex.client.connectionSettings || {}
 
-  if (!schema) throw new Error('Schema name required to remove continuous aggregates')
+  if (!schema)
+    throw new Error('Schema name required to remove continuous aggregates')
 
   if (config.get('timescale.enabled')) {
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'workflowLog_hourly', schema }))
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'workflowLog_daily', schema }))
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'workflowLog_monthly', schema }))
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'workflowLog_hourly', schema }),
+    )
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'workflowLog_daily', schema }),
+    )
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'workflowLog_monthly', schema }),
+    )
 
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'webhookLog_hourly', schema }))
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'webhookLog_daily', schema }))
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'webhookLog_monthly', schema }))
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'webhookLog_hourly', schema }),
+    )
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'webhookLog_daily', schema }),
+    )
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'webhookLog_monthly', schema }),
+    )
 
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'event_hourly', schema }))
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'event_daily', schema }))
-    await knex.schema.raw(removeContinuousAggregate({ viewName: 'event_monthly', schema }))
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'event_hourly', schema }),
+    )
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'event_daily', schema }),
+    )
+    await knex.schema.raw(
+      removeContinuousAggregate({ viewName: 'event_monthly', schema }),
+    )
   }
 
   await knex.schema.dropTableIfExists('workflowLog')
@@ -644,5 +707,7 @@ exports.down = async (knex) => {
   await knex.schema.dropTableIfExists('assessment')
   await knex.schema.dropTableIfExists('apiKey')
 
-  await knex.schema.raw(`DROP FUNCTION IF EXISTS ${mergeFunctionName}(jsonb, jsonb)`)
+  await knex.schema.raw(
+    `DROP FUNCTION IF EXISTS ${mergeFunctionName}(jsonb, jsonb)`,
+  )
 }

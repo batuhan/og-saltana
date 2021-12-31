@@ -1,33 +1,75 @@
+const config = require('config')
+
+const storeRoute = require('./store')
+const batchRoute = require('./batch')
+
+const apiKeyRoute = require('./apiKey')
+const assessmentRoute = require('./assessment')
+const assetRoute = require('./asset')
+const assetTypeRoute = require('./assetType')
+const authenticationRoute = require('./authentication')
+const authorizationRoute = require('./authorization')
+const availabilityRoute = require('./availability')
+const categoryRoute = require('./category')
+const configRoute = require('./config')
+const customAttributeRoute = require('./customAttribute')
+const documentRoute = require('./document')
+const entryRoute = require('./entry')
+const eventRoute = require('./event')
+const messageRoute = require('./message')
+const orderRoute = require('./order')
+const roleRoute = require('./role')
+const searchRoute = require('./search')
+const signalRoute = require('./signal')
+const taskRoute = require('./task')
+const transactionRoute = require('./transaction')
+const userRoute = require('./user')
+const webhookRoute = require('./webhook')
+const workflowRoute = require('./workflow')
+
 const coreRoutes = {
-  store: require('./store'),
-  batch: require('./batch'),
-
-  apiKey: require('./apiKey'),
-  assessment: require('./assessment'),
-  asset: require('./asset'),
-  assetType: require('./assetType'),
-  authentication: require('./authentication'),
-  authorization: require('./authorization'),
-  availability: require('./availability'),
-  category: require('./category'),
-  config: require('./config'),
-  customAttribute: require('./customAttribute'),
-  document: require('./document'),
-  entry: require('./entry'),
-  event: require('./event'),
-  message: require('./message'),
-  order: require('./order'),
-  role: require('./role'),
-  search: require('./search'),
-  signal: require('./signal'),
-  task: require('./task'),
-  transaction: require('./transaction'),
-  user: require('./user'),
-  webhook: require('./webhook'),
-  workflow: require('./workflow'),
+  store: { route: storeRoute, enabled: true },
+  batch: { route: batchRoute, enabled: true },
+  apiKey: { route: apiKeyRoute, enabled: true },
+  assessment: { route: assessmentRoute, enabled: true },
+  asset: { route: assetRoute, enabled: true },
+  assetType: { route: assetTypeRoute, enabled: true },
+  authentication: { route: authenticationRoute, enabled: true },
+  authorization: { route: authorizationRoute, enabled: true },
+  availability: { route: availabilityRoute, enabled: true },
+  category: { route: categoryRoute, enabled: true },
+  config: { route: configRoute, enabled: true },
+  customAttribute: { route: customAttributeRoute, enabled: true },
+  document: { route: documentRoute, enabled: true },
+  entry: { route: entryRoute, enabled: true },
+  event: { route: eventRoute, enabled: true },
+  message: { route: messageRoute, enabled: true },
+  order: { route: orderRoute, enabled: true },
+  role: { route: roleRoute, enabled: true },
+  search: { route: searchRoute, enabled: true },
+  signal: {
+    route: signalRoute,
+    enabled: config.get('Features.Signal.enabled') !== false,
+  },
+  task: { route: taskRoute, enabled: true },
+  transaction: { route: transactionRoute, enabled: true },
+  user: { route: userRoute, enabled: true },
+  webhook: { route: webhookRoute, enabled: true },
+  workflow: { route: workflowRoute, enabled: true },
 }
-
 const customRoutes = {}
+
+function getRoutes() {
+  const filteredCoreRoutes = {}
+  Object.keys(coreRoutes).forEach((routeName) => {
+    const { route, enabled } = coreRoutes[routeName]
+    if (enabled === false) {
+      return
+    }
+    filteredCoreRoutes[routeName] = route
+  })
+  return { ...filteredCoreRoutes, ...customRoutes }
+}
 
 function init(...args) {
   const routesObj = getRoutes()
@@ -54,10 +96,6 @@ function stop(...args) {
     const route = routesObj[key]
     route.stop(...args)
   })
-}
-
-function getRoutes() {
-  return { ...coreRoutes, ...customRoutes }
 }
 
 function registerRoutes(name, routesConfig) {

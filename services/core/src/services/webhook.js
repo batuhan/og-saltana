@@ -3,10 +3,10 @@ const createError = require('http-errors')
 const bluebird = require('bluebird')
 const request = require('superagent')
 
-const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
+const { logError } = require('../../server/logger')
 
 const { apiVersions } = require('../versions')
 
@@ -16,30 +16,24 @@ const { getRetentionLimitDate } = require('../util/timeSeries')
 let responder
 let eventSubscriber
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getSubscriber,
-    COMMUNICATION_ID
-  } = communication
+function start({ communication }) {
+  const { getResponder, getSubscriber, COMMUNICATION_ID } = communication
 
   responder = getResponder({
     name: 'Webhook Responder',
-    key: 'webhook'
+    key: 'webhook',
   })
 
   eventSubscriber = getSubscriber({
     name: 'Webhook subscriber for events',
     key: 'event',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'eventCreated'
-    ]
+    subscribesTo: ['eventCreated'],
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Webhook } = await getModels({ platformId, env })
 
     const {
@@ -68,17 +62,17 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         events: {
           dbField: 'event',
@@ -88,7 +82,7 @@ function start ({ communication }) {
         },
         active: {
           dbField: 'active',
-          value: active
+          value: active,
         },
       },
       paginationActive: true,
@@ -101,8 +95,8 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
-      }
+        order,
+      },
     })
 
     paginationMeta.results = Webhook.exposeAll(paginationMeta.results, { req })
@@ -111,9 +105,9 @@ function start ({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const webhookId = req.webhookId
+    const { platformId } = req
+    const { env } = req
+    const { webhookId } = req
     const populateLogs = typeof req.logs !== 'undefined'
     const { Webhook, WebhookLog } = await getModels({ platformId, env })
 
@@ -135,12 +129,9 @@ function start ({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      Event,
-      Webhook
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { Event, Webhook } = await getModels({ platformId, env })
 
     const {
       name,
@@ -149,7 +140,7 @@ function start ({ communication }) {
       apiVersion,
       active,
       metadata,
-      platformData
+      platformData,
     } = req
 
     if (event) {
@@ -160,7 +151,7 @@ function start ({ communication }) {
     if (apiVersion && !apiVersions.includes(apiVersion)) {
       // Safeguard as it is already handled during Joi validation
       throw createError(400, 'Invalid API version', {
-        public: { allowedVersions: apiVersions }
+        public: { allowedVersions: apiVersions },
       })
     }
 
@@ -175,19 +166,16 @@ function start ({ communication }) {
       apiVersion: apiVersion || req._platformVersion || latestApiVersion,
       active,
       metadata,
-      platformData
+      platformData,
     })
 
     return Webhook.expose(webhook, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      Event,
-      Webhook
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { Event, Webhook } = await getModels({ platformId, env })
 
     const {
       webhookId,
@@ -196,7 +184,7 @@ function start ({ communication }) {
       apiVersion,
       active,
       metadata,
-      platformData
+      platformData,
     } = req
 
     let webhook = await Webhook.query().findById(webhookId)
@@ -212,22 +200,25 @@ function start ({ communication }) {
     if (apiVersion && !apiVersions.includes(apiVersion)) {
       throw createError(422, 'Invalid API version', {
         public: {
-          allowedVersions: apiVersions
-        }
+          allowedVersions: apiVersions,
+        },
       })
     }
 
     const updateAttrs = {
       name,
       event,
-      active
+      active,
     }
 
     if (metadata) {
       updateAttrs.metadata = Webhook.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Webhook.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Webhook.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
     webhook = await Webhook.query().patchAndFetchById(webhookId, updateAttrs)
@@ -236,13 +227,11 @@ function start ({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Webhook } = await getModels({ platformId, env })
 
-    const {
-      webhookId
-    } = req
+    const { webhookId } = req
 
     const webhook = await Webhook.query().findById(webhookId)
     if (!webhook) {
@@ -259,8 +248,8 @@ function start ({ communication }) {
   // /////////// //
 
   responder.on('listLogs', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { WebhookLog } = await getModels({ platformId, env })
 
     const {
@@ -291,32 +280,32 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
           query: 'range',
           defaultValue: { gte: minCreatedDate },
-          minValue: minCreatedDate
+          minValue: minCreatedDate,
         },
         webhookIds: {
           dbField: 'webhookId',
           value: webhookId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         eventIds: {
           dbField: 'eventId',
           value: eventId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         statuses: {
           dbField: 'status',
           value: status,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
       },
       paginationActive: true,
@@ -329,21 +318,23 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
-      }
+        order,
+      },
     })
 
-    paginationMeta.results = WebhookLog.exposeAll(paginationMeta.results, { req })
+    paginationMeta.results = WebhookLog.exposeAll(paginationMeta.results, {
+      req,
+    })
 
     return paginationMeta
   })
 
   responder.on('readLog', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { WebhookLog } = await getModels({ platformId, env })
 
-    const webhookLogId = req.webhookLogId
+    const { webhookLogId } = req
 
     const minCreatedDate = getRetentionLimitDate()
 
@@ -361,26 +352,30 @@ function start ({ communication }) {
 
   // EVENTS
 
-  eventSubscriber.on('eventCreated', async ({ event, platformId, env } = {}) => {
-    try {
-      const { Webhook } = await getModels({ platformId, env })
+  eventSubscriber.on(
+    'eventCreated',
+    async ({ event, platformId, env } = {}) => {
+      try {
+        const { Webhook } = await getModels({ platformId, env })
 
-      const webhooks = await Webhook.query()
-        .where({
+        const webhooks = await Webhook.query().where({
           active: true,
-          event: event.type
+          event: event.type,
         })
 
-      await bluebird.map(webhooks, webhook => callWebhook({ webhook, platformId, env, event }))
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { eventId: event.id },
-        message: 'Fail to handle eventCreated event in webhook service'
-      })
-    }
-  })
+        await bluebird.map(webhooks, (webhook) =>
+          callWebhook({ webhook, platformId, env, event }),
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { eventId: event.id },
+          message: 'Fail to handle eventCreated event in webhook service',
+        })
+      }
+    },
+  )
 }
 
 /**
@@ -390,39 +385,37 @@ function start ({ communication }) {
  * @param {Object} params.event
  * @return {Promise} webhook log
  */
-async function callWebhook ({ webhook, event, platformId, env }) {
-  const {
-    Event,
-    WebhookLog
-  } = await getModels({ platformId, env })
+async function callWebhook({ webhook, event, platformId, env }) {
+  const { Event, WebhookLog } = await getModels({ platformId, env })
 
   let exposedEvent = Event.expose(event, { namespaces: ['*'] })
   exposedEvent = await Event.getVersionedEvent(event, webhook.apiVersion)
 
   const payload = {
-    event: exposedEvent
+    event: exposedEvent,
   }
   const log = {
     date: new Date().toISOString(),
     targetUrl: webhook.targetUrl,
-    eventObjectId: exposedEvent.objectId
+    eventObjectId: exposedEvent.objectId,
   }
 
-  return request.post(webhook.targetUrl)
+  return request
+    .post(webhook.targetUrl)
     .send(payload)
     .set({
-      'x-webhook-source': 'saltana'
+      'x-webhook-source': 'saltana',
     })
-    .catch(err => {
+    .catch((err) => {
       logError(err.response ? err.response.body : err, {
         platformId,
         env,
         custom: {
           webhookId: webhook.id,
           eventId: event.id,
-          objectId: event.objectId
+          objectId: event.objectId,
         },
-        message: 'Fail to send webhook event'
+        message: 'Fail to send webhook event',
       })
 
       const statusCode = err.status || err.statusCode
@@ -439,14 +432,14 @@ async function callWebhook ({ webhook, event, platformId, env }) {
         webhookId: webhook.id,
         eventId: exposedEvent.id,
         status: log.statusCode ? 'error' : 'success',
-        metadata: log
+        metadata: log,
       })
 
       return webhookLog
     })
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -456,5 +449,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

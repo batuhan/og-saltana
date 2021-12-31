@@ -2,42 +2,35 @@ const bluebird = require('bluebird')
 const { Acl } = require('virgen-acl')
 const _ = require('lodash')
 
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 const {
   getPermissionsDefObjects,
   parsePermission,
-  getPermissionKey
+  getPermissionKey,
 } = require('../permissions')
 
 let responder
 let configRequester
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getRequester
-  } = communication
+function start({ communication }) {
+  const { getResponder, getRequester } = communication
 
   responder = getResponder({
     name: 'Authorization Responder',
-    key: 'authorization'
+    key: 'authorization',
   })
 
   configRequester = getRequester({
     name: 'Authorization service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   responder.on('_getGrantedPermissions', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
 
-    const {
-      roles,
-      permissionsToCheck,
-      plan
-    } = req
+    const { roles, permissionsToCheck, plan } = req
 
     const permissionsDefObjects = getPermissionsDefObjects()
 
@@ -48,14 +41,12 @@ function start ({ communication }) {
     let missingPlanPermissions = []
 
     const isAllowed = async (roles, permission) => {
-      const [
-        allowedByRole,
-        allowedByPlan
-      ] = await Promise.all([
+      const [allowedByRole, allowedByPlan] = await Promise.all([
         isAllowedByRole(roles, permission, { acl }),
-        isAllowedByPlan(permission, { planPermissions })
+        isAllowedByPlan(permission, { planPermissions }),
       ])
-      if (allowedByRole && !allowedByPlan) missingPlanPermissions.push(permission)
+      if (allowedByRole && !allowedByPlan)
+        missingPlanPermissions.push(permission)
 
       return allowedByRole && allowedByPlan
     }
@@ -81,24 +72,22 @@ function start ({ communication }) {
     // permission is granted (`object:action:all: true`), so that we can ignore the former.
     // We always keep checking more specific scoped permission like `object:action:scope` though.
     const allScopePermissionRegex = /:all$/
-    missingPlanPermissions = missingPlanPermissions.filter(p => {
-      const overarchingP = (allScopePermissionRegex.test(p) || p.split(':').length > 2)
-        ? p
-        : `${p}:all`
+    missingPlanPermissions = missingPlanPermissions.filter((p) => {
+      const overarchingP =
+        allScopePermissionRegex.test(p) || p.split(':').length > 2
+          ? p
+          : `${p}:all`
       return !planPermissions[overarchingP]
     })
 
     return {
       grantedPermissions,
-      missingPlanPermissions
+      missingPlanPermissions,
     }
   })
 
   responder.on('_filterPermissionsByPlan', async (req) => {
-    const {
-      permissions,
-      plan
-    } = req
+    const { permissions, plan } = req
 
     const planPermissions = _.get(plan, 'allPermissions', null)
     const validPermissions = []
@@ -114,7 +103,7 @@ function start ({ communication }) {
   })
 }
 
-async function isAllowedByRole (roles, permission, { acl }) {
+async function isAllowedByRole(roles, permission, { acl }) {
   const parsedPermission = parsePermission(permission)
   if (!parsedPermission) return false
 
@@ -126,12 +115,12 @@ async function isAllowedByRole (roles, permission, { acl }) {
 
 // if no plugin has set req._plan and/or req._plan.allPermissions is null
 // consider all permissions can be granted (still depending on own user permissions)
-async function isAllowedByPlan (permission, { planPermissions }) {
+async function isAllowedByPlan(permission, { planPermissions }) {
   if (planPermissions === null) return true
   return planPermissions[permission]
 }
 
-async function getAcl ({ platformId, env }) {
+async function getAcl({ platformId, env }) {
   // PERF:TODO: get roles from redis in platform info middleware
   // rather than loading them from DB here
   const { Role } = await getModels({ platformId, env })
@@ -141,14 +130,14 @@ async function getAcl ({ platformId, env }) {
   return acl
 }
 
-function _getAcl (roles) {
+function _getAcl(roles) {
   const acl = new Acl()
 
   bluebird.promisifyAll(acl)
 
   const indexedRoles = _.keyBy(roles, 'id')
 
-  roles.forEach(role => {
+  roles.forEach((role) => {
     const parentRole = role.parentId ? indexedRoles[role.parentId] : null
 
     if (parentRole) {
@@ -160,11 +149,11 @@ function _getAcl (roles) {
 
   acl.deny()
 
-  roles.forEach(role => {
+  roles.forEach((role) => {
     if (role.permissions.includes('*')) {
       acl.allow(role.value)
     } else {
-      role.permissions.forEach(permission => {
+      role.permissions.forEach((permission) => {
         const parsedPermission = parsePermission(permission)
         if (!parsedPermission) return
 
@@ -179,7 +168,7 @@ function _getAcl (roles) {
   return acl
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -189,5 +178,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

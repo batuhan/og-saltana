@@ -9,20 +9,19 @@ const config = require('config')
 const { parseKey } = require('@saltana/util-keys')
 
 const Uuid = require('uuid')
+const { Base } = require('@saltana/db')
+const {
+  encoding: { decodeBase64 },
+} = require('@saltana/utils')
+const { systemNamespaces, protectedNamespaces } = require('@saltana/utils')
 const { logError, log } = require('../server/logger')
 
-const Base = require('./models/Base')
-
-const { decodeBase64 } = require('./util/encoding')
 const {
   clerk,
   verifyToken: verifyClerkToken,
 } = require('./external-services/clerk')
 
 const { parsePermission } = require('./permissions')
-
-const systemNamespaces = ['system', 'saltana']
-const protectedNamespaces = ['private', 'protected']
 
 let localInstanceKey
 

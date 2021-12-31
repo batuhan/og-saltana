@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const config = require('config')
+
 const esConfig = config.get('ExternalServices.elasticsearch')
 const pgConfig = config.get('ExternalServices.pgsql')
 

@@ -10,7 +10,7 @@ const { syncAssetsWithElasticsearch } = require('../elasticsearch-sync')
 
 const { getPendingReindexingTask } = require('../elasticsearch-reindex')
 
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 let responder
 let subscriber

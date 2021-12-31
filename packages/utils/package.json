@@ -1,0 +1,52 @@
+{
+  "name": "@saltana/utils",
+  "description": "Saltana utils to be used in API/backend services",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.js",
+  "repository": "git@github.com:saltana/saltanahq.git",
+  "author": "Saltana (https://saltana.com)",
+  "scripts": {
+    "test": "ava",
+    "test:ci": "ava --tap | tap-xunit",
+    "lint": "standard",
+    "lint-fix": "standard --fix"
+  },
+  "lint-staged": {
+    "*": [
+      "npm run lint-fix",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "@saltana/util-keys": "*",
+    "@saltana/objection": "*",
+    "knex": "^0.95.7",
+    "lodash": "4.17.21",
+    "http-errors": "^1.8.0",
+    "bluebird": "^3.7.2",
+    "objection-db-errors": "^1.1.2",
+    "@hapi/bourne": "^2.0.0",
+    "@hapi/joi": "^17.1.1",
+    "ms": "^2.1.3",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.34",
+    "cron": "^1.8.2",
+    "serialize-error": "^8.1.0",
+    "big.js": "^6.1.1",
+    "mobitel-iso-4217-currencies": "^1.1.1",
+    "jsonwebtoken": "^8.5.1",
+    "useragent": "^2.3.0"
+  },
+  "devDependencies": {
+    "ava": "^3.15.0",
+    "debug": "^4.3.1",
+    "lint-staged": "^10.5.4",
+    "standard": "^14.3.4",
+    "supports-color": "^9.0.0",
+    "tap-xunit": "^2.4.1"
+  },
+  "engines": {
+    "node": ">=14.18"
+  }
+}

@@ -344,6 +344,7 @@ function loadServer() {
     }
 
     res.send(err)
+    debugger
     return next()
   })
 
@@ -425,6 +426,7 @@ function loadServer() {
 
   // Add any routes here that don't need a platform ID
   server.use((req, res, next) => {
+    debugger
     const isSystemUrl = req.url.startsWith('/system/')
     const isStoreUrl = req.url.startsWith('/store/')
     const isRobotsTxtUrl = req.url === '/robots.txt'
@@ -665,6 +667,7 @@ function loadServer() {
 
   // Dismiss polite bots
   server.get('/robots.txt', function (req, res, next) {
+    debugger
     res.set({
       'Content-Type': 'text/plain',
     })
@@ -858,6 +861,7 @@ function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
         routes.start(startParams)
         crons.start(startParams)
       } catch (serviceStartError) {
+        debugger
         logError(serviceStartError, {
           message:
             "Some services couldn't be started, check errors. Destroying this process.",
@@ -899,12 +903,15 @@ function start({ useFreePort, enableSignal = true, communicationEnv } = {}) {
  * @param {Object} [server] - Server to stop, defaults to server started last
  * @param {Number} [gracefulStopDuration] - in milliseconds
  */
-function stop({
+async function stop({
   server: serverToStop = stl,
   gracefulStopDuration = 1000,
 } = {}) {
-  return new Promise((resolve) => {
-    ;(serverToStop.saltanaIO || serverToStop).close(() => {
+  debugger
+  const pickedServer = serverToStop.saltanaIO || serverToStop
+
+  const stopper = new Promise((resolve) => {
+    pickedServer.close(() => {
       auth.stop()
       services.stop()
       routes.stop()
@@ -918,6 +925,8 @@ function stop({
       setTimeout(resolve, gracefulStopDuration)
     })
   })
+
+  return stopper
 }
 
 module.exports = {

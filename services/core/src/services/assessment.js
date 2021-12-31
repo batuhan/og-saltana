@@ -2,34 +2,31 @@ const createError = require('http-errors')
 const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 
-const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
-
-const {
-  getCurrentUserId
-} = require('../util/user')
-
 const { getObjectId } = require('@saltana/util-keys')
-
-const { performListQuery } = require('../util/listQueryBuilder')
+const { getModels } = require('@saltana/db')
+const {
+  user: { getCurrentUserId },
+  listQueryBuilder: { performListQuery },
+} = require('@saltana/utils')
+const { logError } = require('../../server/logger')
 
 let responder
 let subscriber
 let publisher
 let transactionRequester
 
-function start ({ communication }) {
+function start({ communication }) {
   const {
     getResponder,
     getSubscriber,
     getRequester,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'Assessment Responder',
-    key: 'assessment'
+    key: 'assessment',
   })
 
   subscriber = getSubscriber({
@@ -41,24 +38,24 @@ function start ({ communication }) {
       'assessmentDraftUpdated',
       'assessmentSigned',
       'assessmentReverted',
-      'assessmentDeleted'
-    ]
+      'assessmentDeleted',
+    ],
   })
 
   publisher = getPublisher({
     name: 'Assessment publisher',
     key: 'assessment',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   transactionRequester = getRequester({
     name: 'Assessement service > Transaction Requester',
-    key: 'transaction'
+    key: 'transaction',
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Assessment } = await getModels({ platformId, env })
 
     const {
@@ -73,7 +70,7 @@ function start ({ communication }) {
       startingAfter,
       endingBefore,
 
-      assetId
+      assetId,
     } = req
 
     const orderBy = 'assessmentDate'
@@ -85,8 +82,8 @@ function start ({ communication }) {
       filters: {
         assetId: {
           dbField: 'assetId',
-          value: assetId
-        }
+          value: assetId,
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -101,30 +98,26 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
 
-    paginationMeta.results = paginationMeta.results.map(assessment => {
+    paginationMeta.results = paginationMeta.results.map((assessment) => {
       const exposedAssessment = Assessment.expose(assessment, { req })
 
-      return Object.assign({}, exposedAssessment, {
-        signCodes: {}
-      })
+      return { ...exposedAssessment, signCodes: {} }
     })
 
     return paginationMeta
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Assessment } = await getModels({ platformId, env })
 
-    const {
-      assessmentId
-    } = req
+    const { assessmentId } = req
 
     const assessment = await Assessment.query().findById(assessmentId)
     if (!assessment) {
@@ -142,7 +135,7 @@ function start ({ communication }) {
       assessment,
       isSelf,
       currentUserId,
-      req
+      req,
     })
 
     assessment.signCodes = exposedSignCodes
@@ -164,48 +157,37 @@ function start ({ communication }) {
       'nbSigners',
       'expirationDate',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      Assessment,
-      Asset
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { Assessment, Asset } = await getModels({ platformId, env })
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: Assessment.idPrefix, platformId, env })
-    }, payload)
+    const createAttrs = {
+      id: await getObjectId({ prefix: Assessment.idPrefix, platformId, env }),
+      ...payload,
+    }
 
     if (!createAttrs.status) {
       createAttrs.status = 'draft'
     }
 
-    const {
-      assetId,
-      transactionId,
-      signers,
-      signCodes
-    } = payload
-    let {
-      ownerId,
-      takerId
-    } = payload
+    const { assetId, transactionId, signers, signCodes } = payload
+    let { ownerId, takerId } = payload
 
-    const [
-      asset,
-      transaction
-    ] = await Promise.all([
+    const [asset, transaction] = await Promise.all([
       Asset.query().findById(assetId),
-      transactionId ? transactionRequester.send({
-        type: '_getTransaction',
-        transactionId,
-        platformId,
-        env
-      }) : null
+      transactionId
+        ? transactionRequester.send({
+            type: '_getTransaction',
+            transactionId,
+            platformId,
+            env,
+          })
+        : null,
     ])
 
     if (!asset) {
@@ -215,14 +197,23 @@ function start ({ communication }) {
       throw createError(422, 'Transaction not found')
     }
     if (ownerId && asset.ownerId !== ownerId) {
-      throw createError(422, `The provided owner (ID ${ownerId}) doesn't match with the asset owner (ID ${asset.ownerId})`)
+      throw createError(
+        422,
+        `The provided owner (ID ${ownerId}) doesn't match with the asset owner (ID ${asset.ownerId})`,
+      )
     }
     if (transaction) {
       if (transaction.assetId !== assetId) {
-        throw createError(422, `The transaction (asset ID ${transaction.assetId}) and the asset (ID ${assetId}) does not match`)
+        throw createError(
+          422,
+          `The transaction (asset ID ${transaction.assetId}) and the asset (ID ${assetId}) does not match`,
+        )
       }
       if (takerId && transaction.takerId !== takerId) {
-        throw createError(422, `The provided taker (ID ${takerId}) doesn't match with the transaction taker (ID ${transaction.takerId})`)
+        throw createError(
+          422,
+          `The provided taker (ID ${takerId}) doesn't match with the transaction taker (ID ${transaction.takerId})`,
+        )
       }
     }
 
@@ -254,11 +245,12 @@ function start ({ communication }) {
       signersIds.forEach((signerId, index) => {
         const signerObj = signers[signerId]
 
-        transformedSigners[signerId] = Object.assign({}, {
+        transformedSigners[signerId] = {
           comment: null,
           statement: null,
-          signedDate: null
-        }, signerObj)
+          signedDate: null,
+          ...signerObj,
+        }
 
         if (signCodes && typeof signCodes[signerId] !== 'undefined') {
           transformedSignCodes[signerId] = signCodes[signerId]
@@ -280,18 +272,18 @@ function start ({ communication }) {
       assessment,
       eventDate: assessment.createdDate,
       platformId,
-      env
+      env,
     })
 
     return Assessment.expose(assessment, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Assessment } = await getModels({ platformId, env })
 
-    const assessmentId = req.assessmentId
+    const { assessmentId } = req
 
     const fields = [
       'status',
@@ -303,17 +295,12 @@ function start ({ communication }) {
       'nbSigners',
       'expirationDate',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      signers,
-      signCodes,
-      metadata,
-      platformData
-    } = payload
+    const { signers, signCodes, metadata, platformData } = payload
 
     const now = new Date().toISOString()
 
@@ -327,7 +314,8 @@ function start ({ communication }) {
     let updateAttrsBeforeFullDataMerge
 
     await transaction(knex, async (trx) => {
-      assessment = await Assessment.query(trx).forUpdate()
+      assessment = await Assessment.query(trx)
+        .forUpdate()
         .findById(assessmentId)
       if (!assessment) {
         throw createError(404)
@@ -341,7 +329,7 @@ function start ({ communication }) {
       const updatingAssessmentConfig = isUpdatingAssessmentConfig({
         assessment,
         currentUserId,
-        payload
+        payload,
       })
       const canUpdateConfig = isAllowedToUpdateConfig({ isSelf, req })
 
@@ -359,9 +347,14 @@ function start ({ communication }) {
         }
       }
 
-      const updateAttrs = _.omit(payload, ['signers', 'signCodes', 'metadata', 'platformData'])
+      const updateAttrs = _.omit(payload, [
+        'signers',
+        'signCodes',
+        'metadata',
+        'platformData',
+      ])
 
-      const transformedSignCodes = Object.assign({}, assessment.signCodes, signCodes)
+      const transformedSignCodes = { ...assessment.signCodes, ...signCodes }
 
       let newSignersIds
       if (signers) {
@@ -380,11 +373,15 @@ function start ({ communication }) {
         newSignersIds.forEach((signerId, index) => {
           const currentSigner = currentSigners[signerId]
           if (currentSigner && currentSigner.signedDate) {
-            throw createError(422,
-              'Cannot update a signer’s config after own signature on ' +
-              new Date(currentSigner.signedDate).toGMTString(), {
-                public: { signerId }
-              })
+            throw createError(
+              422,
+              `Cannot update a signer’s config after own signature on ${new Date(
+                currentSigner.signedDate,
+              ).toGMTString()}`,
+              {
+                public: { signerId },
+              },
+            )
           }
 
           const signerObj = signers[signerId]
@@ -393,11 +390,12 @@ function start ({ communication }) {
             delete transformedSigners[signerId]
             delete transformedSignCodes[signerId]
           } else {
-            transformedSigners[signerId] = Object.assign({}, {
+            transformedSigners[signerId] = {
               comment: null,
               statement: null,
-              signedDate: null
-            }, signerObj)
+              signedDate: null,
+              ...signerObj,
+            }
 
             if (typeof transformedSignCodes[signerId] === 'undefined') {
               if (signCodes && typeof signCodes[signerId] !== 'undefined') {
@@ -417,19 +415,26 @@ function start ({ communication }) {
         updateAttrs.signCodes = transformedSignCodes
       }
 
-      updateAttrsBeforeFullDataMerge = Object.assign({}, updateAttrs, {
+      updateAttrsBeforeFullDataMerge = {
+        ...updateAttrs,
         metadata,
-        platformData
-      })
+        platformData,
+      }
 
       if (metadata) {
         updateAttrs.metadata = Assessment.rawJsonbMerge('metadata', metadata)
       }
       if (platformData) {
-        updateAttrs.platformData = Assessment.rawJsonbMerge('platformData', platformData)
+        updateAttrs.platformData = Assessment.rawJsonbMerge(
+          'platformData',
+          platformData,
+        )
       }
 
-      newAssessment = await Assessment.query(trx).patchAndFetchById(assessmentId, updateAttrs)
+      newAssessment = await Assessment.query(trx).patchAndFetchById(
+        assessmentId,
+        updateAttrs,
+      )
     })
 
     publisher.publish('assessmentDraftUpdated', {
@@ -439,14 +444,14 @@ function start ({ communication }) {
       updateAttrs: updateAttrsBeforeFullDataMerge,
       eventDate: newAssessment.updatedDate,
       platformId,
-      env
+      env,
     })
 
     const exposedSignCodes = getExposedSignCodes({
       assessment: newAssessment,
       isSelf,
       currentUserId,
-      req
+      req,
     })
 
     newAssessment.signCodes = exposedSignCodes
@@ -455,14 +460,11 @@ function start ({ communication }) {
   })
 
   responder.on('sign', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Assessment } = await getModels({ platformId, env })
 
-    const {
-      assessmentId,
-      signCode
-    } = req
+    const { assessmentId, signCode } = req
 
     const currentUserId = getCurrentUserId(req)
     // must be logged as a user
@@ -479,7 +481,8 @@ function start ({ communication }) {
     let updateAttrs
 
     await transaction(knex, async (trx) => {
-      assessment = await Assessment.query(trx).forUpdate()
+      assessment = await Assessment.query(trx)
+        .forUpdate()
         .findById(assessmentId)
       if (!assessment) {
         throw createError(404)
@@ -491,14 +494,20 @@ function start ({ communication }) {
       }
 
       if (assessment.signedDate) {
-        throw createError(422, `Assessment already signed on ${
-          new Date(assessment.signedDate).toGMTString()
-        }`)
+        throw createError(
+          422,
+          `Assessment already signed on ${new Date(
+            assessment.signedDate,
+          ).toGMTString()}`,
+        )
       }
       if (assessment.expirationDate && assessment.expirationDate < now) {
-        throw createError(403, `Assessment expired on ${
-          new Date(assessment.expirationDate).toGMTString()
-        }`)
+        throw createError(
+          403,
+          `Assessment expired on ${new Date(
+            assessment.expirationDate,
+          ).toGMTString()}`,
+        )
       }
 
       const signerObj = assessment.signers[currentUserId]
@@ -519,19 +528,26 @@ function start ({ communication }) {
       newSigners[currentUserId].signedDate = now
 
       updateAttrs = {
-        signers: newSigners
+        signers: newSigners,
       }
 
-      const newSignInformation = getAssessmentNewSignInformation(assessment, currentUserId)
+      const newSignInformation = getAssessmentNewSignInformation(
+        assessment,
+        currentUserId,
+      )
 
       updateAttrs.status = newSignInformation.status
       updateAttrs.statement = newSignInformation.statement
 
-      if (newSignInformation.signal === 'all') { // if all parties signed
+      if (newSignInformation.signal === 'all') {
+        // if all parties signed
         updateAttrs.signedDate = now // set the assessment signed date
       }
 
-      assessment = await Assessment.query(trx).patchAndFetchById(assessmentId, updateAttrs)
+      assessment = await Assessment.query(trx).patchAndFetchById(
+        assessmentId,
+        updateAttrs,
+      )
     })
 
     publisher.publish('assessmentSigned', {
@@ -540,14 +556,14 @@ function start ({ communication }) {
       updateAttrs,
       eventDate: now,
       platformId,
-      env
+      env,
     })
 
     const exposedSignCodes = getExposedSignCodes({
       assessment,
       isSelf,
       currentUserId,
-      req
+      req,
     })
 
     assessment.signCodes = exposedSignCodes
@@ -556,13 +572,11 @@ function start ({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Assessment } = await getModels({ platformId, env })
 
-    const {
-      assessmentId
-    } = req
+    const { assessmentId } = req
 
     const assessment = await Assessment.query().findById(assessmentId)
     if (!assessment) {
@@ -583,7 +597,7 @@ function start ({ communication }) {
       assessment,
       eventDate: new Date().toISOString(),
       platformId,
-      env
+      env,
     })
 
     return { id: assessmentId }
@@ -591,127 +605,157 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('assessmentCreated', async ({ assessment, eventDate, platformId, env } = {}) => {
-    try {
-      const { Assessment, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'assessmentCreated',
+    async ({ assessment, eventDate, platformId, env } = {}) => {
+      try {
+        const { Assessment, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'assessment__created',
-        objectId: assessment.id,
-        object: Assessment.expose(assessment, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assessmentId: assessment.id },
-        message: 'Fail to create event assessment__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'assessment__created',
+            objectId: assessment.id,
+            object: Assessment.expose(assessment, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assessmentId: assessment.id },
+          message: 'Fail to create event assessment__created',
+        })
+      }
+    },
+  )
 
-  subscriber.on('assessmentDraftUpdated', async ({
-    assessmentId,
-    // assessment,
-    newAssessment,
-    updateAttrs,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Assessment, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'assessmentDraftUpdated',
+    async ({
+      assessmentId,
+      // assessment,
+      newAssessment,
+      updateAttrs,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { Assessment, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'assessment__draft_updated',
-        objectId: assessmentId,
-        object: Assessment.expose(newAssessment, { namespaces: ['*'] }),
-        changesRequested: Assessment.expose(updateAttrs, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assessmentId },
-        message: 'Fail to create event assessment__draft_updated'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'assessment__draft_updated',
+            objectId: assessmentId,
+            object: Assessment.expose(newAssessment, { namespaces: ['*'] }),
+            changesRequested: Assessment.expose(updateAttrs, {
+              namespaces: ['*'],
+            }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assessmentId },
+          message: 'Fail to create event assessment__draft_updated',
+        })
+      }
+    },
+  )
 
-  subscriber.on('assessmentSigned', async ({ assessmentId, assessment, updateAttrs, eventDate, platformId, env } = {}) => {
-    let eventType
+  subscriber.on(
+    'assessmentSigned',
+    async ({
+      assessmentId,
+      assessment,
+      updateAttrs,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      let eventType
 
-    try {
-      const { Assessment, Event } = await getModels({ platformId, env })
+      try {
+        const { Assessment, Event } = await getModels({ platformId, env })
 
-      eventType = assessment.signedDate ? 'assessment__signed' : 'assessment__signed_once'
+        eventType = assessment.signedDate
+          ? 'assessment__signed'
+          : 'assessment__signed_once'
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: eventType,
-        objectId: assessmentId,
-        object: Assessment.expose(assessment, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assessmentId },
-        message: `Fail to create event ${eventType || 'assessment__signed'}`
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: eventType,
+            objectId: assessmentId,
+            object: Assessment.expose(assessment, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assessmentId },
+          message: `Fail to create event ${eventType || 'assessment__signed'}`,
+        })
+      }
+    },
+  )
 
-  subscriber.on('assessmentDeleted', async ({
-    assessmentId,
-    assessment,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Event, Assessment } = await getModels({ platformId, env })
+  subscriber.on(
+    'assessmentDeleted',
+    async ({ assessmentId, assessment, eventDate, platformId, env } = {}) => {
+      try {
+        const { Event, Assessment } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'assessment__deleted',
-        objectId: assessmentId,
-        object: Assessment.expose(assessment, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { assessmentId },
-        message: 'Fail to create event assessment__deleted'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'assessment__deleted',
+            objectId: assessmentId,
+            object: Assessment.expose(assessment, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { assessmentId },
+          message: 'Fail to create event assessment__deleted',
+        })
+      }
+    },
+  )
 }
 
-function getExposedSignCodes ({ assessment, isSelf, currentUserId, req }) {
+function getExposedSignCodes({ assessment, isSelf, currentUserId, req }) {
   let exposedSignCodes = {} // show no codes by default
 
   // has config on this object
-  if (req._matchedPermissions['assessment:config:all'] ||
+  if (
+    req._matchedPermissions['assessment:config:all'] ||
     (req._matchedPermissions['assessment:config'] && isSelf)
   ) {
     // show all codes
     exposedSignCodes = assessment.signCodes
-  // is only signers to this object
+    // is only signers to this object
   } else if (isSelf) {
     // show only own code
     exposedSignCodes = {
-      [currentUserId]: assessment.signCodes[currentUserId]
+      [currentUserId]: assessment.signCodes[currentUserId],
     }
   }
 
   return exposedSignCodes
 }
 
-function isUpdatingAssessmentConfig ({ assessment, currentUserId, payload }) {
+function isUpdatingAssessmentConfig({ assessment, currentUserId, payload }) {
   const {
     status,
     statement,
@@ -720,7 +764,7 @@ function isUpdatingAssessmentConfig ({ assessment, currentUserId, payload }) {
     signers,
     signCodes,
     nbSigners,
-    expirationDate
+    expirationDate,
   } = payload
 
   const updateSigners = !!signers
@@ -729,7 +773,8 @@ function isUpdatingAssessmentConfig ({ assessment, currentUserId, payload }) {
   if (currentUserId && updateSigners) {
     const signersIds = Object.keys(signers)
 
-    if (signersIds.length === 1 &&
+    if (
+      signersIds.length === 1 &&
       signersIds.includes(currentUserId) &&
       typeof signers[currentUserId] === 'object' &&
       signers[currentUserId] // prevents null value
@@ -738,17 +783,19 @@ function isUpdatingAssessmentConfig ({ assessment, currentUserId, payload }) {
     }
   }
 
-  return !!(status ||
+  return !!(
+    status ||
     statement ||
     emitterId ||
     receiverId ||
     signCodes ||
     typeof nbSigners !== 'undefined' ||
     typeof expirationDate !== 'undefined' ||
-    (updateSigners && !updateSelfSigner))
+    (updateSigners && !updateSelfSigner)
+  )
 }
 
-function isAllowedToUpdateConfig ({ isSelf, req }) {
+function isAllowedToUpdateConfig({ isSelf, req }) {
   if (req._matchedPermissions['assessment:config:all']) {
     return true
   }
@@ -769,7 +816,7 @@ function isAllowedToUpdateConfig ({ isSelf, req }) {
  * @return {String} result.status - can have the following values: "draft", "accept", "reject", null
  * @return {String} result.statement - can have the following values: "pass", "challenge", null
  */
-function getAssessmentNewSignInformation (assessment, currentUserId) {
+function getAssessmentNewSignInformation(assessment, currentUserId) {
   let nbSignatures = 0
 
   let currentSignerInfo
@@ -794,19 +841,10 @@ function getAssessmentNewSignInformation (assessment, currentUserId) {
   }
 
   // order by importance (from negative to positive to neutral)
-  const statusLevels = [
-    'reject',
-    'accept',
-    'draft',
-    null
-  ]
+  const statusLevels = ['reject', 'accept', 'draft', null]
 
   // order by importance (from negative to positive to neutral)
-  const statementLevels = [
-    'challenge',
-    'pass',
-    null
-  ]
+  const statementLevels = ['challenge', 'pass', null]
 
   let status
   let statement
@@ -814,7 +852,9 @@ function getAssessmentNewSignInformation (assessment, currentUserId) {
   const currentStatusLevel = statusLevels.indexOf(assessment.status)
   const currentStatementLevel = statementLevels.indexOf(assessment.statement)
 
-  const signerStatementLevel = statementLevels.indexOf(currentSignerInfo.statement || 'pass')
+  const signerStatementLevel = statementLevels.indexOf(
+    currentSignerInfo.statement || 'pass',
+  )
   let signerStatusLevel
 
   // if the current signer statement has higher importance than the current statement
@@ -825,7 +865,8 @@ function getAssessmentNewSignInformation (assessment, currentUserId) {
 
   // if the current signer status has higher importance than the current status
   // replace the current status by it
-  if (signal === 'all' &&
+  if (
+    signal === 'all' &&
     assessment.statement !== 'challenge' &&
     currentSignerInfo.statement !== 'challenge'
   ) {
@@ -841,11 +882,11 @@ function getAssessmentNewSignInformation (assessment, currentUserId) {
   return {
     signal,
     statement,
-    status
+    status,
   }
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -861,5 +902,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

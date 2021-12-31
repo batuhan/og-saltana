@@ -5,8 +5,8 @@ const bluebird = require('bluebird')
 
 const { getObjectId } = require('@saltana/util-keys')
 
+const { getModels } = require('@saltana/db')
 const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
 
 const { isValidCurrency } = require('../util/currency')
 const { performListQuery } = require('../util/listQueryBuilder')
@@ -75,8 +75,8 @@ function start({ communication }) {
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Asset } = await getModels({ platformId, env })
 
     const {
@@ -220,11 +220,11 @@ function start({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Asset } = await getModels({ platformId, env })
 
-    const assetId = req.assetId
+    const { assetId } = req
 
     const asset = await Asset.query().findById(assetId)
     if (!asset) {
@@ -254,8 +254,8 @@ function start({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { CustomAttribute, Asset, Category, AssetType } = await getModels({
       platformId,
       env,
@@ -280,12 +280,10 @@ function start({ communication }) {
 
     const payload = _.pick(req, fields)
 
-    const createAttrs = Object.assign(
-      {
-        id: await getObjectId({ prefix: Asset.idPrefix, platformId, env }),
-      },
-      payload,
-    )
+    const createAttrs = {
+      id: await getObjectId({ prefix: Asset.idPrefix, platformId, env }),
+      ...payload,
+    }
 
     const currentUserId = getCurrentUserId(req)
 
@@ -449,14 +447,14 @@ function start({ communication }) {
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { CustomAttribute, Asset, Category, AssetType } = await getModels({
       platformId,
       env,
     })
 
-    const assetId = req.assetId
+    const { assetId } = req
 
     const fields = [
       'name',
@@ -549,7 +547,7 @@ function start({ communication }) {
       'metadata',
       'platformData',
     ])
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     if (assetType && typeof quantity !== 'undefined') {
       // No equivalent to Javascript Infinity in PostgreSQL
@@ -610,7 +608,7 @@ function start({ communication }) {
         env,
         readNamespaces: req._readNamespaces,
         editNamespaces: req._editNamespaces,
-        object: Object.assign({}, asset, { metadata, platformData }),
+        object: { ...asset, metadata, platformData },
         deltaObject: { metadata, platformData },
         currentUserId,
       })
@@ -659,8 +657,8 @@ function start({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction, Asset, Availability } = await getModels({
       platformId,
       env,

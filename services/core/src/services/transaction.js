@@ -3,14 +3,11 @@ const _ = require('lodash')
 const { raw, transaction: knexTransaction } = require('@saltana/objection')
 const bluebird = require('bluebird')
 
+const { getModels } = require('@saltana/db')
+const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
 
-const {
-  computeDate,
-  diffDates,
-  getDurationAs
-} = require('../util/time')
+const { computeDate, diffDates, getDurationAs } = require('../util/time')
 const {
   getDefaultTransactionProcess,
   getTransactionProcess,
@@ -18,21 +15,14 @@ const {
   getBlockingAvailabilityChange,
   isValidDates,
   canComputePricing,
-  getTransactionPricing
+  getTransactionPricing,
 } = require('../util/transaction')
-
-const { getObjectId } = require('@saltana/util-keys')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
-const {
-  getCurrentUserId
-} = require('../util/user')
+const { getCurrentUserId } = require('../util/user')
 
-const {
-  getTransition,
-  computeTransitionsMeta
-} = require('../util/transition')
+const { getTransition, computeTransitionsMeta } = require('../util/transition')
 
 let responder
 let subscriber
@@ -42,18 +32,18 @@ let configRequester
 let assetRequester
 let requester
 
-function start ({ communication }) {
+function start({ communication }) {
   const {
     getResponder,
     getSubscriber,
     getRequester,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'Transaction Responder',
-    key: 'transaction'
+    key: 'transaction',
   })
 
   subscriber = getSubscriber({
@@ -63,39 +53,39 @@ function start ({ communication }) {
     subscribesTo: [
       'transactionCreated',
       'transactionUpdated',
-      'transactionStatusChanged'
-    ]
+      'transactionStatusChanged',
+    ],
   })
 
   publisher = getPublisher({
     name: 'Transaction publisher',
     key: 'transaction',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   availabilityRequester = getRequester({
     name: 'Transaction service > Availability Requester',
-    key: 'availability'
+    key: 'availability',
   })
 
   configRequester = getRequester({
     name: 'Transaction service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   assetRequester = getRequester({
     name: 'Transaction service > Asset Requester',
-    key: 'asset'
+    key: 'asset',
   })
 
   requester = getRequester({
     name: 'Transaction service > Transaction Requester',
-    key: 'transaction'
+    key: 'transaction',
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction } = await getModels({ platformId, env })
 
     const {
@@ -121,7 +111,7 @@ function start ({ communication }) {
       value,
       ownerAmount,
       takerAmount,
-      platformAmount
+      platformAmount,
     } = req
 
     const queryBuilder = Transaction.query()
@@ -133,61 +123,61 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         assetIds: {
           dbField: 'assetId',
           value: assetId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         assetTypesIds: {
           dbField: 'assetTypeId',
           value: assetTypeId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         ownersIds: {
           dbField: 'ownerId',
           value: ownerId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         takersIds: {
           dbField: 'takerId',
           value: takerId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         value: {
           dbField: 'value',
-          value: value,
-          query: 'range'
+          value,
+          query: 'range',
         },
         ownerAmount: {
           dbField: 'ownerAmount',
           value: ownerAmount,
-          query: 'range'
+          query: 'range',
         },
         takerAmount: {
           dbField: 'takerAmount',
           value: takerAmount,
-          query: 'range'
+          query: 'range',
         },
         platformAmount: {
           dbField: 'platformAmount',
           value: platformAmount,
-          query: 'range'
+          query: 'range',
         },
       },
       beforeQueryFn: async ({ values }) => {
@@ -200,12 +190,15 @@ function start ({ communication }) {
         const currentUserId = getCurrentUserId(req)
 
         if (!req._matchedPermissions['transaction:list:all']) {
-          const isAllowed = currentUserId &&
-            (
-              // (signersIds && signersIds.length === 1 && signersIds.includes(currentUserId)) ||
-              (ownersIds && ownersIds.length === 1 && ownersIds.includes(currentUserId)) ||
-              (takersIds && takersIds.length === 1 && takersIds.includes(currentUserId))
-            )
+          const isAllowed =
+            currentUserId &&
+            // (signersIds && signersIds.length === 1 && signersIds.includes(currentUserId)) ||
+            ((ownersIds &&
+              ownersIds.length === 1 &&
+              ownersIds.includes(currentUserId)) ||
+              (takersIds &&
+                takersIds.length === 1 &&
+                takersIds.includes(currentUserId)))
 
           if (!isAllowed) {
             throw createError(403)
@@ -225,22 +218,24 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
 
-    paginationMeta.results = Transaction.exposeAll(paginationMeta.results, { req })
+    paginationMeta.results = Transaction.exposeAll(paginationMeta.results, {
+      req,
+    })
 
     return paginationMeta
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction } = await getModels({ platformId, env })
 
-    const transactionId = req.transactionId
+    const { transactionId } = req
 
     const transaction = await Transaction.query().findById(transactionId)
     if (!transaction) {
@@ -268,32 +263,31 @@ function start ({ communication }) {
       'ownerAmount',
       'takerAmount',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _(req).pick(fields).defaults({ quantity: 1 }).value()
 
-    const {
-      metadata,
-      platformData
-    } = payload
+    const { metadata, platformData } = payload
 
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction } = await getModels({ platformId, env })
 
-    const transactionAttrs = await computeTransactionInformation(
-      Object.assign(
-        { platformId, env, req },
-        _.omit(payload, ['metadata', 'platformData'])
-      )
-    )
+    const transactionAttrs = await computeTransactionInformation({
+      platformId,
+      env,
+      req,
+      ..._.omit(payload, ['metadata', 'platformData']),
+    })
 
     transactionAttrs.metadata = metadata
     transactionAttrs.platformData = platformData
 
     if (transactionAttrs.assetType) {
-      const transactionProcess = getTransactionProcess({ assetType: transactionAttrs.assetType })
+      const transactionProcess = getTransactionProcess({
+        assetType: transactionAttrs.assetType,
+      })
       transactionAttrs.status = transactionProcess.initStatus
     }
 
@@ -312,27 +306,23 @@ function start ({ communication }) {
       'ownerAmount',
       'takerAmount',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _(req).pick(fields).defaults({ quantity: 1 }).value()
 
-    const {
-      value,
-      ownerAmount,
-      takerAmount,
-      metadata,
-      platformData
-    } = payload
+    const { value, ownerAmount, takerAmount, metadata, platformData } = payload
 
-    let {
-      takerId
-    } = payload
+    let { takerId } = payload
 
     const currentUserId = getCurrentUserId(req)
 
     // if the "all" permission is missing, the user cannot create as another user
-    if (!req._matchedPermissions['transaction:create:all'] && takerId && takerId !== currentUserId) {
+    if (
+      !req._matchedPermissions['transaction:create:all'] &&
+      takerId &&
+      takerId !== currentUserId
+    ) {
       throw createError(403)
     }
 
@@ -345,8 +335,8 @@ function start ({ communication }) {
       throw createError(422, 'Missing taker ID')
     }
 
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction } = await getModels({ platformId, env })
 
     const isSelf = takerId === currentUserId
@@ -354,28 +344,39 @@ function start ({ communication }) {
       throw createError(403)
     }
 
-    const modifyingPrice = [value, ownerAmount, takerAmount].some(amount => !_.isUndefined(amount))
+    const modifyingPrice = [value, ownerAmount, takerAmount].some(
+      (amount) => !_.isUndefined(amount),
+    )
     if (modifyingPrice && !req._matchedPermissions['transaction:config:all']) {
       throw createError(403)
     }
 
-    const transactionAttrs = await computeTransactionInformation(
-      Object.assign(
-        { takerId, platformId, env, req },
-        _.omit(payload, ['metadata', 'platformData'])
-      )
-    )
+    const transactionAttrs = await computeTransactionInformation({
+      takerId,
+      platformId,
+      env,
+      req,
+      ..._.omit(payload, ['metadata', 'platformData']),
+    })
 
-    transactionAttrs.id = await getObjectId({ prefix: Transaction.idPrefix, platformId, env })
+    transactionAttrs.id = await getObjectId({
+      prefix: Transaction.idPrefix,
+      platformId,
+      env,
+    })
     transactionAttrs.metadata = metadata
     transactionAttrs.platformData = platformData
 
     const now = new Date().toISOString()
 
     if (transactionAttrs.assetType) {
-      const transactionProcess = getTransactionProcess({ assetType: transactionAttrs.assetType })
+      const transactionProcess = getTransactionProcess({
+        assetType: transactionAttrs.assetType,
+      })
       transactionAttrs.status = transactionProcess.initStatus
-      transactionAttrs.statusHistory = [{ status: transactionAttrs.status, date: now }]
+      transactionAttrs.statusHistory = [
+        { status: transactionAttrs.status, date: now },
+      ]
     }
 
     const transaction = await Transaction.query().insert(transactionAttrs)
@@ -389,14 +390,14 @@ function start ({ communication }) {
       transaction,
       eventDate: transaction.createdDate,
       platformId,
-      env
+      env,
     })
 
     return Transaction.expose(transaction, { req })
   })
 
   responder.on('update', async (req) => {
-    const transactionId = req.transactionId
+    const { transactionId } = req
 
     const fields = [
       'assetId',
@@ -409,28 +410,22 @@ function start ({ communication }) {
       'takerAmount',
       'status',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      value,
-      ownerAmount,
-      takerAmount,
-      status,
-      metadata,
-      platformData
-    } = payload
+    const { value, ownerAmount, takerAmount, status, metadata, platformData } =
+      payload
 
     const currentUserId = getCurrentUserId(req)
 
     if (!req._matchedPermissions['transaction:config:all'] && status) {
-      throw createError(403, 'You haven\'t the permission to update the status')
+      throw createError(403, "You haven't the permission to update the status")
     }
 
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction } = await getModels({ platformId, env })
 
     // cannot use `select for update` here
@@ -455,44 +450,53 @@ function start ({ communication }) {
       'quantity',
       'value',
       'ownerAmount',
-      'takerAmount'
+      'takerAmount',
     ]
 
-    const mergedTransactionData = transactionCoreFields.reduce((memo, field) => {
-      memo[field] = payload[field] || transaction[field]
-      return memo
-    }, {})
+    const mergedTransactionData = transactionCoreFields.reduce(
+      (memo, field) => {
+        memo[field] = payload[field] || transaction[field]
+        return memo
+      },
+      {},
+    )
 
-    const modifyingPrice = [value, ownerAmount, takerAmount].some(amount => !_.isUndefined(amount))
+    const modifyingPrice = [value, ownerAmount, takerAmount].some(
+      (amount) => !_.isUndefined(amount),
+    )
     if (modifyingPrice && !req._matchedPermissions['transaction:config:all']) {
       throw createError(403)
     }
 
-    const rebuildTransactionInformation = transactionCoreFields.some(field => {
-      return mergedTransactionData[field] !== transaction[field]
-    })
+    const rebuildTransactionInformation = transactionCoreFields.some(
+      (field) => {
+        return mergedTransactionData[field] !== transaction[field]
+      },
+    )
 
     // if no "all" permission, forbids the update if:
     // - there is an assigned asset to the transaction
     // - there is updates on core fields that trigger another transaction computation
     if (!req._matchedPermissions['transaction:config:all']) {
       if (transaction.assetId && rebuildTransactionInformation) {
-        const message = 'If an asset is already associated to the transaction, "asset", "duration" and "quantity"' +
+        const message =
+          'If an asset is already associated to the transaction, "asset", "duration" and "quantity"' +
           ' cannot be updated without appropriate permissions ("transaction:config:all")'
         throw createError(403, message)
       }
     }
 
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     let updateAttrs = {}
     if (rebuildTransactionInformation) {
-      updateAttrs = await computeTransactionInformation(
-        Object.assign(
-          { transaction, platformId, env, req },
-          _.omit(payload, ['metadata', 'platformData', 'status'])
-        )
-      )
+      updateAttrs = await computeTransactionInformation({
+        transaction,
+        platformId,
+        env,
+        req,
+        ..._.omit(payload, ['metadata', 'platformData', 'status']),
+      })
     }
 
     const now = new Date().toISOString()
@@ -501,8 +505,9 @@ function start ({ communication }) {
       updateAttrs.status = status
 
       const newStatusHistoryStep = { status, date: now }
-      updateAttrs.statusHistory = raw('?::jsonb || "statusHistory"', [ // prepend a jsonb array using PostgreSQL `||` operator
-        JSON.stringify([newStatusHistoryStep])
+      updateAttrs.statusHistory = raw('?::jsonb || "statusHistory"', [
+        // prepend a jsonb array using PostgreSQL `||` operator
+        JSON.stringify([newStatusHistoryStep]),
       ])
     }
 
@@ -510,15 +515,26 @@ function start ({ communication }) {
       updateAttrs.metadata = Transaction.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Transaction.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Transaction.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
-    const newTransaction = await Transaction.query().patchAndFetchById(transactionId, updateAttrs)
+    const newTransaction = await Transaction.query().patchAndFetchById(
+      transactionId,
+      updateAttrs,
+    )
 
     // Synchronize internal availability when core transaction properties
     // (assetId, dates, quantity) or status are updated
     if (rebuildTransactionInformation || status) {
-      await syncInternalAvailability({ platformId, env, transaction: newTransaction, oldAssetId: transaction.assetId })
+      await syncInternalAvailability({
+        platformId,
+        env,
+        transaction: newTransaction,
+        oldAssetId: transaction.assetId,
+      })
     }
     // only synchronize if status has been provided
     if (status) {
@@ -531,22 +547,18 @@ function start ({ communication }) {
       eventDate: newTransaction.updatedDate,
       updateAttrs: updateAttrsBeforeFullDataMerge,
       platformId,
-      env
+      env,
     })
 
     return Transaction.expose(newTransaction, { req })
   })
 
   responder.on('createTransition', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Transaction } = await getModels({ platformId, env })
 
-    const {
-      transactionId,
-      name,
-      data = {}
-    } = req
+    const { transactionId, name, data = {} } = req
 
     const currentUserId = getCurrentUserId(req)
 
@@ -558,7 +570,8 @@ function start ({ communication }) {
     const knex = Transaction.knex()
 
     await knexTransaction(knex, async (trx) => {
-      transaction = await Transaction.query(trx).forUpdate()
+      transaction = await Transaction.query(trx)
+        .forUpdate()
         .findById(transactionId)
       if (!transaction) {
         throw createError(404)
@@ -568,7 +581,7 @@ function start ({ communication }) {
       }
 
       assetType = transaction.assetType
-      let transactionProcess = assetType.transactionProcess
+      let { transactionProcess } = assetType
       if (!transactionProcess) {
         transactionProcess = getDefaultTransactionProcess()
       }
@@ -585,7 +598,7 @@ function start ({ communication }) {
       const transition = getTransition({
         name,
         transitions: transactionProcess.transitions,
-        from: transaction.status
+        from: transaction.status,
       })
       if (!transition) {
         throw createError(422, 'Invalid transition')
@@ -593,13 +606,17 @@ function start ({ communication }) {
 
       // check if the transition can be performed by the current user
       if (transition.actors) {
-        const allowed = (isOwner && transition.actors.includes('owner')) ||
+        const allowed =
+          (isOwner && transition.actors.includes('owner')) ||
           // (isSigner && transition.actors.includes('signer')) ||
           (isTaker && transition.actors.includes('taker')) ||
           req._matchedPermissions['transaction:transition:all']
 
         if (!allowed) {
-          throw createError(403, 'You are not allowed to perform this transition')
+          throw createError(
+            403,
+            'You are not allowed to perform this transition',
+          )
         }
       }
 
@@ -610,9 +627,10 @@ function start ({ communication }) {
 
       updateAttrs = {
         status: newStatus,
-        statusHistory: raw('?::jsonb || "statusHistory"', [ // prepend a jsonb array using PostgreSQL `||` operator
-          JSON.stringify([newStatusHistoryStep])
-        ])
+        statusHistory: raw('?::jsonb || "statusHistory"', [
+          // prepend a jsonb array using PostgreSQL `||` operator
+          JSON.stringify([newStatusHistoryStep]),
+        ]),
       }
 
       // custom transition update transaction logic
@@ -623,16 +641,26 @@ function start ({ communication }) {
 
       // detect if the new status is a process end state
       // if so, update the transaction `completedDate`
-      const transitionsMeta = computeTransitionsMeta({ transitions: transactionProcess.transitions, initState: transactionProcess.initStatus })
+      const transitionsMeta = computeTransitionsMeta({
+        transitions: transactionProcess.transitions,
+        initState: transactionProcess.initStatus,
+      })
       if (transitionsMeta.endStates.includes(newStatus)) {
         updateAttrs.completedDate = now
       }
 
-      updatedTransaction = await Transaction.query(trx).patchAndFetchById(transactionId, updateAttrs)
+      updatedTransaction = await Transaction.query(trx).patchAndFetchById(
+        transactionId,
+        updateAttrs,
+      )
     })
 
     if (transaction.assetId) {
-      await syncAssetQuantity({ platformId, env, transaction: updatedTransaction })
+      await syncAssetQuantity({
+        platformId,
+        env,
+        transaction: updatedTransaction,
+      })
     }
 
     try {
@@ -640,14 +668,14 @@ function start ({ communication }) {
         type: '_syncInternalAvailabilityTransaction',
         transactionIds: [transaction.id],
         platformId,
-        env
+        env,
       })
     } catch (err) {
       logError(err, {
         platformId,
         env,
         custom: { transactionId: transaction.id },
-        message: 'Fail to sync internal availability transaction'
+        message: 'Fail to sync internal availability transaction',
       })
     }
 
@@ -657,7 +685,7 @@ function start ({ communication }) {
       updateAttrs,
       eventDate: updatedTransaction.updatedDate,
       platformId,
-      env
+      env,
     })
 
     return Transaction.expose(updatedTransaction, { req })
@@ -665,107 +693,140 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('transactionCreated', async ({ transaction, eventDate, platformId, env } = {}) => {
-    try {
-      const { Transaction, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'transactionCreated',
+    async ({ transaction, eventDate, platformId, env } = {}) => {
+      try {
+        const { Transaction, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'transaction__created',
-        objectId: transaction.id,
-        object: Transaction.expose(transaction, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { transactionId: transaction.id },
-        message: 'Fail to create event transaction__created'
-      })
-    }
-  })
-
-  subscriber.on('transactionUpdated', async ({
-    transaction,
-    newTransaction,
-    updateAttrs,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Transaction, Event } = await getModels({ platformId, env })
-
-      const config = Event.getUpdatedEventDeltasConfig('transaction')
-      const deltas = Event.getUpdatedEventDeltas(config, updateAttrs, transaction)
-
-      const knex = Event.knex()
-      const parentEventId = await getObjectId({ prefix: Event.idPrefix, platformId, env })
-
-      await knexTransaction(knex, async (trx) => {
-        await bluebird.each(Object.keys(deltas), type => {
-          return Event.createEvent({
+        await Event.createEvent(
+          {
             createdDate: eventDate,
-            type,
-            objectId: newTransaction.id,
-            object: newTransaction,
-            parentId: parentEventId
-          }, { platformId, env, queryContext: trx })
+            type: 'transaction__created',
+            objectId: transaction.id,
+            object: Transaction.expose(transaction, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { transactionId: transaction.id },
+          message: 'Fail to create event transaction__created',
+        })
+      }
+    },
+  )
+
+  subscriber.on(
+    'transactionUpdated',
+    async ({
+      transaction,
+      newTransaction,
+      updateAttrs,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { Transaction, Event } = await getModels({ platformId, env })
+
+        const config = Event.getUpdatedEventDeltasConfig('transaction')
+        const deltas = Event.getUpdatedEventDeltas(
+          config,
+          updateAttrs,
+          transaction,
+        )
+
+        const knex = Event.knex()
+        const parentEventId = await getObjectId({
+          prefix: Event.idPrefix,
+          platformId,
+          env,
         })
 
-        await Event.createEvent({
-          id: parentEventId,
-          createdDate: eventDate,
-          type: 'transaction__updated',
-          objectId: newTransaction.id,
-          object: Transaction.expose(newTransaction, { namespaces: ['*'] }),
-          changesRequested: Transaction.expose(updateAttrs, { namespaces: ['*'] })
-        }, { platformId, env, queryContext: trx })
-      })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { transactionId: newTransaction.id },
-        message: 'Fail to create event transaction__updated and associated events'
-      })
-    }
-  })
+        await knexTransaction(knex, async (trx) => {
+          await bluebird.each(Object.keys(deltas), (type) => {
+            return Event.createEvent(
+              {
+                createdDate: eventDate,
+                type,
+                objectId: newTransaction.id,
+                object: newTransaction,
+                parentId: parentEventId,
+              },
+              { platformId, env, queryContext: trx },
+            )
+          })
 
-  subscriber.on('transactionStatusChanged', async ({ transactionId, transaction, updateAttrs, eventDate, platformId, env } = {}) => {
-    try {
-      const { Transaction, Event } = await getModels({ platformId, env })
+          await Event.createEvent(
+            {
+              id: parentEventId,
+              createdDate: eventDate,
+              type: 'transaction__updated',
+              objectId: newTransaction.id,
+              object: Transaction.expose(newTransaction, { namespaces: ['*'] }),
+              changesRequested: Transaction.expose(updateAttrs, {
+                namespaces: ['*'],
+              }),
+            },
+            { platformId, env, queryContext: trx },
+          )
+        })
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { transactionId: newTransaction.id },
+          message:
+            'Fail to create event transaction__updated and associated events',
+        })
+      }
+    },
+  )
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'transaction__status_changed',
-        objectId: transactionId,
-        object: Transaction.expose(transaction, { namespaces: ['*'] })
-      }, { platformId, env })
+  subscriber.on(
+    'transactionStatusChanged',
+    async ({
+      transactionId,
+      transaction,
+      updateAttrs,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { Transaction, Event } = await getModels({ platformId, env })
 
-      await onTransactionBlockAvailability({ transaction, platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { transactionId },
-        message: 'Fail to create event transaction__status_changed'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'transaction__status_changed',
+            objectId: transactionId,
+            object: Transaction.expose(transaction, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+
+        await onTransactionBlockAvailability({ transaction, platformId, env })
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { transactionId },
+          message: 'Fail to create event transaction__status_changed',
+        })
+      }
+    },
+  )
 
   // INTERNAL
 
   // filter on transactions
   // can filter for a period
   responder.on('_filter', async (req) => {
-    const {
-      assetsIds,
-      filterStartDate,
-      filterEndDate,
-      platformId,
-      env
-    } = req
+    const { assetsIds, filterStartDate, filterEndDate, platformId, env } = req
 
     if (!assetsIds) {
       throw createError(400, 'Missing assets ids')
@@ -778,18 +839,17 @@ function start ({ communication }) {
       .whereNull('cancelledDate')
 
     if (filterStartDate) {
-      const period = '\'[' +
-        filterStartDate + ',' +
-        (filterEndDate || '') +
-        ')\''
+      const period = `'[${filterStartDate},${filterEndDate || ''})'`
 
       queryBuilder
-        .where(builder => {
-          return builder
-            .whereNotNull('startDate')
-            .whereNotNull('endDate')
+        .where((builder) => {
+          return builder.whereNotNull('startDate').whereNotNull('endDate')
         })
-        .where(raw(`${period} && tstzrange("startDate"::timestamptz, "endDate"::timestamptz)`))
+        .where(
+          raw(
+            `${period} && tstzrange("startDate"::timestamptz, "endDate"::timestamptz)`,
+          ),
+        )
     }
 
     const transactions = await queryBuilder
@@ -803,11 +863,7 @@ function start ({ communication }) {
   })
 
   responder.on('_getTransaction', async (req) => {
-    const {
-      transactionId,
-      platformId,
-      env
-    } = req
+    const { transactionId, platformId, env } = req
 
     const { Transaction } = await getModels({ platformId, env })
 
@@ -816,12 +872,7 @@ function start ({ communication }) {
   })
 
   responder.on('_updateTransaction', async (req) => {
-    const {
-      transactionId,
-      updateAttrs,
-      platformId,
-      env
-    } = req
+    const { transactionId, updateAttrs, platformId, env } = req
 
     const { Transaction, Event } = await getModels({ platformId, env })
 
@@ -830,9 +881,13 @@ function start ({ communication }) {
       throw createError('Transaction not found', { transactionId })
     }
 
-    const isUpdatingStatus = updateAttrs.status && transaction.status !== updateAttrs.status
+    const isUpdatingStatus =
+      updateAttrs.status && transaction.status !== updateAttrs.status
 
-    const updatedTransaction = await Transaction.query().patchAndFetchById(transactionId, updateAttrs)
+    const updatedTransaction = await Transaction.query().patchAndFetchById(
+      transactionId,
+      updateAttrs,
+    )
 
     if (isUpdatingStatus) {
       try {
@@ -840,44 +895,48 @@ function start ({ communication }) {
           type: '_syncInternalAvailabilityTransaction',
           transactionIds: [transactionId],
           platformId,
-          env
+          env,
         })
       } catch (err) {
         logError(err, {
           platformId,
           env,
           custom: { transactionId },
-          message: 'Fail to sync internal availability transaction'
+          message: 'Fail to sync internal availability transaction',
         })
       }
 
       try {
-        await Event.createEvent({
-          createdDate: updatedTransaction.updatedDate,
-          type: 'transaction__status_changed',
-          objectId: transactionId,
-          object: Transaction.expose(transaction, { namespaces: ['*'] })
-        }, { platformId, env })
+        await Event.createEvent(
+          {
+            createdDate: updatedTransaction.updatedDate,
+            type: 'transaction__status_changed',
+            objectId: transactionId,
+            object: Transaction.expose(transaction, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
       } catch (err) {
         logError(err, {
           platformId,
           env,
           custom: { transactionId },
-          message: 'Fail to update create event transaction__status_changed when internal transaction update is called'
+          message:
+            'Fail to update create event transaction__status_changed when internal transaction update is called',
         })
       }
     }
   })
 
   responder.on('cancelTransactions', async (req) => {
-    const {
+    const { transactions, cancellationReason, platformId, env } = req
+
+    await cancelTransactions({
       transactions,
       cancellationReason,
       platformId,
-      env
-    } = req
-
-    await cancelTransactions({ transactions, cancellationReason, platformId, env })
+      env,
+    })
   })
 }
 
@@ -897,7 +956,7 @@ function start ({ communication }) {
  * @param {String} params.platformId
  * @param {String} params.env
  */
-async function computeTransactionInformation ({
+async function computeTransactionInformation({
   assetId,
   startDate,
   endDate,
@@ -910,7 +969,7 @@ async function computeTransactionInformation ({
   transaction,
   platformId,
   env,
-  req
+  req,
 }) {
   const now = new Date().toISOString()
 
@@ -921,7 +980,7 @@ async function computeTransactionInformation ({
     startDate: null,
     endDate: null,
     duration: null,
-    quantity: null
+    quantity: null,
   }
 
   if (_.isUndefined(endDate) && _.isUndefined(duration)) {
@@ -935,18 +994,25 @@ async function computeTransactionInformation ({
     computedData.duration = duration
   }
 
-  computedData.startDate = _.isUndefined(startDate) ? transaction && transaction.startDate : startDate
-  computedData.quantity = _.isUndefined(quantity) ? transaction && transaction.quantity : quantity
+  computedData.startDate = _.isUndefined(startDate)
+    ? transaction && transaction.startDate
+    : startDate
+  computedData.quantity = _.isUndefined(quantity)
+    ? transaction && transaction.quantity
+    : quantity
 
   let transactionAttrs = {
-    takerId
+    takerId,
   }
 
   // we should fetch and check asset information if any of the following:
   // - there is no existing transaction
   // - there is an existing transaction but it was not assigned any asset previously
   // - the asset ID has changed
-  const shouldChangeAsset = !transaction || _.isEmpty(transaction.assetSnapshot) || transaction.assetId !== assetId
+  const shouldChangeAsset =
+    !transaction ||
+    _.isEmpty(transaction.assetSnapshot) ||
+    transaction.assetId !== assetId
 
   // asset ID can not be set at transaction creation
   // skip any asset logic if so
@@ -958,7 +1024,7 @@ async function computeTransactionInformation ({
 
       asset = checkAssetData.asset
       assetType = checkAssetData.assetType
-      const config = checkAssetData.config
+      const { config } = checkAssetData
 
       const assetInformation = {
         assetId: asset.id,
@@ -970,7 +1036,9 @@ async function computeTransactionInformation ({
         timeUnit: _.get(assetType, 'timing.timeUnit'),
         unitPrice: asset.price,
         status: transaction ? undefined : 'draft',
-        statusHistory: transaction ? undefined : [{ status: 'draft', date: new Date().toISOString() }]
+        statusHistory: transaction
+          ? undefined
+          : [{ status: 'draft', date: new Date().toISOString() }],
       }
 
       if (!assetInformation.currency) {
@@ -984,10 +1052,13 @@ async function computeTransactionInformation ({
     }
   }
 
-  const shouldCheckTiming = [startDate, endDate, duration].some(v => !_.isUndefined(v))
+  const shouldCheckTiming = [startDate, endDate, duration].some(
+    (v) => !_.isUndefined(v),
+  )
 
   if (shouldChangeAsset || shouldCheckTiming) {
-    const hasAllTimingParamsToCompute = computedData.startDate && (computedData.endDate || computedData.duration)
+    const hasAllTimingParamsToCompute =
+      computedData.startDate && (computedData.endDate || computedData.duration)
 
     // compute missing timing params (e.g. compute duration if endDate is provided)
     if (shouldCheckTiming && hasAllTimingParamsToCompute) {
@@ -998,7 +1069,7 @@ async function computeTransactionInformation ({
         startDate: computedData.startDate,
         endDate: computedData.endDate,
         duration: computedData.duration,
-        timeUnit
+        timeUnit,
       })
 
       if (!computedData.endDate) {
@@ -1018,7 +1089,9 @@ async function computeTransactionInformation ({
     transactionAttrs.duration = computedData.duration
   }
 
-  const shouldCheckAvailability = [startDate, endDate, duration, quantity].some(v => !_.isUndefined(v))
+  const shouldCheckAvailability = [startDate, endDate, duration, quantity].some(
+    (v) => !_.isUndefined(v),
+  )
 
   if (shouldChangeAsset || shouldCheckAvailability) {
     if (asset) {
@@ -1028,15 +1101,25 @@ async function computeTransactionInformation ({
     transactionAttrs.quantity = quantity
   }
 
-  const changingPricing = [value, ownerAmount, takerAmount].some(v => !_.isUndefined(v))
+  const changingPricing = [value, ownerAmount, takerAmount].some(
+    (v) => !_.isUndefined(v),
+  )
 
   // remove any undefined values from transactionAttrs
   const mergedTransaction = _.merge({}, transaction, transactionAttrs)
 
-  const shouldChangePricing = shouldChangeAsset || shouldCheckTiming || shouldCheckAvailability || changingPricing
+  const shouldChangePricing =
+    shouldChangeAsset ||
+    shouldCheckTiming ||
+    shouldCheckAvailability ||
+    changingPricing
   if (shouldChangePricing) {
     if (asset && canComputePricing(mergedTransaction)) {
-      const priceResult = getTransactionPricing(mergedTransaction, { value, ownerAmount, takerAmount })
+      const priceResult = getTransactionPricing(mergedTransaction, {
+        value,
+        ownerAmount,
+        takerAmount,
+      })
 
       transactionAttrs.value = priceResult.value
       transactionAttrs.ownerAmount = priceResult.ownerAmount
@@ -1059,7 +1142,7 @@ async function computeTransactionInformation ({
 
   return transactionAttrs
 
-  async function checkAsset () {
+  async function checkAsset() {
     const { Asset, AssetType } = await getModels({ platformId, env })
 
     const assetId = assetIdToFetch
@@ -1069,7 +1152,9 @@ async function computeTransactionInformation ({
       throw createError(422, 'Asset is not found', { public: { assetId } })
     }
     if (asset.ownerId && asset.ownerId === takerId) {
-      throw createError(422, 'Owner cannot book its own asset', { public: { ownerId: asset.ownerId } })
+      throw createError(422, 'Owner cannot book its own asset', {
+        public: { ownerId: asset.ownerId },
+      })
     }
     if (!asset.validated) {
       throw createError(422, 'Asset not validated', { public: { assetId } })
@@ -1080,31 +1165,35 @@ async function computeTransactionInformation ({
 
     const assetType = await AssetType.query().findById(asset.assetTypeId)
     if (!assetType) {
-      throw createError(422, 'Asset type is not found', { public: { assetTypeId: asset.assetTypeId } })
+      throw createError(422, 'Asset type is not found', {
+        public: { assetTypeId: asset.assetTypeId },
+      })
     }
     if (!assetType.active) {
-      throw createError(422, 'Asset type inactive', { public: { assetTypeId: asset.assetTypeId } })
+      throw createError(422, 'Asset type inactive', {
+        public: { assetTypeId: asset.assetTypeId },
+      })
     }
 
     const config = await configRequester.send({
       type: '_getConfig',
       platformId,
       env,
-      access: 'default'
+      access: 'default',
     })
 
     return {
       asset,
       assetType,
-      config
+      config,
     }
   }
 
-  async function checkTiming () {
+  async function checkTiming() {
     const { timeBased } = assetType
 
-    const startDate = computedData.startDate
-    const duration = computedData.duration
+    const { startDate } = computedData
+    const { duration } = computedData
 
     const refDate = now
 
@@ -1116,22 +1205,31 @@ async function computeTransactionInformation ({
 
     if (!duration) return
 
-    const timeUnit = assetType.timing.timeUnit
+    const { timeUnit } = assetType.timing
 
     // DEPRECATED
     let checkDateDeltas = false
 
     // Attempt on deprecated logic that won't trigger after the version 2019-05-20
     if (req._selectedVersion <= '2019-05-20') {
-      checkDateDeltas = !assetType.infiniteStock & asset.quantity === 1 // approximate old 'UNIQUE' dimension
+      checkDateDeltas = !assetType.infiniteStock & (asset.quantity === 1) // approximate old 'UNIQUE' dimension
     }
 
     let previousTransaction
     let lastTransaction
 
     if (checkDateDeltas) {
-      previousTransaction = await getPreviousTransaction({ assetId: asset.id, platformId, env, refDate: startDate })
-      lastTransaction = await getLastTransaction({ assetId: asset.id, platformId, env })
+      previousTransaction = await getPreviousTransaction({
+        assetId: asset.id,
+        platformId,
+        env,
+        refDate: startDate,
+      })
+      lastTransaction = await getLastTransaction({
+        assetId: asset.id,
+        platformId,
+        env,
+      })
     }
     // DEPRECATED:END
 
@@ -1140,27 +1238,28 @@ async function computeTransactionInformation ({
       timeUnit,
       duration,
       refDate,
-      previousTransactionRefDate: previousTransaction && previousTransaction.endDate,
+      previousTransactionRefDate:
+        previousTransaction && previousTransaction.endDate,
       lastTransactionRefDate: lastTransaction && lastTransaction.endDate,
       config: assetType.timing,
-      checkDateDeltas
+      checkDateDeltas,
     })
 
     if (!validDates.result) {
       throw createError(422, 'Invalid dates', {
         public: {
-          errors: validDates.errors
-        }
+          errors: validDates.errors,
+        },
       })
     }
   }
 
-  async function checkAvailability () {
+  async function checkAvailability() {
     const { timeBased, infiniteStock } = assetType
 
-    const startDate = computedData.startDate
-    const endDate = computedData.endDate
-    const quantity = computedData.quantity
+    const { startDate } = computedData
+    const { endDate } = computedData
+    const { quantity } = computedData
 
     if (infiniteStock) return
 
@@ -1172,27 +1271,29 @@ async function computeTransactionInformation ({
         endDate,
         quantity,
         platformId,
-        env
+        env,
       })
 
       const available = allAvailable[asset.id]
       if (!available) {
         throw createError(422, 'Asset not available')
       }
-    } else {
-      if (asset.quantity < quantity) {
-        throw createError(400, 'Asset does not have enough quantity', {
-          public: {
-            quantity: asset.quantity,
-            bookedQuantity: quantity
-          }
-        })
-      }
+    } else if (asset.quantity < quantity) {
+      throw createError(400, 'Asset does not have enough quantity', {
+        public: {
+          quantity: asset.quantity,
+          bookedQuantity: quantity,
+        },
+      })
     }
   }
 }
 
-async function onTransactionBlockAvailability ({ transaction, platformId, env }) {
+async function onTransactionBlockAvailability({
+  transaction,
+  platformId,
+  env,
+}) {
   if (!transaction.assetId) return
 
   const { previous, current } = getBlockingAvailabilityChange(transaction)
@@ -1224,7 +1325,7 @@ async function onTransactionBlockAvailability ({ transaction, platformId, env })
       .whereNull('completedDate')
       .whereNot('id', transaction.id)
       .where('quantity', '>', quantity) // asset quantity has been updated previously
-  // cancel pending transactions whose quantity exceeds the max quantity during the transaction period
+    // cancel pending transactions whose quantity exceeds the max quantity during the transaction period
   } else {
     const pendingTransactions = await Transaction.query()
       .where({ assetId: transaction.assetId })
@@ -1232,94 +1333,121 @@ async function onTransactionBlockAvailability ({ transaction, platformId, env })
       .whereNull('completedDate')
       .whereNot('id', transaction.id)
 
-    await bluebird.map(pendingTransactions, async (transaction) => {
-      if (transaction.assetId) {
-        const allAvailable = await availabilityRequester.send({
-          type: '_isAvailable',
-          assetsIds: [transaction.assetId],
-          quantity: transaction.quantity,
-          startDate: transaction.startDate,
-          endDate: transaction.endDate,
-          platformId,
-          env
-        })
+    await bluebird.map(
+      pendingTransactions,
+      async (transaction) => {
+        if (transaction.assetId) {
+          const allAvailable = await availabilityRequester.send({
+            type: '_isAvailable',
+            assetsIds: [transaction.assetId],
+            quantity: transaction.quantity,
+            startDate: transaction.startDate,
+            endDate: transaction.endDate,
+            platformId,
+            env,
+          })
 
-        if (!allAvailable[transaction.assetId]) {
-          transactionsToCancel.push(transaction)
+          if (!allAvailable[transaction.assetId]) {
+            transactionsToCancel.push(transaction)
+          }
         }
-      }
-    }, { concurrency: 10 })
+      },
+      { concurrency: 10 },
+    )
   }
 
-  await cancelTransactions({ transactions: transactionsToCancel, platformId, env, cancellationReason: 'transactionConflict' })
+  await cancelTransactions({
+    transactions: transactionsToCancel,
+    platformId,
+    env,
+    cancellationReason: 'transactionConflict',
+  })
 }
 
-async function cancelTransactions ({ transactions, platformId, env, cancellationReason }) {
+async function cancelTransactions({
+  transactions,
+  platformId,
+  env,
+  cancellationReason,
+}) {
   const { Transaction, Event } = await getModels({ platformId, env })
 
   const knex = Transaction.knex()
 
   await knexTransaction(knex, async (trx) => {
-    await bluebird.map(transactions, async (transaction) => {
-      let transactionProcess
+    await bluebird.map(
+      transactions,
+      async (transaction) => {
+        let transactionProcess
 
-      if (transaction.assetType) {
-        transactionProcess = transaction.assetType.transactionProcess
-        if (!transactionProcess) {
+        if (transaction.assetType) {
+          transactionProcess = transaction.assetType.transactionProcess
+          if (!transactionProcess) {
+            transactionProcess = getDefaultTransactionProcess()
+          }
+        } else {
           transactionProcess = getDefaultTransactionProcess()
         }
-      } else {
-        transactionProcess = getDefaultTransactionProcess()
-      }
 
-      const status = transactionProcess.cancelStatus
-      const now = new Date().toISOString()
+        const status = transactionProcess.cancelStatus
+        const now = new Date().toISOString()
 
-      const newStatusHistoryStep = { status, date: now }
+        const newStatusHistoryStep = { status, date: now }
 
-      const updateAttrs = {
-        cancellationReason,
-        cancelledDate: now,
-        status,
-        statusHistory: raw('?::jsonb || "statusHistory"', [ // prepend a jsonb array using PostgreSQL `||` operator
-          JSON.stringify([newStatusHistoryStep])
-        ])
-      }
+        const updateAttrs = {
+          cancellationReason,
+          cancelledDate: now,
+          status,
+          statusHistory: raw('?::jsonb || "statusHistory"', [
+            // prepend a jsonb array using PostgreSQL `||` operator
+            JSON.stringify([newStatusHistoryStep]),
+          ]),
+        }
 
-      const transitionsMeta = computeTransitionsMeta({ transitions: transactionProcess.transitions, initState: transactionProcess.initStatus })
-      if (transitionsMeta.endStates.includes(status)) {
-        updateAttrs.completedDate = now
-      }
-
-      const updatedTransaction = await Transaction.query(trx).patchAndFetchById(transaction.id, updateAttrs)
-
-      try {
-        await availabilityRequester.send({
-          type: '_syncInternalAvailabilityTransaction',
-          transactionIds: [transaction.id],
-          platformId,
-          env
+        const transitionsMeta = computeTransitionsMeta({
+          transitions: transactionProcess.transitions,
+          initState: transactionProcess.initStatus,
         })
-      } catch (err) {
-        logError(err, {
-          platformId,
-          env,
-          custom: { transactionId: transaction.id },
-          message: 'Fail to sync internal availability transaction'
-        })
-      }
+        if (transitionsMeta.endStates.includes(status)) {
+          updateAttrs.completedDate = now
+        }
 
-      await Event.createEvent({
-        createdDate: updatedTransaction.updatedDate,
-        type: 'transaction__status_changed',
-        objectId: transaction.id,
-        object: Transaction.expose(transaction, { namespaces: ['*'] })
-      }, { platformId, env, queryContext: trx })
-    }, { concurrency: 10 })
+        const updatedTransaction = await Transaction.query(
+          trx,
+        ).patchAndFetchById(transaction.id, updateAttrs)
+
+        try {
+          await availabilityRequester.send({
+            type: '_syncInternalAvailabilityTransaction',
+            transactionIds: [transaction.id],
+            platformId,
+            env,
+          })
+        } catch (err) {
+          logError(err, {
+            platformId,
+            env,
+            custom: { transactionId: transaction.id },
+            message: 'Fail to sync internal availability transaction',
+          })
+        }
+
+        await Event.createEvent(
+          {
+            createdDate: updatedTransaction.updatedDate,
+            type: 'transaction__status_changed',
+            objectId: transaction.id,
+            object: Transaction.expose(transaction, { namespaces: ['*'] }),
+          },
+          { platformId, env, queryContext: trx },
+        )
+      },
+      { concurrency: 10 },
+    )
   })
 }
 
-async function getPreviousTransaction ({ assetId, refDate, platformId, env }) {
+async function getPreviousTransaction({ assetId, refDate, platformId, env }) {
   const { Transaction } = await getModels({ platformId, env })
 
   const transactions = await Transaction.query()
@@ -1329,10 +1457,10 @@ async function getPreviousTransaction ({ assetId, refDate, platformId, env }) {
     .whereNull('cancelledDate')
     .orderBy('endDate', 'desc')
 
-  return transactions.find(t => isStatusBlockingAvailability(t, t.status))
+  return transactions.find((t) => isStatusBlockingAvailability(t, t.status))
 }
 
-async function getLastTransaction ({ assetId, platformId, env }) {
+async function getLastTransaction({ assetId, platformId, env }) {
   const { Transaction } = await getModels({ platformId, env })
 
   const transactions = await Transaction.query()
@@ -1342,10 +1470,10 @@ async function getLastTransaction ({ assetId, platformId, env }) {
     .orderBy('endDate', 'desc')
     .limit(1)
 
-  return transactions.find(t => isStatusBlockingAvailability(t, t.status))
+  return transactions.find((t) => isStatusBlockingAvailability(t, t.status))
 }
 
-function getTransactionDatesParams ({ startDate, endDate, duration, timeUnit }) {
+function getTransactionDatesParams({ startDate, endDate, duration, timeUnit }) {
   if (endDate && duration) {
     duration = null
   }
@@ -1366,11 +1494,16 @@ function getTransactionDatesParams ({ startDate, endDate, duration, timeUnit }) 
     startDate,
     endDate: newEndDate,
     duration: newDuration,
-    nbTimeUnits
+    nbTimeUnits,
   }
 }
 
-async function syncInternalAvailability ({ platformId, env, transaction, oldAssetId }) {
+async function syncInternalAvailability({
+  platformId,
+  env,
+  transaction,
+  oldAssetId,
+}) {
   try {
     const assetsIds = _.uniqBy(_.compact([transaction.assetId, oldAssetId]))
 
@@ -1378,7 +1511,7 @@ async function syncInternalAvailability ({ platformId, env, transaction, oldAsse
       type: '_syncInternalAvailability',
       assetsIds,
       platformId,
-      env
+      env,
     })
   } catch (err) {
     logError(err, {
@@ -1386,14 +1519,14 @@ async function syncInternalAvailability ({ platformId, env, transaction, oldAsse
       env,
       custom: {
         assetId: transaction.assetId,
-        transactionId: transaction.id
+        transactionId: transaction.id,
       },
-      message: 'Fail to sync internal availability'
+      message: 'Fail to sync internal availability',
     })
   }
 }
 
-async function syncAssetQuantity ({ platformId, env, transaction }) {
+async function syncAssetQuantity({ platformId, env, transaction }) {
   if (!transaction.assetId) return
 
   const { Asset } = await getModels({ platformId, env })
@@ -1418,12 +1551,12 @@ async function syncAssetQuantity ({ platformId, env, transaction }) {
       asset,
       actionType,
       platformId,
-      env
+      env,
     })
   }
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -1448,5 +1581,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

@@ -152,7 +152,7 @@ function getKnex({ connection, schema }) {
 /**
  * @constant {String} - Custom PostgreSQL function name
  */
-const mergeFunctionName = jsonDeepMergeDef.mergeFunctionName
+const { mergeFunctionName } = jsonDeepMergeDef
 
 module.exports = {
   existColumns,

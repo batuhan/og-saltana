@@ -30,24 +30,25 @@ const validationVersions = [
   require('./transaction'),
   require('./user'),
   require('./webhook'),
-  require('./workflow')
+  require('./workflow'),
 ]
+
 const customValidationVersions = []
 
 let indexedValidationVersions = indexValidationVersions(validationVersions)
 
-function indexValidationVersions (validationVersionConfigs) {
+function indexValidationVersions(validationVersionConfigs) {
   const indexed = {}
 
-  validationVersionConfigs.forEach(validationVersionConfig => {
+  validationVersionConfigs.forEach((validationVersionConfig) => {
     const versions = Object.keys(validationVersionConfig)
 
-    versions.forEach(version => {
+    versions.forEach((version) => {
       const validationDefinitions = validationVersionConfig[version]
 
       indexed[version] = indexed[version] || {}
 
-      validationDefinitions.forEach(validationDefinition => {
+      validationDefinitions.forEach((validationDefinition) => {
         const { target } = validationDefinition
         if (!target) throw new Error('Validation object missing target')
 
@@ -60,12 +61,15 @@ function indexValidationVersions (validationVersionConfigs) {
   return indexed
 }
 
-function getValidationDefinition ({ version, target }) {
-  return indexedValidationVersions[version] && indexedValidationVersions[version][target]
+function getValidationDefinition({ version, target }) {
+  return (
+    indexedValidationVersions[version] &&
+    indexedValidationVersions[version][target]
+  )
 }
 
 // match the latest version
-function matchValidationDefinition ({ version, target }) {
+function matchValidationDefinition({ version, target }) {
   const def = getValidationDefinition({ version, target })
   if (def) return def
 
@@ -83,13 +87,13 @@ function matchValidationDefinition ({ version, target }) {
 const joiOptions = {
   convert: true,
   allowUnknown: false,
-  abortEarly: false
+  abortEarly: false,
 }
 const keysToValidate = ['params', 'body', 'query']
 
 const errorTransformer = (validationInput, joiError) => {
   const err = createError(400, joiError.message, {
-    public: joiError.details
+    public: joiError.details,
   })
   return err
 }
@@ -121,7 +125,9 @@ const middleware = () => {
     const toValidate = keysToValidate.reduce((accum, key) => {
       // only include keys present in the validation object
       // validation can be a Joi schema, so the exclusion logic is a bit different
-      const skipValidation = (schema.isJoi && !joi.reach(schema, key)) || (!schema.isJoi && !schema[key])
+      const skipValidation =
+        (schema.isJoi && !joi.reach(schema, key)) ||
+        (!schema.isJoi && !schema[key])
       if (skipValidation) return accum
 
       accum[key] = req[key]
@@ -131,10 +137,13 @@ const middleware = () => {
     let errorToDisplay
     let errorKey
 
-    keysToValidate.forEach(key => {
+    keysToValidate.forEach((key) => {
       if (errorToDisplay || !schema[key]) return
 
-      const { error, value } = schema[key].validate(toValidate[key], Object.assign({}, joiOptions, { context: { label: 'body' } }))
+      const { error, value } = schema[key].validate(toValidate[key], {
+        ...joiOptions,
+        context: { label: 'body' },
+      })
       if (error) {
         if (error.message === '"value" is required') {
           const errorMessage = `"${key}" is required`
@@ -156,7 +165,9 @@ const middleware = () => {
 
       return errorResponder(
         errorTransformer(toValidate[errorKey], errorToDisplay),
-        req, res, next
+        req,
+        res,
+        next,
       )
     }
 
@@ -172,10 +183,12 @@ const middleware = () => {
   }
 }
 
-function registerValidationVersions (versions) {
+function registerValidationVersions(versions) {
   customValidationVersions.push(versions)
 
-  indexedValidationVersions = indexValidationVersions(validationVersions.concat(customValidationVersions))
+  indexedValidationVersions = indexValidationVersions(
+    validationVersions.concat(customValidationVersions),
+  )
 }
 
 module.exports = {
@@ -184,5 +197,5 @@ module.exports = {
   getValidationDefinition,
   matchValidationDefinition,
 
-  registerValidationVersions
+  registerValidationVersions,
 }

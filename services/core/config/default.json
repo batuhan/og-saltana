@@ -60,6 +60,9 @@
       "apiKey": "test_5DXNcvKedKBwv4zHJGjykM60ohYTwwTRlp",
       "jwksLink": "https://clerk.8n265.f7qow.lcl.dev/.well-known/jwks.json"
     },
+    "sentry": {
+      "dsn": "https://2cbf2f3aa7bc4ce4bfad898364b899fa@o1101638.ingest.sentry.io/6127686"
+    },
     "cloudflare": {
       "apiToken": null,
       "zoneId": "08ceab39c469aa51c59d57f884dac169",
@@ -79,7 +82,10 @@
   },
   "Features": {
     "PaymentWithCrypto": "",
-    "PayoutWithCrypto": ""
+    "PayoutWithCrypto": "",
+    "Signal": {
+      "enabled": true
+    }
   },
   "Plugins": {
     "paths": "",

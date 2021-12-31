@@ -1,6 +1,6 @@
 const createError = require('http-errors')
 const _ = require('lodash')
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
 
@@ -11,26 +11,21 @@ const { builtInSSOProviders } = require('../util/authentication')
 let responder
 let roleRequester
 
-function start ({ communication, isSystem }) {
-  const {
-    getResponder,
-    getRequester
-  } = communication
+function start({ communication, isSystem }) {
+  const { getResponder, getRequester } = communication
 
   responder = getResponder({
     name: 'Config Responder',
-    key: 'config'
+    key: 'config',
   })
 
   roleRequester = getRequester({
     name: 'Config service > Role Requester',
-    key: 'role'
+    key: 'role',
   })
 
   responder.on('read', async (req) => {
-    const {
-      access
-    } = req
+    const { access } = req
 
     if (!isAccessGranted({ access, req })) throw createError(403)
 
@@ -38,9 +33,7 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('update', async (req) => {
-    const {
-      access
-    } = req
+    const { access } = req
 
     if (!isAccessGranted({ access, req })) throw createError(403)
 
@@ -55,21 +48,37 @@ function start ({ communication, isSystem }) {
     const { saltana } = req
 
     if (saltana) {
-      const ssoConnections = saltana.ssoConnections
+      const { ssoConnections } = saltana
 
       if (ssoConnections) {
         const connectionNames = Object.keys(ssoConnections)
-        const customProviders = _.difference(connectionNames, builtInSSOProviders)
+        const customProviders = _.difference(
+          connectionNames,
+          builtInSSOProviders,
+        )
 
-        connectionNames.forEach(p => {
+        connectionNames.forEach((p) => {
           const isCustom = _.get(ssoConnections[p], 'isCustom')
-          const customProviderOnly = ['authorizationUrl', 'tokenUrl', 'userInfoUrl']
-          const forbiddenWithBuiltIn = customProviderOnly.filter(k => _.has(ssoConnections[p], k))
+          const customProviderOnly = [
+            'authorizationUrl',
+            'tokenUrl',
+            'userInfoUrl',
+          ]
+          const forbiddenWithBuiltIn = customProviderOnly.filter((k) =>
+            _.has(ssoConnections[p], k),
+          )
 
-          if (!isCustom && builtInSSOProviders.includes(p) && forbiddenWithBuiltIn.length) {
-            throw createError(400, `Bad Request: ${
-              forbiddenWithBuiltIn.join(',')
-            } cannot be set with ${p} built-in connection.`)
+          if (
+            !isCustom &&
+            builtInSSOProviders.includes(p) &&
+            forbiddenWithBuiltIn.length
+          ) {
+            throw createError(
+              400,
+              `Bad Request: ${forbiddenWithBuiltIn.join(
+                ',',
+              )} cannot be set with ${p} built-in connection.`,
+            )
           } else if (customProviders.includes(p)) {
             _.set(ssoConnections[p], 'isCustom', true)
           }
@@ -83,11 +92,7 @@ function start ({ communication, isSystem }) {
   // INTERNAL
 
   responder.on('_getConfig', async (req) => {
-    const {
-      platformId,
-      env,
-      access = 'default'
-    } = req
+    const { platformId, env, access = 'default' } = req
 
     const { Config } = await getModels({ platformId, env })
 
@@ -97,14 +102,14 @@ function start ({ communication, isSystem }) {
       return {
         saltana: {},
         custom: {},
-        theme: {}
+        theme: {},
       }
     }
 
     return config
   })
 
-  function isAccessGranted ({ access, req }) {
+  function isAccessGranted({ access, req }) {
     const protectedAccesses = ['private', 'system']
     const canAccessProtected = isSystem(req._systemHash)
 
@@ -114,9 +119,9 @@ function start ({ communication, isSystem }) {
   }
 }
 
-async function readConfig ({ req, access }) {
-  const platformId = req.platformId
-  const env = req.env
+async function readConfig({ req, access }) {
+  const { platformId } = req
+  const { env } = req
   const { Config } = await getModels({ platformId, env })
 
   const config = await Config.query().findOne({ access })
@@ -124,9 +129,9 @@ async function readConfig ({ req, access }) {
   return exposeConfig({ req, config, access })
 }
 
-async function updateConfig ({ req, access }) {
-  const platformId = req.platformId
-  const env = req.env
+async function updateConfig({ req, access }) {
+  const { platformId } = req
+  const { env } = req
   const { Config } = await getModels({ platformId, env })
   let apiVersion
 
@@ -139,7 +144,10 @@ async function updateConfig ({ req, access }) {
         throw createError(422, 'Cannot whitelist the role "dev"')
       }
       if (defaultRoles && defaultRoles.includes('dev')) {
-        throw createError(422, 'Cannot include the role "dev" into default roles')
+        throw createError(
+          422,
+          'Cannot include the role "dev" into default roles',
+        )
       }
 
       if (whitelistRoles) {
@@ -147,10 +155,13 @@ async function updateConfig ({ req, access }) {
           type: '_isValidRoles',
           platformId,
           env,
-          roles: whitelistRoles
+          roles: whitelistRoles,
         })
         if (!valid) {
-          throw createError(422, `Invalid whitelist roles: ${invalidRoles.join(', ')}`)
+          throw createError(
+            422,
+            `Invalid whitelist roles: ${invalidRoles.join(', ')}`,
+          )
         }
       }
       if (defaultRoles) {
@@ -158,10 +169,13 @@ async function updateConfig ({ req, access }) {
           type: '_isValidRoles',
           platformId,
           env,
-          roles: defaultRoles
+          roles: defaultRoles,
         })
         if (!valid) {
-          throw createError(422, `Invalid default roles: ${invalidRoles.join(', ')}`)
+          throw createError(
+            422,
+            `Invalid default roles: ${invalidRoles.join(', ')}`,
+          )
         }
       }
     }
@@ -184,27 +198,33 @@ async function updateConfig ({ req, access }) {
       access,
       saltana: req.saltana || {},
       custom: req.custom || {},
-      theme: req.theme || {}
+      theme: req.theme || {},
     })
   } else {
     const updateAttrs = {}
 
     if (req.saltana) {
       const TOKEN_EXP = 'saltanaAuthRefreshTokenExpiration'
-      updateAttrs.saltana = Config.rawJsonbMerge('saltana', _.omit(req.saltana, TOKEN_EXP))
+      updateAttrs.saltana = Config.rawJsonbMerge(
+        'saltana',
+        _.omit(req.saltana, TOKEN_EXP),
+      )
 
       if (access === 'private') {
         if (req.saltana[TOKEN_EXP]) {
           // override the whole duration object, we don't want multiple time units
           // Objection.js syntax to update JSONB columns: jsonbColumn:nested.fields
           // https://vincit.github.io/objection.js/recipes/json-queries.html#json-queries
-          await Config.query().patch({
-            [`saltana:${TOKEN_EXP}`]: req.saltana[TOKEN_EXP]
-          }).where({ id: config.id })
+          await Config.query()
+            .patch({
+              [`saltana:${TOKEN_EXP}`]: req.saltana[TOKEN_EXP],
+            })
+            .where({ id: config.id })
         }
       }
     }
-    if (req.custom) updateAttrs.custom = Config.rawJsonbMerge('custom', req.custom)
+    if (req.custom)
+      updateAttrs.custom = Config.rawJsonbMerge('custom', req.custom)
     if (req.theme) updateAttrs.theme = Config.rawJsonbMerge('theme', req.theme)
 
     config = await Config.query().patchAndFetchById(config.id, updateAttrs)
@@ -217,9 +237,9 @@ async function updateConfig ({ req, access }) {
   return exposeConfig({ req, config, access })
 }
 
-function exposeConfig ({ req, config, access }) {
+function exposeConfig({ req, config, access }) {
   const exposedConfig = {
-    saltana: config ? config.saltana : {}
+    saltana: config ? config.saltana : {},
   }
 
   if (access === 'default') {
@@ -232,7 +252,7 @@ function exposeConfig ({ req, config, access }) {
   return exposedConfig
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -242,5 +262,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

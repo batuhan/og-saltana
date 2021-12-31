@@ -1,17 +1,12 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
-
-const {
-  getAvailabilityPeriodGraph
-} = require('../util/availability')
-const {
-  shouldAffectAvailability
-} = require('../util/transaction')
-
+const { getModels } = require('@saltana/db')
 const { getObjectId } = require('@saltana/util-keys')
+const { logError } = require('../../server/logger')
+
+const { getAvailabilityPeriodGraph } = require('../util/availability')
+const { shouldAffectAvailability } = require('../util/transaction')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
@@ -19,30 +14,28 @@ const {
   isValidCronPattern,
   isValidTimezone,
   computeRecurringPeriods,
-  computeDate
+  computeDate,
 } = require('../util/time')
 
-const {
-  getCurrentUserId
-} = require('../util/user')
+const { getCurrentUserId } = require('../util/user')
 
 let responder
 let subscriber
 let publisher
 let transactionRequester
 
-function start ({ communication }) {
+function start({ communication }) {
   const {
     getResponder,
     getSubscriber,
     getRequester,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'Availability Responder',
-    key: 'availability'
+    key: 'availability',
   })
 
   subscriber = getSubscriber({
@@ -52,33 +45,30 @@ function start ({ communication }) {
     subscribesTo: [
       'availabilityCreated',
       'availabilityUpdated',
-      'availabilityDeleted'
-    ]
+      'availabilityDeleted',
+    ],
   })
 
   publisher = getPublisher({
     name: 'Availability publisher',
     key: 'availability',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   transactionRequester = getRequester({
     name: 'Availability service > Transaction Requester',
-    key: 'transaction'
+    key: 'transaction',
   })
 
   responder.on('getGraph', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      Asset,
-      AssetType,
-      Availability
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { Asset, AssetType, Availability } = await getModels({
+      platformId,
+      env,
+    })
 
-    const {
-      assetId
-    } = req
+    const { assetId } = req
 
     const asset = await Asset.query().findById(assetId)
     if (!asset) {
@@ -94,19 +84,15 @@ function start ({ communication }) {
       }
     }
 
-    const [
-      assetType,
-      availabilities,
-      indexedTransactions
-    ] = await Promise.all([
+    const [assetType, availabilities, indexedTransactions] = await Promise.all([
       AssetType.query().findById(asset.assetTypeId),
       Availability.query().where('assetId', assetId),
       transactionRequester.send({
         type: '_filter',
         assetsIds: [assetId],
         platformId,
-        env
-      })
+        env,
+      }),
     ])
 
     if (!assetType) {
@@ -119,7 +105,7 @@ function start ({ communication }) {
     const graph = getAvailabilityPeriodGraph({
       transactions: filteredTransactions,
       availabilities,
-      defaultQuantity: asset.quantity
+      defaultQuantity: asset.quantity,
     })
 
     // explicitly expose properties to not "leak" properties
@@ -127,17 +113,14 @@ function start ({ communication }) {
     return {
       graphDates: graph.graphDates,
       defaultQuantity: graph.defaultQuantity,
-      totalUsedQuantity: graph.totalUsedQuantity
+      totalUsedQuantity: graph.totalUsedQuantity,
     }
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      Asset,
-      Availability
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { Asset, Availability } = await getModels({ platformId, env })
 
     const {
       orderBy,
@@ -152,7 +135,7 @@ function start ({ communication }) {
       startingAfter,
       endingBefore,
 
-      assetId
+      assetId,
     } = req
 
     if (!req._matchedPermissions['availability:list:all']) {
@@ -176,8 +159,8 @@ function start ({ communication }) {
       filters: {
         assetId: {
           dbField: 'assetId',
-          value: assetId
-        }
+          value: assetId,
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -192,18 +175,20 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
 
-    paginationMeta.results = Availability.exposeAll(paginationMeta.results, { req })
+    paginationMeta.results = Availability.exposeAll(paginationMeta.results, {
+      req,
+    })
 
     return paginationMeta
   })
 
   responder.on('create', async (req) => {
-    const assetId = req.assetId
+    const { assetId } = req
 
     const fields = [
       'startDate',
@@ -213,13 +198,13 @@ function start ({ communication }) {
       'recurringTimezone',
       'recurringDuration',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
     if (typeof payload.quantity === 'number') {
-      payload.quantity = '' + payload.quantity
+      payload.quantity = `${payload.quantity}`
     }
 
     const {
@@ -230,19 +215,20 @@ function start ({ communication }) {
       recurringTimezone,
     } = payload
 
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      InternalAvailability,
-      Asset,
-      Availability,
-      AssetType
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { InternalAvailability, Asset, Availability, AssetType } =
+      await getModels({ platformId, env })
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: Availability.idPrefix, platformId, env }),
-      assetId
-    }, payload)
+    const createAttrs = {
+      id: await getObjectId({
+        prefix: Availability.idPrefix,
+        platformId,
+        env,
+      }),
+      assetId,
+      ...payload,
+    }
 
     if (endDate <= startDate) {
       throw createError(422, 'Start date must be before end date')
@@ -272,7 +258,7 @@ function start ({ communication }) {
         startDate,
         endDate,
         timezone: recurringTimezone,
-        duration: recurringDuration
+        duration: recurringDuration,
       })
 
       if (isRecurringPeriodsOverlapped(recurringPeriods)) {
@@ -285,9 +271,10 @@ function start ({ communication }) {
     if (checkPeriodRange) {
       const maxEndDate = getAvailabilityMaxEndDate(startDate)
       if (maxEndDate < endDate) {
-        throw createError(422,
+        throw createError(
+          422,
           'Recurring availbility period cannot exceed one year. ' +
-          `End date must be before the date "${maxEndDate}"`
+            `End date must be before the date "${maxEndDate}"`,
         )
       }
     }
@@ -318,13 +305,17 @@ function start ({ communication }) {
     const availability = await Availability.query().insert(createAttrs)
 
     try {
-      await InternalAvailability.syncInternalAvailability({ assetsIds: [asset.id], platformId, env })
+      await InternalAvailability.syncInternalAvailability({
+        assetsIds: [asset.id],
+        platformId,
+        env,
+      })
     } catch (err) {
       logError(err, {
         platformId,
         env,
         custom: { assetId: asset.id },
-        message: 'Fail to sync internal availability'
+        message: 'Fail to sync internal availability',
       })
     }
 
@@ -332,25 +323,19 @@ function start ({ communication }) {
       availability,
       eventDate: availability.createdDate,
       platformId,
-      env
+      env,
     })
 
     return Availability.expose(availability, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      InternalAvailability,
-      Asset,
-      Availability,
-      AssetType
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { InternalAvailability, Asset, Availability, AssetType } =
+      await getModels({ platformId, env })
 
-    const {
-      availabilityId
-    } = req
+    const { availabilityId } = req
 
     const fields = [
       'startDate',
@@ -360,13 +345,13 @@ function start ({ communication }) {
       'recurringTimezone',
       'recurringDuration',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
     if (typeof payload.quantity === 'number') {
-      payload.quantity = '' + payload.quantity
+      payload.quantity = `${payload.quantity}`
     }
 
     const {
@@ -376,11 +361,11 @@ function start ({ communication }) {
       recurringDuration,
       recurringTimezone,
       metadata,
-      platformData
+      platformData,
     } = payload
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     const availability = await Availability.query().findById(availabilityId)
     if (!availability) {
@@ -395,14 +380,18 @@ function start ({ communication }) {
     }
 
     const hadRecurring = !!availability.recurringPattern
-    const updatingRecurring = typeof recurringPattern !== 'undefined' ||
+    const updatingRecurring =
+      typeof recurringPattern !== 'undefined' ||
       typeof recurringTimezone !== 'undefined' ||
       typeof recurringDuration !== 'undefined'
 
     if (updatingRecurring) {
       if (hadRecurring) {
         if (!recurringPattern || !recurringTimezone || !recurringDuration) {
-          throw createError(422, 'Recurring parameters that are previously set are not nullable')
+          throw createError(
+            422,
+            'Recurring parameters that are previously set are not nullable',
+          )
         }
       } else {
         if (!recurringPattern) {
@@ -420,7 +409,10 @@ function start ({ communication }) {
         throw createError(400, `Invalid recurring pattern ${recurringPattern}`)
       }
       if (recurringTimezone && !isValidTimezone(recurringTimezone)) {
-        throw createError(400, `Invalid recurring timezone ${recurringTimezone}`)
+        throw createError(
+          400,
+          `Invalid recurring timezone ${recurringTimezone}`,
+        )
       }
 
       const pattern = recurringPattern || availability.recurringPattern
@@ -431,7 +423,7 @@ function start ({ communication }) {
         startDate: newStartDate,
         endDate: newEndDate,
         timezone,
-        duration
+        duration,
       })
 
       if (isRecurringPeriodsOverlapped(recurringPeriods)) {
@@ -443,9 +435,10 @@ function start ({ communication }) {
     if (endDate && checkPeriodRange) {
       const maxEndDate = getAvailabilityMaxEndDate(newStartDate)
       if (maxEndDate < newEndDate) {
-        throw createError(422,
+        throw createError(
+          422,
           'Recurring availability period cannot exceed one year. ' +
-          `End date must be before the date "${maxEndDate}"`
+            `End date must be before the date "${maxEndDate}"`,
         )
       }
     }
@@ -477,19 +470,29 @@ function start ({ communication }) {
       updateAttrs.metadata = Availability.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Availability.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Availability.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
-    const newAvailability = await Availability.query().patchAndFetchById(availabilityId, updateAttrs)
+    const newAvailability = await Availability.query().patchAndFetchById(
+      availabilityId,
+      updateAttrs,
+    )
 
     try {
-      await InternalAvailability.syncInternalAvailability({ assetsIds: [asset.id], platformId, env })
+      await InternalAvailability.syncInternalAvailability({
+        assetsIds: [asset.id],
+        platformId,
+        env,
+      })
     } catch (err) {
       logError(err, {
         platformId,
         env,
         custom: { assetId: asset.id },
-        message: 'Fail to sync internal availability'
+        message: 'Fail to sync internal availability',
       })
     }
 
@@ -498,24 +501,21 @@ function start ({ communication }) {
       eventDate: newAvailability.updatedDate,
       updateAttrs: updateAttrsBeforeFullDataMerge,
       platformId,
-      env
+      env,
     })
 
     return Availability.expose(newAvailability, { req })
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const {
-      InternalAvailability,
-      Asset,
-      Availability
-    } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
+    const { InternalAvailability, Asset, Availability } = await getModels({
+      platformId,
+      env,
+    })
 
-    const {
-      availabilityId
-    } = req
+    const { availabilityId } = req
 
     const availability = await Availability.query().findById(availabilityId)
     if (!availability) {
@@ -537,13 +537,17 @@ function start ({ communication }) {
     await Availability.query().deleteById(availabilityId)
 
     try {
-      await InternalAvailability.syncInternalAvailability({ assetsIds: [asset.id], platformId, env })
+      await InternalAvailability.syncInternalAvailability({
+        assetsIds: [asset.id],
+        platformId,
+        env,
+      })
     } catch (err) {
       logError(err, {
         platformId,
         env,
         custom: { assetId: asset.id },
-        message: 'Fail to sync internal availability'
+        message: 'Fail to sync internal availability',
       })
     }
 
@@ -552,7 +556,7 @@ function start ({ communication }) {
       availability, // … this can be undefined
       eventDate: new Date().toISOString(),
       platformId,
-      env
+      env,
     })
 
     return { id: availabilityId }
@@ -560,78 +564,98 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('availabilityCreated', async ({ availability, eventDate, platformId, env } = {}) => {
-    try {
-      const { Event, Availability } = await getModels({ platformId, env })
+  subscriber.on(
+    'availabilityCreated',
+    async ({ availability, eventDate, platformId, env } = {}) => {
+      try {
+        const { Event, Availability } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'availability__created',
-        objectId: availability.id,
-        object: Availability.expose(availability, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { availabilityId: availability.id },
-        message: 'Fail to create event availability__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'availability__created',
+            objectId: availability.id,
+            object: Availability.expose(availability, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { availabilityId: availability.id },
+          message: 'Fail to create event availability__created',
+        })
+      }
+    },
+  )
 
-  subscriber.on('availabilityUpdated', async ({
-    newAvailability,
-    updateAttrs,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Event, Availability } = await getModels({ platformId, env })
+  subscriber.on(
+    'availabilityUpdated',
+    async ({
+      newAvailability,
+      updateAttrs,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { Event, Availability } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'availability__updated',
-        objectId: newAvailability.id,
-        object: Availability.expose(newAvailability, { namespaces: ['*'] }),
-        changesRequested: Availability.expose(updateAttrs, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { availabilityId: newAvailability.id },
-        message: 'Fail to create event availability__updated'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'availability__updated',
+            objectId: newAvailability.id,
+            object: Availability.expose(newAvailability, { namespaces: ['*'] }),
+            changesRequested: Availability.expose(updateAttrs, {
+              namespaces: ['*'],
+            }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { availabilityId: newAvailability.id },
+          message: 'Fail to create event availability__updated',
+        })
+      }
+    },
+  )
 
-  subscriber.on('availabilityDeleted', async ({
-    availabilityId,
-    availability,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { Event, Availability } = await getModels({ platformId, env })
+  subscriber.on(
+    'availabilityDeleted',
+    async ({
+      availabilityId,
+      availability,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { Event, Availability } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'availability__deleted',
-        objectId: availabilityId,
-        object: Availability.expose(availability, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { availabilityId },
-        message: 'Fail to create event availability__deleted'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'availability__deleted',
+            objectId: availabilityId,
+            object: Availability.expose(availability, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { availabilityId },
+          message: 'Fail to create event availability__deleted',
+        })
+      }
+    },
+  )
 
   // INTERNAL
 
@@ -655,20 +679,14 @@ function start ({ communication }) {
       fullPeriod = true,
       unavailableWhen,
       platformId,
-      env
+      env,
     } = req
 
-    const {
-      Asset,
-      AssetType
-    } = await getModels({ platformId, env })
+    const { Asset, AssetType } = await getModels({ platformId, env })
 
-    const [
-      assets,
-      assetTypes
-    ] = await Promise.all([
+    const [assets, assetTypes] = await Promise.all([
       Asset.query().whereIn('id', assetsIds),
-      AssetType.query()
+      AssetType.query(),
     ])
 
     const indexedAssetTypes = _.keyBy(assetTypes, 'id')
@@ -678,7 +696,7 @@ function start ({ communication }) {
     const searchAvUnlimitedAssetsIds = []
     const searchAvAssetsIds = []
 
-    assets.forEach(asset => {
+    assets.forEach((asset) => {
       const assetType = indexedAssetTypes[asset.assetTypeId]
       if (!assetType) {
         throw new Error('Unfound asset type')
@@ -691,7 +709,7 @@ function start ({ communication }) {
       // if this is timeless, only compute with the asset quantity
       if (!timeBased) {
         hashAssets[asset.id] = quantity <= asset.quantity
-      // if the quantity is unlimited, only search for available periods (no transactions involved and no quantity issues)
+        // if the quantity is unlimited, only search for available periods (no transactions involved and no quantity issues)
       } else if (infiniteStock) {
         searchAvUnlimitedAssetsIds.push(asset.id)
       } else {
@@ -699,90 +717,91 @@ function start ({ communication }) {
       }
     })
 
-    const [
-      avResult,
-      unlimitedAvResult
-    ] = await Promise.all([
-      searchAvAssetsIds.length ? getAvailableAssets({
-        assetsIds: searchAvAssetsIds,
-        startDate,
-        endDate,
-        quantity,
-        unavailableWhen,
-        assetTypes,
-        isUnlimitedQuantity: false,
-        fullPeriod,
-        platformId,
-        env
-      }) : {},
-      searchAvUnlimitedAssetsIds.length ? getAvailableAssets({
-        assetsIds: searchAvUnlimitedAssetsIds,
-        startDate,
-        endDate,
-        quantity,
-        unavailableWhen,
-        assetTypes,
-        isUnlimitedQuantity: true,
-        fullPeriod,
-        platformId,
-        env
-      }) : {}
+    const [avResult, unlimitedAvResult] = await Promise.all([
+      searchAvAssetsIds.length
+        ? getAvailableAssets({
+            assetsIds: searchAvAssetsIds,
+            startDate,
+            endDate,
+            quantity,
+            unavailableWhen,
+            assetTypes,
+            isUnlimitedQuantity: false,
+            fullPeriod,
+            platformId,
+            env,
+          })
+        : {},
+      searchAvUnlimitedAssetsIds.length
+        ? getAvailableAssets({
+            assetsIds: searchAvUnlimitedAssetsIds,
+            startDate,
+            endDate,
+            quantity,
+            unavailableWhen,
+            assetTypes,
+            isUnlimitedQuantity: true,
+            fullPeriod,
+            platformId,
+            env,
+          })
+        : {},
     ])
 
-    hashAssets = Object.assign({}, hashAssets, unlimitedAvResult, avResult)
+    hashAssets = { ...hashAssets, ...unlimitedAvResult, ...avResult }
 
     return hashAssets
   })
 
   responder.on('_syncInternalAvailability', async (req) => {
-    const {
-      assetsIds,
-      platformId,
-      env
-    } = req
+    const { assetsIds, platformId, env } = req
 
     const { InternalAvailability } = await getModels({ platformId, env })
 
-    await InternalAvailability.syncInternalAvailability({ assetsIds, platformId, env })
+    await InternalAvailability.syncInternalAvailability({
+      assetsIds,
+      platformId,
+      env,
+    })
 
     return { success: true }
   })
 
   responder.on('_syncInternalAvailabilityTransaction', async (req) => {
-    const {
-      transactionIds,
-      platformId,
-      env
-    } = req
+    const { transactionIds, platformId, env } = req
 
     const { InternalAvailability } = await getModels({ platformId, env })
 
-    await InternalAvailability.syncInternalAvailabilityTransaction({ transactionIds, platformId, env })
+    await InternalAvailability.syncInternalAvailabilityTransaction({
+      transactionIds,
+      platformId,
+      env,
+    })
 
     return { success: true }
   })
 
   responder.on('_removeInternalAvailability', async (req) => {
-    const {
-      assetsIds,
-      platformId,
-      env
-    } = req
+    const { assetsIds, platformId, env } = req
 
     const { InternalAvailability } = await getModels({ platformId, env })
 
-    await InternalAvailability.removeInternalAvailability({ assetsIds, platformId, env })
+    await InternalAvailability.removeInternalAvailability({
+      assetsIds,
+      platformId,
+      env,
+    })
 
     return { success: true }
   })
 }
 
-function getAvailabilityMaxEndDate (startDate) {
+function getAvailabilityMaxEndDate(startDate) {
   const maxEndDate = computeDate(startDate, { y: 1 })
   return maxEndDate
 }
 
-function isRecurringPeriodsOverlapped (periods) {
+function isRecurringPeriodsOverlapped(periods) {
   let overlapped = false
   let previousEndDate
 
@@ -799,7 +818,7 @@ function isRecurringPeriodsOverlapped (periods) {
   return overlapped
 }
 
-async function getAvailableAssets ({
+async function getAvailableAssets({
   assetsIds,
   startDate,
   endDate,
@@ -809,7 +828,7 @@ async function getAvailableAssets ({
   isUnlimitedQuantity = false,
   fullPeriod = true,
   platformId,
-  env
+  env,
 }) {
   const { InternalAvailability } = await getModels({ platformId, env })
 
@@ -828,30 +847,37 @@ async function getAvailableAssets ({
   // Specifying the schema as we build the SQL query manually
   const schema = InternalAvailability.defaultSchema
 
-  queryBuilder = queryBuilder.with('periods', qb => {
+  queryBuilder = queryBuilder.with('periods', (qb) => {
     // by asset and dates range, get the quantity sum
     // filter on assets ids or dates range
-    qb = qb.select('assetId', 'datesRange', knex.raw('GREATEST(sum(quantity), 0) as "sumQuantity"'))
+    qb = qb
+      .select(
+        'assetId',
+        'datesRange',
+        knex.raw('GREATEST(sum(quantity), 0) as "sumQuantity"'),
+      )
       .from(`${schema}.internalAvailability`)
       .whereIn('assetId', assetsIds)
-      .where(knex.raw('"datesRange" && tstzrange(?, ?)', [startDate, endDate || 'infinity']))
+      .where(
+        knex.raw('"datesRange" && tstzrange(?, ?)', [
+          startDate,
+          endDate || 'infinity',
+        ]),
+      )
       .groupBy('assetId', 'datesRange')
 
     // filter transactions with the right status
     if (useCustomUnavailableWhen || assetTypes.length) {
-      qb = qb.where(builder => {
-        return builder.whereNull('transactionId')
-          .orWhere(builder2 => {
-            return builder2.whereNotNull('transactionId')
-              .where(builder3 => {
-                if (useCustomUnavailableWhen) {
-                  // only consider transactions that have the given transaction status
-                  return builder3.whereIn('transactionStatus', unavailableWhen)
-                } else {
-                  return builder3.where('unavailable', true)
-                }
-              })
+      qb = qb.where((builder) => {
+        return builder.whereNull('transactionId').orWhere((builder2) => {
+          return builder2.whereNotNull('transactionId').where((builder3) => {
+            if (useCustomUnavailableWhen) {
+              // only consider transactions that have the given transaction status
+              return builder3.whereIn('transactionStatus', unavailableWhen)
+            }
+            return builder3.where('unavailable', true)
           })
+        })
       })
     } else {
       qb = qb.whereNull('transactionId')
@@ -861,8 +887,13 @@ async function getAvailableAssets ({
   })
 
   // get the min and max quantity for period by asset
-  queryBuilder = queryBuilder.with('assetQuantities', qb => {
-    qb = qb.select('assetId', knex.raw('min("sumQuantity") as "minQuantity"'), knex.raw('max("sumQuantity") as "maxQuantity"'))
+  queryBuilder = queryBuilder.with('assetQuantities', (qb) => {
+    qb = qb
+      .select(
+        'assetId',
+        knex.raw('min("sumQuantity") as "minQuantity"'),
+        knex.raw('max("sumQuantity") as "maxQuantity"'),
+      )
       .from('periods')
       .groupBy('assetId')
   })
@@ -870,15 +901,13 @@ async function getAvailableAssets ({
   // if we don't care about quantity, let's search for quantity >= 1
   const queryQuantity = isUnlimitedQuantity ? 1 : quantity
 
-  queryBuilder = queryBuilder
-    .select('assetId')
-    .from('assetQuantities')
+  queryBuilder = queryBuilder.select('assetId').from('assetQuantities')
 
   // if the searched period has end date, we want at least the searched quantity during the full period
   // unless the parameter `fullPeriod` is false
   if (hasEndDate && fullPeriod) {
     queryBuilder = queryBuilder.where('minQuantity', '>=', queryQuantity)
-  // if the searched period hasn't end date, we want at least the searched quantity for a period even if it's not total
+    // if the searched period hasn't end date, we want at least the searched quantity for a period even if it's not total
   } else {
     queryBuilder = queryBuilder.where('maxQuantity', '>=', queryQuantity)
   }
@@ -897,7 +926,7 @@ async function getAvailableAssets ({
   }, {})
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -913,5 +942,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

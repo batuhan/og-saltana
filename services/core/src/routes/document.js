@@ -2,204 +2,204 @@ const _ = require('lodash')
 
 let requester
 
-function init (server, { middlewares, helpers } = {}) {
-  const {
-    checkPermissions
-  } = middlewares
-  const {
-    wrapAction,
-    populateRequesterParams
-  } = helpers
+function init(server, { middlewares, helpers } = {}) {
+  const { checkPermissions } = middlewares
+  const { wrapAction, populateRequesterParams } = helpers
 
-  server.get({
-    name: 'document.getStats',
-    path: '/documents/stats'
-  }, checkPermissions([
-    'document:stats:all'
-  ]), wrapAction(async (req, res) => {
-    const fields = [
-      'orderBy',
-      'order',
-      'nbResultsPerPage',
+  server.get(
+    {
+      name: 'document.getStats',
+      path: '/documents/stats',
+    },
+    checkPermissions(['document:stats:all']),
+    wrapAction(async (req, res) => {
+      const fields = [
+        'orderBy',
+        'order',
+        'nbResultsPerPage',
 
-      // offset pagination
-      'page',
+        // offset pagination
+        'page',
 
-      // cursor pagination
-      'startingAfter',
-      'endingBefore',
+        // cursor pagination
+        'startingAfter',
+        'endingBefore',
 
-      'field',
-      'groupBy',
+        'field',
+        'groupBy',
 
-      'label',
-      'authorId',
-      'targetId',
-      'data',
-      'computeRanking',
-      'avgPrecision'
-    ]
+        'label',
+        'authorId',
+        'targetId',
+        'data',
+        'computeRanking',
+        'avgPrecision',
+      ]
 
-    const payload = _.pick(req.query, fields)
+      const payload = _.pick(req.query, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'getStats'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'getStats',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = { ...params, ...payload }
 
-    params.documentType = req.query.type
+      params.documentType = req.query.type
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.get({
-    name: 'document.list',
-    path: '/documents'
-  }, checkPermissions([
-    'document:list:all'
-  ]), wrapAction(async (req, res) => {
-    const fields = [
-      'orderBy',
-      'order',
-      'nbResultsPerPage',
+  server.get(
+    {
+      name: 'document.list',
+      path: '/documents',
+    },
+    checkPermissions(['document:list:all']),
+    wrapAction(async (req, res) => {
+      const fields = [
+        'orderBy',
+        'order',
+        'nbResultsPerPage',
 
-      // offset pagination
-      'page',
+        // offset pagination
+        'page',
 
-      // cursor pagination
-      'startingAfter',
-      'endingBefore',
+        // cursor pagination
+        'startingAfter',
+        'endingBefore',
 
-      'id',
-      'label',
-      'authorId',
-      'targetId',
-      'data'
-    ]
+        'id',
+        'label',
+        'authorId',
+        'targetId',
+        'data',
+      ]
 
-    const payload = _.pick(req.query, fields)
+      const payload = _.pick(req.query, fields)
 
-    let params = populateRequesterParams(req)({
-      type: 'list'
-    })
+      let params = populateRequesterParams(req)({
+        type: 'list',
+      })
 
-    params = Object.assign({}, params, payload)
+      params = { ...params, ...payload }
 
-    params.documentType = req.query.type
+      params.documentType = req.query.type
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.get({
-    name: 'document.read',
-    path: '/documents/:id'
-  }, checkPermissions([
-    'document:read:all'
-  ]), wrapAction(async (req, res) => {
-    const { id } = req.params
+  server.get(
+    {
+      name: 'document.read',
+      path: '/documents/:id',
+    },
+    checkPermissions(['document:read:all']),
+    wrapAction(async (req, res) => {
+      const { id } = req.params
 
-    const params = populateRequesterParams(req)({
-      type: 'read',
-      documentId: id
-    })
+      const params = populateRequesterParams(req)({
+        type: 'read',
+        documentId: id,
+      })
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.post({
-    name: 'document.create',
-    path: '/documents'
-  }, checkPermissions([
-    'document:create:all'
-  ], { checkData: true }), wrapAction(async (req, res) => {
-    const {
-      authorId,
-      targetId,
-      type,
-      label,
-      data,
-      metadata,
-      platformData
-    } = req.body
+  server.post(
+    {
+      name: 'document.create',
+      path: '/documents',
+    },
+    checkPermissions(['document:create:all'], { checkData: true }),
+    wrapAction(async (req, res) => {
+      const { authorId, targetId, type, label, data, metadata, platformData } =
+        req.body
 
-    const params = populateRequesterParams(req)({
-      type: 'create',
-      label,
-      authorId,
-      targetId,
-      documentType: type,
-      data,
-      metadata,
-      platformData
-    })
+      const params = populateRequesterParams(req)({
+        type: 'create',
+        label,
+        authorId,
+        targetId,
+        documentType: type,
+        data,
+        metadata,
+        platformData,
+      })
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.patch({
-    name: 'document.update',
-    path: '/documents/:id'
-  }, checkPermissions([
-    'document:edit:all'
-  ], { checkData: true }), wrapAction(async (req, res) => {
-    const { id } = req.params
-    const {
-      label,
-      data,
-      metadata,
-      platformData,
+  server.patch(
+    {
+      name: 'document.update',
+      path: '/documents/:id',
+    },
+    checkPermissions(['document:edit:all'], { checkData: true }),
+    wrapAction(async (req, res) => {
+      const { id } = req.params
+      const {
+        label,
+        data,
+        metadata,
+        platformData,
 
-      replaceDataProperties
-    } = req.body
+        replaceDataProperties,
+      } = req.body
 
-    const params = populateRequesterParams(req)({
-      type: 'update',
-      documentId: id,
-      label,
-      data,
-      metadata,
-      platformData,
+      const params = populateRequesterParams(req)({
+        type: 'update',
+        documentId: id,
+        label,
+        data,
+        metadata,
+        platformData,
 
-      replaceDataProperties
-    })
+        replaceDataProperties,
+      })
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 
-  server.del({
-    name: 'document.remove',
-    path: '/documents/:id'
-  }, checkPermissions([
-    'document:remove:all'
-  ]), wrapAction(async (req, res) => {
-    const { id } = req.params
+  server.del(
+    {
+      name: 'document.remove',
+      path: '/documents/:id',
+    },
+    checkPermissions(['document:remove:all']),
+    wrapAction(async (req, res) => {
+      const { id } = req.params
 
-    const params = populateRequesterParams(req)({
-      type: 'remove',
-      documentId: id
-    })
+      const params = populateRequesterParams(req)({
+        type: 'remove',
+        documentId: id,
+      })
 
-    const result = await requester.send(params)
-    return result
-  }))
+      const result = await requester.send(params)
+      return result
+    }),
+  )
 }
 
-function start ({ communication }) {
+function start({ communication }) {
   const { getRequester } = communication
 
   requester = getRequester({
     name: 'Document route > Document Requester',
-    key: 'document'
+    key: 'document',
   })
 }
 
-function stop () {
+function stop() {
   requester.close()
   requester = null
 }
@@ -207,5 +207,5 @@ function stop () {
 module.exports = {
   init,
   start,
-  stop
+  stop,
 }

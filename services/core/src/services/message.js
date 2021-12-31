@@ -1,52 +1,44 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
+const { logError } = require('../../server/logger')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
-const {
-  getCurrentUserId
-} = require('../util/user')
+const { getCurrentUserId } = require('../util/user')
 
 let responder
 let subscriber
 let publisher
 
-function start ({ communication }) {
-  const {
-    getResponder,
-    getSubscriber,
-    getPublisher,
-    COMMUNICATION_ID
-  } = communication
+function start({ communication }) {
+  const { getResponder, getSubscriber, getPublisher, COMMUNICATION_ID } =
+    communication
 
   responder = getResponder({
     name: 'Message Responder',
-    key: 'message'
+    key: 'message',
   })
 
   subscriber = getSubscriber({
     name: 'Message subscriber',
     key: 'message',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'messageCreated'
-    ]
+    subscribesTo: ['messageCreated'],
   })
 
   publisher = getPublisher({
     name: 'Message publisher',
     key: 'message',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Message } = await getModels({ platformId, env })
 
     const {
@@ -69,7 +61,7 @@ function start ({ communication }) {
       senderId,
       receiverId,
       conversationId,
-      topicId
+      topicId,
     } = req
 
     const queryBuilder = Message.query()
@@ -81,44 +73,44 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         senderId: {
           dbField: 'senderId',
-          value: senderId
+          value: senderId,
         },
         receiverId: {
           dbField: 'receiverId',
-          value: receiverId
+          value: receiverId,
         },
         userId: {
           value: userId,
           query: (queryBuilder, userId) => {
-            queryBuilder.where(builder => {
+            queryBuilder.where((builder) => {
               return builder
                 .where('senderId', userId)
                 .orWhere('receiverId', userId)
             })
-          }
+          },
         },
         conversationId: {
           dbField: 'conversationId',
-          value: conversationId
+          value: conversationId,
         },
         topicId: {
           dbField: 'topicId',
-          value: topicId
-        }
+          value: topicId,
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -133,14 +125,14 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
 
     const currentUserId = getCurrentUserId(req)
 
-    paginationMeta.results = paginationMeta.results.map(message => {
+    paginationMeta.results = paginationMeta.results.map((message) => {
       const isSelf = Message.isSelf(message, currentUserId)
       if (!req._matchedPermissions['message:list:all'] && !isSelf) {
         throw createError(403)
@@ -153,11 +145,11 @@ function start ({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Message } = await getModels({ platformId, env })
 
-    const messageId = req.messageId
+    const { messageId } = req
 
     const message = await Message.query().findById(messageId)
     if (!message) {
@@ -175,8 +167,8 @@ function start ({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Message } = await getModels({ platformId, env })
 
     const fields = [
@@ -188,29 +180,30 @@ function start ({ communication }) {
       'senderId',
       'receiverId',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: Message.idPrefix, platformId, env })
-    }, payload)
+    const createAttrs = {
+      id: await getObjectId({ prefix: Message.idPrefix, platformId, env }),
+      ...payload,
+    }
 
     const currentUserId = getCurrentUserId(req)
 
-    const {
-      conversationId,
-      senderId,
-      receiverId
-    } = payload
+    const { conversationId, senderId, receiverId } = payload
 
     if (senderId === receiverId) {
       throw createError(422, 'The sender cannot be the receiver')
     }
 
     // cannot create as another user
-    if (!req._matchedPermissions['message:create:all'] && senderId && senderId !== currentUserId) {
+    if (
+      !req._matchedPermissions['message:create:all'] &&
+      senderId &&
+      senderId !== currentUserId
+    ) {
       throw createError(403)
     }
 
@@ -224,7 +217,11 @@ function start ({ communication }) {
     }
 
     if (!conversationId) {
-      createAttrs.conversationId = await getObjectId({ prefix: Message.conversationIdPrefix, platformId, env })
+      createAttrs.conversationId = await getObjectId({
+        prefix: Message.conversationIdPrefix,
+        platformId,
+        env,
+      })
     } else {
       const message = await Message.query().findOne({ conversationId })
       if (!message) {
@@ -244,31 +241,24 @@ function start ({ communication }) {
       eventDate: message.createdDate,
       platformId,
       env,
-      req
+      req,
     })
 
     return Message.expose(message, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Message } = await getModels({ platformId, env })
 
-    const messageId = req.messageId
+    const { messageId } = req
 
-    const fields = [
-      'read',
-      'metadata',
-      'platformData'
-    ]
+    const fields = ['read', 'metadata', 'platformData']
 
     const payload = _.pick(req, fields)
 
-    const {
-      metadata,
-      platformData
-    } = payload
+    const { metadata, platformData } = payload
 
     const message = await Message.query().findById(messageId)
     if (!message) {
@@ -298,25 +288,26 @@ function start ({ communication }) {
       updateAttrs.metadata = Message.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Message.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Message.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
     const newMessage = await Message.query().patchAndFetchById(
       messageId,
-      updateAttrs
+      updateAttrs,
     )
 
     return Message.expose(newMessage, { req })
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Message } = await getModels({ platformId, env })
 
-    const {
-      messageId
-    } = req
+    const { messageId } = req
 
     const message = await Message.query().findById(messageId)
     if (!message) {
@@ -337,28 +328,34 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('messageCreated', async ({ message, eventDate, platformId, env, req } = {}) => {
-    try {
-      const { Event, Message } = await getModels({ platformId, env })
+  subscriber.on(
+    'messageCreated',
+    async ({ message, eventDate, platformId, env, req } = {}) => {
+      try {
+        const { Event, Message } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'message__created',
-        objectId: message.id,
-        object: Message.expose(message, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { messageId: message.id },
-        message: 'Fail to create event message__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'message__created',
+            objectId: message.id,
+            object: Message.expose(message, { req, namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { messageId: message.id },
+          message: 'Fail to create event message__created',
+        })
+      }
+    },
+  )
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -371,5 +368,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

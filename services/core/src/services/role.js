@@ -1,36 +1,32 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { getModels } = require('../models')
-
-const { isValidHierarchy } = require('../util/hierarchy')
+const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
+const { isValidHierarchy } = require('../util/hierarchy')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
 let responder
 let configRequester
 
-function start ({ communication, isSystem }) {
-  const {
-    getResponder,
-    getRequester
-  } = communication
+function start({ communication, isSystem }) {
+  const { getResponder, getRequester } = communication
 
   responder = getResponder({
     name: 'Role Responder',
-    key: 'role'
+    key: 'role',
   })
 
   configRequester = getRequester({
     name: 'Role service > Config Requester',
-    key: 'config'
+    key: 'config',
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Role } = await getModels({ platformId, env })
 
     const {
@@ -57,17 +53,17 @@ function start ({ communication, isSystem }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
       },
       paginationActive: true,
@@ -80,7 +76,7 @@ function start ({ communication, isSystem }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: false,
     })
@@ -90,11 +86,11 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Role } = await getModels({ platformId, env })
 
-    const roleId = req.roleId
+    const { roleId } = req
 
     const role = await Role.query().findById(roleId)
     if (!role) {
@@ -105,8 +101,8 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Role } = await getModels({ platformId, env })
 
     const {
@@ -118,7 +114,7 @@ function start ({ communication, isSystem }) {
       readNamespaces,
       editNamespaces,
       metadata,
-      platformData
+      platformData,
     } = req
 
     if (parentId) {
@@ -134,7 +130,7 @@ function start ({ communication, isSystem }) {
     }
 
     const role = await Role.query().insert({
-      id: id || await getObjectId({ prefix: Role.idPrefix, platformId, env }),
+      id: id || (await getObjectId({ prefix: Role.idPrefix, platformId, env })),
       name,
       value,
       customRole: !isSystem(req._systemHash),
@@ -143,15 +139,15 @@ function start ({ communication, isSystem }) {
       readNamespaces,
       editNamespaces,
       metadata,
-      platformData
+      platformData,
     })
 
     return Role.expose(role, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Role } = await getModels({ platformId, env })
 
     const {
@@ -162,7 +158,7 @@ function start ({ communication, isSystem }) {
       readNamespaces,
       editNamespaces,
       metadata,
-      platformData
+      platformData,
     } = req
 
     const roles = await Role.query()
@@ -187,13 +183,16 @@ function start ({ communication, isSystem }) {
     // check for a circular hierarchy
     if (typeof parentId !== 'undefined') {
       const workingRoles = roles.concat([])
-      const workingRole = workingRoles.find(r => r.id === role.id)
+      const workingRole = workingRoles.find((r) => r.id === role.id)
       workingRole.parentId = parentId
 
       const validHierarchy = isValidHierarchy(workingRoles)
 
       if (!validHierarchy) {
-        throw createError(422, 'The change of parentId introduces a circular hierarchy')
+        throw createError(
+          422,
+          'The change of parentId introduces a circular hierarchy',
+        )
       }
     }
 
@@ -202,14 +201,17 @@ function start ({ communication, isSystem }) {
       parentId,
       permissions,
       readNamespaces,
-      editNamespaces
+      editNamespaces,
     }
 
     if (metadata) {
       updateAttrs.metadata = Role.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Role.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Role.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
     role = await Role.query().patchAndFetchById(roleId, updateAttrs)
@@ -218,13 +220,11 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { ApiKey, Role, User } = await getModels({ platformId, env })
 
-    const {
-      roleId
-    } = req
+    const { roleId } = req
 
     const role = await Role.query().findById(roleId)
     if (!role) {
@@ -240,7 +240,7 @@ function start ({ communication, isSystem }) {
       [{ count: nbApiKeys }],
       [{ count: nbUsers }],
       [{ count: nbRoles }],
-      config
+      config,
     ] = await Promise.all([
       ApiKey.query().count().whereJsonSupersetOf('roles', [role.value]),
       User.query().count().whereJsonSupersetOf('roles', [role.value]),
@@ -249,27 +249,42 @@ function start ({ communication, isSystem }) {
         type: '_getConfig',
         platformId,
         env,
-        access: 'default'
-      })
+        access: 'default',
+      }),
     ])
 
     const whitelistRoles = _.get(config, 'config.saltana.roles.whitelist')
     const defaultRoles = _.get(config, 'config.saltana.roles.default')
 
     if (nbApiKeys) {
-      throw createError(422, `This role is still referenced in ${nbApiKeys} api keys`)
+      throw createError(
+        422,
+        `This role is still referenced in ${nbApiKeys} api keys`,
+      )
     }
     if (nbUsers) {
-      throw createError(422, `This role is still referenced in ${nbUsers} users`)
+      throw createError(
+        422,
+        `This role is still referenced in ${nbUsers} users`,
+      )
     }
     if (nbRoles) {
-      throw createError(422, `This role is still referenced in ${nbRoles} roles`)
+      throw createError(
+        422,
+        `This role is still referenced in ${nbRoles} roles`,
+      )
     }
     if (whitelistRoles && whitelistRoles.includes(role.value)) {
-      throw createError(422, 'This role is still referenced in the config roles whitelist')
+      throw createError(
+        422,
+        'This role is still referenced in the config roles whitelist',
+      )
     }
     if (defaultRoles && defaultRoles.includes(role.value)) {
-      throw createError(422, 'This role is still referenced in the config default roles')
+      throw createError(
+        422,
+        'This role is still referenced in the config default roles',
+      )
     }
 
     await Role.query().deleteById(roleId)
@@ -280,13 +295,11 @@ function start ({ communication, isSystem }) {
   // INTERNAL
 
   responder.on('_getNamespaces', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Role } = await getModels({ platformId, env })
 
-    const {
-      values
-    } = req
+    const { values } = req
 
     const roles = await Role.query()
 
@@ -294,13 +307,11 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('_isValidRoles', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Role } = await getModels({ platformId, env })
 
-    const {
-      roles: values
-    } = req
+    const { roles: values } = req
 
     const roles = await Role.query().whereIn('value', values)
 
@@ -309,7 +320,7 @@ function start ({ communication, isSystem }) {
 
     const indexedRoles = _.keyBy(roles, 'value')
 
-    values.forEach(value => {
+    values.forEach((value) => {
       if (indexedRoles[value]) {
         validRoles.push(value)
       } else {
@@ -320,12 +331,12 @@ function start ({ communication, isSystem }) {
     return {
       valid: !invalidRoles.length,
       validRoles,
-      invalidRoles
+      invalidRoles,
     }
   })
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -335,5 +346,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

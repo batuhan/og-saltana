@@ -4,14 +4,12 @@ const Base = require('../models/Base')
 
 let responder
 
-function start ({ communication }) {
-  const {
-    getResponder
-  } = communication
+function start({ communication }) {
+  const { getResponder } = communication
 
   responder = getResponder({
     name: 'Namespace Responder',
-    key: 'namespace'
+    key: 'namespace',
   })
 
   // determine dynamic built-in namespaces like private and protected namespaces
@@ -26,21 +24,23 @@ function start ({ communication }) {
       deltaObject, // used when an update is happening
       currentUserId, // the current user ID
       readActive = true, // if true, compute dynamic read namespaces
-      editActive = true // if true, compute dynamic edit namespaces
+      editActive = true, // if true, compute dynamic edit namespaces
     } = req
 
     if (object) {
-      const revealedAfterTransaction = await getTransactionNamespacesVisibility({
-        platformId,
-        env,
-        object,
-        currentUserId
-      })
+      const revealedAfterTransaction = await getTransactionNamespacesVisibility(
+        {
+          platformId,
+          env,
+          object,
+          currentUserId,
+        },
+      )
 
       const {
         dynamicReadNamespaces,
         dynamicEditNamespaces,
-        isValidEditNamespaces
+        isValidEditNamespaces,
       } = getDynamicNamespacesForObject({
         readNamespaces,
         editNamespaces,
@@ -49,40 +49,42 @@ function start ({ communication }) {
         deltaObject,
         revealedAfterTransaction,
         readActive,
-        editActive
+        editActive,
       })
 
       return {
         dynamicReadNamespaces,
         dynamicEditNamespaces,
-        isValidEditNamespaces
+        isValidEditNamespaces,
       }
-    } else {
-      const hash = {}
+    }
+    const hash = {}
 
-      listObjects.forEach(object => {
-        const {
-          dynamicReadNamespaces
-        } = getDynamicNamespacesForObject({
-          readNamespaces,
-          currentUserId,
-          object,
-          readActive,
-          editActive: false
-        })
-
-        hash[object.id] = { dynamicReadNamespaces }
+    listObjects.forEach((object) => {
+      const { dynamicReadNamespaces } = getDynamicNamespacesForObject({
+        readNamespaces,
+        currentUserId,
+        object,
+        readActive,
+        editActive: false,
       })
 
-      return hash
-    }
+      hash[object.id] = { dynamicReadNamespaces }
+    })
+
+    return hash
   })
 }
 
 /**
  * Currently only protected namespace is supported and really dynamic depending on transaction status
  */
-async function getTransactionNamespacesVisibility ({ platformId, env, object, currentUserId }) {
+async function getTransactionNamespacesVisibility({
+  platformId,
+  env,
+  object,
+  currentUserId,
+}) {
   const { Transaction } = await getModels({ platformId, env })
   const userId = getUserIdFromObj(object)
 
@@ -90,13 +92,11 @@ async function getTransactionNamespacesVisibility ({ platformId, env, object, cu
 
   // Find all transactions between these users to check if they can see namespace protected data
   const transactions = await Transaction.query()
-    .where(builder => {
-      builder.where('ownerId', userId)
-        .orWhere('takerId', userId)
+    .where((builder) => {
+      builder.where('ownerId', userId).orWhere('takerId', userId)
     })
-    .where(builder => {
-      builder.where('ownerId', currentUserId)
-        .orWhere('takerId', currentUserId)
+    .where((builder) => {
+      builder.where('ownerId', currentUserId).orWhere('takerId', currentUserId)
     })
 
   return transactions.reduce((revealedNamespaces, transaction) => {
@@ -106,9 +106,11 @@ async function getTransactionNamespacesVisibility ({ platformId, env, object, cu
     // '_protected' namespace is revealed once transaction reach 'validated' status by default
     if (!visibilityConfig.protected) visibilityConfig.protected = ['validated']
 
-    Object.keys(visibilityConfig).forEach(namespace => {
+    Object.keys(visibilityConfig).forEach((namespace) => {
       const visibilitySteps = visibilityConfig[namespace]
-      const reveal = transaction.statusHistory.some(h => visibilitySteps.includes(h.status))
+      const reveal = transaction.statusHistory.some((h) =>
+        visibilitySteps.includes(h.status),
+      )
       revealedNamespaces[namespace] = revealedNamespaces[namespace] || reveal
     })
 
@@ -116,7 +118,7 @@ async function getTransactionNamespacesVisibility ({ platformId, env, object, cu
   }, {})
 }
 
-function getDynamicNamespacesForObject ({
+function getDynamicNamespacesForObject({
   readNamespaces,
   editNamespaces,
   currentUserId,
@@ -124,7 +126,7 @@ function getDynamicNamespacesForObject ({
   deltaObject,
   revealedAfterTransaction,
   readActive,
-  editActive
+  editActive,
 }) {
   const result = {}
 
@@ -136,7 +138,7 @@ function getDynamicNamespacesForObject ({
       currentUserId,
       object,
       hasAccessNamespaceFn: hasReadAccessNamespaceFn,
-      revealedAfterTransaction
+      revealedAfterTransaction,
     })
 
     result.dynamicReadNamespaces = dynamicReadNamespaces
@@ -147,14 +149,15 @@ function getDynamicNamespacesForObject ({
   if (editActive) {
     const hasEditAccessNamespaceFn = retrieveGetAccessNamespaceFn('edit')
 
-    const { dynamicEditNamespaces, isValidEditNamespaces } = getEditDynamicNamespaceForObject({
-      editNamespaces,
-      currentUserId,
-      object,
-      deltaObject,
-      hasAccessNamespaceFn: hasEditAccessNamespaceFn,
-      revealedAfterTransaction
-    })
+    const { dynamicEditNamespaces, isValidEditNamespaces } =
+      getEditDynamicNamespaceForObject({
+        editNamespaces,
+        currentUserId,
+        object,
+        deltaObject,
+        hasAccessNamespaceFn: hasEditAccessNamespaceFn,
+        revealedAfterTransaction,
+      })
 
     result.dynamicEditNamespaces = dynamicEditNamespaces
     result.isValidEditNamespaces = isValidEditNamespaces
@@ -166,19 +169,19 @@ function getDynamicNamespacesForObject ({
   return result
 }
 
-function getReadDynamicNamespaceForObject ({
+function getReadDynamicNamespaceForObject({
   readNamespaces,
   currentUserId,
   object,
   hasAccessNamespaceFn,
-  revealedAfterTransaction
+  revealedAfterTransaction,
 }) {
   if (readNamespaces.includes('*')) {
     return { dynamicReadNamespaces: readNamespaces }
   }
 
   const dataNamespaces = Base.getDataNamespaces(object)
-  const objectType = getModelInfo({ objectId: object.id }).objectType
+  const { objectType } = getModelInfo({ objectId: object.id })
   const userId = getUserIdFromObj(object)
 
   // add the private namespace even if it's not present in data or platformData
@@ -191,32 +194,32 @@ function getReadDynamicNamespaceForObject ({
 
   const missingNamespaces = _.difference(dataNamespaces, readNamespaces)
 
-  missingNamespaces.forEach(namespace => {
+  missingNamespaces.forEach((namespace) => {
     const hasAccess = hasAccessNamespaceFn(namespace, {
       userId,
       currentUserId,
-      revealedAfterTransaction
+      revealedAfterTransaction,
     })
     if (hasAccess) addedReadNamespaces.push(namespace)
   })
 
   return {
-    dynamicReadNamespaces: _.uniq(readNamespaces.concat(addedReadNamespaces))
+    dynamicReadNamespaces: _.uniq(readNamespaces.concat(addedReadNamespaces)),
   }
 }
 
-function getEditDynamicNamespaceForObject ({
+function getEditDynamicNamespaceForObject({
   editNamespaces,
   currentUserId,
   object,
   deltaObject,
   hasAccessNamespaceFn,
-  revealedAfterTransaction
+  revealedAfterTransaction,
 }) {
   if (editNamespaces.includes('*')) {
     return {
       dynamicEditNamespaces: editNamespaces,
-      isValidEditNamespaces: true
+      isValidEditNamespaces: true,
     }
   }
 
@@ -227,41 +230,48 @@ function getEditDynamicNamespaceForObject ({
 
   const missingNamespaces = _.difference(dataNamespaces, editNamespaces)
 
-  missingNamespaces.forEach(namespace => {
+  missingNamespaces.forEach((namespace) => {
     const hasAccess = hasAccessNamespaceFn(namespace, {
       userId,
       currentUserId,
-      revealedAfterTransaction
+      revealedAfterTransaction,
     })
     if (hasAccess) addedEditNamespaces.push(namespace)
   })
 
-  const differenceNamespaces = _.difference(missingNamespaces, addedEditNamespaces)
+  const differenceNamespaces = _.difference(
+    missingNamespaces,
+    addedEditNamespaces,
+  )
 
   return {
     dynamicEditNamespaces: _.uniq(editNamespaces.concat(addedEditNamespaces)),
-    isValidEditNamespaces: !differenceNamespaces.length
+    isValidEditNamespaces: !differenceNamespaces.length,
   }
 }
 
-function retrieveGetAccessNamespaceFn (actionType) {
+function retrieveGetAccessNamespaceFn(actionType) {
   if (actionType === 'edit') return getEditAccessNamespaces
-  else return getReadAccessNamespaces
+  return getReadAccessNamespaces
 }
 
-function getReadAccessNamespaces (namespace, { userId, currentUserId, revealedAfterTransaction }) {
+function getReadAccessNamespaces(
+  namespace,
+  { userId, currentUserId, revealedAfterTransaction },
+) {
   const isSelf = userId === currentUserId
   if (namespace === 'private') return isSelf
-  else if (namespace === 'protected') return isSelf || _.get(revealedAfterTransaction, 'protected')
-  else return false
+  if (namespace === 'protected')
+    return isSelf || _.get(revealedAfterTransaction, 'protected')
+  return false
 }
 
-function getEditAccessNamespaces (namespace, { userId, currentUserId }) {
+function getEditAccessNamespaces(namespace, { userId, currentUserId }) {
   const isSelf = userId === currentUserId
   return (namespace === 'private' || namespace === 'protected') && isSelf
 }
 
-function getUserIdFromObj (object) {
+function getUserIdFromObj(object) {
   const { objectType: type } = getModelInfo({ objectId: object.id })
   let userId = ''
 
@@ -272,12 +282,12 @@ function getUserIdFromObj (object) {
   return userId
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

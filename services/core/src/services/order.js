@@ -2,82 +2,70 @@ const createError = require('http-errors')
 const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 
+const { getModels } = require('@saltana/db')
+const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
 
 const { isValidCurrency } = require('../util/currency')
 
 const { replaceBy } = require('../util/list')
 
-const { getObjectId } = require('@saltana/util-keys')
-
 const {
   getLinesFromTransactions,
   getInformationFromLines,
   getInformationFromMoves,
-  getOrderMeta
+  getOrderMeta,
 } = require('../util/order')
 
-const {
-  canComputePricing
-} = require('../util/transaction')
+const { canComputePricing } = require('../util/transaction')
 
 const { performListQuery } = require('../util/listQueryBuilder')
 
-const {
-  getCurrentUserId
-} = require('../util/user')
+const { getCurrentUserId } = require('../util/user')
 
 let responder
 let subscriber
 let publisher
 let transactionRequester
 
-function start ({ communication }) {
+function start({ communication }) {
   const {
     getResponder,
     getSubscriber,
     getRequester,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'Order Responder',
-    key: 'order'
+    key: 'order',
   })
 
   subscriber = getSubscriber({
     name: 'Order subscriber',
     key: 'order',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'orderCreated',
-      'orderUpdated',
-    ]
+    subscribesTo: ['orderCreated', 'orderUpdated'],
   })
 
   publisher = getPublisher({
     name: 'Order publisher',
     key: 'order',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   transactionRequester = getRequester({
     name: 'Order service > Transaction Requester',
-    key: 'transaction'
+    key: 'transaction',
   })
 
   responder.on('preview', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const {
-      lines,
-      moves,
-      transactionIds
-    } = req
+    const { lines, moves, transactionIds } = req
 
     const hasAllPermissions = req._matchedPermissions['order:preview:all']
     const currentUserId = getCurrentUserId(req)
@@ -88,7 +76,7 @@ function start ({ communication }) {
       transactionIds,
       currentUserId,
       hasAllPermissions,
-      req
+      req,
     })
 
     const isSelf = Order.isSelf(previewedOrder, currentUserId)
@@ -100,8 +88,8 @@ function start ({ communication }) {
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
     const {
@@ -120,7 +108,7 @@ function start ({ communication }) {
       id,
       payerId,
       receiverId,
-      transactionId
+      transactionId,
     } = req
 
     const currentUserId = getCurrentUserId(req)
@@ -134,41 +122,39 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         payersIds: {
           dbField: 'payerId',
           value: payerId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         receiverId: {
           dbField: 'receiverId',
           value: receiverId,
           query: (queryBuilder, receiverId) => {
             queryBuilder.whereJsonSupersetOf('lines', [{ receiverId }])
-          }
+          },
         },
         transactionId: {
           dbField: 'transactionId',
           value: transactionId,
           query: (queryBuilder, transactionId) => {
             queryBuilder.whereJsonSupersetOf('lines', [{ transactionId }])
-          }
-        }
+          },
+        },
       },
       beforeQueryFn: async ({ values }) => {
-        const {
-          payersIds,
-          receiverId
-        } = values
+        const { payersIds, receiverId } = values
 
         if (!req._matchedPermissions['order:list:all']) {
-          const isAllowed = currentUserId &&
-            (
-              (payersIds && payersIds.length === 1 && payersIds.includes(currentUserId)) ||
-              (receiverId && receiverId === currentUserId)
-            )
+          const isAllowed =
+            currentUserId &&
+            ((payersIds &&
+              payersIds.length === 1 &&
+              payersIds.includes(currentUserId)) ||
+              (receiverId && receiverId === currentUserId))
 
           if (!isAllowed) {
             throw createError(403)
@@ -188,22 +174,24 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
 
-    paginationMeta.results = paginationMeta.results.map(order => Order.expose(order, { req }))
+    paginationMeta.results = paginationMeta.results.map((order) =>
+      Order.expose(order, { req }),
+    )
 
     return paginationMeta
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const orderId = req.orderId
+    const { orderId } = req
 
     const order = await Order.query().findById(orderId)
     if (!order) {
@@ -221,26 +209,20 @@ function start ({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const fields = [
-      'metadata',
-      'platformData'
-    ]
+    const fields = ['metadata', 'platformData']
 
     const payload = _.pick(req, fields)
 
-    const {
-      lines,
-      moves,
-      transactionIds
-    } = req
+    const { lines, moves, transactionIds } = req
 
-    const createAttrs = Object.assign({
-      id: await getObjectId({ prefix: Order.idPrefix, platformId, env })
-    }, payload)
+    const createAttrs = {
+      id: await getObjectId({ prefix: Order.idPrefix, platformId, env }),
+      ...payload,
+    }
 
     const hasAllPermissions = req._matchedPermissions['order:create:all']
     const currentUserId = getCurrentUserId(req)
@@ -251,18 +233,26 @@ function start ({ communication }) {
       transactionIds,
       currentUserId,
       hasAllPermissions,
-      req
+      req,
     })
 
     Object.assign(createAttrs, previewedOrder)
 
     for (let i = 0; i < createAttrs.lines.length; i++) {
       const line = createAttrs.lines[i]
-      line.id = await getObjectId({ prefix: Order.lineIdPrefix, platformId, env })
+      line.id = await getObjectId({
+        prefix: Order.lineIdPrefix,
+        platformId,
+        env,
+      })
     }
     for (let i = 0; i < createAttrs.moves.length; i++) {
       const move = createAttrs.moves[i]
-      move.id = await getObjectId({ prefix: Order.moveIdPrefix, platformId, env })
+      move.id = await getObjectId({
+        prefix: Order.moveIdPrefix,
+        platformId,
+        env,
+      })
     }
 
     const isSelf = Order.isSelf(createAttrs, currentUserId)
@@ -277,30 +267,24 @@ function start ({ communication }) {
       eventDate: order.createdDate,
       platformId,
       env,
-      req
+      req,
     })
 
     return Order.expose(order, { req })
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const orderId = req.orderId
+    const { orderId } = req
 
-    const fields = [
-      'metadata',
-      'platformData'
-    ]
+    const fields = ['metadata', 'platformData']
 
     const payload = _.pick(req, fields)
 
-    const {
-      metadata,
-      platformData
-    } = payload
+    const { metadata, platformData } = payload
 
     const order = await Order.query().findById(orderId)
     if (!order) {
@@ -315,13 +299,16 @@ function start ({ communication }) {
     }
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     if (metadata) {
       updateAttrs.metadata = Order.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = Order.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = Order.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
     const newOrder = await Order.query().patchAndFetchById(orderId, updateAttrs)
@@ -334,7 +321,7 @@ function start ({ communication }) {
       eventDate: newOrder.updatedDate,
       platformId,
       env,
-      req
+      req,
     })
 
     return Order.expose(newOrder, { req })
@@ -343,11 +330,11 @@ function start ({ communication }) {
   // ORDER LINE
 
   responder.on('readLine', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const orderLineId = req.orderLineId
+    const { orderLineId } = req
 
     const orders = await Order.query()
       .whereJsonSupersetOf('lines', [{ id: orderLineId }])
@@ -360,7 +347,7 @@ function start ({ communication }) {
 
     const currentUserId = getCurrentUserId(req)
 
-    const orderLine = order.lines.find(line => line.id === orderLineId)
+    const orderLine = order.lines.find((line) => line.id === orderLineId)
 
     const isSelf = Order.isSelfForLine(orderLine, currentUserId)
     if (!req._matchedPermissions['orderLine:read:all'] && !isSelf) {
@@ -371,8 +358,8 @@ function start ({ communication }) {
   })
 
   responder.on('createLine', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
     const fields = [
@@ -386,20 +373,13 @@ function start ({ communication }) {
       'platformAmount',
       'currency',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      currency,
-      transactionId,
-      orderId,
-      reversal
-    } = payload
-    let {
-      payerId
-    } = payload
+    const { currency, transactionId, orderId, reversal } = payload
+    let { payerId } = payload
 
     const knex = Order.knex()
 
@@ -408,14 +388,16 @@ function start ({ communication }) {
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
       // before reading the last version of Saltana order
-      const order = await Order.query(trx).forUpdate()
-        .findById(orderId)
+      const order = await Order.query(trx).forUpdate().findById(orderId)
       if (!order) {
         throw createError(404)
       }
 
       if (!reversal && order.paymentAttempted) {
-        throw createError(422, 'Only reversal order lines are allowed for orders with attempted payments')
+        throw createError(
+          422,
+          'Only reversal order lines are allowed for orders with attempted payments',
+        )
       }
 
       if (transactionId) {
@@ -424,7 +406,10 @@ function start ({ communication }) {
           throw createError(422, 'Transaction not found')
         }
         if (payerId && transaction.takerId !== payerId) {
-          throw createError(422, `The payer (${payerId}) doesn't match the transaction taker (${transaction.takerId})`)
+          throw createError(
+            422,
+            `The payer (${payerId}) doesn't match the transaction taker (${transaction.takerId})`,
+          )
         }
         if (!payerId && typeof payerAmount === 'number') {
           payerId = transaction.takerId
@@ -433,7 +418,8 @@ function start ({ communication }) {
       }
 
       if (!order.payerId && !payerId) {
-        const msg = 'There is no payerId associated with the order. Please create an order line with a payerId.'
+        const msg =
+          'There is no payerId associated with the order. Please create an order line with a payerId.'
         throw createError(422, msg)
       }
       if (payerId && payerId !== order.payerId) {
@@ -444,9 +430,7 @@ function start ({ communication }) {
       const linesInformation = getInformationFromLines(order.lines)
       const currentCurrency = linesInformation.currency || order.currency // there can be no line
       if (currentCurrency !== currency) {
-        const msg = `The provided currency (${
-          currency
-        }) doesn't match with the order's currency (${currentCurrency})`
+        const msg = `The provided currency (${currency}) doesn't match with the order's currency (${currentCurrency})`
         throw createError(422, msg)
       }
 
@@ -454,7 +438,7 @@ function start ({ communication }) {
 
       const now = new Date().toISOString()
 
-      newOrderLine = Object.assign({
+      newOrderLine = {
         id: await getObjectId({ prefix: Order.lineIdPrefix, platformId, env }),
         createdDate: now,
         updatedDate: now,
@@ -466,8 +450,9 @@ function start ({ communication }) {
         receiverAmount: null,
         platformAmount: null,
         metadata: {},
-        platformData: {}
-      }, payload)
+        platformData: {},
+        ...payload,
+      }
 
       const isSelf = Order.isSelfForLine(newOrderLine, currentUserId)
       if (!req._matchedPermissions['orderLine:create:all'] && !isSelf) {
@@ -477,14 +462,14 @@ function start ({ communication }) {
       const newLines = order.lines.concat([newOrderLine])
 
       const updateAttrs = {
-        lines: newLines
+        lines: newLines,
       }
 
       await updateOrder(order, updateAttrs, {
         req,
         trx,
         lines: newLines,
-        moves: order.moves
+        moves: order.moves,
       })
     })
 
@@ -492,11 +477,11 @@ function start ({ communication }) {
   })
 
   responder.on('updateLine', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const orderLineId = req.orderLineId
+    const { orderLineId } = req
 
     const fields = [
       'payerId',
@@ -505,7 +490,7 @@ function start ({ communication }) {
       'receiverAmount',
       'platformAmount',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
@@ -517,7 +502,7 @@ function start ({ communication }) {
       receiverAmount,
       platformAmount,
       metadata,
-      platformData
+      platformData,
     } = payload
 
     const knex = Order.knex()
@@ -527,7 +512,8 @@ function start ({ communication }) {
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
       // before reading the last version of Saltana order
-      const orders = await Order.query(trx).forUpdate()
+      const orders = await Order.query(trx)
+        .forUpdate()
         .whereJsonSupersetOf('lines', [{ id: orderLineId }])
         .limit(1)
 
@@ -538,14 +524,15 @@ function start ({ communication }) {
 
       const currentUserId = getCurrentUserId(req)
 
-      const orderLine = order.lines.find(line => line.id === orderLineId)
+      const orderLine = order.lines.find((line) => line.id === orderLineId)
 
       const isSelf = Order.isSelfForLine(orderLine, currentUserId)
       if (!req._matchedPermissions['orderLine:edit:all'] && !isSelf) {
         throw createError(403)
       }
 
-      const updatingCoreData = typeof payerId !== 'undefined' ||
+      const updatingCoreData =
+        typeof payerId !== 'undefined' ||
         typeof payerAmount !== 'undefined' ||
         typeof receiverId !== 'undefined' ||
         typeof receiverAmount !== 'undefined' ||
@@ -573,9 +560,9 @@ function start ({ communication }) {
           payerAmount,
           receiverId,
           receiverAmount,
-          platformAmount
+          platformAmount,
         }
-        Object.keys(coreValues).forEach(key => {
+        Object.keys(coreValues).forEach((key) => {
           const value = coreValues[key]
           if (typeof value !== 'undefined') {
             newOrderLine[key] = value
@@ -583,20 +570,30 @@ function start ({ communication }) {
         })
       }
 
-      const newLines = replaceBy(order.lines, newOrderLine, line => line.id === newOrderLine.id)
+      const newLines = replaceBy(
+        order.lines,
+        newOrderLine,
+        (line) => line.id === newOrderLine.id,
+      )
       const linesInformation = getInformationFromLines(newLines)
 
       if (updatingCoreData) {
         if (!linesInformation.payerId) {
-          throw createError(422, 'The attribute payerId is missing in the order lines')
+          throw createError(
+            422,
+            'The attribute payerId is missing in the order lines',
+          )
         }
         if (payerId && payerId !== linesInformation.payerId) {
-          throw createError(422, 'The specified payerId does not match with the order one')
+          throw createError(
+            422,
+            'The specified payerId does not match with the order one',
+          )
         }
       }
 
       const updateAttrs = {
-        lines: newLines
+        lines: newLines,
       }
 
       await updateOrder(order, updateAttrs, {
@@ -604,7 +601,7 @@ function start ({ communication }) {
         trx,
         lines: newLines,
         moves: order.moves,
-        linesInformation
+        linesInformation,
       })
     })
 
@@ -614,11 +611,11 @@ function start ({ communication }) {
   // ORDER MOVE
 
   responder.on('readMove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const orderMoveId = req.orderMoveId
+    const { orderMoveId } = req
 
     const orders = await Order.query()
       .whereJsonSupersetOf('moves', [{ id: orderMoveId }])
@@ -631,7 +628,7 @@ function start ({ communication }) {
 
     const currentUserId = getCurrentUserId(req)
 
-    const orderMove = order.moves.find(move => move.id === orderMoveId)
+    const orderMove = order.moves.find((move) => move.id === orderMoveId)
 
     const isSelf = Order.isSelfForMove(orderMove, currentUserId)
     if (!req._matchedPermissions['orderMove:read:all'] && !isSelf) {
@@ -642,8 +639,8 @@ function start ({ communication }) {
   })
 
   responder.on('createMove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
     const fields = [
@@ -658,18 +655,12 @@ function start ({ communication }) {
       'currency',
       'real',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      currency,
-      payerId,
-      receiverId,
-      transactionId,
-      orderId
-    } = payload
+    const { currency, payerId, receiverId, transactionId, orderId } = payload
 
     const knex = Order.knex()
 
@@ -678,19 +669,27 @@ function start ({ communication }) {
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
       // before reading the last version of Saltana order
-      const order = await Order.query(trx).forUpdate()
-        .findById(orderId)
+      const order = await Order.query(trx).forUpdate().findById(orderId)
       if (!order) {
         throw createError(404)
       }
 
       if (!order.lines.length) {
-        throw createError(422, 'Cannot create a move for an order that has no order line')
+        throw createError(
+          422,
+          'Cannot create a move for an order that has no order line',
+        )
       }
 
       const linesInformation = getInformationFromLines(order.lines)
-      if (transactionId && !linesInformation.transactionIds.includes(transactionId)) {
-        throw createError(422, `The provided transactionId (${transactionId}) doesn't match any order line`)
+      if (
+        transactionId &&
+        !linesInformation.transactionIds.includes(transactionId)
+      ) {
+        throw createError(
+          422,
+          `The provided transactionId (${transactionId}) doesn't match any order line`,
+        )
       }
       if (payerId && payerId !== order.payerId) {
         const msg = `The provided payer (${payerId}) doesn't match with the order's payer (${order.payerId})`
@@ -709,7 +708,7 @@ function start ({ communication }) {
 
       const now = new Date().toISOString()
 
-      newOrderMove = Object.assign({
+      newOrderMove = {
         id: await getObjectId({ prefix: Order.moveIdPrefix, platformId, env }),
         createdDate: now,
         updatedDate: now,
@@ -721,8 +720,9 @@ function start ({ communication }) {
         receiverAmount: null,
         platformAmount: null,
         metadata: {},
-        platformData: {}
-      }, payload)
+        platformData: {},
+        ...payload,
+      }
 
       if (newOrderMove.real) {
         if (typeof newOrderMove.real.payerAmount === 'undefined') {
@@ -748,14 +748,14 @@ function start ({ communication }) {
       const newMoves = order.moves.concat([newOrderMove])
 
       const updateAttrs = {
-        moves: newMoves
+        moves: newMoves,
       }
 
       await updateOrder(order, updateAttrs, {
         req,
         trx,
         lines: order.lines,
-        moves: newMoves
+        moves: newMoves,
       })
     })
 
@@ -763,25 +763,17 @@ function start ({ communication }) {
   })
 
   responder.on('updateMove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
-    const orderMoveId = req.orderMoveId
+    const { orderMoveId } = req
 
-    const fields = [
-      'real',
-      'metadata',
-      'platformData'
-    ]
+    const fields = ['real', 'metadata', 'platformData']
 
     const payload = _.pick(req, fields)
 
-    const {
-      real,
-      metadata,
-      platformData
-    } = payload
+    const { real, metadata, platformData } = payload
 
     const knex = Order.knex()
 
@@ -790,7 +782,8 @@ function start ({ communication }) {
     await transaction(knex, async (trx) => {
       // use sql `SELECT FOR UPDATE` to wait for other sql orders to be completed
       // before reading the last version of Saltana order
-      const orders = await Order.query(trx).forUpdate()
+      const orders = await Order.query(trx)
+        .forUpdate()
         .whereJsonSupersetOf('moves', [{ id: orderMoveId }])
         .limit(1)
 
@@ -801,7 +794,7 @@ function start ({ communication }) {
 
       const currentUserId = getCurrentUserId(req)
 
-      const orderMove = order.moves.find(move => move.id === orderMoveId)
+      const orderMove = order.moves.find((move) => move.id === orderMoveId)
 
       const isSelf = Order.isSelfForMove(orderMove, currentUserId)
       if (!req._matchedPermissions['orderMove:edit:all'] && !isSelf) {
@@ -840,17 +833,21 @@ function start ({ communication }) {
         newOrderMove.platformData = newplatformData
       }
 
-      const newMoves = replaceBy(order.moves, newOrderMove, move => move.id === newOrderMove.id)
+      const newMoves = replaceBy(
+        order.moves,
+        newOrderMove,
+        (move) => move.id === newOrderMove.id,
+      )
 
       const updateAttrs = {
-        moves: newMoves
+        moves: newMoves,
       }
 
       await updateOrder(order, updateAttrs, {
         req,
         trx,
         lines: order.lines,
-        moves: newMoves
+        moves: newMoves,
       })
     })
 
@@ -859,98 +856,127 @@ function start ({ communication }) {
 
   // EVENTS
 
-  subscriber.on('orderCreated', async ({ order, eventDate, platformId, env, req } = {}) => {
-    try {
-      const { Event, Order } = await getModels({ platformId, env })
+  subscriber.on(
+    'orderCreated',
+    async ({ order, eventDate, platformId, env, req } = {}) => {
+      try {
+        const { Event, Order } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'order__created',
-        objectId: order.id,
-        object: Order.expose(order, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { orderId: order.id },
-        message: 'Fail to create event order__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'order__created',
+            objectId: order.id,
+            object: Order.expose(order, { req, namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { orderId: order.id },
+          message: 'Fail to create event order__created',
+        })
+      }
+    },
+  )
 
-  subscriber.on('orderUpdated', async ({
-    orderId,
-    updateAttrs,
-    newOrder,
-    eventDate,
-    platformId,
-    env,
-    req
-  } = {}) => {
-    try {
-      const { Event, Order } = await getModels({ platformId, env })
+  subscriber.on(
+    'orderUpdated',
+    async ({
+      orderId,
+      updateAttrs,
+      newOrder,
+      eventDate,
+      platformId,
+      env,
+      req,
+    } = {}) => {
+      try {
+        const { Event, Order } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'order__updated',
-        objectId: orderId,
-        object: Order.expose(newOrder, { req, namespaces: ['*'] }),
-        changesRequested: Order.expose(updateAttrs, { req, namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { orderId },
-        message: 'Fail to create event order__updated'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'order__updated',
+            objectId: orderId,
+            object: Order.expose(newOrder, { req, namespaces: ['*'] }),
+            changesRequested: Order.expose(updateAttrs, {
+              req,
+              namespaces: ['*'],
+            }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { orderId },
+          message: 'Fail to create event order__updated',
+        })
+      }
+    },
+  )
 
-  async function fetchTransaction (transactionId, { req }) {
+  async function fetchTransaction(transactionId, { req }) {
     const transactions = await fetchTransactions([transactionId], { req })
     return transactions[0]
   }
 
-  async function fetchTransactions (transactionIds, { req }) {
+  async function fetchTransactions(transactionIds, { req }) {
     if (!transactionIds.length) return []
 
-    const transactionPaginationResult = await transactionRequester.communicate(req)({
+    const transactionPaginationResult = await transactionRequester.communicate(
+      req,
+    )({
       type: 'list',
       _matchedPermissions: {
-        'transaction:list:all': true
+        'transaction:list:all': true,
       },
       id: transactionIds,
       orderBy: 'createdDate',
       order: 'desc',
       page: 1,
-      nbResultsPerPage: 1000
+      nbResultsPerPage: 1000,
     })
 
     return transactionPaginationResult.results
   }
 
-  function checkTransactions (transactions) {
+  function checkTransactions(transactions) {
     let payerId
     let currency
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       if (!transaction.ownerId) {
-        throw createError(422, `Missing owner for transaction with ID ${transaction.id}`)
+        throw createError(
+          422,
+          `Missing owner for transaction with ID ${transaction.id}`,
+        )
       }
       if (!transaction.takerId) {
-        throw createError(422, `Missing taker for transaction with ID ${transaction.id}`)
+        throw createError(
+          422,
+          `Missing taker for transaction with ID ${transaction.id}`,
+        )
       }
       if (!canComputePricing(transaction)) {
-        throw createError(422, `Missing asset for the transaction with ID ${transaction.id}`)
+        throw createError(
+          422,
+          `Missing asset for the transaction with ID ${transaction.id}`,
+        )
       }
 
       if (payerId !== transaction.takerId) {
         if (!payerId) {
           payerId = transaction.takerId
         } else {
-          throw createError(422, `Multiple payers detected: ${payerId}, ${transaction.takerId}`)
+          throw createError(
+            422,
+            `Multiple payers detected: ${payerId}, ${transaction.takerId}`,
+          )
         }
       }
 
@@ -958,24 +984,30 @@ function start ({ communication }) {
         if (!currency) {
           currency = transaction.currency
         } else {
-          throw createError(422, `Multiple currencies are not accepted: ${currency}, ${transaction.currency}`)
+          throw createError(
+            422,
+            `Multiple currencies are not accepted: ${currency}, ${transaction.currency}`,
+          )
         }
       }
     })
   }
 
-  function checkLines (lines, { transactions }) {
+  function checkLines(lines, { transactions }) {
     let payerId
     let currency
 
     const indexedTransactions = _.keyBy(transactions, 'id')
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       if (payerId !== line.payerId) {
         if (!payerId) {
           payerId = line.payerId
         } else {
-          throw createError(422, `Multiple payers detected: ${payerId}, ${line.payerId}`)
+          throw createError(
+            422,
+            `Multiple payers detected: ${payerId}, ${line.payerId}`,
+          )
         }
       }
 
@@ -983,36 +1015,50 @@ function start ({ communication }) {
         if (!currency) {
           currency = line.currency
         } else {
-          throw createError(422, `Multiple currencies are not accepted: ${currency}, ${line.currency}`)
+          throw createError(
+            422,
+            `Multiple currencies are not accepted: ${currency}, ${line.currency}`,
+          )
         }
       }
 
       if (line.transactionId) {
         const transaction = indexedTransactions[line.transactionId]
         if (!transaction) {
-          throw createError(422, `Transaction ID ${line.transactionId} not found`)
+          throw createError(
+            422,
+            `Transaction ID ${line.transactionId} not found`,
+          )
         }
 
         if (line.payerId && transaction.takerId !== line.payerId) {
-          throw createError(`The payer ${line.payerId} doesn't match with the transaction taker ${transaction.takerId}`)
+          throw createError(
+            `The payer ${line.payerId} doesn't match with the transaction taker ${transaction.takerId}`,
+          )
         }
         if (line.currency !== transaction.currency) {
-          throw createError(422, `Line's currency (${line.currency}) doesn't match with the transaction ${transaction.id} (${transaction.currency})`)
+          throw createError(
+            422,
+            `Line's currency (${line.currency}) doesn't match with the transaction ${transaction.id} (${transaction.currency})`,
+          )
         }
       }
     })
   }
 
-  function checkMoves (moves) {
+  function checkMoves(moves) {
     let payerId
     let currency
 
-    moves.forEach(move => {
+    moves.forEach((move) => {
       if (payerId !== move.payerId) {
         if (!payerId) {
           payerId = move.payerId
         } else {
-          throw createError(422, `Multiple payers detected: ${payerId}, ${move.payerId}`)
+          throw createError(
+            422,
+            `Multiple payers detected: ${payerId}, ${move.payerId}`,
+          )
         }
       }
 
@@ -1020,25 +1066,34 @@ function start ({ communication }) {
         if (!currency) {
           currency = move.currency
         } else {
-          throw createError(422, `Multiple currencies are not accepted: ${currency}, ${move.currency}`)
+          throw createError(
+            422,
+            `Multiple currencies are not accepted: ${currency}, ${move.currency}`,
+          )
         }
       }
     })
   }
 
-  async function previewOrder ({
+  async function previewOrder({
     lines,
     moves,
     transactionIds,
     currentUserId,
     hasAllPermissions = false,
-    req
+    req,
   }) {
     if (lines && transactionIds) {
-      throw createError(422, 'Cannot provide lines and transactionIds at the same time')
+      throw createError(
+        422,
+        'Cannot provide lines and transactionIds at the same time',
+      )
     }
-    if ((!lines || !lines.length) && (moves && moves.length)) {
-      throw createError(422, 'Please also provide order lines if you want to specify order moves')
+    if ((!lines || !lines.length) && moves && moves.length) {
+      throw createError(
+        422,
+        'Please also provide order lines if you want to specify order moves',
+      )
     }
 
     const previewedOrder = {}
@@ -1058,7 +1113,7 @@ function start ({ communication }) {
       lines = getLinesFromTransactions(transactions)
     } else if (lines) {
       let transactionIds = []
-      lines.forEach(line => {
+      lines.forEach((line) => {
         if (line.transactionId) {
           transactionIds.push(line.transactionId)
         }
@@ -1093,15 +1148,25 @@ function start ({ communication }) {
         throw createError(422, msg)
       }
 
-      const movesExtraTransactions = _.difference(movesInformation.transactionIds, linesInformation.transactionIds)
+      const movesExtraTransactions = _.difference(
+        movesInformation.transactionIds,
+        linesInformation.transactionIds,
+      )
       if (movesExtraTransactions.length) {
-        const msg = `Order moves define receivers that don't exist in order lines: ${movesExtraTransactions.join(', ')}`
+        const msg = `Order moves define receivers that don't exist in order lines: ${movesExtraTransactions.join(
+          ', ',
+        )}`
         throw createError(422, msg)
       }
 
-      const movesExtraReceivers = _.difference(movesInformation.receiverIds, linesInformation.receiverIds)
+      const movesExtraReceivers = _.difference(
+        movesInformation.receiverIds,
+        linesInformation.receiverIds,
+      )
       if (movesExtraReceivers.length) {
-        const msg = `Order moves define receivers that don't exist in order lines: ${movesExtraReceivers.join(', ')}`
+        const msg = `Order moves define receivers that don't exist in order lines: ${movesExtraReceivers.join(
+          ', ',
+        )}`
         throw createError(422, msg)
       }
     }
@@ -1115,7 +1180,10 @@ function start ({ communication }) {
       throw createError(403)
     }
 
-    const orderMeta = getOrderMeta({}, { lines, moves, linesInformation, movesInformation })
+    const orderMeta = getOrderMeta(
+      {},
+      { lines, moves, linesInformation, movesInformation },
+    )
     Object.assign(previewedOrder, orderMeta)
 
     previewedOrder.lines = lines
@@ -1126,18 +1194,22 @@ function start ({ communication }) {
 
   // Must be the last function in service logic
   // because an event is emitted
-  async function updateOrder (order, updateAttrs, {
-    req,
-    trx,
-    lines,
-    moves,
-    linesInformation,
-    movesInformation,
-    metadata,
-    platformData
-  }) {
-    const platformId = req.platformId
-    const env = req.env
+  async function updateOrder(
+    order,
+    updateAttrs,
+    {
+      req,
+      trx,
+      lines,
+      moves,
+      linesInformation,
+      movesInformation,
+      metadata,
+      platformData,
+    },
+  ) {
+    const { platformId } = req
+    const { env } = req
     const { Order } = await getModels({ platformId, env })
 
     if (!linesInformation) {
@@ -1147,18 +1219,28 @@ function start ({ communication }) {
       movesInformation = getInformationFromMoves(moves)
     }
 
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, updateAttrs, {
+    const updateAttrsBeforeFullDataMerge = {
+      ...updateAttrs,
       metadata,
-      platformData
-    })
+      platformData,
+    }
 
-    const orderMetaChanged = lines || moves || linesInformation || movesInformation
+    const orderMetaChanged =
+      lines || moves || linesInformation || movesInformation
     if (orderMetaChanged) {
-      const orderMeta = getOrderMeta(order, { lines, moves, linesInformation, movesInformation })
+      const orderMeta = getOrderMeta(order, {
+        lines,
+        moves,
+        linesInformation,
+        movesInformation,
+      })
       Object.assign(updateAttrs, orderMeta)
     }
 
-    const newOrder = await Order.query(trx).patchAndFetchById(order.id, updateAttrs)
+    const newOrder = await Order.query(trx).patchAndFetchById(
+      order.id,
+      updateAttrs,
+    )
 
     publisher.publish('orderUpdated', {
       orderId: order.id,
@@ -1168,14 +1250,14 @@ function start ({ communication }) {
       eventDate: newOrder.updatedDate,
       platformId,
       env,
-      req
+      req,
     })
 
     return newOrder
   }
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -1191,5 +1273,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

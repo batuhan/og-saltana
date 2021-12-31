@@ -1,13 +1,12 @@
 const createError = require('http-errors')
 const { transaction, ref } = require('@saltana/objection')
 
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
 
-const { performListQuery } = require('../util/listQueryBuilder')
-
 const _ = require('lodash')
+const { performListQuery } = require('../util/listQueryBuilder')
 
 const {
   getOffsetPaginationMeta,
@@ -28,8 +27,8 @@ function start({ communication }) {
   })
 
   responder.on('getStats', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
     const {
@@ -67,7 +66,7 @@ function start({ communication }) {
     if (field === groupBy) {
       throw createError(
         422,
-        `${field} cannot be field and groupBy at the same time`
+        `${field} cannot be field and groupBy at the same time`,
       )
     }
 
@@ -175,7 +174,7 @@ function start({ communication }) {
     if (multipleLabels && !uniqueGroupByResult) {
       throw createError(
         422,
-        `Multiple labels can be applied if the groupBy ${groupBy} is filtered with one value`
+        `Multiple labels can be applied if the groupBy ${groupBy} is filtered with one value`,
       )
     }
     if (multipleLabels && uniqueGroupByResult) {
@@ -207,7 +206,7 @@ function start({ communication }) {
 
           selectExpressions = selectExpressions.concat([
             knex.raw(
-              `ROW_NUMBER() OVER (ORDER BY ${orderBy}((${sqlStatsFieldExpression})::REAL) ${order}) AS "ranking"`
+              `ROW_NUMBER() OVER (ORDER BY ${orderBy}((${sqlStatsFieldExpression})::REAL) ${order}) AS "ranking"`,
             ),
             knex.raw('COUNT(*) OVER () as "lowestRanking"'),
           ])
@@ -285,7 +284,7 @@ function start({ communication }) {
         // fail to convert a non-number to real in the aggregation query
         throw createError(
           422,
-          `Non-number value was found for field "${field}"`
+          `Non-number value was found for field "${field}"`,
         )
       } else {
         throw err
@@ -294,7 +293,7 @@ function start({ communication }) {
 
     if (multipleLabels && uniqueGroupByResult) {
       const labelPromises = parsedLabels.map((label) =>
-        getQueryBuilderByLabel(label)
+        getQueryBuilderByLabel(label),
       )
       let statsByLabel
 
@@ -392,8 +391,8 @@ function start({ communication }) {
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
     const {
@@ -495,12 +494,12 @@ function start({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
-    const documentId = req.documentId
-    const authorId = req.authorId
+    const { documentId } = req
+    const { authorId } = req
 
     const documentQuery = Document.query().where('id', documentId)
 
@@ -508,7 +507,7 @@ function start({ communication }) {
       documentQuery.orWhere(function () {
         this.where(ref('data:slug').castText(), documentId).andWhere(
           'authorId',
-          authorId
+          authorId,
         )
       })
     }
@@ -523,8 +522,8 @@ function start({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
     const {
@@ -557,8 +556,8 @@ function start({ communication }) {
   })
 
   responder.on('batchCreate', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
     const { documents } = req
@@ -587,8 +586,8 @@ function start({ communication }) {
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
     const {
@@ -616,7 +615,7 @@ function start({ communication }) {
     if (platformData) {
       updateAttrs.platformData = Document.rawJsonbMerge(
         'platformData',
-        platformData
+        platformData,
       )
     }
 
@@ -627,7 +626,7 @@ function start({ communication }) {
     await transaction(knex, async (trx) => {
       newDocument = await Document.query(trx).patchAndFetchById(
         documentId,
-        updateAttrs
+        updateAttrs,
       )
 
       // JSONB column `data` may have properties `replaceDataProperties` that should be replaced
@@ -647,8 +646,8 @@ function start({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Document } = await getModels({ platformId, env })
 
     const { documentId } = req

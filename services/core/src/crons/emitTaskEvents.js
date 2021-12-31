@@ -1,4 +1,4 @@
-const CronJob = require('cron').CronJob
+const { CronJob } = require('cron')
 const Redlock = require('redlock')
 const _ = require('lodash')
 const apm = require('elastic-apm-node')
@@ -10,13 +10,13 @@ const {
   getAllSaltanaTasks,
 
   didSaltanaTaskExecute,
-  addSaltanaTaskExecutionDate
+  addSaltanaTaskExecutionDate,
 } = require('../redis')
 
 const {
   getRoundedDate,
   computeRecurringDates,
-  computeDate
+  computeDate,
 } = require('../util/time')
 
 let eventRequester
@@ -32,15 +32,17 @@ const randomSecond = _.random(0, 20) // random second that will be rounded to in
 
 const job = new CronJob(
   `${randomSecond} * * * * *`, // check every minute
-  emitTaskEvents
+  emitTaskEvents,
 )
 
 // create a lock time so another server can claim the lock after that duration
 // even if the server that has the lock crashes
 const lockTtl = nbMinutes * 60 * 1000 // milliseconds
 
-async function emitTaskEvents () {
-  let fetchEventsTransaction = apm.startTransaction('Fetch task events to emit via cron')
+async function emitTaskEvents() {
+  let fetchEventsTransaction = apm.startTransaction(
+    'Fetch task events to emit via cron',
+  )
 
   try {
     // use ref date because cron job cannot trigger at the specified time (with 0 millisecond)
@@ -57,7 +59,9 @@ async function emitTaskEvents () {
       const taskConfig = filteredTaskConfigs[i]
       const { platformId, env, task } = taskConfig
 
-      const emitEventTransaction = apm.startTransaction('Emit task event via cron')
+      const emitEventTransaction = apm.startTransaction(
+        'Emit task event via cron',
+      )
       apm.setUserContext({ id: platformId })
       apm.addLabels({ env, platformId, eventType: task.eventType })
       apm.setCustomContext({ taskId: task.id })
@@ -68,10 +72,16 @@ async function emitTaskEvents () {
         const lockResource = `locks:saltana_tasks:${task.id}_${refDate}`
         const lock = await redlock.lock(lockResource, lockTtl)
 
-        const alreadyExecuted = await didSaltanaTaskExecute({ taskId: task.id, executionDate: refDate })
+        const alreadyExecuted = await didSaltanaTaskExecute({
+          taskId: task.id,
+          executionDate: refDate,
+        })
 
         if (!alreadyExecuted) {
-          await addSaltanaTaskExecutionDate({ taskId: task.id, executionDate: refDate })
+          await addSaltanaTaskExecutionDate({
+            taskId: task.id,
+            executionDate: refDate,
+          })
           await emitTaskEvent({ platformId, env, task })
         }
 
@@ -91,11 +101,10 @@ async function emitTaskEvents () {
   }
 }
 
-function filterTasks (taskConfigs, refDate, nbMinutes) {
-  return taskConfigs.filter(taskConfig => {
-    const invalidConfig = !taskConfig.platformId ||
-      !taskConfig.env ||
-      !taskConfig.task
+function filterTasks(taskConfigs, refDate, nbMinutes) {
+  return taskConfigs.filter((taskConfig) => {
+    const invalidConfig =
+      !taskConfig.platformId || !taskConfig.env || !taskConfig.task
 
     if (invalidConfig) return false
 
@@ -107,20 +116,22 @@ function filterTasks (taskConfigs, refDate, nbMinutes) {
     if (isRecurringTask) {
       const intervalSeconds = nbMinutes * 30
 
-      const computedRecurringDates = computeRecurringDates(task.recurringPattern, {
-        startDate: computeDate(refDate, { s: -intervalSeconds }),
-        endDate: computeDate(refDate, { s: intervalSeconds }),
-        timezone: task.recurringTimezone
-      })
+      const computedRecurringDates = computeRecurringDates(
+        task.recurringPattern,
+        {
+          startDate: computeDate(refDate, { s: -intervalSeconds }),
+          endDate: computeDate(refDate, { s: intervalSeconds }),
+          timezone: task.recurringTimezone,
+        },
+      )
 
       return computedRecurringDates.includes(refDate)
-    } else {
-      return task.executionDate === refDate
     }
+    return task.executionDate === refDate
   })
 }
 
-async function emitTaskEvent ({ platformId, env, task }) {
+async function emitTaskEvent({ platformId, env, task }) {
   await eventRequester.send({
     type: 'create',
     platformId,
@@ -129,16 +140,16 @@ async function emitTaskEvent ({ platformId, env, task }) {
     emitterId: task.id,
     eventType: task.eventType,
     objectId: task.eventObjectId,
-    metadata: task.eventMetadata
+    metadata: task.eventMetadata,
   })
 }
 
-function start ({ communication }) {
+function start({ communication }) {
   const { getRequester } = communication
 
   eventRequester = getRequester({
     name: 'Emit task event cron > Event Requester',
-    key: 'event'
+    key: 'event',
   })
 
   if (!client) {
@@ -151,7 +162,7 @@ function start ({ communication }) {
   job.start()
 }
 
-function stop () {
+function stop() {
   eventRequester.close()
   eventRequester = null
 
@@ -160,5 +171,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

@@ -8,6 +8,8 @@
     "packages/fil",
     "packages/sdk",
     "packages/util-keys",
+    "packages/vendor-objection",
+    "packages/db",
     "packages/vendor-objection"
   ],
   "version": "independent",

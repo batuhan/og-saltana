@@ -6,7 +6,7 @@ const { getListPermissions } = require('../permissions')
 
 class CustomRequester extends Cote.Requester {
   // Inherit send method to log the processing duration
-  async send (...args) {
+  async send(...args) {
     const sendParams = args[0] || {}
 
     const name = `Requester send: ${this.advertisement.name} | type: ${sendParams.type}`
@@ -23,7 +23,9 @@ class CustomRequester extends Cote.Requester {
     } finally {
       if (isApmActive && !apmSpan) {
         if (!apm.currentTransaction) {
-          logError(new Error(`No APM transaction available in requester "${name}"`))
+          logError(
+            new Error(`No APM transaction available in requester "${name}"`),
+          )
         } else {
           logError(new Error(`Empty apm span in requester "${name}"`))
         }
@@ -34,16 +36,16 @@ class CustomRequester extends Cote.Requester {
     }
   }
 
-  communicate (req = {}) {
+  communicate(req = {}) {
     const requestContext = getRequestContext(req)
 
     return (requestParams) => {
-      return this.send(Object.assign({}, requestContext, requestParams))
+      return this.send({ ...requestContext, ...requestParams })
     }
   }
 }
 
-function getRequestContext (req) {
+function getRequestContext(req) {
   return {
     _readNamespaces: ['*'],
     _editNamespaces: ['*'],
@@ -62,7 +64,7 @@ function getRequestContext (req) {
     _matchedPermissions: getListPermissions().reduce((o, p) => {
       o[p] = true
       return o
-    }, {})
+    }, {}),
   }
 }
 

@@ -26,7 +26,7 @@
       "type": "node",
       "request": "launch",
       "name": "core dev",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "/root/.nvm/versions/node/v14.18.2/bin/node",
       "runtimeArgs": ["server/start.js"],
       "cwd": "${workspaceFolder}/services/core",
       "port": 9329,
@@ -34,7 +34,7 @@
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"],
       "env": {
-        "NODE_OPTIONS": "--inspect",
+        "NODE_OPTIONS": "--inspect --trace-deprecation",
 
         "NODE_ENV": "development",
         "ROARR_LOG": "true"

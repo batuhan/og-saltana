@@ -1,15 +1,13 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { logError } = require('../../server/logger')
-const { getModels } = require('../models')
+const { getModels } = require('@saltana/db')
 
-const {
-  generateKey,
-  getObjectId
-} = require('@saltana/util-keys')
+const { generateKey, getObjectId } = require('@saltana/util-keys')
+const { logError } = require('../../server/logger')
 
 const { performListQuery } = require('../util/listQueryBuilder')
+const { ApiKey } = require('../db/models')
 
 const { getListPermissions } = require('../permissions')
 
@@ -18,46 +16,41 @@ let subscriber
 let publisher
 let roleRequester
 
-function start ({ communication, isSystem }) {
+function start({ communication, isSystem }) {
   const {
     getResponder,
     getRequester,
     getSubscriber,
     getPublisher,
-    COMMUNICATION_ID
+    COMMUNICATION_ID,
   } = communication
 
   responder = getResponder({
     name: 'Api key Responder',
-    key: 'api-key'
+    key: 'api-key',
   })
 
   subscriber = getSubscriber({
     name: 'Api key subscriber',
     key: 'api-key',
     namespace: COMMUNICATION_ID,
-    subscribesTo: [
-      'apiKeyCreated',
-      'apiKeyUpdated',
-      'apiKeyDeleted'
-    ]
+    subscribesTo: ['apiKeyCreated', 'apiKeyUpdated', 'apiKeyDeleted'],
   })
 
   publisher = getPublisher({
     name: 'Api key publisher',
     key: 'api-key',
-    namespace: COMMUNICATION_ID
+    namespace: COMMUNICATION_ID,
   })
 
   roleRequester = getRequester({
     name: 'Api key service > Role Requester',
-    key: 'role'
+    key: 'role',
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { ApiKey } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
 
     const {
       orderBy,
@@ -76,7 +69,7 @@ function start ({ communication, isSystem }) {
       createdDate,
       updatedDate,
       apiKeyType,
-      reveal
+      reveal,
     } = req
 
     if (reveal && !canRevealApiKey(req)) {
@@ -94,24 +87,24 @@ function start ({ communication, isSystem }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdDate',
           value: createdDate,
-          query: 'range'
+          query: 'range',
         },
         updatedDate: {
           dbField: 'updatedDate',
           value: updatedDate,
-          query: 'range'
+          query: 'range',
         },
         type: {
           value: type,
           query: (queryBuilder, type) => {
             queryBuilder.where('key', 'like', `${type}_%`)
-          }
-        }
+          },
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -126,7 +119,7 @@ function start ({ communication, isSystem }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
@@ -136,17 +129,19 @@ function start ({ communication, isSystem }) {
       options.reveal = true
     }
 
-    paginationMeta.results = ApiKey.exposeAll(paginationMeta.results, { req, options })
+    paginationMeta.results = ApiKey.exposeAll(paginationMeta.results, {
+      req,
+      options,
+    })
 
     return paginationMeta
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { ApiKey } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
 
-    const apiKeyId = req.apiKeyId
+    const { apiKeyId } = req
 
     const { reveal } = req
 
@@ -173,9 +168,8 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { ApiKey } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
 
     const {
       name,
@@ -185,7 +179,7 @@ function start ({ communication, isSystem }) {
       readNamespaces,
       editNamespaces,
       metadata,
-      platformData
+      platformData,
     } = req
 
     if (roles) {
@@ -193,7 +187,7 @@ function start ({ communication, isSystem }) {
         type: '_isValidRoles',
         platformId,
         env,
-        roles
+        roles,
       })
 
       if (!valid) {
@@ -222,12 +216,14 @@ function start ({ communication, isSystem }) {
       readNamespaces,
       editNamespaces,
       metadata,
-      platformData
+      platformData,
     }
 
-    const [{ count: nbApiKeys }] = await ApiKey.query().count()
+    const [{ count: nbApiKeys }] = await ApiKey.query()
+      .count()
       .where('key', 'like', 'seck_%')
-    const creatingFirstMasterKey = apiKeyType === 'seck' && !req._matchedPermissions['apiKey:create:all']
+    const creatingFirstMasterKey =
+      apiKeyType === 'seck' && !req._matchedPermissions['apiKey:create:all']
     // cannot create a master key if there are other secret key: must be authorized
     if (creatingFirstMasterKey && nbApiKeys) throw createError(403)
 
@@ -243,10 +239,7 @@ function start ({ communication, isSystem }) {
       createAttrs.permissions = []
       createAttrs.readNamespaces = createAttrs.editNamespaces = []
     } else if (apiKeyType === 'cntk') {
-      createAttrs.permissions = [
-        'entry:list:all',
-        'entry:read:all'
-      ]
+      createAttrs.permissions = ['entry:list:all', 'entry:read:all']
     }
 
     const apiKey = await ApiKey.query().insert(createAttrs)
@@ -255,7 +248,7 @@ function start ({ communication, isSystem }) {
       apiKey,
       eventDate: apiKey.createdDate,
       platformId,
-      env
+      env,
     })
 
     const exposedApiKey = ApiKey.expose(apiKey, { req })
@@ -265,11 +258,10 @@ function start ({ communication, isSystem }) {
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { ApiKey } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
 
-    const apiKeyId = req.apiKeyId
+    const { apiKeyId } = req
 
     const fields = [
       'name',
@@ -278,17 +270,12 @@ function start ({ communication, isSystem }) {
       'readNamespaces',
       'editNamespaces',
       'metadata',
-      'platformData'
+      'platformData',
     ]
 
     const payload = _.pick(req, fields)
 
-    const {
-      roles,
-      permissions,
-      metadata,
-      platformData
-    } = payload
+    const { roles, permissions, metadata, platformData } = payload
 
     const apiKey = await ApiKey.query().findById(apiKeyId)
     if (!apiKey) {
@@ -305,7 +292,7 @@ function start ({ communication, isSystem }) {
         type: '_isValidRoles',
         platformId,
         env,
-        roles
+        roles,
       })
 
       if (!valid) {
@@ -326,16 +313,22 @@ function start ({ communication, isSystem }) {
     }
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     if (metadata) {
       updateAttrs.metadata = ApiKey.rawJsonbMerge('metadata', metadata)
     }
     if (platformData) {
-      updateAttrs.platformData = ApiKey.rawJsonbMerge('platformData', platformData)
+      updateAttrs.platformData = ApiKey.rawJsonbMerge(
+        'platformData',
+        platformData,
+      )
     }
 
-    const newApiKey = await ApiKey.query().patchAndFetchById(apiKeyId, updateAttrs)
+    const newApiKey = await ApiKey.query().patchAndFetchById(
+      apiKeyId,
+      updateAttrs,
+    )
 
     publisher.publish('apiKeyUpdated', {
       apiKey,
@@ -343,20 +336,17 @@ function start ({ communication, isSystem }) {
       updateAttrs: updateAttrsBeforeFullDataMerge,
       eventDate: newApiKey.updatedDate,
       platformId,
-      env
+      env,
     })
 
     return ApiKey.expose(newApiKey, { req })
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
-    const { ApiKey } = await getModels({ platformId, env })
+    const { platformId } = req
+    const { env } = req
 
-    const {
-      apiKeyId
-    } = req
+    const { apiKeyId } = req
 
     const apiKey = await ApiKey.query().findById(apiKeyId)
     if (!apiKey) {
@@ -375,7 +365,7 @@ function start ({ communication, isSystem }) {
       apiKey, // … this can be undefined
       eventDate: new Date().toISOString(),
       platformId,
-      env
+      env,
     })
 
     return { id: apiKeyId }
@@ -383,101 +373,113 @@ function start ({ communication, isSystem }) {
 
   // EVENTS
 
-  subscriber.on('apiKeyCreated', async ({ apiKey, eventDate, platformId, env } = {}) => {
-    try {
-      const { ApiKey, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'apiKeyCreated',
+    async ({ apiKey, eventDate, platformId, env } = {}) => {
+      try {
+        const { ApiKey, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'api_key__created',
-        objectId: apiKey.id,
-        object: ApiKey.expose(apiKey, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { apiKeyId: apiKey.id },
-        message: 'Fail to create event api_key__created'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'api_key__created',
+            objectId: apiKey.id,
+            object: ApiKey.expose(apiKey, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { apiKeyId: apiKey.id },
+          message: 'Fail to create event api_key__created',
+        })
+      }
+    },
+  )
 
-  subscriber.on('apiKeyUpdated', async ({
-    // apiKey,
-    newApiKey,
-    updateAttrs,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { ApiKey, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'apiKeyUpdated',
+    async ({
+      // apiKey,
+      newApiKey,
+      updateAttrs,
+      eventDate,
+      platformId,
+      env,
+    } = {}) => {
+      try {
+        const { ApiKey, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'api_key__updated',
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'api_key__updated',
 
-        objectId: newApiKey.id,
-        object: ApiKey.expose(newApiKey, { namespaces: ['*'] }),
-        changesRequested: ApiKey.expose(updateAttrs, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { apiKeyId: newApiKey.id },
-        message: 'Fail to create event api_key__updated'
-      })
-    }
-  })
+            objectId: newApiKey.id,
+            object: ApiKey.expose(newApiKey, { namespaces: ['*'] }),
+            changesRequested: ApiKey.expose(updateAttrs, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { apiKeyId: newApiKey.id },
+          message: 'Fail to create event api_key__updated',
+        })
+      }
+    },
+  )
 
-  subscriber.on('apiKeyDeleted', async ({
-    apiKeyId,
-    apiKey,
-    eventDate,
-    platformId,
-    env
-  } = {}) => {
-    try {
-      const { ApiKey, Event } = await getModels({ platformId, env })
+  subscriber.on(
+    'apiKeyDeleted',
+    async ({ apiKeyId, apiKey, eventDate, platformId, env } = {}) => {
+      try {
+        const { ApiKey, Event } = await getModels({ platformId, env })
 
-      await Event.createEvent({
-        createdDate: eventDate,
-        type: 'api_key__deleted',
-        objectId: apiKeyId,
-        object: ApiKey.expose(apiKey, { namespaces: ['*'] })
-      }, { platformId, env })
-    } catch (err) {
-      logError(err, {
-        platformId,
-        env,
-        custom: { apiKeyId },
-        message: 'Fail to create event api_key__deleted'
-      })
-    }
-  })
+        await Event.createEvent(
+          {
+            createdDate: eventDate,
+            type: 'api_key__deleted',
+            objectId: apiKeyId,
+            object: ApiKey.expose(apiKey, { namespaces: ['*'] }),
+          },
+          { platformId, env },
+        )
+      } catch (err) {
+        logError(err, {
+          platformId,
+          env,
+          custom: { apiKeyId },
+          message: 'Fail to create event api_key__deleted',
+        })
+      }
+    },
+  )
 
   // INTERNAL
 
   responder.on('_getApiKey', async (req) => {
     const { key, platformId, env } = req
 
-    const { ApiKey } = await getModels({ platformId, env })
-
     const apiKey = await ApiKey.query().findOne({ key })
     return apiKey
   })
 
-  function canRevealApiKey (req) {
-    return isSystem(req._systemHash) ||
+  function canRevealApiKey(req) {
+    return (
+      isSystem(req._systemHash) ||
       (req._saltanaAuthToken &&
-        (req._matchedPermissions['apiKey:create:all'] || req._matchedPermissions['apiKey:edit:all'])
-      )
+        (req._matchedPermissions['apiKey:create:all'] ||
+          req._matchedPermissions['apiKey:edit:all']))
+    )
   }
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 
@@ -490,5 +492,5 @@ function stop () {
 
 module.exports = {
   start,
-  stop
+  stop,
 }

@@ -3,13 +3,12 @@ const {
   mergeFunctionName,
 } = require('../util/stl_jsonb_deep_merge')
 
-
 exports.up = async (knex) => {
   const { schema } = knex.client.connectionSettings || {}
   // We need to inject schema name in function body for recursion
   if (!schema) {
     throw new Error(
-      `Schema name required to create ${mergeFunctionName} function`
+      `Schema name required to create ${mergeFunctionName} function`,
     )
   }
 
@@ -32,7 +31,6 @@ exports.up = async (knex) => {
     table.index('targetId', 'domain__targetId_index')
     table.index('data', 'domain__data_gin_index', 'GIN')
   })
-
 }
 
 exports.down = async (knex) => {
@@ -43,5 +41,4 @@ exports.down = async (knex) => {
   }
 
   await knex.schema.dropTableIfExists('domains')
-
 }

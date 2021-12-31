@@ -43,7 +43,7 @@ function init(server, { middlewares, helpers } = {}) {
         type: 'list',
       })
 
-      params = Object.assign({}, params, payload)
+      params = { ...params, ...payload }
 
       // cannot set the type because it used by cote
       if (req.query.type) {
@@ -112,7 +112,7 @@ function init(server, { middlewares, helpers } = {}) {
         type: 'create',
       })
 
-      params = Object.assign({}, params, payload)
+      params = { ...params, ...payload }
 
       // cannot set the type because it used by cote
       if (req.body.type) {
@@ -150,7 +150,7 @@ function init(server, { middlewares, helpers } = {}) {
         apiKeyId: id,
       })
 
-      params = Object.assign({}, params, payload)
+      params = { ...params, ...payload }
 
       const result = await requester.send(params)
       return result

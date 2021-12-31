@@ -10,6 +10,8 @@
     "packages/fil",
     "packages/sdk",
     "packages/util-keys",
+    "packages/utils",
+    "packages/db",
     "packages/vendor-objection"
   ],
   "scripts": {

@@ -3,14 +3,19 @@ const fs = require('fs')
 const _ = require('lodash')
 
 const debug = require('debug')('saltana:api:search')
-const log = console.log
+
+const { log } = console
 
 const peg = require('pegjs')
+
 const grammarPath = '../util/search-filter-dsl-grammar.pegjs'
 let searchFilterDSLGrammar
 let searchFilterDSLParser
 try {
-  searchFilterDSLGrammar = fs.readFileSync(path.join(__dirname, grammarPath), 'utf8')
+  searchFilterDSLGrammar = fs.readFileSync(
+    path.join(__dirname, grammarPath),
+    'utf8',
+  )
   searchFilterDSLParser = peg.generate(searchFilterDSLGrammar)
 } catch (err) {
   log('Could not generate search filter grammar (peg.js)')
@@ -19,7 +24,9 @@ try {
 
 let deps
 let enabled = false
-let middleware = async (req, res, next) => { next() }
+let middleware = async (req, res, next) => {
+  next()
+}
 
 const filterDSLParserMiddleware = async (...args) => {
   const next = _.last(args)
@@ -32,10 +39,10 @@ module.exports = {
 
   beforeRoutes,
   start,
-  stop
+  stop,
 }
 
-function getFilterDSLMiddleware () {
+function getFilterDSLMiddleware() {
   return async (req, res, next) => {
     try {
       const parsedFilter = await parse(req)
@@ -47,7 +54,7 @@ function getFilterDSLMiddleware () {
   }
 }
 
-async function parse (req) {
+async function parse(req) {
   const { body, platformId, env } = req
   const { communication, createError, apm } = deps
   if (_.isEmpty(body) || !communication) return ''
@@ -61,12 +68,18 @@ async function parse (req) {
   if (m) apmSpans.middleware = apm.startSpan('Parsing Search filter DSL')
 
   try {
-    if (m) apmSpans.customAttributes = apm.startSpan('Fetch Custom Attributes before parsing')
-    const { results: customAttributes } = await saltanaApiRequest('/custom-attributes', {
-      leafThroughResults: 10000,
-      platformId,
-      env
-    })
+    if (m)
+      apmSpans.customAttributes = apm.startSpan(
+        'Fetch Custom Attributes before parsing',
+      )
+    const { results: customAttributes } = await saltanaApiRequest(
+      '/custom-attributes',
+      {
+        leafThroughResults: 10000,
+        platformId,
+        env,
+      },
+    )
     if (apmSpans.customAttributes) apmSpans.customAttributes.end()
     debug('Parsing filter DSL %s', filter)
 
@@ -78,18 +91,23 @@ async function parse (req) {
       const textBuiltIns = ['name'] // name saved as short text if length < 256 chars
       const keepBuiltInEscapeFor = ['_id'] // Keep '_' for ElasticSearch built-in '_id'
 
-      const builtIns = _.uniq([]
-        .concat(booleanBuiltIns)
-        .concat(numberBuiltIns)
-        .concat(selectBuiltIns)
-        .concat(tagsBuiltIns)
-        .concat(textBuiltIns)
+      const builtIns = _.uniq(
+        []
+          .concat(booleanBuiltIns)
+          .concat(numberBuiltIns)
+          .concat(selectBuiltIns)
+          .concat(tagsBuiltIns)
+          .concat(textBuiltIns),
       )
 
       const inject = (typeBuiltIns, type) => {
-        return typeBuiltIns.map(b => `_${b}`).concat(
-          customAttributes.filter(ca => ca.type === type).map(ca => ca.name)
-        )
+        return typeBuiltIns
+          .map((b) => `_${b}`)
+          .concat(
+            customAttributes
+              .filter((ca) => ca.type === type)
+              .map((ca) => ca.name),
+          )
       }
 
       const booleanAttributes = inject(booleanBuiltIns, 'boolean')
@@ -104,13 +122,16 @@ async function parse (req) {
         selectAttributes,
         textListAttributes,
         shortTextAttributes,
-        builtIns: builtIns.map(b => `_${b}`),
-        keepBuiltInEscapeFor
+        builtIns: builtIns.map((b) => `_${b}`),
+        keepBuiltInEscapeFor,
       }
     }
 
     if (m) apmSpans.peg = apm.startSpan('PEG.js parsing')
-    const parsedFilter = searchFilterDSLParser.parse(filter.trim(), getParsingContext())
+    const parsedFilter = searchFilterDSLParser.parse(
+      filter.trim(),
+      getParsingContext(),
+    )
     if (apmSpans.peg) apmSpans.peg.end()
 
     debug('Filter DSL parsing done')
@@ -125,12 +146,12 @@ async function parse (req) {
       throw createError(400, err, {
         public: {
           filter,
-          ...details
-        }
+          ...details,
+        },
       })
     } else {
       throw createError(err, 'Failed to parse Search filter DSL.', {
-        public: { filter }
+        public: { filter },
       })
     }
   } finally {
@@ -138,20 +159,19 @@ async function parse (req) {
   }
 }
 
-function beforeRoutes (server, startParams) {
+function beforeRoutes(server, startParams) {
   server.use(async (req, res, next) => {
     const url = req.path()
     if (req.method !== 'POST' || !url.startsWith('/search')) return next()
-    else await filterDSLParserMiddleware(req, res, next)
+    await filterDSLParserMiddleware(req, res, next)
   })
 }
 
-function start (startParams) {
-  deps = Object.assign({}, startParams)
+function start(startParams) {
+  deps = { ...startParams }
 
   middleware = getFilterDSLMiddleware()
   enabled = true
 }
 
-function stop () {
-}
+function stop() {}
