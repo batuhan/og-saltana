@@ -24,10 +24,9 @@ test('get model info', (t) => {
   t.is(info3.objectType, 'user')
   t.is(info3.Model, User)
 
-  const Models = { User: {} }
   const info4 = getModelInfo({ objectType: 'user' })
   t.is(info4.idPrefix, null)
-  debugger
+
   t.is(info4.objectType, 'user')
   t.is(info4.Model, Models.User)
 })
