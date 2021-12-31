@@ -1,6 +1,6 @@
 const test = require('ava')
 
-const { parseLocale } = require('../../../src/util/locale')
+const { parseLocale } = require('./locale')
 
 test('parses the locale', (t) => {
   t.deepEqual(parseLocale('fr'), {

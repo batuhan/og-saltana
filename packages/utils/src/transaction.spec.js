@@ -8,7 +8,7 @@ const {
   isValidDates,
 
   getTransactionPricing,
-} = require('../../../src/util/transaction')
+} = require('./transaction')
 
 test('get the new status', (t) => {
   t.is(getNewStatus({ status: 'draft' }, 'pay'), 'pending-acceptance')

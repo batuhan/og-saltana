@@ -1,6 +1,6 @@
 const test = require('ava')
 
-const { replaceBy } = require('../../../src/util/list')
+const { replaceBy } = require('./list')
 
 test('replaces the right element', (t) => {
   const elements = [
@@ -23,7 +23,7 @@ test('replaces the right element', (t) => {
   const newElements = replaceBy(
     elements,
     elementToReplace,
-    (element) => element.id === 3,
+    (element) => element.id === 3
   )
   t.deepEqual(newElements, elementsAfterReplacing)
 })

@@ -48,5 +48,12 @@
   },
   "engines": {
     "node": ">=14.18"
+  },
+  "ava": {
+    "verbose": true,
+    "failFast": true,
+    "nodeArguments": [
+      "--trace-deprecation"
+    ]
   }
 }

@@ -11,7 +11,7 @@ const {
   isValidTimezone,
   computeRecurringDates,
   computeRecurringPeriods,
-} = require('../../../src/util/time')
+} = require('./time')
 
 test('detects period intersections', (t) => {
   const dates1 = [
@@ -52,22 +52,22 @@ test('detects period intersections', (t) => {
 test('computes a date based on a string duration', (t) => {
   t.is(
     computeDate('2018-01-01T00:00:00.000Z', '2d'),
-    '2018-01-03T00:00:00.000Z',
+    '2018-01-03T00:00:00.000Z'
   )
   t.is(
     computeDate('2018-01-01T00:00:00.000Z', '15m'),
-    '2018-01-01T00:15:00.000Z',
+    '2018-01-01T00:15:00.000Z'
   )
 })
 
 test('computes a date based on an object duration', (t) => {
   t.is(
     computeDate('2018-01-01T00:00:00.000Z', { d: 2 }),
-    '2018-01-03T00:00:00.000Z',
+    '2018-01-03T00:00:00.000Z'
   )
   t.is(
     computeDate('2018-01-01T00:00:00.000Z', { m: 15 }),
-    '2018-01-01T00:15:00.000Z',
+    '2018-01-01T00:15:00.000Z'
   )
 })
 
@@ -89,25 +89,25 @@ test('get rounded date', (t) => {
   // round to nearest minute
   t.is(
     getRoundedDate('2018-01-01T00:00:00.000Z', { nbMinutes: 1 }),
-    '2018-01-01T00:00:00.000Z',
+    '2018-01-01T00:00:00.000Z'
   )
   t.is(
     getRoundedDate('2018-01-01T00:00:00.001Z', { nbMinutes: 1 }),
-    '2018-01-01T00:00:00.000Z',
+    '2018-01-01T00:00:00.000Z'
   )
   t.is(
     getRoundedDate('2018-01-01T00:00:50.000Z', { nbMinutes: 1 }),
-    '2018-01-01T00:01:00.000Z',
+    '2018-01-01T00:01:00.000Z'
   )
 
   // round to 5 minutes
   t.is(
     getRoundedDate('2018-01-01T00:00:50.000Z', { nbMinutes: 5 }),
-    '2018-01-01T00:00:00.000Z',
+    '2018-01-01T00:00:00.000Z'
   )
   t.is(
     getRoundedDate('2018-01-01T00:03:10.000Z', { nbMinutes: 5 }),
-    '2018-01-01T00:05:00.000Z',
+    '2018-01-01T00:05:00.000Z'
   )
 })
 
@@ -144,23 +144,23 @@ test('detects valid and invalid cron patterns', (t) => {
   validPatterns.forEach((pattern) => t.true(isValidCronPattern(pattern)))
   invalidPatterns.forEach((pattern) => t.false(isValidCronPattern(pattern)))
   validPatternsWithSeconds.forEach((pattern) =>
-    t.false(isValidCronPattern(pattern)),
+    t.false(isValidCronPattern(pattern))
   )
   invalidPatternsWithSeconds.forEach((pattern) =>
-    t.false(isValidCronPattern(pattern), pattern),
+    t.false(isValidCronPattern(pattern), pattern)
   )
 
   validPatternsWithSeconds.forEach((pattern) =>
-    t.true(isValidCronPattern(pattern, { allowSeconds: true })),
+    t.true(isValidCronPattern(pattern, { allowSeconds: true }))
   )
   validPatterns.forEach((pattern) =>
-    t.true(isValidCronPattern(pattern, { allowSeconds: true })),
+    t.true(isValidCronPattern(pattern, { allowSeconds: true }))
   )
   invalidPatterns.forEach((pattern) =>
-    t.false(isValidCronPattern(pattern, { allowSeconds: true })),
+    t.false(isValidCronPattern(pattern, { allowSeconds: true }))
   )
   invalidPatternsWithSeconds.forEach((pattern) =>
-    t.false(isValidCronPattern(pattern, { allowSeconds: true })),
+    t.false(isValidCronPattern(pattern, { allowSeconds: true }))
   )
 })
 
@@ -242,7 +242,7 @@ test('computes recurring dates with UTC by default, ignoring any local DST shift
       t.deepEqual(recurringDates, expectedDates)
     },
     'day',
-    { timezone: null },
+    { timezone: null }
   )
 
   testOverMonths(({ m, daysOfMonth, recurringDates, endDate }) => {
@@ -266,7 +266,7 @@ test('computes recurring dates with UTC by default, ignoring any local DST shift
       t.deepEqual(recurringDates, expectedDates)
     },
     'hour',
-    { timezone: null },
+    { timezone: null }
   )
 })
 
@@ -309,7 +309,7 @@ test('computes recurring dates with custom timezone', (t) => {
       }
     },
     'day',
-    { timezone },
+    { timezone }
   )
 })
 

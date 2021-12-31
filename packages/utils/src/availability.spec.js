@@ -6,7 +6,7 @@ const {
 
   getInternalAvailabilityPeriods,
   getAvailabilityPeriods,
-} = require('../../../src/util/availability')
+} = require('./availability')
 
 test('returns no dates if there is no transactions or availabilities', (t) => {
   const transactions = []
@@ -803,7 +803,7 @@ test('generate internal availability periods with transactions', (t) => {
   const { chunkAvailabilities, chunkTransactions } =
     getInternalAvailabilityPeriods(
       { defaultQuantity, graphDates },
-      transactions,
+      transactions
     )
 
   t.deepEqual(chunkAvailabilities, expectedChunkAvailabilities)

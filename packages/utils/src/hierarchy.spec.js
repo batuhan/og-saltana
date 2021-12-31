@@ -1,6 +1,6 @@
 const test = require('ava')
 
-const { isValidHierarchy } = require('../../../src/util/hierarchy')
+const { isValidHierarchy } = require('./hierarchy')
 
 test('checks if the hierarchy is valid', (t) => {
   const elements1 = [
