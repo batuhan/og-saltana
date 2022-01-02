@@ -21,7 +21,7 @@
   "dependencies": {
     "@saltana/util-keys": "*",
     "@saltana/objection": "*",
-    "knex": "^0.95.7",
+    "knex": "^0.95.15",
     "lodash": "4.17.21",
     "http-errors": "^1.8.0",
     "bluebird": "^3.7.2",
@@ -52,6 +52,7 @@
   "ava": {
     "verbose": true,
     "failFast": true,
+    "timeout": "25s",
     "nodeArguments": [
       "--trace-deprecation"
     ]

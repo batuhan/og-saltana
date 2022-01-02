@@ -13,6 +13,8 @@ const {
   computeRecurringPeriods,
 } = require('./time')
 
+const sleepFor = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
 test('detects period intersections', (t) => {
   const dates1 = [
     {
@@ -208,7 +210,7 @@ const testOverMonths = (expectedDatesFn, frequency = 'day', options = {}) => {
   }
 }
 
-test('computes recurring dates with UTC by default, ignoring any local DST shift', (t) => {
+test('computes recurring dates with UTC by default, ignoring any local DST shift', async (t) => {
   const getExpectedDates = ({ m, daysOfMonth, endDate, frequency = 'day' }) => {
     if (frequency === 'day') {
       return _.range(daysOfMonth)
@@ -231,43 +233,68 @@ test('computes recurring dates with UTC by default, ignoring any local DST shift
     }
   }
 
-  testOverMonths(({ m, daysOfMonth, recurringDates }) => {
-    const expectedDates = getExpectedDates({ m, daysOfMonth })
-    t.deepEqual(recurringDates, expectedDates)
-  })
+  const tests = []
 
-  testOverMonths(
-    ({ m, daysOfMonth, recurringDates }) => {
-      const expectedDates = getExpectedDates({ m, daysOfMonth })
-      t.deepEqual(recurringDates, expectedDates)
-    },
-    'day',
-    { timezone: null }
-  )
-
-  testOverMonths(({ m, daysOfMonth, recurringDates, endDate }) => {
-    const expectedDates = getExpectedDates({
-      m,
-      daysOfMonth,
-      frequency: 'hour',
-      endDate,
-    })
-    t.deepEqual(recurringDates, expectedDates)
-  }, 'hour')
-
-  testOverMonths(
-    ({ m, daysOfMonth, recurringDates, endDate }) => {
-      const expectedDates = getExpectedDates({
-        m,
-        daysOfMonth,
-        frequency: 'hour',
-        endDate,
+  tests.push(
+    new Promise((resolve, reject) => {
+      testOverMonths(({ m, daysOfMonth, recurringDates }) => {
+        const expectedDates = getExpectedDates({ m, daysOfMonth })
+        t.deepEqual(recurringDates, expectedDates)
+        resolve()
       })
-      t.deepEqual(recurringDates, expectedDates)
-    },
-    'hour',
-    { timezone: null }
+    })
   )
+
+  tests.push(
+    new Promise((resolve, reject) => {
+      testOverMonths(
+        ({ m, daysOfMonth, recurringDates }) => {
+          const expectedDates = getExpectedDates({ m, daysOfMonth })
+          t.deepEqual(recurringDates, expectedDates)
+          resolve()
+        },
+        'day',
+        { timezone: null }
+      )
+    })
+  )
+
+  tests.push(
+    new Promise((resolve, reject) => {
+      testOverMonths(({ m, daysOfMonth, recurringDates, endDate }) => {
+        const expectedDates = getExpectedDates({
+          m,
+          daysOfMonth,
+          frequency: 'hour',
+          endDate,
+        })
+        t.deepEqual(recurringDates, expectedDates)
+        resolve()
+      }, 'hour')
+    })
+  )
+
+  tests.push(
+    new Promise((resolve, reject) => {
+      testOverMonths(
+        ({ m, daysOfMonth, recurringDates, endDate }) => {
+          const expectedDates = getExpectedDates({
+            m,
+            daysOfMonth,
+            frequency: 'hour',
+            endDate,
+          })
+          t.deepEqual(recurringDates, expectedDates)
+          resolve()
+        },
+        'hour',
+        { timezone: null }
+      )
+    })
+  )
+
+  await Promise.all(tests)
+  t.pass()
 })
 
 test('computes recurring dates with custom timezone', (t) => {

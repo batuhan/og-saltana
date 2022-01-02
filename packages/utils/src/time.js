@@ -120,7 +120,7 @@ function computeDate(isoDate, duration) {
     return moment.utc(isoDate).add(momentDuration).toISOString()
   }
   return new Date(
-    new Date(isoDate).getTime() + convertToMs(duration),
+    new Date(isoDate).getTime() + convertToMs(duration)
   ).toISOString()
 }
 
@@ -188,7 +188,7 @@ function isValidCronPattern(pattern, { allowSeconds = false } = {}) {
  */
 function computeRecurringDates(
   pattern,
-  { startDate, endDate, timezone = 'UTC' } = {},
+  { startDate, endDate, timezone = 'UTC' } = {}
 ) {
   if (_.isNil(timezone)) timezone = 'UTC'
 
@@ -234,7 +234,7 @@ function computeRecurringDates(
  */
 function computeRecurringPeriods(
   pattern,
-  { startDate, endDate, timezone = 'UTC', duration },
+  { startDate, endDate, timezone = 'UTC', duration }
 ) {
   const startDates = computeRecurringDates(pattern, {
     startDate,
