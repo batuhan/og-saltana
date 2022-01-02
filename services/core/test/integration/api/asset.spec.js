@@ -1,9 +1,9 @@
 const test = require('ava')
 const request = require('supertest')
 
+const { getModels } = require('@saltana/db')
 const { before, beforeEach, after, createPlatform } = require('../../lifecycle')
 const { getAccessTokenHeaders } = require('../../auth')
-const { getModels } = require('../../../src/models')
 const {
   getObjectEvent,
   testEventMetadata,

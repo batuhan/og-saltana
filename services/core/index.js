@@ -1,12 +1,3 @@
-const communication = require('./src/communication')
-const permissions = require('./src/permissions')
-const redis = require('./src/redis')
-const roles = require('./src/roles')
-const versions = require('./src/versions')
-
-const logger = require('./server/logger')
-const testTools = require('./test')
-
 const {
   authentication,
   availability,
@@ -23,7 +14,15 @@ const {
   transition,
   user,
   validation,
-} = require('./src/util')
+} = require('@saltana/utils')
+const communication = require('./src/communication')
+const permissions = require('./src/permissions')
+const redis = require('./src/redis')
+const roles = require('./src/roles')
+const versions = require('./src/versions')
+
+const logger = require('./server/logger')
+const testTools = require('./test')
 
 const utils = {
   authentication,

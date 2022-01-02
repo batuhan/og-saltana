@@ -7,7 +7,7 @@ const {
   checkCursorPaginationScenario,
   checkCursorPaginatedListObject,
 } = require('../../util')
-const { computeDate } = require('../../../src/util/time')
+const { computeDate } = require('@saltana/utils').time
 
 test.before(async (t) => {
   await before({ name: 'role' })(t)

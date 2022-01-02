@@ -15,15 +15,15 @@ const {
   decodeJwtToken,
   isBuiltInSSOProvider,
   oAuth2BuiltInConnections,
-} = require('../util/authentication')
+} = require('@saltana/utils').authentication
 
 const { getApiBaseUrl } = require('../communication')
 
-const { getCurrentUserId } = require('../util/user')
+const { getCurrentUserId } = require('@saltana/utils').user
 
-const { computeDate } = require('../util/time')
+const { computeDate } = require('@saltana/utils').time
 
-const { setSearchParams } = require('../util/url')
+const { setSearchParams } = require('@saltana/utils').url
 
 const {
   verifyToken: verifyClerkToken,

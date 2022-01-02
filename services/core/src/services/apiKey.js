@@ -6,7 +6,7 @@ const { getModels } = require('@saltana/db')
 const { generateKey, getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
 
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 const { ApiKey } = require('../db/models')
 
 const { getListPermissions } = require('../permissions')

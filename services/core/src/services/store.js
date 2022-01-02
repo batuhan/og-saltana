@@ -4,6 +4,7 @@ const { serializeError } = require('serialize-error')
 const _ = require('lodash')
 const bluebird = require('bluebird')
 
+const { getConnection, getModels } = require('@saltana/db')
 const { createSchema, dropSchema, dropSchemaViews } = require('../database')
 
 const {
@@ -21,8 +22,6 @@ const {
   removeSaltanaTask,
   removeSaltanaTaskExecutionDates,
 } = require('../redis')
-
-const { getConnection, getModels } = require('../models')
 
 const {
   getClient,
@@ -359,7 +358,7 @@ function start({ communication }) {
     if (!exists) throw createError(404, 'Platform does not exist')
 
     // use pattern to drop all indices (reindexing, alias indices)
-    const indexPattern = getIndex({ platformId, env }) + '*'
+    const indexPattern = `${getIndex({ platformId, env })}*`
 
     let client
     try {
@@ -396,7 +395,7 @@ function start({ communication }) {
       tasks,
       cachedTasks: cachedTasks.map((t) => t.task),
     })
-    await syncCache(Object.assign({}, cacheDifference, { platformId, env }))
+    await syncCache({ ...cacheDifference, platformId, env })
 
     return { success: true }
   })

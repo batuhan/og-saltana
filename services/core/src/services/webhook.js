@@ -10,8 +10,8 @@ const { logError } = require('../../server/logger')
 
 const { apiVersions } = require('../versions')
 
-const { performListQuery } = require('../util/listQueryBuilder')
-const { getRetentionLimitDate } = require('../util/timeSeries')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
+const { getRetentionLimitDate } = require('@saltana/utils').timeSeries
 
 let responder
 let eventSubscriber

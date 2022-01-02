@@ -3,8 +3,8 @@ const {
   objectIdParamsSchema,
   getRangeFilter,
   replaceOffsetWithCursorPagination,
-} = require('../../util/validation')
-const { DEFAULT_NB_RESULTS_PER_PAGE } = require('../../util/pagination')
+} = require('@saltana/utils').validation
+const { DEFAULT_NB_RESULTS_PER_PAGE } = require('@saltana/utils').pagination
 
 const locationSchema = Joi.object()
   .unknown()

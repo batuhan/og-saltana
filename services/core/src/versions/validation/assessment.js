@@ -1,27 +1,22 @@
-const {
-  Joi,
-  objectIdParamsSchema,
-  replaceOffsetWithCursorPagination,
-} = require('../../util/validation')
-const { DEFAULT_NB_RESULTS_PER_PAGE } = require('../../util/pagination')
+const { Joi, objectIdParamsSchema, replaceOffsetWithCursorPagination } =
+  require('@saltana/utils').validation
+const { DEFAULT_NB_RESULTS_PER_PAGE } = require('@saltana/utils').pagination
 
 const signersSchema = Joi.object().pattern(
   Joi.string().required(),
   Joi.alternatives().try(
     Joi.any().valid(null), // null
-    Joi.object().keys({ // or signer object
+    Joi.object().keys({
+      // or signer object
       comment: Joi.string().allow('', null),
-      statement: Joi.string().allow('pass', 'challenge', null)
-    })
-  )
+      statement: Joi.string().allow('pass', 'challenge', null),
+    }),
+  ),
 )
 
 const signCodesSchema = Joi.object().pattern(
   Joi.string(),
-  Joi.alternatives().try(
-    Joi.any().valid(null),
-    Joi.string()
-  )
+  Joi.alternatives().try(Joi.any().valid(null), Joi.string()),
 )
 
 const schemas = {}
@@ -31,7 +26,7 @@ const schemas = {}
 // ////////// //
 schemas['2020-08-10'] = {}
 schemas['2020-08-10'].list = () => ({
-  query: replaceOffsetWithCursorPagination(schemas['2019-05-20'].list.query)
+  query: replaceOffsetWithCursorPagination(schemas['2019-05-20'].list.query),
 })
 
 // ////////// //
@@ -45,82 +40,92 @@ schemas['2019-05-20'].list = {
 
     // pagination
     page: Joi.number().integer().min(1).default(1),
-    nbResultsPerPage: Joi.number().integer().min(1).max(100).default(DEFAULT_NB_RESULTS_PER_PAGE),
+    nbResultsPerPage: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .default(DEFAULT_NB_RESULTS_PER_PAGE),
 
     // filters
-    assetId: Joi.string().required()
-  })
+    assetId: Joi.string().required(),
+  }),
 }
 schemas['2019-05-20'].read = {
-  params: objectIdParamsSchema
+  params: objectIdParamsSchema,
 }
 schemas['2019-05-20'].create = {
-  body: Joi.object().keys({
-    assetId: Joi.string().required(),
-    status: Joi.string().valid('draft', 'accept', 'reject', null),
-    statement: Joi.string().valid('pass', 'challenge', null),
-    transactionId: Joi.string().allow(null),
-    ownerId: Joi.string().allow(null),
-    takerId: Joi.string().allow(null),
-    emitterId: Joi.string().allow(null),
-    receiverId: Joi.string().allow(null),
-    signers: signersSchema,
-    signCodes: signCodesSchema,
-    nbSigners: Joi.number().integer().min(1),
-    expirationDate: Joi.string().isoDate().allow(null),
-    metadata: Joi.object().unknown(),
-    platformData: Joi.object().unknown()
-  }).required()
+  body: Joi.object()
+    .keys({
+      assetId: Joi.string().required(),
+      status: Joi.string().valid('draft', 'accept', 'reject', null),
+      statement: Joi.string().valid('pass', 'challenge', null),
+      transactionId: Joi.string().allow(null),
+      ownerId: Joi.string().allow(null),
+      takerId: Joi.string().allow(null),
+      emitterId: Joi.string().allow(null),
+      receiverId: Joi.string().allow(null),
+      signers: signersSchema,
+      signCodes: signCodesSchema,
+      nbSigners: Joi.number().integer().min(1),
+      expirationDate: Joi.string().isoDate().allow(null),
+      metadata: Joi.object().unknown(),
+      platformData: Joi.object().unknown(),
+    })
+    .required(),
 }
 schemas['2019-05-20'].update = {
   params: objectIdParamsSchema,
-  body: schemas['2019-05-20'].create.body
-    .fork(['assetId', 'transactionId', 'ownerId', 'takerId'], schema => schema.forbidden())
+  body: schemas['2019-05-20'].create.body.fork(
+    ['assetId', 'transactionId', 'ownerId', 'takerId'],
+    (schema) => schema.forbidden(),
+  ),
 }
 schemas['2019-05-20'].sign = {
   params: objectIdParamsSchema,
-  body: Joi.object().keys({
-    signCode: Joi.string().allow('', null)
-  }).required()
+  body: Joi.object()
+    .keys({
+      signCode: Joi.string().allow('', null),
+    })
+    .required(),
 }
 schemas['2019-05-20'].remove = {
-  params: objectIdParamsSchema
+  params: objectIdParamsSchema,
 }
 
 const validationVersions = {
   '2020-08-10': [
     {
       target: 'assessment.list',
-      schema: schemas['2020-08-10'].list
+      schema: schemas['2020-08-10'].list,
     },
   ],
 
   '2019-05-20': [
     {
       target: 'assessment.list',
-      schema: schemas['2019-05-20'].list
+      schema: schemas['2019-05-20'].list,
     },
     {
       target: 'assessment.read',
-      schema: schemas['2019-05-20'].read
+      schema: schemas['2019-05-20'].read,
     },
     {
       target: 'assessment.create',
-      schema: schemas['2019-05-20'].create
+      schema: schemas['2019-05-20'].create,
     },
     {
       target: 'assessment.update',
-      schema: schemas['2019-05-20'].update
+      schema: schemas['2019-05-20'].update,
     },
     {
       target: 'assessment.sign',
-      schema: schemas['2019-05-20'].sign
+      schema: schemas['2019-05-20'].sign,
     },
     {
       target: 'assessment.remove',
-      schema: schemas['2019-05-20'].remove
-    }
-  ]
+      schema: schemas['2019-05-20'].remove,
+    },
+  ],
 }
 
 module.exports = validationVersions

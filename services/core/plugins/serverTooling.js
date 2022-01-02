@@ -2,6 +2,8 @@
 // and can be required from a standalone plugin repo with saltana-server installed as devDependency.
 // But we can’t require them from plugins within server project as it would entail circular dependencies.
 
+const { time, encoding, validation, math } = require('@saltana/utils')
+
 const lifecycle = require('../test/lifecycle')
 const auth = require('../test/auth')
 const util = require('../test/util')
@@ -13,11 +15,6 @@ const permissions = require('../src/permissions')
 const redis = require('../src/redis')
 const roles = require('../src/roles')
 const versions = require('../src/versions')
-
-const time = require('../src/util/time')
-const encoding = require('../src/util/encoding')
-const validation = require('../src/util/validation')
-const math = require('../src/util/math')
 
 module.exports = {
   permissions,
@@ -31,12 +28,12 @@ module.exports = {
     util,
     factory,
     fixtures,
-    connection
+    connection,
   },
   utils: {
     time,
     encoding,
     validation,
-    math
-  }
+    math,
+  },
 }

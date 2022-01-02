@@ -11,10 +11,18 @@ const corsMiddleware = require('restify-cors-middleware2')
 const socketIO = require('socket.io')
 const apm = require('elastic-apm-node')
 
+const { models, BaseModel } = require('@saltana/db')
+
+const { parseKey: parseApiKey } = require('@saltana/util-keys')
+
 const config = require('config')
 
+const {
+  intl: { applyIntlPolyfill },
+  logging: { getLoggingContext },
+  polyfills,
+} = require('@saltana/utils')
 const { isActive: isApmActive, addRequestContext } = require('./apm')
-const { applyIntlPolyfill } = require('../src/util/intl')
 
 const cors = corsMiddleware({
   origin: ['*'], // default, only appropriate domain is included in response
@@ -31,22 +39,13 @@ const cors = corsMiddleware({
 
 const { getPlugins, loadPlugin } = require('../plugins')
 
-const { getLoggingContext } = require('../src/util/logging')
-
-const polyfills = require('../src/util/polyfills')
-
 polyfills.initErrors()
-
-const Base = require('../src/models/Base')
-
-const { parseKey: parseApiKey } = require('@saltana/util-keys')
 
 const database = require('../src/database')
 const elasticsearch = require('../src/elasticsearch')
 const elasticsearchReindex = require('../src/elasticsearch-reindex')
 const elasticsearchSync = require('../src/elasticsearch-sync')
 const elasticsearchTemplates = require('../src/elasticsearch-templates')
-const models = require('../src/models')
 
 const {
   communication,
@@ -92,8 +91,9 @@ const {
 } = auth
 
 const {
-  environment: { isValidEnvironment, getDefaultEnvironment },
-} = utils
+  isValidEnvironment,
+  getDefaultEnvironment,
+} = require('../src/util/environment')
 
 const middlewares = require('../src/middlewares')
 const routes = require('../src/routes')
@@ -168,7 +168,7 @@ const saltanaTooling = {
   },
 
   // useful to create a new model
-  BaseModel: Base,
+  BaseModel,
 
   utils,
 

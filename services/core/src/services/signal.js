@@ -5,11 +5,13 @@ const debug = require('debug')('saltana:api')
 const apm = require('elastic-apm-node')
 
 const { parseKey } = require('@saltana/util-keys')
+const { isValidObjectId } = require('@saltana/utils').validation
 
-const User = require('../models/User')
+const {
+  models: { User },
+} = require('@saltana/db')
 
 const { getRedisClient } = require('../redis')
-const { isValidObjectId } = require('../util/validation')
 const { checkAuthToken } = require('../auth')
 const { logError } = require('../../server/logger')
 

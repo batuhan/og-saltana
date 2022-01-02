@@ -1,24 +1,23 @@
 const createError = require('http-errors')
-const { getModels, getModelInfo } = require('../models')
+const { getModels, getModelInfo } = require('@saltana/db')
 
-const { performListQuery, performAggregationQuery, performHistoryQuery } = require('../util/listQueryBuilder')
-const { getRetentionLimitDate } = require('../util/timeSeries')
+const { performListQuery, performAggregationQuery, performHistoryQuery } =
+  require('@saltana/utils').listQueryBuilder
+const { getRetentionLimitDate } = require('@saltana/utils').timeSeries
 
 let responder
 
-function start ({ communication }) {
-  const {
-    getResponder
-  } = communication
+function start({ communication }) {
+  const { getResponder } = communication
 
   responder = getResponder({
     name: 'Event Responder',
-    key: 'event'
+    key: 'event',
   })
 
   responder.on('getHistory', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Event } = await getModels({ platformId, env })
 
     const {
@@ -35,7 +34,7 @@ function start ({ communication }) {
       objectType,
       objectId,
       emitter,
-      emitterId
+      emitterId,
     } = req
 
     const queryBuilder = Event.knex()
@@ -59,42 +58,42 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdTimestamp',
           value: createdDate,
           query: 'range',
-          defaultValue: { gte: retentionLimitDate }
+          defaultValue: { gte: retentionLimitDate },
         },
         types: {
           dbField: 'type',
           value: type,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         objectTypes: {
           dbField: 'objectType',
           value: objectType,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         objectIds: {
           dbField: 'objectId',
           value: objectId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         emitter: {
           dbField: 'emitter',
-          value: emitter
+          value: emitter,
         },
         emitterIds: {
           dbField: 'emitterId',
           value: emitterId,
           transformValue: 'array',
-          query: 'inList'
-        }
+          query: 'inList',
+        },
       },
       paginationConfig: {
         nbResultsPerPage,
@@ -103,7 +102,7 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy: groupBy,
-        order
+        order,
       },
     })
 
@@ -112,8 +111,8 @@ function start ({ communication }) {
 
   // DEPRECATED:END
   responder.on('getStats', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Event } = await getModels({ platformId, env })
 
     const {
@@ -135,7 +134,7 @@ function start ({ communication }) {
       emitter,
       emitterId,
       object,
-      metadata
+      metadata,
     } = req
 
     const queryBuilder = Event.knex()
@@ -153,62 +152,62 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdTimestamp',
           value: createdDate,
           query: 'range',
           defaultValue: { gte: minCreatedDate },
-          minValue: minCreatedDate
+          minValue: minCreatedDate,
         },
         types: {
           dbField: 'type',
           value: type,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         objectTypes: {
           dbField: 'objectType',
           value: objectType,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         objectIds: {
           dbField: 'objectId',
           value: objectId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         emitter: {
           dbField: 'emitter',
-          value: emitter
+          value: emitter,
         },
         emitterIds: {
           dbField: 'emitterId',
           value: emitterId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         object: {
           value: object,
           dbField: 'object',
-          query: 'jsonSupersetOf'
+          query: 'jsonSupersetOf',
         },
         metadata: {
           value: metadata,
           dbField: 'metadata',
-          query: 'jsonSupersetOf'
-        }
+          query: 'jsonSupersetOf',
+        },
       },
       paginationConfig: {
         page,
-        nbResultsPerPage
+        nbResultsPerPage,
       },
       orderConfig: {
         orderBy,
-        order
-      }
+        order,
+      },
     })
 
     return paginationMeta
@@ -216,8 +215,8 @@ function start ({ communication }) {
   // DEPRECATED:END
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Event } = await getModels({ platformId, env })
 
     const {
@@ -241,7 +240,7 @@ function start ({ communication }) {
       emitter,
       emitterId,
       object,
-      metadata
+      metadata,
     } = req
 
     const queryBuilder = Event.query()
@@ -255,53 +254,53 @@ function start ({ communication }) {
           dbField: 'id',
           value: id,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         createdDate: {
           dbField: 'createdTimestamp',
           value: createdDate,
           query: 'range',
           defaultValue: { gte: minCreatedDate },
-          minValue: minCreatedDate
+          minValue: minCreatedDate,
         },
         types: {
           dbField: 'type',
           value: type,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         objectTypes: {
           dbField: 'objectType',
           value: objectType,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         objectIds: {
           dbField: 'objectId',
           value: objectId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         emitter: {
           dbField: 'emitter',
-          value: emitter
+          value: emitter,
         },
         emitterIds: {
           dbField: 'emitterId',
           value: emitterId,
           transformValue: 'array',
-          query: 'inList'
+          query: 'inList',
         },
         object: {
           value: object,
           dbField: 'object',
-          query: 'jsonSupersetOf'
+          query: 'jsonSupersetOf',
         },
         metadata: {
           value: metadata,
           dbField: 'metadata',
-          query: 'jsonSupersetOf'
-        }
+          query: 'jsonSupersetOf',
+        },
       },
       paginationActive: true,
       paginationConfig: {
@@ -316,7 +315,7 @@ function start ({ communication }) {
       },
       orderConfig: {
         orderBy,
-        order
+        order,
       },
       useOffsetPagination: req._useOffsetPagination,
     })
@@ -327,16 +326,18 @@ function start ({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Event } = await getModels({ platformId, env })
 
-    const eventId = req.eventId
+    const { eventId } = req
 
     const minCreatedDate = getRetentionLimitDate()
 
     // without this filter, compressed chunk would be queried so the response would be long
-    const event = await Event.query().findById(eventId).where('createdTimestamp', '>=', minCreatedDate)
+    const event = await Event.query()
+      .findById(eventId)
+      .where('createdTimestamp', '>=', minCreatedDate)
     if (!event) {
       throw createError(404)
     }
@@ -345,8 +346,8 @@ function start ({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const Models = await getModels({ platformId, env })
     const { Event } = Models
 
@@ -356,7 +357,7 @@ function start ({ communication }) {
       metadata,
 
       emitter, // For internal use: emitter can be set to values like task by services
-      emitterId
+      emitterId,
     } = req
 
     if (Event.isCoreEventFormat(type)) {
@@ -373,26 +374,29 @@ function start ({ communication }) {
       object = object && Model.expose(object, { namespaces: ['*'] })
     }
 
-    const event = await Event.createEvent({
-      type,
-      objectId,
-      objectType,
-      object,
-      metadata,
-      emitterId,
-      emitter: emitter || 'custom'
-    }, { platformId, env })
+    const event = await Event.createEvent(
+      {
+        type,
+        objectId,
+        objectType,
+        object,
+        metadata,
+        emitterId,
+        emitter: emitter || 'custom',
+      },
+      { platformId, env },
+    )
 
     return Event.expose(event, { req })
   })
 }
 
-function stop () {
+function stop() {
   responder.close()
   responder = null
 }
 
 module.exports = {
   start,
-  stop
+  stop,
 }

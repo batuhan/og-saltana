@@ -1,8 +1,9 @@
 const _ = require('lodash')
-const { allDeepKeys } = require('../../util/deepKeys')
+const { allDeepKeys } = require('@saltana/utils').deepKeys
 
 const objectChanges = {
-  '2018-08-10': [ // this is the target version for the following array of changes
+  '2018-08-10': [
+    // this is the target version for the following array of changes
     // downwards changes in this array will be applied if:
     // latest API version >= '2018-08-10' > selected version
     // selected version being Saltana version header in request OR platform config version
@@ -16,8 +17,8 @@ const objectChanges = {
         delete result.name
 
         return params
-      }
-    }
+      },
+    },
   ],
 
   // More complex examples below:
@@ -29,16 +30,19 @@ const objectChanges = {
       down: async (params) => {
         const { result } = params
 
-        const newResult = await allDeepKeys(result, 'platformData', { copyTo: 'marketplaceData' })
+        const newResult = await allDeepKeys(result, 'platformData', {
+          copyTo: 'marketplaceData',
+        })
 
         params.result = newResult
         return params
-      }
+      },
     },
 
     {
       target: 'assetType',
-      description: 'Move `marketplaceConfig` nested properties into root,' +
+      description:
+        'Move `marketplaceConfig` nested properties into root,' +
         ' rename `transactionTime` into `timing` and `blockAvailabilityStatus` into `unavailableWhen`',
       down: async (params) => {
         const { result } = params
@@ -48,7 +52,7 @@ const objectChanges = {
           transactionTime: result.timing,
           transactionProcess: result.transactionProcess,
           namespaces: result.namespaces,
-          blockAvailabilityStatus: result.unavailableWhen
+          blockAvailabilityStatus: result.unavailableWhen,
         }
 
         result.marketplaceConfig = marketplaceConfig
@@ -58,20 +62,34 @@ const objectChanges = {
         delete result.namespaces
         delete result.unavailableWhen
 
-        const minDuration = _.get(result.marketplaceConfig, 'transactionTime.minDuration')
-        const maxDuration = _.get(result.marketplaceConfig, 'transactionTime.maxDuration')
+        const minDuration = _.get(
+          result.marketplaceConfig,
+          'transactionTime.minDuration',
+        )
+        const maxDuration = _.get(
+          result.marketplaceConfig,
+          'transactionTime.maxDuration',
+        )
 
         if (minDuration) {
-          _.set(result.marketplaceConfig, 'transactionTime.minDuration', _.values(minDuration)[0])
+          _.set(
+            result.marketplaceConfig,
+            'transactionTime.minDuration',
+            _.values(minDuration)[0],
+          )
         }
         if (maxDuration) {
-          _.set(result.marketplaceConfig, 'transactionTime.maxDuration', _.values(minDuration)[0])
+          _.set(
+            result.marketplaceConfig,
+            'transactionTime.maxDuration',
+            _.values(minDuration)[0],
+          )
         }
 
         return params
-      }
-    }
-  ]
+      },
+    },
+  ],
 }
 
 module.exports = objectChanges

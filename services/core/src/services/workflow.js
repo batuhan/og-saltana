@@ -9,19 +9,17 @@ const apm = require('elastic-apm-node')
 const { getObjectId } = require('@saltana/util-keys')
 const { VM } = require('vm2')
 const debug = require('debug')('saltana:api')
+const { getModels, getModelInfo } = require('@saltana/db')
 const { getLocalInstanceKey } = require('../auth')
 const { logError } = require('../../server/logger')
-const { getModels, getModelInfo } = require('../models')
 
-const { isValidObjectId } = require('../util/validation')
+const { isValidObjectId } = require('@saltana/utils').validation
 
 const { apiVersions, applyObjectChanges } = require('../versions')
 
-const {
-  performListQuery,
-  performHistoryQuery,
-} = require('../util/listQueryBuilder')
-const { getRetentionLimitDate } = require('../util/timeSeries')
+const { performListQuery, performHistoryQuery } =
+  require('@saltana/utils').listQueryBuilder
+const { getRetentionLimitDate } = require('@saltana/utils').timeSeries
 
 // Saltana Workflows: reuse sandbox for performance
 

@@ -15,7 +15,7 @@ const {
 
 const { updateMapping } = require('../elasticsearch')
 
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
 let responder
 let subscriber

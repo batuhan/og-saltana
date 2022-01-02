@@ -6,10 +6,10 @@ const IntlMessageFormat = require('intl-messageformat')
 const momentTimezone = require('moment-timezone')
 const memoizeIntlConstructor = require('intl-format-cache').default
 
-const { isDateString } = require('../../../src/util/time')
-const { getCurrencyDecimal } = require('../../../src/util/currency')
+const { isDateString } = require('@saltana/utils').time
+const { getCurrencyDecimal } = require('@saltana/utils').currency
 
-function formatMessages (messages, values, { locale, currency, timezone }) {
+function formatMessages(messages, values, { locale, currency, timezone }) {
   const transformedValues = transformValues(values)
 
   let currentKey
@@ -22,7 +22,12 @@ function formatMessages (messages, values, { locale, currency, timezone }) {
       currentKey = key
       currentValue = message
 
-      memo[key] = formatMessage(message, transformedValues, { locale, currency, timezone, noTransformValues: true })
+      memo[key] = formatMessage(message, transformedValues, {
+        locale,
+        currency,
+        timezone,
+        noTransformValues: true,
+      })
       return memo
     }, {})
   } catch (err) {
@@ -33,13 +38,17 @@ function formatMessages (messages, values, { locale, currency, timezone }) {
   }
 }
 
-function formatMessage (message, values, {
-  locale,
-  currency,
-  timezone,
-  noTransformValues = false,
-  messageTypeChecking = true
-} = {}) {
+function formatMessage(
+  message,
+  values,
+  {
+    locale,
+    currency,
+    timezone,
+    noTransformValues = false,
+    messageTypeChecking = true,
+  } = {},
+) {
   if (messageTypeChecking) {
     if (typeof message !== 'string') return message
   }
@@ -53,7 +62,7 @@ function formatMessage (message, values, {
   return formatter.format(passedValues)
 }
 
-function getFormatMessage (message, locale, { currency, timezone }) {
+function getFormatMessage(message, locale, { currency, timezone }) {
   let numberFormat
 
   if (currency) {
@@ -64,8 +73,8 @@ function getFormatMessage (message, locale, { currency, timezone }) {
         style: 'currency',
         currency,
         minimumFractionDigits: 0,
-        maximumFractionDigits: nbDecimals
-      }
+        maximumFractionDigits: nbDecimals,
+      },
     }
   }
 
@@ -84,10 +93,11 @@ function getFormatMessage (message, locale, { currency, timezone }) {
         getNumberFormat: memoizeIntlConstructor(Intl.NumberFormat),
         getPluralRules: memoizeIntlConstructor(Intl.PluralRules),
 
-        getDateTimeFormat (locales, intlOptions) {
+        getDateTimeFormat(locales, intlOptions) {
           return {
-            format (date) {
-              if (!(date instanceof Date)) throw new Error('Invalid valid date passed to format')
+            format(date) {
+              if (!(date instanceof Date))
+                throw new Error('Invalid valid date passed to format')
 
               const zone = momentTimezone.tz.zone(timezone)
               if (!zone) throw new Error('Invalid timezone')
@@ -96,32 +106,41 @@ function getFormatMessage (message, locale, { currency, timezone }) {
               const fromOffset = clonedDate.getTimezoneOffset()
               const toOffset = zone.parse(clonedDate)
 
-              const newDate = new Date(clonedDate.getTime() - (toOffset - fromOffset) * 60 * 1000)
-              return new Intl.DateTimeFormat(locales, intlOptions).format(newDate)
-            }
+              const newDate = new Date(
+                clonedDate.getTime() - (toOffset - fromOffset) * 60 * 1000,
+              )
+              return new Intl.DateTimeFormat(locales, intlOptions).format(
+                newDate,
+              )
+            },
           }
-        }
-      }
+        },
+      },
     }
   }
 
-  return new IntlMessageFormat(message, locale, customFormats, additionalOptions)
+  return new IntlMessageFormat(
+    message,
+    locale,
+    customFormats,
+    additionalOptions,
+  )
 }
 
-function transformValue (value) {
+function transformValue(value) {
   if (typeof value === 'string') {
-    const isDate = isDateString(value, { onlyDate: false }) || isDateString(value, { onlyDate: true })
+    const isDate =
+      isDateString(value, { onlyDate: false }) ||
+      isDateString(value, { onlyDate: true })
     if (isDate) {
       return new Date(value)
-    } else {
-      return value
     }
-  } else {
     return value
   }
+  return value
 }
 
-function transformValues (values = {}) {
+function transformValues(values = {}) {
   return Object.keys(values).reduce((memo, key) => {
     const value = values[key]
     memo[key] = transformValue(value)
@@ -133,5 +152,5 @@ module.exports = {
   formatMessages,
   formatMessage,
   getFormatMessage,
-  transformValues
+  transformValues,
 }

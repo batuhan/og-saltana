@@ -1,9 +1,9 @@
-// const { getModels } = require('../src/models')
+// const { getModels } = require('@saltana/db')
 
-async function run ({ platformId, env }) {
+async function run({ platformId, env }) {
   // migration code run here
 }
 
 module.exports = {
-  run
+  run,
 }

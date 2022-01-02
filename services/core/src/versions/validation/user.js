@@ -4,13 +4,13 @@ const {
   getRangeFilter,
   replaceOffsetWithCursorPagination,
   usernameSchema,
-} = require('../../util/validation')
-const { DEFAULT_NB_RESULTS_PER_PAGE } = require('../../util/pagination')
+} = require('@saltana/utils').validation
+const { DEFAULT_NB_RESULTS_PER_PAGE } = require('@saltana/utils').pagination
 const organizationSchema = Joi.object().pattern(
   Joi.string(),
   Joi.object().keys({
     roles: Joi.array().unique().items(Joi.string()),
-  })
+  }),
 )
 
 const orderByFields = ['createdDate', 'updatedDate']
@@ -48,8 +48,8 @@ schemas['2020-08-10'].list = () => ({
     schemas['2019-05-20'].list.query.fork('orderBy', () =>
       Joi.string()
         .valid(...orderByFields)
-        .default('createdDate')
-    )
+        .default('createdDate'),
+    ),
   ),
 })
 
@@ -121,7 +121,7 @@ schemas['2019-05-20'].update = {
   params: objectIdParamsSchema,
   body: schemas['2019-05-20'].create.body
     .fork(['type', 'organizations', 'orgOwnerId'], (schema) =>
-      schema.forbidden()
+      schema.forbidden(),
     )
     .fork('password', () => usernameOrPasswordSchema.tailor('patchPassword'))
     .fork('username', () => usernameOrPasswordSchema.tailor('patchUsername'))

@@ -6,15 +6,15 @@ const { getModels } = require('@saltana/db')
 const { getObjectId } = require('@saltana/util-keys')
 
 const _ = require('lodash')
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
 const {
   getOffsetPaginationMeta,
   offsetPaginate,
   getCursorPaginationMeta,
   cursorPaginate,
-} = require('../util/pagination')
-const { parseArrayValues } = require('../util/list')
+} = require('@saltana/utils').pagination
+const { parseArrayValues } = require('@saltana/utils').list
 
 let responder
 

@@ -1,6 +1,5 @@
 const _ = require('lodash')
-const { getModels, getModelInfo } = require('../models')
-const Base = require('../models/Base')
+const { getModels, getModelInfo, BaseModel: Base } = require('@saltana/db')
 
 let responder
 

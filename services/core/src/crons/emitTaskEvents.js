@@ -13,11 +13,8 @@ const {
   addSaltanaTaskExecutionDate,
 } = require('../redis')
 
-const {
-  getRoundedDate,
-  computeRecurringDates,
-  computeDate,
-} = require('../util/time')
+const { getRoundedDate, computeRecurringDates, computeDate } =
+  require('@saltana/utils').time
 
 let eventRequester
 

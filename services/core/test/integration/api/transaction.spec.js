@@ -5,7 +5,7 @@ const _ = require('lodash')
 const { before, beforeEach, after } = require('../../lifecycle')
 const { getAccessTokenHeaders } = require('../../auth')
 
-const { getModels } = require('../../../src/models')
+const { getModels } = require('@saltana/db')
 const {
   computeDate,
 

@@ -6,10 +6,10 @@ const { getObjectId } = require('@saltana/util-keys')
 const { getModels } = require('@saltana/db')
 const { logError } = require('../../server/logger')
 
-const { performListQuery } = require('../util/listQueryBuilder')
-const { mergeOrOverwrite } = require('../util/merging')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
+const { mergeOrOverwrite } = require('@saltana/utils').merging
 
-const { computeTransitionsMeta } = require('../util/transition')
+const { computeTransitionsMeta } = require('@saltana/utils').transition
 
 let responder
 let subscriber

@@ -6,9 +6,9 @@ const { getModels } = require('@saltana/db')
 const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
 
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
-const { getCurrentUserId } = require('../util/user')
+const { getCurrentUserId } = require('@saltana/utils').user
 
 let responder
 let subscriber

@@ -6,17 +6,14 @@ const { UniqueViolationError } = require('objection-db-errors')
 const { nanoid } = require('nanoid')
 const cleanDeep = require('clean-deep')
 
-const { logError } = require('../../server/logger')
-const { getModels, AuthMean } = require('../models')
 const { getObjectId } = require('@saltana/util-keys')
-const { log } = require('../util/logging')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
+const { getModels } = require('@saltana/db')
+const { log } = require('@saltana/utils').logging
+const { getCurrentUserId, getRealCurrentUserId } =
+  require('@saltana/utils').user
+const { logError } = require('../../server/logger')
 const { checkPermissions } = require('../auth')
-
-const { performListQuery } = require('../util/listQueryBuilder')
-
-const { getCurrentUserId, getRealCurrentUserId } = require('../util/user')
-
-const { query } = require('../models/Base')
 
 let responder
 let subscriber
@@ -87,8 +84,8 @@ function start({ communication }) {
   })
 
   responder.on('checkAvailability', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { User } = await getModels({ platformId, env })
 
     const { username } = req
@@ -101,8 +98,8 @@ function start({ communication }) {
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { User } = await getModels({ platformId, env })
 
     const {
@@ -229,8 +226,8 @@ function start({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { User } = await getModels({ platformId, env })
 
     const currentUserId = getCurrentUserId(req)
@@ -459,8 +456,8 @@ function start({ communication }) {
     return User.expose(user, { req, namespaces: dynamicReadNamespaces })
   })
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { User } = await getModels({ platformId, env })
 
     const { userId, orgOwnerId } = req
@@ -529,7 +526,7 @@ function start({ communication }) {
     })
 
     const updateAttrs = _.omit(payload, ['metadata', 'platformData'])
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     if (metadata) {
       updateAttrs.metadata = User.rawJsonbMerge('metadata', metadata)
@@ -548,7 +545,7 @@ function start({ communication }) {
         env,
         readNamespaces: req._readNamespaces,
         editNamespaces: req._editNamespaces,
-        object: Object.assign({}, user, { metadata, platformData }),
+        object: { ...user, metadata, platformData },
         deltaObject: { metadata, platformData },
         currentUserId,
       })
@@ -629,12 +626,10 @@ function start({ communication }) {
       if (isNewOrgOwnerJoining) {
         publisher.publish('userOrganizationJoined', eventPayload)
       } else {
-        publisher.publish(
-          'userOrganizationRightsChanged',
-          Object.assign({}, eventPayload, {
-            changesRequested: { roles: newRoles },
-          }),
-        )
+        publisher.publish('userOrganizationRightsChanged', {
+          ...eventPayload,
+          changesRequested: { roles: newRoles },
+        })
       }
     }
 
@@ -642,8 +637,8 @@ function start({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { AuthMean, Asset, User } = await getModels({ platformId, env })
 
     const { userId } = req
@@ -801,8 +796,8 @@ function start({ communication }) {
   })
 
   responder.on('joinOrganizationOrUpdateRights', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { User } = await getModels({ platformId, env })
 
     const { userId, organizationId, roles, req: origReq } = req
@@ -884,8 +879,8 @@ function start({ communication }) {
   })
 
   responder.on('removeFromOrganization', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { User } = await getModels({ platformId, env })
 
     const { userId, organizationId, req: origReq } = req
@@ -1245,8 +1240,9 @@ async function checkRolesBeforeCreate({
       if (nonWhitelistRoles.length) {
         throw createError(
           422,
-          'The following roles are not whitelisted: ' +
-            nonWhitelistRoles.join(', '),
+          `The following roles are not whitelisted: ${nonWhitelistRoles.join(
+            ', ',
+          )}`,
         )
       }
     }

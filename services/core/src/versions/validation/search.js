@@ -1,10 +1,13 @@
-const { Joi, searchSchema } = require('../../util/validation')
+const { Joi, searchSchema } = require('@saltana/utils').validation
 
-const ifSaving = (joiTypeIfTrue, joiTypeIfFalse) => Joi.when('save', {
-  is: joiTypeIfTrue ? Joi.boolean().valid(true).required() : Joi.boolean().valid(false),
-  then: joiTypeIfTrue || joiTypeIfFalse,
-  otherwise: Joi.any().forbidden()
-})
+const ifSaving = (joiTypeIfTrue, joiTypeIfFalse) =>
+  Joi.when('save', {
+    is: joiTypeIfTrue
+      ? Joi.boolean().valid(true).required()
+      : Joi.boolean().valid(false),
+    then: joiTypeIfTrue || joiTypeIfFalse,
+    otherwise: Joi.any().forbidden(),
+  })
 
 const schemas = {}
 
@@ -15,7 +18,7 @@ schemas['2019-05-20'] = {}
 schemas['2019-05-20'].list = {
   query: Joi.object().keys({
     _size: Joi.number().integer().positive(), // only used in testing environment
-    _validateOnly: Joi.boolean() // only used by system, do not trigger search at all
+    _validateOnly: Joi.boolean(), // only used by system, do not trigger search at all
   }),
   body: searchSchema
     .keys({
@@ -30,20 +33,20 @@ schemas['2019-05-20'].list = {
         null,
         Joi.object().keys({
           userId: Joi.string(),
-          ids: Joi.array().unique().items(Joi.string())
-        })
-      )
+          ids: Joi.array().unique().items(Joi.string()),
+        }),
+      ),
     })
-    .required()
+    .required(),
 }
 
 const validationVersions = {
   '2019-05-20': [
     {
       target: 'search.list',
-      schema: schemas['2019-05-20'].list
-    }
-  ]
+      schema: schemas['2019-05-20'].list,
+    },
+  ],
 }
 
 module.exports = validationVersions

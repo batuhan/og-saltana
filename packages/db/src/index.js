@@ -1,6 +1,7 @@
 const pg = require('pg')
 
-const { models } = require('./models')
+const models = require('./models')
+const BaseModel = require('./models/Base')
 const { getModels, getModelInfo } = require('./utils')
 
 function loadTypeParser() {
@@ -24,4 +25,5 @@ module.exports = {
   getModels,
   getModelInfo,
   models,
+  BaseModel,
 }

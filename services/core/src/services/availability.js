@@ -5,19 +5,19 @@ const { getModels } = require('@saltana/db')
 const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
 
-const { getAvailabilityPeriodGraph } = require('../util/availability')
-const { shouldAffectAvailability } = require('../util/transaction')
+const { getAvailabilityPeriodGraph } = require('@saltana/utils').availability
+const { shouldAffectAvailability } = require('@saltana/utils').transaction
 
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
 const {
   isValidCronPattern,
   isValidTimezone,
   computeRecurringPeriods,
   computeDate,
-} = require('../util/time')
+} = require('@saltana/utils').time
 
-const { getCurrentUserId } = require('../util/user')
+const { getCurrentUserId } = require('@saltana/utils').user
 
 let responder
 let subscriber

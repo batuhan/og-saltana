@@ -13,13 +13,10 @@ const {
   removeSaltanaTaskExecutionDates,
 } = require('../redis')
 
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
-const {
-  isValidCronPattern,
-  isValidTimezone,
-  getRoundedDate,
-} = require('../util/time')
+const { isValidCronPattern, isValidTimezone, getRoundedDate } =
+  require('@saltana/utils').time
 
 let responder
 let eventSubscriber

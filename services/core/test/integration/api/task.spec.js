@@ -15,7 +15,7 @@ const {
   checkCursorPaginatedListObject,
 } = require('../../util')
 
-const { getRoundedDate } = require('../../../src/util/time')
+const { getRoundedDate } = require('@saltana/utils').time
 const { encodeBase64 } = require('../../../src/util/encoding')
 
 test.before(async (t) => {

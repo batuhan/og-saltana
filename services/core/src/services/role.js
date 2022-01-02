@@ -4,9 +4,9 @@ const _ = require('lodash')
 const { getModels } = require('@saltana/db')
 
 const { getObjectId } = require('@saltana/util-keys')
-const { isValidHierarchy } = require('../util/hierarchy')
+const { isValidHierarchy } = require('@saltana/utils').hierarchy
 
-const { performListQuery } = require('../util/listQueryBuilder')
+const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
 let responder
 let configRequester

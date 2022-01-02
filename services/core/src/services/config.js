@@ -6,7 +6,7 @@ const { getObjectId } = require('@saltana/util-keys')
 
 const { apiVersions } = require('../versions')
 const { setPlatformEnvData } = require('../redis')
-const { builtInSSOProviders } = require('../util/authentication')
+const { builtInSSOProviders } = require('@saltana/utils').authentication
 
 let responder
 let roleRequester

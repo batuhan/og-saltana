@@ -3,13 +3,10 @@ const {
   objectIdParamsSchema,
   getRangeFilter,
   replaceOffsetWithCursorPagination,
-} = require('../../util/validation')
-const { DEFAULT_NB_RESULTS_PER_PAGE } = require('../../util/pagination')
+} = require('@saltana/utils').validation
+const { DEFAULT_NB_RESULTS_PER_PAGE } = require('@saltana/utils').pagination
 
-const orderByFields = [
-  'createdDate',
-  'updatedDate'
-]
+const orderByFields = ['createdDate', 'updatedDate']
 
 const schemas = {}
 
@@ -18,7 +15,7 @@ const schemas = {}
 // ////////// //
 schemas['2020-08-10'] = {}
 schemas['2020-08-10'].list = () => ({
-  query: replaceOffsetWithCursorPagination(schemas['2019-05-20'].list.query)
+  query: replaceOffsetWithCursorPagination(schemas['2019-05-20'].list.query),
 })
 
 // ////////// //
@@ -28,12 +25,18 @@ schemas['2019-05-20'] = {}
 schemas['2019-05-20'].list = {
   query: Joi.object().keys({
     // order
-    orderBy: Joi.string().valid(...orderByFields).default('createdDate'),
+    orderBy: Joi.string()
+      .valid(...orderByFields)
+      .default('createdDate'),
     order: Joi.string().valid('asc', 'desc').default('desc'),
 
     // pagination
     page: Joi.number().integer().min(1).default(1),
-    nbResultsPerPage: Joi.number().integer().min(1).max(100).default(DEFAULT_NB_RESULTS_PER_PAGE),
+    nbResultsPerPage: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .default(DEFAULT_NB_RESULTS_PER_PAGE),
 
     // filters
     id: [Joi.string(), Joi.array().unique().items(Joi.string())],
@@ -43,71 +46,75 @@ schemas['2019-05-20'].list = {
     senderId: Joi.string(),
     receiverId: Joi.string(),
     topicId: Joi.string(),
-    conversationId: Joi.string()
-  })
+    conversationId: Joi.string(),
+  }),
 }
 schemas['2019-05-20'].read = {
-  params: objectIdParamsSchema
+  params: objectIdParamsSchema,
 }
 schemas['2019-05-20'].create = {
-  body: Joi.object().keys({
-    topicId: Joi.string().required(),
-    conversationId: Joi.string(),
-    content: Joi.string().allow('').max(3000).required(),
-    attachments: Joi.array().items(Joi.object().unknown()),
-    read: Joi.boolean(),
-    senderId: Joi.string(),
-    receiverId: Joi.string().required(),
-    metadata: Joi.object().unknown(),
-    platformData: Joi.object().unknown()
-  }).required()
+  body: Joi.object()
+    .keys({
+      topicId: Joi.string().required(),
+      conversationId: Joi.string(),
+      content: Joi.string().allow('').max(3000).required(),
+      attachments: Joi.array().items(Joi.object().unknown()),
+      read: Joi.boolean(),
+      senderId: Joi.string(),
+      receiverId: Joi.string().required(),
+      metadata: Joi.object().unknown(),
+      platformData: Joi.object().unknown(),
+    })
+    .required(),
 }
 schemas['2019-05-20'].update = {
   params: objectIdParamsSchema,
-  body: schemas['2019-05-20'].create.body
-    .fork([
+  body: schemas['2019-05-20'].create.body.fork(
+    [
       'topicId',
       'conversationId',
       'content',
       'attachments',
       'senderId',
-      'receiverId'
-    ], schema => schema.forbidden())
+      'receiverId',
+    ],
+    (schema) => schema.forbidden(),
+  ),
 }
 schemas['2019-05-20'].remove = {
-  params: objectIdParamsSchema
+  params: objectIdParamsSchema,
 }
 
 const validationVersions = {
   '2020-08-10': [
     {
       target: 'message.list',
-      schema: schemas['2020-08-10'].list
+      schema: schemas['2020-08-10'].list,
     },
   ],
 
   '2019-05-20': [
     {
       target: 'message.list',
-      schema: schemas['2019-05-20'].list
+      schema: schemas['2019-05-20'].list,
     },
     {
       target: 'message.read',
-      schema: schemas['2019-05-20'].read
+      schema: schemas['2019-05-20'].read,
     },
     {
       target: 'message.create',
-      schema: schemas['2019-05-20'].create
+      schema: schemas['2019-05-20'].create,
     },
     {
       target: 'message.update',
-      schema: schemas['2019-05-20'].update
+      schema: schemas['2019-05-20'].update,
     },
     {
       target: 'message.remove',
-      schema: schemas['2019-05-20'].remove
-    }
-  ]
+      schema: schemas['2019-05-20'].remove,
+    },
+  ],
 }
 
 module.exports = validationVersions

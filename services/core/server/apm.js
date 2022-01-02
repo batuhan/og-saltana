@@ -2,7 +2,7 @@ const apm = require('elastic-apm-node')
 const _ = require('lodash')
 const config = require('config')
 
-const { getCurrentUserId } = require('../src/util/user')
+const { getCurrentUserId } = require('@saltana/utils').user
 const { isSystem } = require('../src/auth')
 
 const serverUrl = config.get('ExternalServices.elasticsearch.apm.serverUrl')
@@ -12,7 +12,6 @@ const isDisabled =
 
 const isActive = !isDisabled && !!serverUrl
 
-console.log({ isDisabled, isActive })
 // for debugging, reveal some characters in sensitive information
 const defaultNbRevealedChars = 4
 const apiKeyRegex = /^((?:.+)_(?:test|live)_)(.+)$/i

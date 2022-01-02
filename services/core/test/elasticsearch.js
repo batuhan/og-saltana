@@ -1,8 +1,14 @@
-const { isIndexExisting, createIndex, getClient, getIndex, isReady } = require('../src/elasticsearch')
+const {
+  isIndexExisting,
+  createIndex,
+  getClient,
+  getIndex,
+  isReady,
+} = require('../src/elasticsearch')
 
-const { getModels } = require('../src/models')
+const { getModels } = require('@saltana/db')
 
-async function init ({ platformId, env }) {
+async function init({ platformId, env }) {
   const exists = await isIndexExisting({ platformId, env })
 
   if (!exists) {
@@ -14,19 +20,21 @@ async function init ({ platformId, env }) {
   }
 }
 
-async function reset ({ platformId, env }) {
+async function reset({ platformId, env }) {
   const client = await getClient({ platformId, env })
 
   const indexPattern = getIndex({ platformId, env }) + '*'
 
   const result = await client.indices.getAlias({
-    index: indexPattern
+    index: indexPattern,
   })
 
   Object.keys(result).forEach(async (index) => {
-    await client.indices.delete({
-      index
-    }).catch(() => null)
+    await client.indices
+      .delete({
+        index,
+      })
+      .catch(() => null)
   })
 }
 

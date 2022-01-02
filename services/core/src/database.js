@@ -3,7 +3,7 @@ const Knex = require('knex')
 const config = require('config')
 
 // Proper migration would be needed to update PostgreSQL function name
-const jsonDeepMergeDef = require('../migrations/util/stl_jsonb_deep_merge')
+const jsonDeepMergeDef = require('@saltana/utils/src/stl_jsonb_deep_merge')
 
 async function existColumns(knex, tableName, columns) {
   const mapExist = await bluebird.map(columns, (column) => {
