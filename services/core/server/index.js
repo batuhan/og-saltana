@@ -426,7 +426,6 @@ function loadServer() {
 
   // Add any routes here that don't need a platform ID
   server.use((req, res, next) => {
-    debugger
     const isSystemUrl = req.url.startsWith('/system/')
     const isStoreUrl = req.url.startsWith('/store/')
     const isRobotsTxtUrl = req.url === '/robots.txt'

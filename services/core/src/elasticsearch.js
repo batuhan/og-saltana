@@ -39,7 +39,7 @@ function getConnectionClient(connection = {}) {
 
   // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/client-configuration.html
   const params = {
-    node: `${protocol}://${host}${hidePort ? '' : ':' + port}`,
+    node: `${protocol}://${host}${hidePort ? '' : `:${port}`}`,
   }
 
   if (useAuth) {
@@ -131,7 +131,7 @@ function getIndex({ platformId, env, type = 'asset', tag } = {}) {
 
 async function getListIndices({ platformId, env, type }) {
   const client = await getClient({ platformId, env })
-  const indexPattern = getIndex({ platformId, env, type }) + '*'
+  const indexPattern = `${getIndex({ platformId, env, type })}*`
 
   const { body: result } = await client.indices.getAlias({
     index: indexPattern,
@@ -274,9 +274,8 @@ const REGEX_MAPPING_TYPE_ERROR = /mapper \[.*\] of different type/
 function getErrorType(message) {
   if (REGEX_MAPPING_TYPE_ERROR.test(message)) {
     return 'MAPPING_TYPE_ERROR'
-  } else {
-    return 'OTHER'
   }
+  return 'OTHER'
 }
 
 module.exports = {

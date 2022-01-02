@@ -6,6 +6,7 @@ const { URL } = require('url')
 const _ = require('lodash')
 const puppeteer = require('puppeteer-core')
 
+const { encodeBase64 } = require('@saltana/utils').encoding
 const { before, beforeEach, after } = require('../../lifecycle')
 const {
   getAccessTokenHeaders,
@@ -14,7 +15,6 @@ const {
   getAccessToken,
 } = require('../../auth')
 const { getObjectEvent, testEventMetadata } = require('../../util')
-const { encodeBase64 } = require('../../../src/util/encoding')
 
 const createOidcServer = require('../../oauth/server')
 

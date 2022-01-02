@@ -1,13 +1,10 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { getModels } = require('@saltana/db')
-
 const { generateKey, getObjectId } = require('@saltana/util-keys')
-const { logError } = require('../../server/logger')
-
 const { performListQuery } = require('@saltana/utils').listQueryBuilder
-const { ApiKey } = require('../db/models')
+const { logError } = require('../../server/logger')
+const { getModels } = require('../db')
 
 const { getListPermissions } = require('../permissions')
 
@@ -51,6 +48,7 @@ function start({ communication, isSystem }) {
   responder.on('list', async (req) => {
     const { platformId } = req
     const { env } = req
+    const { ApiKey } = await getModels({ platformId, env })
 
     const {
       orderBy,
@@ -140,6 +138,7 @@ function start({ communication, isSystem }) {
   responder.on('read', async (req) => {
     const { platformId } = req
     const { env } = req
+    const { ApiKey } = await getModels({ platformId, env })
 
     const { apiKeyId } = req
 
@@ -170,6 +169,7 @@ function start({ communication, isSystem }) {
   responder.on('create', async (req) => {
     const { platformId } = req
     const { env } = req
+    const { ApiKey } = await getModels({ platformId, env })
 
     const {
       name,
@@ -260,6 +260,7 @@ function start({ communication, isSystem }) {
   responder.on('update', async (req) => {
     const { platformId } = req
     const { env } = req
+    const { ApiKey } = await getModels({ platformId, env })
 
     const { apiKeyId } = req
 
@@ -345,6 +346,7 @@ function start({ communication, isSystem }) {
   responder.on('remove', async (req) => {
     const { platformId } = req
     const { env } = req
+    const { ApiKey } = await getModels({ platformId, env })
 
     const { apiKeyId } = req
 
@@ -464,6 +466,8 @@ function start({ communication, isSystem }) {
 
   responder.on('_getApiKey', async (req) => {
     const { key, platformId, env } = req
+
+    const { ApiKey } = await getModels({ platformId, env })
 
     const apiKey = await ApiKey.query().findOne({ key })
     return apiKey

@@ -789,6 +789,7 @@ function checkRequestData({
   editProtectedNamespaces,
   editNamespaces,
 }) {
+  debugger
   if (platformData && !matchedPermissions['platformData:edit:all']) {
     throw createError(403, 'Forbidden platformData edition', {
       expose: false,

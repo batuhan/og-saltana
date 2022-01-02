@@ -21,7 +21,7 @@ const {
   checkCursorPaginatedListObject,
 } = require('../../util')
 
-const { encodeBase64 } = require('../../../src/util/encoding')
+const { encodeBase64 } = require('@saltana/utils').encoding
 
 const getIds = (elements) => elements.map((e) => e.id)
 const areSameIds = (ids1, ids2) => _.difference(ids1, ids2).length === 0
@@ -1048,7 +1048,7 @@ test('creates multi-step workflow triggered by custom events and calling externa
           endpointMethod: 'POST',
           endpointUri: `${userWebhookUrl}workflowCustomEventHeaders`,
           endpointHeaders: {
-            'X-Custom-Header': '{ \"custom\": \"content\" }', // eslint-disable-line
+            'X-Custom-Header': '{ "custom": "content" }', // eslint-disable-line
             'x-webhook-source':
               'should not overwrite internally generated header',
           },

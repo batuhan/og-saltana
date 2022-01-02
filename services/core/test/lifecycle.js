@@ -277,12 +277,18 @@ async function stopServer(server) {
 // use endpoints to set databases credentials and some other settings
 // this is to check if platforms are correctly initialized
 async function initSettings({ serverUrl, platformId, env, systemKey }) {
+  let elasticsearch
+
+  try {
+    elasticsearch = getElasticsearchConnection()
+  } catch (e) {}
+
   await request
     .put(`${serverUrl}/store/platforms/${platformId}/data/${env}`)
     .set(getAuthorizationHeaders({ systemKey }))
     .send({
       postgresql: getPostgresqlConnection({ platformId, env }),
-      elasticsearch: getElasticsearchConnection(),
+      elasticsearch,
       auth: getAuthenticationSettings(),
     })
 }

@@ -4,7 +4,7 @@ const { serializeError } = require('serialize-error')
 const _ = require('lodash')
 const bluebird = require('bluebird')
 
-const { getConnection, getModels } = require('@saltana/db')
+const { getModels, knex } = require('../db')
 const { createSchema, dropSchema, dropSchemaViews } = require('../database')
 
 const {
@@ -420,15 +420,15 @@ function start({ communication }) {
 async function migrateDatabase({ platformId, env }) {
   const { connection, schema } = await getConnection({ platformId, env })
 
-  const knex = await createSchema({ connection, schema })
+  const knexInstance = await createSchema({ knex, connection, schema })
 
   const useCustomSchema = schema !== 'public'
 
   const options = { directory: path.join(__dirname, '../../migrations/knex') }
   if (useCustomSchema) options.schemaName = schema
 
-  await knex.migrate.latest(options)
-  await knex.destroy()
+  await knexInstance.migrate.latest(options)
+  await knexInstance.destroy()
 }
 
 async function dropDatabase({ platformId, env }) {

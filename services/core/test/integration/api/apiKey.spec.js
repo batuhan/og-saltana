@@ -18,7 +18,7 @@ const {
   checkOffsetPaginationScenario,
   checkOffsetPaginatedListObject,
 } = require('../../util')
-const { encodeBase64 } = require('../../../src/util/encoding')
+const { encodeBase64 } = require('@saltana/utils').encoding
 
 test.before(async (t) => {
   await before({

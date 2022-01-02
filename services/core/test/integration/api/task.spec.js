@@ -16,7 +16,7 @@ const {
 } = require('../../util')
 
 const { getRoundedDate } = require('@saltana/utils').time
-const { encodeBase64 } = require('../../../src/util/encoding')
+const { encodeBase64 } = require('@saltana/utils').encoding
 
 test.before(async (t) => {
   // disable signal because there is time manipulation in this test suite

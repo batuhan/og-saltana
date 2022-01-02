@@ -49,7 +49,10 @@ async function dropColumnsIfExist(knex, tableName, columns) {
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
 async function createSchema({ connection, schema, knex, returnKnex = false }) {
-  if (!knex) knex = getKnex({ connection, schema })
+  // if (!knex) knex = getKnex({ connection, schema })
+  if (!knex) {
+    throw new Error('Missing knex')
+  }
 
   const adminUser = config.get('ExternalServices.pgsql.adminUser') || 'postgres'
 
