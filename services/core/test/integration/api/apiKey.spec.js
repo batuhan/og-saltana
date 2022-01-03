@@ -1,6 +1,7 @@
 const test = require('ava')
 const request = require('supertest')
 const _ = require('lodash')
+const { encodeBase64 } = require('@saltana/utils').encoding
 
 const { before, beforeEach, after } = require('../../lifecycle')
 const {
@@ -18,7 +19,6 @@ const {
   checkOffsetPaginationScenario,
   checkOffsetPaginatedListObject,
 } = require('../../util')
-const { encodeBase64 } = require('@saltana/utils').encoding
 
 test.before(async (t) => {
   await before({

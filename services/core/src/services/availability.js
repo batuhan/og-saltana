@@ -1,7 +1,7 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
 
@@ -274,7 +274,7 @@ function start({ communication }) {
         throw createError(
           422,
           'Recurring availbility period cannot exceed one year. ' +
-            `End date must be before the date "${maxEndDate}"`,
+          `End date must be before the date "${maxEndDate}"`,
         )
       }
     }
@@ -438,7 +438,7 @@ function start({ communication }) {
         throw createError(
           422,
           'Recurring availability period cannot exceed one year. ' +
-            `End date must be before the date "${maxEndDate}"`,
+          `End date must be before the date "${maxEndDate}"`,
         )
       }
     }
@@ -720,31 +720,31 @@ function start({ communication }) {
     const [avResult, unlimitedAvResult] = await Promise.all([
       searchAvAssetsIds.length
         ? getAvailableAssets({
-            assetsIds: searchAvAssetsIds,
-            startDate,
-            endDate,
-            quantity,
-            unavailableWhen,
-            assetTypes,
-            isUnlimitedQuantity: false,
-            fullPeriod,
-            platformId,
-            env,
-          })
+          assetsIds: searchAvAssetsIds,
+          startDate,
+          endDate,
+          quantity,
+          unavailableWhen,
+          assetTypes,
+          isUnlimitedQuantity: false,
+          fullPeriod,
+          platformId,
+          env,
+        })
         : {},
       searchAvUnlimitedAssetsIds.length
         ? getAvailableAssets({
-            assetsIds: searchAvUnlimitedAssetsIds,
-            startDate,
-            endDate,
-            quantity,
-            unavailableWhen,
-            assetTypes,
-            isUnlimitedQuantity: true,
-            fullPeriod,
-            platformId,
-            env,
-          })
+          assetsIds: searchAvUnlimitedAssetsIds,
+          startDate,
+          endDate,
+          quantity,
+          unavailableWhen,
+          assetTypes,
+          isUnlimitedQuantity: true,
+          fullPeriod,
+          platformId,
+          env,
+        })
         : {},
     ])
 

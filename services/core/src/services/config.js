@@ -1,8 +1,7 @@
 const createError = require('http-errors')
 const _ = require('lodash')
-const { getModels } = require('@saltana/db')
-
 const { getObjectId } = require('@saltana/util-keys')
+const { getModels } = require('../db')
 
 const { apiVersions } = require('../versions')
 const { setPlatformEnvData } = require('../redis')

@@ -3,11 +3,9 @@ const _ = require('lodash')
 const { raw, transaction: knexTransaction } = require('@saltana/objection')
 const bluebird = require('bluebird')
 
-const { getModels } = require('@saltana/db')
 const { getObjectId } = require('@saltana/util-keys')
 const { getCurrentUserId } = require('@saltana/utils').user
 const { performListQuery } = require('@saltana/utils').listQueryBuilder
-const { logError } = require('../../server/logger')
 
 const { computeDate, diffDates, getDurationAs } = require('@saltana/utils').time
 const {
@@ -22,6 +20,8 @@ const {
 
 const { getTransition, computeTransitionsMeta } =
   require('@saltana/utils').transition
+const { logError } = require('../../server/logger')
+const { getModels } = require('../db')
 
 let responder
 let subscriber

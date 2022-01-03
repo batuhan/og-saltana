@@ -2,7 +2,7 @@ const createError = require('http-errors')
 const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 const { getObjectId } = require('@saltana/util-keys')
 const { getCurrentUserId } = require('@saltana/utils').user
 const { performListQuery } = require('@saltana/utils').listQueryBuilder

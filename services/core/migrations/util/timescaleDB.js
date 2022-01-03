@@ -1,4 +1,4 @@
-const { retentionLogDuration } = require('../../src/util/timeSeries')
+const { retentionLogDuration } = require('@saltana/utils').timeSeries
 
 // https://docs.timescale.com/latest/using-timescaledb/hypertables
 // The option `migrateData` must be true if the table isn't empty, otherwise an error will be thrown
@@ -7,7 +7,11 @@ const { retentionLogDuration } = require('../../src/util/timeSeries')
 // For large existing tables, it may be worth to create an empty hypertable and to import data
 // because it would take significantly less time
 // https://docs.timescale.com/latest/getting-started/migrating-data
-function createHypertable (schema, table, { column = 'createdTimestamp', migrateData = false } = {}) {
+function createHypertable(
+  schema,
+  table,
+  { column = 'createdTimestamp', migrateData = false } = {},
+) {
   return `
     SELECT public.create_hypertable(
       '${schema}."${table}"', '${column}'
@@ -17,7 +21,12 @@ function createHypertable (schema, table, { column = 'createdTimestamp', migrate
 }
 
 // https://docs.timescale.com/latest/using-timescaledb/compression
-function addCompressionPolicy (schema, table, segmentBy, duration = retentionLogDuration) {
+function addCompressionPolicy(
+  schema,
+  table,
+  segmentBy,
+  duration = retentionLogDuration,
+) {
   return `
     ALTER TABLE ${schema}."${table}" SET (
       timescaledb.compress,
@@ -29,7 +38,7 @@ function addCompressionPolicy (schema, table, segmentBy, duration = retentionLog
 }
 
 // https://docs.timescale.com/v1.3/using-timescaledb/continuous-aggregates
-function createContinuousAggregate ({
+function createContinuousAggregate({
   viewName,
   schema,
   table,
@@ -72,7 +81,7 @@ function createContinuousAggregate ({
   `
 }
 
-function removeContinuousAggregate ({ viewName, schema }) {
+function removeContinuousAggregate({ viewName, schema }) {
   return `
     DROP VIEW IF EXISTS "${schema}"."${viewName}" CASCADE
   `

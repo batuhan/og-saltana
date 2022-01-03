@@ -3,7 +3,7 @@ const config = require('config').get('ExternalServices.pgsql')
 const {
   mergeFunction,
   mergeFunctionName,
-} = require('../util/stl_jsonb_deep_merge')
+} = require('@saltana/utils/src/stl_jsonb_deep_merge')
 const {
   createHypertable,
   addCompressionPolicy,
@@ -13,16 +13,17 @@ const {
 
 const timestampPrecision = 3 // 10E-3 = 1 millisecond
 
-exports.up = async (knex) => {
+exports.up = async (knex, jj) => {
   const { schema } = knex.client.connectionSettings || {}
   // We need to inject schema name in function body for recursion
-  if (!schema)
+  if (!schema) {
     throw new Error(
       `Schema name required to create ${mergeFunctionName} function`,
     )
-  await knex.schema.raw(mergeFunction(schema))
+  }
+  await knex.schema.withSchema(schema).raw(mergeFunction(schema))
 
-  await knex.schema.createTable('apiKey', (table) => {
+  await knex.schema.withSchema(schema).createTable('apiKey', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -40,7 +41,7 @@ exports.up = async (knex) => {
     table.unique('key', 'apiKey_key_unique')
   })
 
-  await knex.schema.createTable('assessment', (table) => {
+  await knex.schema.withSchema(schema).createTable('assessment', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -68,7 +69,7 @@ exports.up = async (knex) => {
     table.index('receiverId', 'assessment_receiverId_index')
   })
 
-  await knex.schema.createTable('asset', (table) => {
+  await knex.schema.withSchema(schema).createTable('asset', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -95,7 +96,7 @@ exports.up = async (knex) => {
     table.index('customAttributes', 'asset_customAttributes_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('assetType', (table) => {
+  await knex.schema.withSchema(schema).createTable('assetType', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -116,7 +117,7 @@ exports.up = async (knex) => {
     table.index(['updatedDate', 'id'], 'assetType_updatedDate_id_index')
   })
 
-  await knex.schema.createTable('authMean', (table) => {
+  await knex.schema.withSchema(schema).createTable('authMean', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -130,7 +131,7 @@ exports.up = async (knex) => {
     table.index('userId', 'authMean_userId_index')
   })
 
-  await knex.schema.createTable('authToken', (table) => {
+  await knex.schema.withSchema(schema).createTable('authToken', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -144,7 +145,7 @@ exports.up = async (knex) => {
     table.index('userId', 'authToken_userId_index')
   })
 
-  await knex.schema.createTable('availability', (table) => {
+  await knex.schema.withSchema(schema).createTable('availability', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -163,7 +164,7 @@ exports.up = async (knex) => {
     table.index('assetId', 'availability_assetId_index')
   })
 
-  await knex.schema.createTable('category', (table) => {
+  await knex.schema.withSchema(schema).createTable('category', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -176,7 +177,7 @@ exports.up = async (knex) => {
     table.index(['updatedDate', 'id'], 'category_updatedDate_id_index')
   })
 
-  await knex.schema.createTable('config', (table) => {
+  await knex.schema.withSchema(schema).createTable('config', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -188,22 +189,24 @@ exports.up = async (knex) => {
     table.unique('access', 'config_access_unique')
   })
 
-  await knex.schema.createTable('customAttribute', (table) => {
-    table.string('id').primary()
-    table.string('createdDate', 24)
-    table.string('updatedDate', 24)
-    table.string('name')
-    table.string('type')
-    table.jsonb('listValues')
-    table.jsonb('metadata')
-    table.jsonb('platformData')
+  await knex.schema
+    .withSchema(schema)
+    .createTable('customAttribute', (table) => {
+      table.string('id').primary()
+      table.string('createdDate', 24)
+      table.string('updatedDate', 24)
+      table.string('name')
+      table.string('type')
+      table.jsonb('listValues')
+      table.jsonb('metadata')
+      table.jsonb('platformData')
 
-    table.index(['createdDate', 'id'], 'customAttribute_createdDate_id_index')
-    table.index(['updatedDate', 'id'], 'customAttribute_updatedDate_id_index')
-    table.unique('name', 'customAttribute_name_unique')
-  })
+      table.index(['createdDate', 'id'], 'customAttribute_createdDate_id_index')
+      table.index(['updatedDate', 'id'], 'customAttribute_updatedDate_id_index')
+      table.unique('name', 'customAttribute_name_unique')
+    })
 
-  await knex.schema.createTable('document', (table) => {
+  await knex.schema.withSchema(schema).createTable('document', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -223,7 +226,7 @@ exports.up = async (knex) => {
     table.index('data', 'document_data_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('entry', (table) => {
+  await knex.schema.withSchema(schema).createTable('entry', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -240,7 +243,7 @@ exports.up = async (knex) => {
     table.unique(['locale', 'name'], 'entry_locale_name_unique')
   })
 
-  await knex.schema.createTable('event', (table) => {
+  await knex.schema.withSchema(schema).createTable('event', (table) => {
     table.string('id')
     table.string('createdDate', 24)
     table.timestamp('createdTimestamp', {
@@ -270,27 +273,29 @@ exports.up = async (knex) => {
     table.index('metadata', 'event_metadata_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('internalAvailability', (table) => {
-    table.bigIncrements('id').primary()
-    table.string('assetId')
-    table.string('transactionId')
-    table.string('assetTypeId')
-    table.string('transactionStatus')
-    table.boolean('unavailable')
-    table.specificType('datesRange', 'tstzrange')
-    table.timestamp('startDate')
-    table.timestamp('endDate')
-    table.integer('quantity')
+  await knex.schema
+    .withSchema(schema)
+    .createTable('internalAvailability', (table) => {
+      table.bigIncrements('id').primary()
+      table.string('assetId')
+      table.string('transactionId')
+      table.string('assetTypeId')
+      table.string('transactionStatus')
+      table.boolean('unavailable')
+      table.specificType('datesRange', 'tstzrange')
+      table.timestamp('startDate')
+      table.timestamp('endDate')
+      table.integer('quantity')
 
-    table.index('assetId', 'internalAvailability_asset_index')
-    table.index('transactionId', 'internalAvailability_transactionId_index')
-    table.index(
-      ['assetId', 'datesRange'],
-      'internalAvailability_assetId_datesRange_index',
-    )
-  })
+      table.index('assetId', 'internalAvailability_asset_index')
+      table.index('transactionId', 'internalAvailability_transactionId_index')
+      table.index(
+        ['assetId', 'datesRange'],
+        'internalAvailability_assetId_datesRange_index',
+      )
+    })
 
-  await knex.schema.createTable('message', (table) => {
+  await knex.schema.withSchema(schema).createTable('message', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -312,7 +317,7 @@ exports.up = async (knex) => {
     table.index('receiverId', 'message_receiverId_index')
   })
 
-  await knex.schema.createTable('order', (table) => {
+  await knex.schema.withSchema(schema).createTable('order', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -332,7 +337,7 @@ exports.up = async (knex) => {
     table.index('payerId', 'order_payerId_index')
   })
 
-  await knex.schema.createTable('role', (table) => {
+  await knex.schema.withSchema(schema).createTable('role', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -351,7 +356,7 @@ exports.up = async (knex) => {
     table.index('value', 'role_value_index')
   })
 
-  await knex.schema.createTable('task', (table) => {
+  await knex.schema.withSchema(schema).createTable('task', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -371,7 +376,7 @@ exports.up = async (knex) => {
     table.index('eventObjectId', 'task_eventObjectId_index')
   })
 
-  await knex.schema.createTable('transaction', (table) => {
+  await knex.schema.withSchema(schema).createTable('transaction', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -410,7 +415,7 @@ exports.up = async (knex) => {
     table.index('assetId', 'transaction_assetId_index')
   })
 
-  await knex.schema.createTable('user', (table) => {
+  await knex.schema.withSchema(schema).createTable('user', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -434,7 +439,7 @@ exports.up = async (knex) => {
     table.index('roles', 'user_roles_gin_index', 'GIN')
   })
 
-  await knex.schema.createTable('webhook', (table) => {
+  await knex.schema.withSchema(schema).createTable('webhook', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -451,7 +456,7 @@ exports.up = async (knex) => {
     table.index('event', 'webhook_event_index')
   })
 
-  await knex.schema.createTable('webhookLog', (table) => {
+  await knex.schema.withSchema(schema).createTable('webhookLog', (table) => {
     table.string('id')
     table.string('createdDate', 24)
     table.timestamp('createdTimestamp', {
@@ -473,7 +478,7 @@ exports.up = async (knex) => {
     table.index('eventId', 'webhookLog_eventId_index')
   })
 
-  await knex.schema.createTable('workflow', (table) => {
+  await knex.schema.withSchema(schema).createTable('workflow', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -495,7 +500,7 @@ exports.up = async (knex) => {
     table.index('event', 'workflow_event_index')
   })
 
-  await knex.schema.createTable('workflowLog', (table) => {
+  await knex.schema.withSchema(schema).createTable('workflowLog', (table) => {
     table.string('id')
     table.string('createdDate', 24)
     table.timestamp('createdTimestamp', {
@@ -522,19 +527,25 @@ exports.up = async (knex) => {
   })
 
   if (config.get('timescale.enabled')) {
-    await knex.schema.raw(createHypertable(schema, 'event'))
-    await knex.schema.raw(createHypertable(schema, 'webhookLog'))
-    await knex.schema.raw(createHypertable(schema, 'workflowLog'))
+    await knex.schema.withSchema(schema).raw(createHypertable(schema, 'event'))
+    await knex.schema
+      .withSchema(schema)
+      .raw(createHypertable(schema, 'webhookLog'))
+    await knex.schema
+      .withSchema(schema)
+      .raw(createHypertable(schema, 'workflowLog'))
 
-    await knex.schema.raw(addCompressionPolicy(schema, 'event', 'objectId'))
-    await knex.schema.raw(
-      addCompressionPolicy(schema, 'webhookLog', 'webhookId'),
-    )
-    await knex.schema.raw(
-      addCompressionPolicy(schema, 'workflowLog', 'workflowId'),
-    )
+    await knex.schema
+      .withSchema(schema)
+      .raw(addCompressionPolicy(schema, 'event', 'objectId'))
+    await knex.schema
+      .withSchema(schema)
+      .raw(addCompressionPolicy(schema, 'webhookLog', 'webhookId'))
+    await knex.schema
+      .withSchema(schema)
+      .raw(addCompressionPolicy(schema, 'workflowLog', 'workflowId'))
 
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'event_hourly',
         schema,
@@ -546,7 +557,7 @@ exports.up = async (knex) => {
         secondaryColumn: 'type',
       }),
     )
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'event_daily',
         schema,
@@ -558,7 +569,7 @@ exports.up = async (knex) => {
         secondaryColumn: 'type',
       }),
     )
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'event_monthly',
         schema,
@@ -571,7 +582,7 @@ exports.up = async (knex) => {
       }),
     )
 
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'webhookLog_hourly',
         schema,
@@ -582,7 +593,7 @@ exports.up = async (knex) => {
         refreshInterval: '1 hour',
       }),
     )
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'webhookLog_daily',
         schema,
@@ -593,7 +604,7 @@ exports.up = async (knex) => {
         refreshInterval: '1 day',
       }),
     )
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'webhookLog_monthly',
         schema,
@@ -605,7 +616,7 @@ exports.up = async (knex) => {
       }),
     )
 
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'workflowLog_hourly',
         schema,
@@ -617,7 +628,7 @@ exports.up = async (knex) => {
         secondaryColumn: 'type',
       }),
     )
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'workflowLog_daily',
         schema,
@@ -629,7 +640,7 @@ exports.up = async (knex) => {
         secondaryColumn: 'type',
       }),
     )
-    await knex.schema.raw(
+    await knex.schema.withSchema(schema).raw(
       createContinuousAggregate({
         viewName: 'workflowLog_monthly',
         schema,
@@ -651,63 +662,69 @@ exports.down = async (knex) => {
     throw new Error('Schema name required to remove continuous aggregates')
 
   if (config.get('timescale.enabled')) {
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'workflowLog_hourly', schema }),
-    )
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'workflowLog_daily', schema }),
-    )
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'workflowLog_monthly', schema }),
-    )
+    await knex.schema
+      .withSchema(schema)
+      .raw(
+        removeContinuousAggregate({ viewName: 'workflowLog_hourly', schema }),
+      )
+    await knex.schema
+      .withSchema(schema)
+      .raw(removeContinuousAggregate({ viewName: 'workflowLog_daily', schema }))
+    await knex.schema
+      .withSchema(schema)
+      .raw(
+        removeContinuousAggregate({ viewName: 'workflowLog_monthly', schema }),
+      )
 
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'webhookLog_hourly', schema }),
-    )
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'webhookLog_daily', schema }),
-    )
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'webhookLog_monthly', schema }),
-    )
+    await knex.schema
+      .withSchema(schema)
+      .raw(removeContinuousAggregate({ viewName: 'webhookLog_hourly', schema }))
+    await knex.schema
+      .withSchema(schema)
+      .raw(removeContinuousAggregate({ viewName: 'webhookLog_daily', schema }))
+    await knex.schema
+      .withSchema(schema)
+      .raw(
+        removeContinuousAggregate({ viewName: 'webhookLog_monthly', schema }),
+      )
 
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'event_hourly', schema }),
-    )
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'event_daily', schema }),
-    )
-    await knex.schema.raw(
-      removeContinuousAggregate({ viewName: 'event_monthly', schema }),
-    )
+    await knex.schema
+      .withSchema(schema)
+      .raw(removeContinuousAggregate({ viewName: 'event_hourly', schema }))
+    await knex.schema
+      .withSchema(schema)
+      .raw(removeContinuousAggregate({ viewName: 'event_daily', schema }))
+    await knex.schema
+      .withSchema(schema)
+      .raw(removeContinuousAggregate({ viewName: 'event_monthly', schema }))
   }
 
-  await knex.schema.dropTableIfExists('workflowLog')
-  await knex.schema.dropTableIfExists('workflow')
-  await knex.schema.dropTableIfExists('webhookLog')
-  await knex.schema.dropTableIfExists('webhook')
-  await knex.schema.dropTableIfExists('user')
-  await knex.schema.dropTableIfExists('transaction')
-  await knex.schema.dropTableIfExists('task')
-  await knex.schema.dropTableIfExists('role')
-  await knex.schema.dropTableIfExists('order')
-  await knex.schema.dropTableIfExists('message')
-  await knex.schema.dropTableIfExists('internalAvailability')
-  await knex.schema.dropTableIfExists('event')
-  await knex.schema.dropTableIfExists('entry')
-  await knex.schema.dropTableIfExists('document')
-  await knex.schema.dropTableIfExists('customAttribute')
-  await knex.schema.dropTableIfExists('config')
-  await knex.schema.dropTableIfExists('category')
-  await knex.schema.dropTableIfExists('availability')
-  await knex.schema.dropTableIfExists('authToken')
-  await knex.schema.dropTableIfExists('authMean')
-  await knex.schema.dropTableIfExists('assetType')
-  await knex.schema.dropTableIfExists('asset')
-  await knex.schema.dropTableIfExists('assessment')
-  await knex.schema.dropTableIfExists('apiKey')
+  await knex.schema.withSchema(schema).dropTableIfExists('workflowLog')
+  await knex.schema.withSchema(schema).dropTableIfExists('workflow')
+  await knex.schema.withSchema(schema).dropTableIfExists('webhookLog')
+  await knex.schema.withSchema(schema).dropTableIfExists('webhook')
+  await knex.schema.withSchema(schema).dropTableIfExists('user')
+  await knex.schema.withSchema(schema).dropTableIfExists('transaction')
+  await knex.schema.withSchema(schema).dropTableIfExists('task')
+  await knex.schema.withSchema(schema).dropTableIfExists('role')
+  await knex.schema.withSchema(schema).dropTableIfExists('order')
+  await knex.schema.withSchema(schema).dropTableIfExists('message')
+  await knex.schema.withSchema(schema).dropTableIfExists('internalAvailability')
+  await knex.schema.withSchema(schema).dropTableIfExists('event')
+  await knex.schema.withSchema(schema).dropTableIfExists('entry')
+  await knex.schema.withSchema(schema).dropTableIfExists('document')
+  await knex.schema.withSchema(schema).dropTableIfExists('customAttribute')
+  await knex.schema.withSchema(schema).dropTableIfExists('config')
+  await knex.schema.withSchema(schema).dropTableIfExists('category')
+  await knex.schema.withSchema(schema).dropTableIfExists('availability')
+  await knex.schema.withSchema(schema).dropTableIfExists('authToken')
+  await knex.schema.withSchema(schema).dropTableIfExists('authMean')
+  await knex.schema.withSchema(schema).dropTableIfExists('assetType')
+  await knex.schema.withSchema(schema).dropTableIfExists('asset')
+  await knex.schema.withSchema(schema).dropTableIfExists('assessment')
+  await knex.schema.withSchema(schema).dropTableIfExists('apiKey')
 
-  await knex.schema.raw(
-    `DROP FUNCTION IF EXISTS ${mergeFunctionName}(jsonb, jsonb)`,
-  )
+  await knex.schema
+    .withSchema(schema)
+    .raw(`DROP FUNCTION IF EXISTS ${mergeFunctionName}(jsonb, jsonb)`)
 }

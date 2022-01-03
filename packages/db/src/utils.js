@@ -12,6 +12,17 @@ const getModelNameFromObjectType = (objectType) => {
   return objectType.charAt(0).toUpperCase() + objectType.slice(1)
 }
 
+function getSchemaName(platformId, env) {
+  if (!platformId) {
+    throw new Error('Missing platformId when getting models')
+  }
+  if (!env) {
+    throw new Error('Missing environment when getting models')
+  }
+
+  return `s${platformId}_${env}`
+}
+
 async function getModels({
   platformId,
   env,
@@ -35,7 +46,7 @@ async function getModels({
   const isPlatformEnv = platformId && env
   // eslint-disable-next-line no-underscore-dangle
   const _schema = isPlatformEnv
-    ? `s${platformId}_${env}`
+    ? getSchemaName(platformId, env)
     : defaultSchema || 'public'
 
   const customModels = {}
@@ -232,4 +243,5 @@ function getModelInfo({ objectId, objectType, idPrefix, Models }) {
 module.exports = {
   getModels,
   getModelInfo,
+  getSchemaName,
 }

@@ -1,18 +1,11 @@
-const {
-  mergeFunction,
-  mergeFunctionName,
-} = require('../util/stl_jsonb_deep_merge')
-
 exports.up = async (knex) => {
   const { schema } = knex.client.connectionSettings || {}
   // We need to inject schema name in function body for recursion
   if (!schema) {
-    throw new Error(
-      `Schema name required to create ${mergeFunctionName} function`,
-    )
+    throw new Error(`Schema name required to do migrations`)
   }
 
-  await knex.schema.createTable('domains', (table) => {
+  await knex.schema.withSchema(schema).createTable('domains', (table) => {
     table.string('id').primary()
     table.string('createdDate', 24)
     table.string('updatedDate', 24)
@@ -40,5 +33,5 @@ exports.down = async (knex) => {
     throw new Error('Schema name required to remove continuous aggregates')
   }
 
-  await knex.schema.dropTableIfExists('domains')
+  await knex.schema.withSchema(schema).dropTableIfExists('domains')
 }

@@ -10,7 +10,7 @@ const { syncAssetsWithElasticsearch } = require('../elasticsearch-sync')
 
 const { getPendingReindexingTask } = require('../elasticsearch-reindex')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 
 let responder
 let subscriber
@@ -515,9 +515,8 @@ function start({ communication, isSystem }) {
         ) {
           // Add '.keyword' to text field key to allow sorting
           // https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html
-          const customAttributeKey = `customAttributes.${name}${
-            customAttribute.type === 'text' ? '.keyword' : ''
-          }`
+          const customAttributeKey = `customAttributes.${name}${customAttribute.type === 'text' ? '.keyword' : ''
+            }`
           sortParams.push({
             [customAttributeKey]: {
               order: step[name],
@@ -528,8 +527,7 @@ function start({ communication, isSystem }) {
         } else {
           throw createError(
             422,
-            `Can't sort by custom attribute ${name} of type ${
-              customAttribute && customAttribute.type
+            `Can't sort by custom attribute ${name} of type ${customAttribute && customAttribute.type
             }`,
           )
         }

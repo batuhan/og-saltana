@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const { getObjectId } = require('@saltana/util-keys')
-const { Base } = require('@saltana/db')
+const { BaseModel } = require('@saltana/db')
 const { apiVersions, applyObjectChanges } = require('../versions')
 
 const { getPublisher, COMMUNICATION_ID } = require('../communication')
@@ -30,7 +30,7 @@ const hasChangesRequestedRegex =
 
 const coreEventRegex = /^[a-z\d_]+__[a-z\d_]+$/i
 
-class Event extends Base {
+class Event extends BaseModel {
   static get tableName() {
     return 'event'
   }
@@ -174,7 +174,7 @@ class Event extends Base {
     this.apiVersion = apiVersions[0]
   }
 
-  $beforeUpdate() {}
+  $beforeUpdate() { }
 
   static async createEvent(params, { platformId, env, queryContext } = {}) {
     const { getModels } = require('@saltana/db')

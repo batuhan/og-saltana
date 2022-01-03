@@ -3,7 +3,7 @@ const _ = require('lodash')
 const bluebird = require('bluebird')
 
 const { getObjectId } = require('@saltana/util-keys')
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 
 const { logError } = require('../../server/logger')
 

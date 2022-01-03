@@ -8,7 +8,7 @@ const cleanDeep = require('clean-deep')
 
 const { getObjectId } = require('@saltana/util-keys')
 const { performListQuery } = require('@saltana/utils').listQueryBuilder
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 const { log } = require('@saltana/utils').logging
 const { getCurrentUserId, getRealCurrentUserId } =
   require('@saltana/utils').user
@@ -508,7 +508,7 @@ function start({ communication }) {
         throw createError(
           403,
           'Must be owner of the organization to transfer ownership, ' +
-            'or have "user:edit:all" permission',
+          'or have "user:edit:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
           },
@@ -659,7 +659,7 @@ function start({ communication }) {
         throw createError(
           403,
           'Must be owner of the organization to delete, ' +
-            'or have "user:remove:all" permission',
+          'or have "user:remove:all" permission',
           {
             public: { userId: realCurrentUserId, organizationId: userId },
           },
@@ -674,8 +674,7 @@ function start({ communication }) {
     if (nbAssets) {
       throw createError(
         422,
-        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${
-          user.id
+        `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} still belong to ${user.id
         }. Please delete all User Assets before deleting this User.`,
       )
     }

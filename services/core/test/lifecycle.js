@@ -7,7 +7,7 @@ const _ = require('lodash')
 
 const debug = require('debug')('saltana:test')
 const Uuid = require('uuid')
-const config = require('config').get('LocalEnv')
+const config = require('config')
 
 const request = require('superagent')
 const store = require('./store')
@@ -29,7 +29,7 @@ const {
 const testingEnvs = ['test', 'live']
 const defaultTestingEnv = testingEnvs[0]
 
-const enableInstantData = config.get('instantData') === 'true'
+const enableInstantData = config.get('LocalEnv.instantData') === 'true'
 
 function getDataFixtures(env) {
   const plugins = getPlugins()
@@ -204,7 +204,9 @@ async function startPlatformDatabases({
   const connection = getPostgresqlConnection({ platformId, env })
   await database.createFixture({ platformId, env, connection, data: fixtures })
 
-  await elasticsearch.init({ platformId, env })
+  if (config.get('ExternalServices.elasticsearch.enabled') === 'true') {
+    await elasticsearch.init({ platformId, env })
+  }
 }
 
 function after() {
@@ -281,7 +283,7 @@ async function initSettings({ serverUrl, platformId, env, systemKey }) {
 
   try {
     elasticsearch = getElasticsearchConnection()
-  } catch (e) {}
+  } catch (e) { }
 
   await request
     .put(`${serverUrl}/store/platforms/${platformId}/data/${env}`)

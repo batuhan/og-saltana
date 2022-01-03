@@ -3,8 +3,10 @@ const createError = require('http-errors')
 const { serializeError } = require('serialize-error')
 const _ = require('lodash')
 const bluebird = require('bluebird')
+const config = require('config')
+const { getModels, models, getSchemaName } = require('@saltana/db')
 
-const { getModels, knex } = require('../db')
+const { getKnexForSchema } = require('../db/knex')
 const { createSchema, dropSchema, dropSchemaViews } = require('../database')
 
 const {
@@ -36,6 +38,150 @@ const { removeReindexingTask } = require('../elasticsearch-reindex')
 
 const { logError } = require('../../server/logger')
 const { getEnvironments } = require('../util/environment')
+
+function getTools({ platformId, env }) {
+  const schema = getSchemaName(platformId, env)
+  const knex = getKnexForSchema(schema)
+  return { knex, schema }
+}
+
+async function migrateDatabase({ platformId, env }) {
+  if (!platformId) {
+    throw new Error('Missing platformId when migrating database')
+  }
+  if (!env) {
+    throw new Error('Missing environment when migrating database')
+  }
+
+  const { knex, schema } = getTools({ platformId, env })
+  // debugger
+  await createSchema({ knex, schema })
+
+  const useCustomSchema = schema !== 'public'
+
+  const options = { directory: path.join(__dirname, '../../migrations/knex') }
+
+  if (useCustomSchema) {
+    options.schemaName = schema
+  }
+
+  await knex.migrate.latest(options)
+  await knex.destroy()
+}
+
+async function dropDatabase({ platformId, env }) {
+  try {
+    if (!platformId) {
+      throw new Error('Missing platformId when migrating database')
+    }
+    if (!env) {
+      throw new Error('Missing environment when migrating database')
+    }
+
+    const { knex, schema } = getTools({ platformId, env })
+
+    // Must drop views (that can be TimescaleDB continuous aggregates) before dropping schema
+    // because it seems that the drop schema cascade option doesn't propagate well
+    // (at least for TimescaleDB continuous aggregates)
+    // If continuous aggregates aren't dropped first, schema won't be dropped.
+    const internalKnex = await dropSchemaViews({ knex, schema })
+    await dropSchema({ internalKnex, schema, cascade: true, returnKnex: true })
+  } catch (err) {
+    logError(err, {
+      // should mostly affect tests, we’re logging this just in case
+      platformId,
+      env,
+      message: `Could not drop database ${platformId}_${env}, probably already dropped.`,
+    })
+  }
+}
+
+async function migrateDatabaseVersion({ platformId, env, version }) {
+  let migrationFile
+
+  try {
+    migrationFile = require(`../../migrations/data/${version}.js`)
+  } catch (err) {
+    throw createError(404, 'The migration file does not exist')
+  }
+
+  await migrationFile.run({ platformId, env })
+}
+
+async function initElasticsearch({ platformId, env }) {
+  const exists = await isIndexExisting({ platformId, env })
+  if (exists) return
+
+  const { CustomAttribute } = await getModels({ platformId, env })
+
+  const customAttributes = await CustomAttribute.query()
+
+  await createIndex({ platformId, env, useAlias: true, customAttributes })
+}
+
+function omitTaskMetadata(task) {
+  return _.omit(task, ['metadata', 'platformData'])
+}
+
+function computeCacheDifference({ tasks, cachedTasks }) {
+  const tasksById = _.keyBy(tasks, 'id')
+  const cachedTasksById = _.keyBy(cachedTasks, 'id')
+
+  const allIds = _.uniqBy(
+    tasks.map((t) => t.id).concat(cachedTasks.map((t) => t.id)),
+  )
+
+  const tasksToAdd = []
+  const taskIdsToRemove = []
+  const tasksUpdated = []
+
+  allIds.forEach((id) => {
+    const task = tasksById[id]
+    const cachedTask = cachedTasksById[id]
+
+    if (task && !cachedTask) {
+      tasksToAdd.push(task)
+    } else if (!task && cachedTask) {
+      taskIdsToRemove.push(cachedTask.id)
+    } else if (
+      !_.isEqual(omitTaskMetadata(task), omitTaskMetadata(cachedTask))
+    ) {
+      tasksUpdated.push(task)
+    }
+  })
+
+  const needSync = !!(
+    tasksToAdd.length ||
+    taskIdsToRemove.length ||
+    tasksUpdated.length
+  )
+
+  return {
+    tasksToAdd,
+    taskIdsToRemove,
+    tasksUpdated,
+    needSync,
+  }
+}
+
+async function syncCache({
+  platformId,
+  env,
+  tasksToAdd,
+  taskIdsToRemove,
+  tasksUpdated,
+}) {
+  await removeSaltanaTask({ platformId, env, taskId: taskIdsToRemove })
+  await removeSaltanaTaskExecutionDates({ taskId: taskIdsToRemove })
+
+  await bluebird.map(
+    tasksToAdd.concat(tasksUpdated),
+    (task) => {
+      return setSaltanaTask({ platformId, env, task: omitTaskMetadata(task) })
+    },
+    { concurrency: 10 },
+  )
+}
 
 let responder
 let subscriber
@@ -301,85 +447,86 @@ function start({ communication }) {
     return { success: true }
   })
 
-  responder.on('initElasticsearch', async (req) => {
-    const { platformId, env } = req
+  if (config.get('ExternalServices.elasticsearch.enabled') !== false) {
+    responder.on('initElasticsearch', async (req) => {
+      const { platformId, env } = req
 
-    const exists = await hasPlatform(platformId)
-    if (!exists) throw createError(404, 'Platform does not exist')
+      const exists = await hasPlatform(platformId)
+      if (!exists) throw createError(404, 'Platform does not exist')
 
-    await initElasticsearch({ platformId, env })
+      await initElasticsearch({ platformId, env })
 
-    return { success: true }
-  })
+      return { success: true }
+    })
 
-  responder.on('syncElasticsearch', async (req) => {
-    const { platformId, env } = req
+    responder.on('syncElasticsearch', async (req) => {
+      const { platformId, env } = req
 
-    const exists = await hasPlatform(platformId)
-    if (!exists) throw createError(404, 'Platform does not exist')
+      const exists = await hasPlatform(platformId)
+      if (!exists) throw createError(404, 'Platform does not exist')
 
-    const { Asset } = await getModels({ platformId, env })
+      const { Asset } = await getModels({ platformId, env })
 
-    const [{ count: nbAssets }] = await Asset.query().count()
+      const [{ count: nbAssets }] = await Asset.query().count()
 
-    const nbAssetsPerChunk = 500
+      const nbAssetsPerChunk = 500
 
-    const times = Math.ceil(nbAssets / nbAssetsPerChunk)
+      const times = Math.ceil(nbAssets / nbAssetsPerChunk)
 
-    let page = 1
+      let page = 1
 
-    for (let i = 0; i < times; i++) {
-      const limit = nbAssetsPerChunk
+      for (let i = 0; i < times; i++) {
+        const limit = nbAssetsPerChunk
 
-      const assets = await Asset.query()
-        .offset((page - 1) * limit)
-        .limit(limit)
+        const assets = await Asset.query()
+          .offset((page - 1) * limit)
+          .limit(limit)
 
-      assets.forEach((asset) => {
-        syncAssetsWithElasticsearch({
-          assetId: asset.id,
-          asset,
-          action: 'update',
+        assets.forEach((asset) => {
+          syncAssetsWithElasticsearch({
+            assetId: asset.id,
+            asset,
+            action: 'update',
+            platformId,
+            env,
+          })
+        })
+
+        page++
+      }
+
+      return { success: true }
+    })
+
+    responder.on('dropElasticsearch', async (req) => {
+      const { platformId, env } = req
+
+      const exists = await hasPlatform(platformId)
+      if (!exists) throw createError(404, 'Platform does not exist')
+
+      // use pattern to drop all indices (reindexing, alias indices)
+      const indexPattern = `${getIndex({ platformId, env })}*`
+
+      let client
+      try {
+        client = await getClient({ platformId, env })
+      } catch (err) {
+        logError(err, {
+          // should mostly affect tests, we’re logging this just in case
           platformId,
           env,
+          message:
+            'Could not getClient to drop ElasticSearch index, probably already dropped.',
         })
-      })
+      }
 
-      page++
-    }
+      if (client) await client.indices.delete({ index: indexPattern })
 
-    return { success: true }
-  })
+      await removeReindexingTask({ platformId, env })
 
-  responder.on('dropElasticsearch', async (req) => {
-    const { platformId, env } = req
-
-    const exists = await hasPlatform(platformId)
-    if (!exists) throw createError(404, 'Platform does not exist')
-
-    // use pattern to drop all indices (reindexing, alias indices)
-    const indexPattern = `${getIndex({ platformId, env })}*`
-
-    let client
-    try {
-      client = await getClient({ platformId, env })
-    } catch (err) {
-      logError(err, {
-        // should mostly affect tests, we’re logging this just in case
-        platformId,
-        env,
-        message:
-          'Could not getClient to drop ElasticSearch index, probably already dropped.',
-      })
-    }
-
-    if (client) await client.indices.delete({ index: indexPattern })
-
-    await removeReindexingTask({ platformId, env })
-
-    return { success: true }
-  })
-
+      return { success: true }
+    })
+  }
   responder.on('syncCache', async (req) => {
     const { platformId, env } = req
 
@@ -415,127 +562,6 @@ function start({ communication }) {
 
     return { success: true }
   })
-}
-
-async function migrateDatabase({ platformId, env }) {
-  const { connection, schema } = await getConnection({ platformId, env })
-
-  const knexInstance = await createSchema({ knex, connection, schema })
-
-  const useCustomSchema = schema !== 'public'
-
-  const options = { directory: path.join(__dirname, '../../migrations/knex') }
-  if (useCustomSchema) options.schemaName = schema
-
-  await knexInstance.migrate.latest(options)
-  await knexInstance.destroy()
-}
-
-async function dropDatabase({ platformId, env }) {
-  try {
-    const { connection, schema } = await getConnection({ platformId, env })
-
-    // Must drop views (that can be TimescaleDB continuous aggregates) before dropping schema
-    // because it seems that the drop schema cascade option doesn't propagate well
-    // (at least for TimescaleDB continuous aggregates)
-    // If continuous aggregates aren't dropped first, schema won't be dropped.
-    const knex = await dropSchemaViews({ connection, schema })
-    await dropSchema({ knex, schema, cascade: true, returnKnex: true })
-  } catch (err) {
-    logError(err, {
-      // should mostly affect tests, we’re logging this just in case
-      platformId,
-      env,
-      message: `Could not drop database ${platformId}_${env}, probably already dropped.`,
-    })
-  }
-}
-
-async function migrateDatabaseVersion({ platformId, env, version }) {
-  let migrationFile
-
-  try {
-    migrationFile = require(`../../migrations/data/${version}.js`)
-  } catch (err) {
-    throw createError(404, 'The migration file does not exist')
-  }
-
-  await migrationFile.run({ platformId, env })
-}
-
-async function initElasticsearch({ platformId, env }) {
-  const exists = await isIndexExisting({ platformId, env })
-  if (exists) return
-
-  const { CustomAttribute } = await getModels({ platformId, env })
-
-  const customAttributes = await CustomAttribute.query()
-
-  await createIndex({ platformId, env, useAlias: true, customAttributes })
-}
-
-function omitTaskMetadata(task) {
-  return _.omit(task, ['metadata', 'platformData'])
-}
-
-function computeCacheDifference({ tasks, cachedTasks }) {
-  const tasksById = _.keyBy(tasks, 'id')
-  const cachedTasksById = _.keyBy(cachedTasks, 'id')
-
-  const allIds = _.uniqBy(
-    tasks.map((t) => t.id).concat(cachedTasks.map((t) => t.id)),
-  )
-
-  const tasksToAdd = []
-  const taskIdsToRemove = []
-  const tasksUpdated = []
-
-  allIds.forEach((id) => {
-    const task = tasksById[id]
-    const cachedTask = cachedTasksById[id]
-
-    if (task && !cachedTask) {
-      tasksToAdd.push(task)
-    } else if (!task && cachedTask) {
-      taskIdsToRemove.push(cachedTask.id)
-    } else if (
-      !_.isEqual(omitTaskMetadata(task), omitTaskMetadata(cachedTask))
-    ) {
-      tasksUpdated.push(task)
-    }
-  })
-
-  const needSync = !!(
-    tasksToAdd.length ||
-    taskIdsToRemove.length ||
-    tasksUpdated.length
-  )
-
-  return {
-    tasksToAdd,
-    taskIdsToRemove,
-    tasksUpdated,
-    needSync,
-  }
-}
-
-async function syncCache({
-  platformId,
-  env,
-  tasksToAdd,
-  taskIdsToRemove,
-  tasksUpdated,
-}) {
-  await removeSaltanaTask({ platformId, env, taskId: taskIdsToRemove })
-  await removeSaltanaTaskExecutionDates({ taskId: taskIdsToRemove })
-
-  await bluebird.map(
-    tasksToAdd.concat(tasksUpdated),
-    (task) => {
-      return setSaltanaTask({ platformId, env, task: omitTaskMetadata(task) })
-    },
-    { concurrency: 10 },
-  )
 }
 
 function stop() {

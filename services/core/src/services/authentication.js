@@ -5,7 +5,7 @@ const { transaction } = require('@saltana/objection')
 const bluebird = require('bluebird')
 
 const { logError } = require('../../server/logger')
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 const { nanoid } = require('nanoid')
 
 const { getPlatformEnvData, setPlatformEnvData } = require('../redis')

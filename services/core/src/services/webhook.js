@@ -3,7 +3,7 @@ const createError = require('http-errors')
 const bluebird = require('bluebird')
 const request = require('superagent')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 
 const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')

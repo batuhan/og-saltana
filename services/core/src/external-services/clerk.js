@@ -1,4 +1,5 @@
 const config = require('config')
+
 process.env.CLERK_API_KEY = config.get('ExternalServices.clerk.apiKey')
 pkg = require('@clerk/clerk-sdk-node')
 const JwksClient = require('jwks-rsa')

@@ -1,7 +1,7 @@
 const createError = require('http-errors')
 const _ = require('lodash')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 const { getObjectId } = require('@saltana/util-keys')
 const { logError } = require('../../server/logger')
 

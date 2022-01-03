@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const pgConfig = require('config').get('ExternalServices.pgsql')
 
+const knexInstances = {}
 const cachedCAs = {}
 function getCA(fileName) {
   if (cachedCAs[fileName]) {
@@ -60,13 +61,23 @@ const getKnexCacheKey = ({
   })
 
 function getKnex(
-  { host, user, password, database, port, url, ssl } = {},
+  { host, user, schema, password, database, searchPath, port, url, ssl } = {},
   options = {},
 ) {
-  // const key = getKnexCacheKey(connection)
-  // if (knexInstances[key]) {
-  //   return knexInstances[key]
-  // }
+  const key = getKnexCacheKey({
+    host,
+    user,
+    schema,
+    password,
+    database,
+    searchPath,
+    port,
+    url,
+    ssl,
+  })
+  if (knexInstances[key]) {
+    return knexInstances[key]
+  }
 
   const {
     pool = {
@@ -85,18 +96,24 @@ function getKnex(
       database,
       port,
       ssl,
+      schema,
+      searchPath: searchPath || [schema],
     },
     pool,
   })
 
-  // knexInstances[key] = knex
+  knexInstances[key] = knex
 
   return knex
 }
 
 const knex = getKnex(connectionOpts)
+const defaultSchema = connectionOpts.schema
+const getKnexForSchema = (schema = defaultSchema) =>
+  getKnex({ ...connectionOpts, schema, searchPath: [schema] })
 
 module.exports = {
   knex,
-  defaultSchema: connectionOpts.schema,
+  defaultSchema,
+  getKnexForSchema,
 }

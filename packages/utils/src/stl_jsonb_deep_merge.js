@@ -22,7 +22,7 @@ function mergeFunction(schema) {
   // We might introduce a third argument to define how we handle arrays.
   //
   // a: Previous object value, b: 'patch' object (only including keys to update)
-  return `CREATE OR REPLACE FUNCTION ${mergeFunctionName}(base jsonb, patch jsonb)
+  return `CREATE OR REPLACE FUNCTION ${schema}.${mergeFunctionName}(base jsonb, patch jsonb)
     RETURNS jsonb
     LANGUAGE sql
     IMMUTABLE

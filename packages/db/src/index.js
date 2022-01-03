@@ -2,7 +2,7 @@ const pg = require('pg')
 
 const models = require('./models')
 const BaseModel = require('./models/Base')
-const { getModels, getModelInfo } = require('./utils')
+const { getModels, getModelInfo, getSchemaName } = require('./utils')
 
 function loadTypeParser() {
   // https://github.com/tgriesser/knex/issues/387
@@ -24,6 +24,7 @@ loadTypeParser()
 module.exports = {
   getModels,
   getModelInfo,
+  getSchemaName,
   models,
   BaseModel,
 }

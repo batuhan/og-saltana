@@ -1,7 +1,7 @@
 const createError = require('http-errors')
 const { transaction, ref } = require('@saltana/objection')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 
 const { getObjectId } = require('@saltana/util-keys')
 

@@ -3,11 +3,11 @@ const _ = require('lodash')
 const { transaction } = require('@saltana/objection')
 
 const { getObjectId } = require('@saltana/util-keys')
-const { getModels } = require('@saltana/db')
 const {
   user: { getCurrentUserId },
   listQueryBuilder: { performListQuery },
 } = require('@saltana/utils')
+const { getModels } = require('../db')
 const { logError } = require('../../server/logger')
 
 let responder
@@ -182,11 +182,11 @@ function start({ communication }) {
       Asset.query().findById(assetId),
       transactionId
         ? transactionRequester.send({
-            type: '_getTransaction',
-            transactionId,
-            platformId,
-            env,
-          })
+          type: '_getTransaction',
+          transactionId,
+          platformId,
+          env,
+        })
         : null,
     ])
 

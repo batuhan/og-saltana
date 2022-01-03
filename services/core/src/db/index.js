@@ -1,5 +1,8 @@
-const { getModels, models } = require('@saltana/db')
+const { getModels, models: commonModels } = require('@saltana/db')
 const { knex, defaultSchema } = require('./knex')
+const Event = require('../models/Event')
+
+const models = { ...commonModels, Event }
 
 function getModelsWithKnex({ platformId, env }) {
   if (!platformId) {

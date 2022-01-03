@@ -1,7 +1,7 @@
 const path = require('path')
 const SqlFixtures = require('sql-fixtures')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../src/db')
 const { createSchema, dropSchema } = require('../src/database')
 
 async function init({ connection }) {

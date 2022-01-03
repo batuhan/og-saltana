@@ -1,10 +1,9 @@
 const createError = require('http-errors')
 const { UniqueViolationError } = require('objection-db-errors')
 
-const { logError } = require('../../server/logger')
-const { getModels } = require('@saltana/db')
-
 const { getObjectId } = require('@saltana/util-keys')
+const { logError } = require('../../server/logger')
+const { getModels } = require('../db')
 
 const { performListQuery } = require('@saltana/utils').listQueryBuilder
 
@@ -35,8 +34,8 @@ function start({ communication }) {
   })
 
   responder.on('list', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Entry } = await getModels({ platformId, env })
 
     const {
@@ -112,11 +111,11 @@ function start({ communication }) {
   })
 
   responder.on('read', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Entry } = await getModels({ platformId, env })
 
-    const entryId = req.entryId
+    const { entryId } = req
 
     const entry = await Entry.query().findById(entryId)
     if (!entry) {
@@ -127,8 +126,8 @@ function start({ communication }) {
   })
 
   responder.on('create', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Entry } = await getModels({ platformId, env })
 
     const { collection, locale, name, fields, metadata } = req
@@ -162,8 +161,8 @@ function start({ communication }) {
   })
 
   responder.on('update', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Entry } = await getModels({ platformId, env })
 
     const { entryId, collection, locale, name, fields, metadata } = req
@@ -181,7 +180,7 @@ function start({ communication }) {
       throw createError(404)
     }
 
-    const updateAttrsBeforeFullDataMerge = Object.assign({}, payload)
+    const updateAttrsBeforeFullDataMerge = { ...payload }
 
     const updateAttrs = {
       collection,
@@ -190,7 +189,7 @@ function start({ communication }) {
     }
 
     if (fields) {
-      const newFields = Object.assign({}, entry.fields)
+      const newFields = { ...entry.fields }
       Object.keys(fields).forEach((key) => {
         const value = fields[key]
 
@@ -235,8 +234,8 @@ function start({ communication }) {
   })
 
   responder.on('remove', async (req) => {
-    const platformId = req.platformId
-    const env = req.env
+    const { platformId } = req
+    const { env } = req
     const { Entry } = await getModels({ platformId, env })
 
     const { entryId } = req

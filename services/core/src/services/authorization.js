@@ -2,7 +2,7 @@ const bluebird = require('bluebird')
 const { Acl } = require('virgen-acl')
 const _ = require('lodash')
 
-const { getModels } = require('@saltana/db')
+const { getModels } = require('../db')
 
 const {
   getPermissionsDefObjects,

@@ -3,8 +3,8 @@ const _ = require('lodash')
 const bluebird = require('bluebird')
 const { raw } = require('@saltana/objection')
 
-const { getModels } = require('@saltana/db')
 const { getObjectId } = require('@saltana/util-keys')
+const { getModels } = require('../db')
 const { logError } = require('../../server/logger')
 
 const {
@@ -162,7 +162,7 @@ function start({ communication }) {
       throw createError(
         400,
         `${type} Custom Attribute type does not accept a list of values. ` +
-          `Please use ${CustomAttribute.listValuesTypes.join(' or ')} type.`,
+        `Please use ${CustomAttribute.listValuesTypes.join(' or ')} type.`,
       )
     }
 
@@ -262,7 +262,7 @@ function start({ communication }) {
       throw createError(
         422,
         `${customAttribute.type} Custom Attribute type does not allow a list of values. ` +
-          `Please use ${CustomAttribute.listValuesTypes.join(' or ')} type.`,
+        `Please use ${CustomAttribute.listValuesTypes.join(' or ')} type.`,
       )
     }
 
@@ -278,7 +278,7 @@ function start({ communication }) {
         throw createError(
           422,
           `${nbAssets} Asset${nbAssets > 1 ? 's' : ''} have ` +
-            'Custom Attribute values not fitting into this new list of values.',
+          'Custom Attribute values not fitting into this new list of values.',
         )
       }
     }

@@ -1,6 +1,7 @@
 const bluebird = require('bluebird')
 const Knex = require('knex')
 const config = require('config')
+const { getModels, models } = require('@saltana/db')
 
 // Proper migration would be needed to update PostgreSQL function name
 const jsonDeepMergeDef = require('@saltana/utils/src/stl_jsonb_deep_merge')
@@ -48,8 +49,10 @@ async function dropColumnsIfExist(knex, tableName, columns) {
  * @param {String}  [returnKnex = false] - if true, knex is returned so it can be reused
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
-async function createSchema({ connection, schema, knex, returnKnex = false }) {
-  // if (!knex) knex = getKnex({ connection, schema })
+async function createSchema({ schema, knex, returnKnex = false }) {
+  if (!knex) {
+    knex = getKnex({ connection, schema })
+  }
   if (!knex) {
     throw new Error('Missing knex')
   }
@@ -78,13 +81,14 @@ async function createSchema({ connection, schema, knex, returnKnex = false }) {
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
 async function dropSchema({
-  connection,
   schema,
   knex,
   cascade = false,
   returnKnex = false,
 }) {
-  if (!knex) knex = getKnex({ connection, schema })
+  if (!knex) {
+    throw new Error('Missing knex')
+  }
 
   let sqlQuery = 'DROP SCHEMA IF EXISTS ??'
 
@@ -110,13 +114,10 @@ async function dropSchema({
  * @param {String}  [returnKnex = false] - if true, knex is returned so it can be reused
  * @return {Object|Undefined} returns knex if `returnKnex` is true
  */
-async function dropSchemaViews({
-  connection,
-  schema,
-  knex,
-  returnKnex = false,
-}) {
-  if (!knex) knex = getKnex({ connection, schema })
+async function dropSchemaViews({ schema, knex, returnKnex = false }) {
+  if (!knex) {
+    throw new Error('Missing knex')
+  }
 
   const viewsQuery =
     'SELECT table_name FROM INFORMATION_SCHEMA.views WHERE table_schema = ?'
