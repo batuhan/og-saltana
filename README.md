@@ -1,5 +1,8 @@
 # Saltana
 
+# Archived project. 
+## We are not using this codebase, this was an early attempt at an MVP for Minipage (then Saltana)
+
 This repository is the monorepo for every internal Saltana project. This includes development environment, docs, build tools, forks and more.
 
 _Services_ are deployed projects (web apps, api, workers) and _Packages_ are shared code to be used in those services (or partner services). Currently no packages are published.
